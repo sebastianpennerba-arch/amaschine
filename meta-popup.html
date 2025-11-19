@@ -5,20 +5,37 @@
 </head>
 <body>
 <script>
-    // Extract ?code= from URL
+    // Extract ?code from OAuth redirect
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
 
-    if (code) {
-        // Send code back to parent window
-        window.opener.postMessage(
-            { type: "META_AUTH_CODE", code },
-            window.location.origin
-        );
+    if (!code) {
+        window.close();
     }
 
-    // Close popup
-    window.close();
+    // Austauschen: Code gegen Access Token
+    fetch("/api/meta-auth?code=" + code)
+        .then(res => res.json())
+        .then(data => {
+            if (data.access_token) {
+                // Token zurück ins Hauptfenster schicken
+                window.opener.postMessage(
+                    { access_token: data.access_token },
+                    "*"
+                );
+            } else {
+                window.opener.postMessage(
+                    { error: "Token exchange failed" },
+                    "*"
+                );
+            }
+
+            window.close();
+        })
+        .catch(err => {
+            window.opener.postMessage({ error: "Token exchange failed" }, "*");
+            window.close();
+        });
 </script>
 
 <p>Meta Login erfolgreich. Dieses Fenster kann geschlossen werden.</p>
