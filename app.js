@@ -1,12 +1,12 @@
 // ======================================================
-// AdStream Analytics - Meta Live + Simulated Mock Mode
+// AdStream Analytics – FULL VERSION with UNIVERSAL MOCK LOADER
 // ======================================================
 
+// GLOBAL STATE
 const MetaState = {
   token: null,
   period: "24h",
   accountId: null,
-  accounts: [],
   campaigns: [],
   selectedCampaignId: null,
   kpi: null,
@@ -14,8 +14,11 @@ const MetaState = {
   filter: "all",
 };
 
-window.mockMode = false;
+let MOCK_MODE = false;
 
+// --------------------------------------------------------------------
+// FORMATTER
+// --------------------------------------------------------------------
 const fmt = {
   num: (v, d = 0) =>
     Number(v || 0).toLocaleString("de-DE", {
@@ -26,90 +29,149 @@ const fmt = {
     Number(v || 0).toLocaleString("de-DE", {
       style: "currency",
       currency: "EUR",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     }),
   pct: (v) =>
     (Number(v || 0)).toFixed(2).replace(".", ",") + " %",
 };
 
+// --------------------------------------------------------------------
+// INIT
+// --------------------------------------------------------------------
 window.addEventListener("DOMContentLoaded", () => {
-  initDate();
+  setupMockToggle();
   setupPeriodToggle();
   setupFilterButtons();
-  setupModeToggle();
   setupMetaButton();
+  setupMetaPostMessage();
   restoreMetaSession();
-  updateMetaStatus();
+  initDate();
 });
 
-function initDate() {
-  const el = document.getElementById("currentDate");
-  if (!el) return;
-  const now = new Date();
-  const f = new Intl.DateTimeFormat("de-DE", {
-    weekday: "long",
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
-  el.textContent = f.format(now);
-}
-
-function showLoading(show) {
-  const el = document.getElementById("loading");
-  el.style.display = show ? "flex" : "none";
-}
-
-function setupPeriodToggle() {
-  const btns = document.querySelectorAll(".toggle-btn");
-  btns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      btns.forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      MetaState.period = btn.dataset.period === "7" ? "7d" : "24h";
-
-      if (window.mockMode) loadMockData();
-      else if (MetaState.token && MetaState.accountId) loadMetaData();
-    });
-  });
-}
-
-function setupModeToggle() {
-  const liveBtn = document.getElementById("mode-live");
-  const simBtn = document.getElementById("mode-sim");
+// --------------------------------------------------------------------
+// MOCK SWITCH
+// --------------------------------------------------------------------
+function setupMockToggle() {
+  const liveBtn = document.getElementById("liveModeBtn");
+  const mockBtn = document.getElementById("mockModeBtn");
 
   liveBtn.addEventListener("click", () => {
-    window.mockMode = false;
+    MOCK_MODE = false;
     liveBtn.classList.add("active");
-    simBtn.classList.remove("active");
-    updateMetaStatus();
-    if (MetaState.token) loadMetaData();
-    else clearDashboard();
+    mockBtn.classList.remove("active");
+    document.getElementById("mockStatus").innerHTML = "Live (Meta)";
+    loadMetaData();
   });
 
-  simBtn.addEventListener("click", () => {
-    window.mockMode = true;
-    simBtn.classList.add("active");
+  mockBtn.addEventListener("click", () => {
+    MOCK_MODE = true;
+    mockBtn.classList.add("active");
     liveBtn.classList.remove("active");
-    updateMetaStatus();
-    loadMockData();
+    document.getElementById("mockStatus").innerHTML = "Simulated Mode aktiv";
+    loadMockAdAccounts();
   });
 }
 
+// --------------------------------------------------------------------
+// UNIVERSAL MOCK LOADER
+// --------------------------------------------------------------------
+async function loadMockCreatives() {
+  console.log("Mock Mode → Lade Dateien aus /mock/...");
+
+  try {
+    const res = await fetch("/mock/");
+    const html = await res.text();
+
+    const files = [...html.matchAll(/href="([^"]+)"/g)]
+      .map((m) => m[1])
+      .filter((name) =>
+        name.match(/\.(jpg|jpeg|png|mp4)$/i) &&
+        !name.includes("..") &&
+        !name.startsWith("/")
+      );
+
+    console.log("Mock Files:", files);
+
+    MetaState.creatives = files.map((file, i) => {
+      const lower = file.toLowerCase();
+      const isVideo = lower.endsWith(".mp4");
+
+      return {
+        id: "mock_" + i,
+        name: file,
+        URL: "/mock/" + file,
+        mediaType: isVideo ? "video" : "image",
+        CTR: +(Math.random() * 3 + 1).toFixed(2),
+        CPC: +(Math.random() * 0.50 + 0.05).toFixed(2),
+        ROAS: +(Math.random() * 4).toFixed(2),
+      };
+    });
+
+    MetaState.kpi = generateMockInsights();
+    renderOverview();
+    renderFunnel();
+    renderKPIs();
+    renderCreatives();
+  } catch (err) {
+    console.error("Fehler im Mock Loader:", err);
+  }
+}
+
+// --------------------------------------------------------------------
+// MOCK – AdAccounts
+// --------------------------------------------------------------------
+function loadMockAdAccounts() {
+  MetaState.accountId = "mock_acc_1";
+
+  MetaState.campaigns = [
+    { id: "mockCamp1", name: "Mock Kampagne A" },
+    { id: "mockCamp2", name: "Mock Kampagne B" },
+  ];
+
+  MetaState.selectedCampaignId = "mockCamp1";
+
+  loadMockCreatives();
+}
+
+// --------------------------------------------------------------------
+// MOCK – Insights / KPIs
+// --------------------------------------------------------------------
+function generateMockInsights() {
+  const impressions = Math.floor(Math.random() * 80000 + 20000);
+  const clicks = Math.floor(impressions * (Math.random() * 0.04 + 0.01));
+  const purchases = Math.floor(clicks * (Math.random() * 0.05 + 0.01));
+  const spend = +(Math.random() * 800 + 200).toFixed(2);
+  const revenue = +(purchases * (Math.random() * 50 + 30)).toFixed(2);
+
+  return {
+    Impressions: impressions,
+    Clicks: clicks,
+    AddToCart: Math.floor(clicks * (Math.random() * 0.4)),
+    Purchases: purchases,
+    Revenue: revenue,
+    Spend: spend,
+    ROAS: revenue / spend,
+    CTR: clicks / impressions * 100,
+    CPC: spend / clicks,
+    AOV: purchases ? revenue / purchases : 0,
+    CR: purchases / clicks * 100,
+  };
+}
+
+// --------------------------------------------------------------------
+// META LOGIN FLOW
+// --------------------------------------------------------------------
 function setupMetaButton() {
   const btn = document.getElementById("connectMeta");
-  if (!btn) return;
-
   btn.addEventListener("click", () => {
-    if (window.mockMode) {
-      alert("Im Simulated Mode kein echter Meta-Login.");
+    if (MOCK_MODE) {
+      alert("Im Simulated Mode ist Meta Login deaktiviert.");
       return;
     }
 
     const appId = "732040642590155";
-
-    // WICHTIG: kompletter Fix – Redirect MUSS stimmen
-    const redirect = "https://amaschine.vercel.app/meta-popup.html";
-
+    const redirect = "https://amaschine.vercel.app/api/meta-auth";
     const scopes = "ads_management,ads_read,business_management";
 
     const authUrl =
@@ -119,152 +181,135 @@ function setupMetaButton() {
 
     window.open(authUrl, "metaAuth", "width=900,height=900");
   });
-
-  window.addEventListener("message", (event) => {
-    const data = event.data || {};
-    if (!data.access_token) return;
-
-    MetaState.token = data.access_token;
-    localStorage.setItem("meta_access_token", data.access_token);
-    window.mockMode = false;
-    updateMetaStatus();
-    loadMetaData();
-  });
 }
 
-function updateMetaStatus() {
-  const el = document.getElementById("metaStatus");
+function setupMetaPostMessage() {
+  window.addEventListener("message", (event) => {
+    if (!event.data?.access_token) return;
 
-  if (window.mockMode) {
-    el.textContent = "Simulated Mode aktiv";
-    el.classList.remove("red");
-    el.classList.add("green");
-    return;
-  }
+    MetaState.token = event.data.access_token;
+    localStorage.setItem("meta_access_token", MetaState.token);
 
-  if (!MetaState.token) {
-    el.textContent = "Meta nicht verbunden";
-    el.classList.add("red");
-    el.classList.remove("green");
-  } else {
-    el.textContent = "Meta verbunden";
-    el.classList.remove("red");
-    el.classList.add("green");
-  }
+    document.getElementById("metaStatus").textContent = "Meta verbunden";
+    document.getElementById("metaStatus").style.color = "green";
+
+    loadMetaData();
+  });
 }
 
 function restoreMetaSession() {
   const token = localStorage.getItem("meta_access_token");
   if (!token) return;
-
   MetaState.token = token;
-  window.mockMode = false;
-  updateMetaStatus();
   loadMetaData();
 }
 
-async function loadMetaData() {
-  if (window.mockMode) return loadMockData();
-  if (!MetaState.token) return;
-
-  try {
-    showLoading(true);
-
-    const accRes = await fetch("/api/meta-adaccounts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token: MetaState.token }),
+// --------------------------------------------------------------------
+// PERIOD SWITCH
+// --------------------------------------------------------------------
+function setupPeriodToggle() {
+  const btns = document.querySelectorAll(".toggle-btn");
+  btns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      btns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      MetaState.period = btn.dataset.period === "7" ? "7d" : "24h";
+      if (!MOCK_MODE) loadMetaData();
     });
-
-    const accJson = await accRes.json();
-    const accounts = accJson.data || accJson.accounts || [];
-    MetaState.accounts = accounts;
-
-    if (!accounts.length) {
-      clearDashboard();
-      return;
-    }
-
-    MetaState.accountId = accounts[0].account_id || accounts[0].id;
-
-    const preset = MetaState.period === "7d" ? "last_7d" : "yesterday";
-
-    const insRes = await fetch("/api/meta-insights", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        token: MetaState.token,
-        accountId: MetaState.accountId,
-        preset,
-      }),
-    });
-
-    const insJson = await insRes.json();
-    const row = insJson.data?.[0] || null;
-
-    if (!row) {
-      MetaState.kpi = null;
-      renderOverviewEmpty();
-      renderFunnelEmpty();
-      renderKPIsEmpty();
-    } else {
-      MetaState.kpi = mapInsightsRow(row);
-      renderOverview();
-      renderFunnel();
-      renderKPIs();
-    }
-
-    const campRes = await fetch("/api/meta-campaigns", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        token: MetaState.token,
-        accountId: MetaState.accountId,
-      }),
-    });
-
-    const campJson = await campRes.json();
-    const campaigns = campJson.data || [];
-    MetaState.campaigns = campaigns;
-
-    if (!campaigns.length) {
-      MetaState.creatives = [];
-      renderCreatives();
-      return;
-    }
-
-    MetaState.selectedCampaignId = campaigns[0].id;
-    await loadCreativesForCampaign(MetaState.selectedCampaignId);
-  } finally {
-    showLoading(false);
-  }
+  });
 }
 
+// --------------------------------------------------------------------
+// LOAD META DATA (REAL)
+// --------------------------------------------------------------------
+async function loadMetaData() {
+  if (MOCK_MODE) {
+    loadMockCreatives();
+    return;
+  }
+
+  console.log("Lade echte Meta-Daten…");
+
+  // 1) Accounts
+  const accRes = await fetch("/api/meta-adaccounts", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token: MetaState.token }),
+  });
+  const accJson = await accRes.json();
+  const accounts = accJson.data || [];
+
+  MetaState.accountId = accounts[0].account_id;
+
+  // 2) Insights
+  const preset = MetaState.period === "7d" ? "last_7d" : "yesterday";
+  const insRes = await fetch("/api/meta-insights", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      token: MetaState.token,
+      accountId: MetaState.accountId,
+      preset,
+    }),
+  });
+  const insJson = await insRes.json();
+  const row = insJson.data?.[0] || null;
+
+  if (row) MetaState.kpi = mapInsightsRow(row);
+
+  renderOverview();
+  renderFunnel();
+  renderKPIs();
+
+  // 3) Campaigns
+  const campRes = await fetch("/api/meta-campaigns", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      token: MetaState.token,
+      accountId: MetaState.accountId,
+    }),
+  });
+
+  const campJson = await campRes.json();
+  MetaState.campaigns = campJson.data || [];
+  MetaState.selectedCampaignId = MetaState.campaigns[0]?.id;
+
+  await loadCreativesForCampaign(MetaState.selectedCampaignId);
+}
+
+// --------------------------------------------------------------------
+// MAP INSIGHTS FROM META
+// --------------------------------------------------------------------
 function mapInsightsRow(row) {
   const imp = +row.impressions || 0;
   const clicks = +row.clicks || 0;
   const spend = +row.spend || 0;
-
-  const purchases =
-    row.actions?.find((a) => a.action_type?.includes("purchase"))?.value || 0;
-
-  const revenue =
-    row.action_values?.find((a) => a.action_type?.includes("purchase"))?.value ||
-    0;
-
   const ctr = parseFloat(row.ctr || 0);
   const cpc = parseFloat(row.cpc || 0);
-  const roas =
-    row.purchase_roas?.[0]?.value || (spend > 0 ? revenue / spend : 0);
-  const aov = purchases > 0 ? revenue / purchases : 0;
-  const cr = clicks > 0 ? (purchases / clicks) * 100 : 0;
+
+  let purchases = 0, revenue = 0;
+
+  if (Array.isArray(row.actions)) {
+    const p = row.actions.find((a) => a.action_type?.includes("purchase"));
+    if (p) purchases = +p.value || 0;
+  }
+  if (Array.isArray(row.action_values)) {
+    const v = row.action_values.find((a) => a.action_type?.includes("purchase"));
+    if (v) revenue = +v.value || 0;
+  }
+
+  let roas = spend > 0 ? revenue / spend : 0;
+
+  const aov = purchases ? revenue / purchases : 0;
+  const cr = clicks ? (purchases / clicks) * 100 : 0;
 
   return {
     Impressions: imp,
     Clicks: clicks,
     AddToCart: 0,
-    Purchases: +purchases,
-    Revenue: +revenue,
+    Purchases: purchases,
+    Revenue: revenue,
     Spend: spend,
     ROAS: roas,
     CTR: ctr,
@@ -274,59 +319,15 @@ function mapInsightsRow(row) {
   };
 }
 
-function loadMockData() {
-  showLoading(true);
-
-  MetaState.accounts = [{ id: "mock1", account_id: "mock1", name: "Mock Konto" }];
-  MetaState.accountId = "mock1";
-
-  MetaState.kpi = {
-    Impressions: 15000,
-    Clicks: 650,
-    AddToCart: 200,
-    Purchases: 30,
-    Revenue: 900,
-    Spend: 160,
-    ROAS: 5.6,
-    CTR: 4.2,
-    CPC: 0.25,
-    AOV: 30,
-    CR: 3.4,
-  };
-
-  renderOverview();
-  renderFunnel();
-  renderKPIs();
-
-  MetaState.creatives = [
-    {
-      id: "c1",
-      name: "Mock Creative 1",
-      mediaType: "image",
-      URL: "https://placehold.co/400x600",
-      CTR: 3.2,
-      CPC: 0.70,
-      ROAS: 4.5,
-    },
-  ];
-
-  renderCreatives();
-  showLoading(false);
-}
-
+// --------------------------------------------------------------------
+// LOAD CREATIVES (REAL)
+// --------------------------------------------------------------------
 async function loadCreativesForCampaign(campaignId) {
-  if (window.mockMode) return loadMockData();
-  if (!MetaState.token) return;
-
   const adsRes = await fetch("/api/meta-ads", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      token: MetaState.token,
-      campaignId,
-    }),
+    body: JSON.stringify({ token: MetaState.token, campaignId }),
   });
-
   const adsJson = await adsRes.json();
   const ads = adsJson.data || [];
 
@@ -355,94 +356,117 @@ async function loadCreativesForCampaign(campaignId) {
   renderCreatives();
 }
 
+// --------------------------------------------------------------------
+// FILTER BUTTONS
+// --------------------------------------------------------------------
 function setupFilterButtons() {
   const btns = document.querySelectorAll(".filter-btn");
-  btns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      btns.forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-
-      MetaState.filter = btn.dataset.filter;
+  btns.forEach((b) => {
+    b.addEventListener("click", () => {
+      btns.forEach((x) => x.classList.remove("active"));
+      b.classList.add("active");
+      MetaState.filter = b.dataset.filter;
       renderCreatives();
     });
   });
 }
 
+// --------------------------------------------------------------------
+// RENDER FUNCTIONS (Overview / KPIs / Creatives)
+// --------------------------------------------------------------------
 function renderOverview() {
+  const grid = document.getElementById("overviewGrid");
   const KPI = MetaState.kpi;
-  document.getElementById("overviewGrid").innerHTML = `
-    <div class="overview-card"><div class="metric-label">Impressions</div><div class="metric-value">${fmt.num(KPI.Impressions)}</div></div>
-    <div class="overview-card"><div class="metric-label">Clicks</div><div class="metric-value">${fmt.num(KPI.Clicks)}</div></div>
-    <div class="overview-card"><div class="metric-label">AddToCart</div><div class="metric-value">${fmt.num(KPI.AddToCart)}</div></div>
-    <div class="overview-card"><div class="metric-label">Purchases</div><div class="metric-value">${fmt.num(KPI.Purchases)}</div></div>
-    <div class="overview-card"><div class="metric-label">Revenue</div><div class="metric-value">${fmt.curr(KPI.Revenue)}</div></div>
-    <div class="overview-card"><div class="metric-label">Spend</div><div class="metric-value">${fmt.curr(KPI.Spend)}</div></div>
-    <div class="overview-card"><div class="metric-label">ROAS</div><div class="metric-value">${fmt.num(KPI.ROAS, 2)}</div></div>
-  `;
-}
+  if (!grid || !KPI) return;
 
-function renderOverviewEmpty() {
-  document.getElementById("overviewGrid").innerHTML =
-    `<div style="grid-column:1/-1;color:#666">Keine Daten.</div>`;
+  const cards = [
+    { label: "Impressions", val: KPI.Impressions },
+    { label: "Clicks", val: KPI.Clicks },
+    { label: "AddToCart", val: KPI.AddToCart },
+    { label: "Purchases", val: KPI.Purchases },
+    { label: "Revenue", val: fmt.curr(KPI.Revenue) },
+    { label: "Spend", val: fmt.curr(KPI.Spend) },
+    { label: "ROAS", val: fmt.num(KPI.ROAS, 2) },
+  ];
+
+  grid.innerHTML = cards
+    .map(
+      (c) => `
+    <div class="overview-card">
+      <div class="metric-label">${c.label}</div>
+      <div class="metric-value">${c.val}</div>
+    </div>
+  `
+    )
+    .join("");
 }
 
 function renderFunnel() {
+  const el = document.getElementById("funnelSteps");
   const KPI = MetaState.kpi;
-  document.getElementById("funnelSteps").innerHTML = `
-    <div class="funnel-step"><div class="metric-label">Impressions</div><div class="funnel-step-value">${fmt.num(KPI.Impressions)}</div></div>
-    <div class="funnel-step"><div class="metric-label">Clicks</div><div class="funnel-step-value">${fmt.num(KPI.Clicks)}</div></div>
-    <div class="funnel-step"><div class="metric-label">ATCs</div><div class="funnel-step-value">${fmt.num(KPI.AddToCart)}</div></div>
-    <div class="funnel-step"><div class="metric-label">Purchases</div><div class="funnel-step-value">${fmt.num(KPI.Purchases)}</div></div>
-  `;
-}
+  if (!el || !KPI) return;
 
-function renderFunnelEmpty() {
-  document.getElementById("funnelSteps").innerHTML =
-    `<div style="grid-column:1/-1;color:#666">Keine Daten.</div>`;
+  el.innerHTML = `
+    <div class="funnel-step"><div class="metric-label">Impressions</div><div>${fmt.num(KPI.Impressions)}</div></div>
+    <div class="funnel-step"><div class="metric-label">Clicks</div><div>${fmt.num(KPI.Clicks)}</div></div>
+    <div class="funnel-step"><div class="metric-label">ATCs</div><div>${fmt.num(KPI.AddToCart)}</div></div>
+    <div class="funnel-step"><div class="metric-label">Purchases</div><div>${fmt.num(KPI.Purchases)}</div></div>
+  `;
 }
 
 function renderKPIs() {
+  const el = document.getElementById("kpiGrid");
   const KPI = MetaState.kpi;
-  document.getElementById("kpiGrid").innerHTML = `
-    <div class="kpi-card"><div class="kpi-label">CTR</div><div class="kpi-value">${fmt.pct(KPI.CTR)}</div></div>
-    <div class="kpi-card"><div class="kpi-label">CPC</div><div class="kpi-value">${fmt.curr(KPI.CPC)}</div></div>
-    <div class="kpi-card"><div class="kpi-label">ROAS</div><div class="kpi-value">${fmt.num(KPI.ROAS,2)}</div></div>
-    <div class="kpi-card"><div class="kpi-label">AOV</div><div class="kpi-value">${fmt.curr(KPI.AOV)}</div></div>
-    <div class="kpi-card"><div class="kpi-label">CR</div><div class="kpi-value">${fmt.pct(KPI.CR)}</div></div>
-  `;
-}
+  if (!el || !KPI) return;
 
-function renderKPIsEmpty() {
-  document.getElementById("kpiGrid").innerHTML =
-    `<div style="grid-column:1/-1;color:#666">Keine Daten.</div>`;
+  const cards = [
+    { label: "CTR", val: fmt.pct(KPI.CTR) },
+    { label: "CPC", val: fmt.curr(KPI.CPC) },
+    { label: "ROAS", val: fmt.num(KPI.ROAS, 2) },
+    { label: "AOV", val: fmt.curr(KPI.AOV) },
+    { label: "CR", val: fmt.pct(KPI.CR) },
+  ];
+
+  el.innerHTML = cards
+    .map(
+      (c) => `
+    <div class="kpi-card">
+      <div class="kpi-label">${c.label}</div>
+      <div class="kpi-value">${c.val}</div>
+    </div>
+  `
+    )
+    .join("");
 }
 
 function renderCreatives() {
-  const grid = document.getElementById("creativeGrid");
+  const grid =
+    document.getElementById("creativesGrid") ||
+    document.querySelector(".creative-grid");
+
+  if (!grid) return;
+
   let items = MetaState.creatives;
 
-  if (MetaState.filter === "image") {
-    items = items.filter((c) => c.mediaType === "image");
-  }
-  if (MetaState.filter === "video") {
-    items = items.filter((c) => c.mediaType === "video");
-  }
+  if (MetaState.filter === "image") items = items.filter((c) => c.mediaType === "image");
+  if (MetaState.filter === "video") items = items.filter((c) => c.mediaType === "video");
 
   if (!items.length) {
     grid.innerHTML =
-      `<div style="grid-column:1/-1;color:#666">Keine Creatives.</div>`;
+      `<div style="grid-column:1/-1; color:#6B7280;">Keine Creatives gefunden.</div>`;
     return;
   }
 
   grid.innerHTML = items
     .map((c) => {
+      const isVideo = c.mediaType === "video";
+      const media = isVideo
+        ? `<video class="creative-media" controls src="${c.URL}"></video>`
+        : `<img class="creative-media" src="${c.URL}" />`;
+
       return `
         <div class="creative-card">
-          ${
-            c.mediaType === "video"
-              ? `<video class="creative-media" controls src="${c.URL}"></video>`
-              : `<img class="creative-media" src="${c.URL}">`
-          }
+          ${media}
           <div class="creative-metrics">
             <span>ROAS: ${fmt.num(c.ROAS, 2)}</span>
             <span>CTR: ${fmt.num(c.CTR, 2)}%</span>
@@ -454,9 +478,15 @@ function renderCreatives() {
     .join("");
 }
 
-function clearDashboard() {
-  document.getElementById("overviewGrid").innerHTML = "";
-  document.getElementById("funnelSteps").innerHTML = "";
-  document.getElementById("kpiGrid").innerHTML = "";
-  document.getElementById("creativeGrid").innerHTML = "";
+// --------------------------------------------------------------------
+function initDate() {
+  const el = document.getElementById("currentDate");
+  if (!el) return;
+  const now = new Date();
+  el.textContent = new Intl.DateTimeFormat("de-DE", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(now);
 }
