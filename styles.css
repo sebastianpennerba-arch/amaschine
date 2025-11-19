@@ -15,7 +15,7 @@
     --shadow-md: 0 2px 8px rgba(0,0,0,0.08);
 }
 
-* {
+{
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -392,6 +392,7 @@ body {
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
+
 
 
 
