@@ -1,15 +1,15 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>AdStream Analytics · AI-Powered Dashboard</title>
+  <title>AdStream Analytics · Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="/styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
   <div class="wrapper">
+    <!-- HEADER -->
     <header class="header">
       <div class="header-left">
         <div class="logo-container">
@@ -79,7 +79,7 @@
           <span class="score-trend">↗ +12% vs. letzte Periode</span>
         </div>
         <div class="score-visual">
-          <canvas id="scoreChart" width="200" height="200"></canvas>
+          <canvas id="scoreChart" width="120" height="120"></canvas>
           <div class="score-center">
             <div class="score-number" id="performanceScore">87</div>
             <div class="score-label">von 100</div>
@@ -92,12 +92,12 @@
             <strong>92/100</strong>
           </div>
           <div class="score-item">
-            <span class="score-dot" style="background: #0066FF"></span>
+            <span class="score-dot" style="background: #1a1a1a"></span>
             <span>Engagement Rate</span>
             <strong>85/100</strong>
           </div>
           <div class="score-item">
-            <span class="score-dot" style="background: #FF9500"></span>
+            <span class="score-dot" style="background: #f59e0b"></span>
             <span>Creative Quality</span>
             <strong>78/100</strong>
           </div>
@@ -177,9 +177,7 @@
             <button class="chart-filter" data-metric="revenue">Revenue</button>
           </div>
         </div>
-        <div class="chart-inner">
-          <canvas id="trendChart" height="80"></canvas>
-        </div>
+        <canvas id="trendChart" height="180"></canvas>
       </div>
     </section>
 
