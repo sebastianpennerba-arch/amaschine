@@ -1,50 +1,32 @@
-// pages/api/meta-ads.js
+// /api/meta-ads.js
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
-  const body =
-    typeof req.body === "string" ? JSON.parse(req.body || "{}") : (req.body || {});
-
-  const { token, campaignId } = body;
-
-  if (!token) {
-    return res.status(400).json({ error: "token ist erforderlich" });
-  }
-  if (!campaignId) {
-    return res.status(400).json({ error: "campaignId ist erforderlich" });
-  }
-
   try {
-    const fields = [
-      "id",
-      "name",
-      "status",
-      "effective_status",
-      "creative{thumbnail_url,object_story_spec,image_url,video_url}",
-    ].join(",");
+    const { token, campaignId } = req.body || {};
+    if (!token || !campaignId) {
+      return res.status(400).json({ error: "Missing token or campaignId" });
+    }
+
+    const version = process.env.META_API_VERSION || "v19.0";
 
     const url =
-      `https://graph.facebook.com/v19.0/${campaignId}/ads?` +
-      new URLSearchParams({
-        fields,
-        limit: "200",
-        access_token: token,
-      }).toString();
+      `https://graph.facebook.com/${version}/${campaignId}/ads` +
+      `?fields=id,name,creative{thumbnail_url,image_url,video_url,object_story_spec},` +
+      `insights{impressions,clicks,ctr,cpc,spend,actions,action_values}` +
+      `&limit=50` +
+      `&access_token=${encodeURIComponent(token)}`;
 
-    const r = await fetch(url);
-    const json = await r.json();
+    const fbRes = await fetch(url);
+    const json = await fbRes.json();
 
-    if (!r.ok) {
-      console.error("meta-ads error:", json);
-      return res.status(r.status).json({ error: "Meta Error", meta: json });
+    if (!fbRes.ok) {
+      console.error("ads error:", json);
+      return res.status(500).json(json);
     }
 
     return res.status(200).json(json);
   } catch (e) {
-    console.error("meta-ads server error:", e);
-    return res.status(500).json({ error: "Serverfehler in meta-ads" });
+    console.error("ads exception:", e);
+    return res.status(500).json({ error: "exception" });
   }
 }
