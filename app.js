@@ -553,28 +553,22 @@ function renderCreatives() {
 // Mock Mode: Live / Simulated
 // ======================================
 
-let MOCK_MODE = false;
+window.mockMode = false;
 
-function setupModeToggle() {
-  const liveBtn = document.getElementById("mode-live");
-  const mockBtn = document.getElementById("mode-mock");
+document.getElementById("mockButton").onclick = () => {
+  window.mockMode = true;
+  document.getElementById("mockButton").classList.add("active");
+  document.getElementById("liveButton").classList.remove("active");
+  renderCreatives();
+};
 
-  liveBtn.addEventListener("click", () => {
-    MOCK_MODE = false;
-    liveBtn.classList.add("active");
-    mockBtn.classList.remove("active");
-    console.log("Mode: LIVE (Meta)");
-    loadMetaData();
-  });
+document.getElementById("liveButton").onclick = () => {
+  window.mockMode = false;
+  document.getElementById("liveButton").classList.add("active");
+  document.getElementById("mockButton").classList.remove("active");
+  loadMetaData();
+};
 
-  mockBtn.addEventListener("click", () => {
-    MOCK_MODE = true;
-    mockBtn.classList.add("active");
-    liveBtn.classList.remove("active");
-    console.log("Mode: SIMULATED (Mock)");
-    loadMockData();
-  });
-}
 
 window.addEventListener("DOMContentLoaded", () => {
   setupModeToggle();
@@ -620,6 +614,7 @@ if (campSelect) {
   document.getElementById("metaStatus").textContent = "Simulated Mode aktiv";
   document.getElementById("metaStatus").style.color = "purple";
 }
+
 
 
 
