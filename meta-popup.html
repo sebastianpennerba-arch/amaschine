@@ -1,43 +1,45 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Meta Auth</title>
-</head>
+<head><title>Meta Auth</title></head>
 <body>
 <script>
-    // Extract ?code from OAuth redirect
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
+  // 1) Code aus der URL holen
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get("code");
 
-    if (!code) {
-        window.close();
-    }
+  if (!code) {
+    window.close();
+  }
 
-    // Austauschen: Code gegen Access Token
-    fetch("/api/meta-auth?code=" + code)
-        .then(res => res.json())
-        .then(data => {
-            if (data.access_token) {
-                // Token zurück ins Hauptfenster schicken
-                window.opener.postMessage(
-                    { access_token: data.access_token },
-                    "*"
-                );
-            } else {
-                window.opener.postMessage(
-                    { error: "Token exchange failed" },
-                    "*"
-                );
-            }
+  // 2) Code → Token über dein Backend austauschen
+  fetch("/api/meta-auth?code=" + code)
+    .then(r => r.json())
+    .then(data => {
+      // 3) Token ans Hauptfenster senden
+      if (data.access_token) {
+        window.opener.postMessage(
+          { access_token: data.access_token },
+          "*"    // wichtig!
+        );
+      } else {
+        window.opener.postMessage(
+          { error: "token_failed" },
+          "*"
+        );
+      }
 
-            window.close();
-        })
-        .catch(err => {
-            window.opener.postMessage({ error: "Token exchange failed" }, "*");
-            window.close();
-        });
+      // 4) Popup schließen
+      window.close();
+    })
+    .catch(() => {
+      window.opener.postMessage(
+        { error: "token_failed" },
+        "*"
+      );
+      window.close();
+    });
 </script>
 
-<p>Meta Login erfolgreich. Dieses Fenster kann geschlossen werden.</p>
+<p>Meta Login erfolgreich.</p>
 </body>
 </html>
