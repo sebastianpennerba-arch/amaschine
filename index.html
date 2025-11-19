@@ -166,27 +166,10 @@
           "width=600,height=700"
       );
   };
-
-  // Listen for message from popup
-  window.addEventListener("message", async (event) => {
-      if (event.data?.type === "META_AUTH_CODE") {
-          const code = event.data.code;
-
-          // Exchange code on server
-          const res = await fetch(`/api/meta-auth?code=${code}`);
-          const data = await res.json();
-
-          if (data.success) {
-              alert("Meta erfolgreich verbunden!");
-              location.reload();
-          } else {
-              alert("Fehler: " + data.error);
-          }
-      }
-  });
 </script>
 </body>
 </html>
+
 
 
 
