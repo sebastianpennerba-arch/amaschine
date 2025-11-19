@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Meta Auth</title>
+</head>
+<body>
+<script>
+    // Extract ?code= from URL
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+
+    if (code) {
+        // Send code back to parent window
+        window.opener.postMessage(
+            { type: "META_AUTH_CODE", code },
+            window.location.origin
+        );
+    }
+
+    // Close popup
+    window.close();
+</script>
+
+<p>Meta Login erfolgreich. Dieses Fenster kann geschlossen werden.</p>
+</body>
+</html>
