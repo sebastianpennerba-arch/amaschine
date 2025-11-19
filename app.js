@@ -43,17 +43,22 @@ window.addEventListener("DOMContentLoaded", () => {
   restoreMetaSession();
 });
 
-window.addEventListener("message", event => {
+window.addEventListener("message", (event) => {
   if (event.data.access_token) {
-    console.log("REAL META TOKEN:", event.data.access_token);
-
     MetaState.token = event.data.access_token;
     localStorage.setItem("meta_access_token", event.data.access_token);
 
-    updateMetaStatus();
+    document.getElementById("metaStatus").innerText = "Meta verbunden";
+    document.getElementById("metaStatus").style.color = "green";
+
     loadMetaData();
   }
+
+  if (event.data.error) {
+    alert("Meta Login fehlgeschlagen: " + event.data.error);
+  }
 });
+
 
 
 // ------------------------------------------------------
@@ -544,6 +549,7 @@ function renderCreatives() {
     })
     .join("");
 }
+
 
 
 
