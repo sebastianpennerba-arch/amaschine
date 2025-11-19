@@ -44,18 +44,13 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 window.addEventListener("message", (event) => {
-  if (event.data?.type === "META_AUTH_SUCCESS") {
-    const token = event.data.token;
-
-    localStorage.setItem("meta_access_token", token);
-
-    document.querySelector("#meta-status").innerText = "Meta verbunden";
-    document.querySelector("#meta-status").style.color = "green";
-
-    loadMetaData(token);
+  if (event.data.access_token) {
+    MetaState.token = event.data.access_token;
+    localStorage.setItem("meta_access_token", event.data.access_token);
+    updateMetaStatus();
+    loadMetaData();
   }
 });
-
 
 // ------------------------------------------------------
 // UI Helpers
@@ -545,4 +540,5 @@ function renderCreatives() {
     })
     .join("");
 }
+
 
