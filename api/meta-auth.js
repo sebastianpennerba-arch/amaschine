@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     const secret = process.env.META_APP_SECRET;
     const version = process.env.META_API_VERSION || "v19.0";
 
-    // Muss exakt mit meta-popup.html übereinstimmen
+    // MUSS exakt der Redirect sein, den Facebook benutzt
     const redirect = "https://amaschine.vercel.app/meta-popup.html";
 
     const tokenUrl =
