@@ -56,7 +56,6 @@ function initDate() {
 
 function showLoading(show) {
   const el = document.getElementById("loading");
-  if (!el) return;
   el.style.display = show ? "flex" : "none";
 }
 
@@ -68,11 +67,8 @@ function setupPeriodToggle() {
       btn.classList.add("active");
       MetaState.period = btn.dataset.period === "7" ? "7d" : "24h";
 
-      if (window.mockMode) {
-        loadMockData();
-      } else if (MetaState.token && MetaState.accountId) {
-        loadMetaData();
-      }
+      if (window.mockMode) loadMockData();
+      else if (MetaState.token && MetaState.accountId) loadMetaData();
     });
   });
 }
@@ -105,12 +101,15 @@ function setupMetaButton() {
 
   btn.addEventListener("click", () => {
     if (window.mockMode) {
-      alert("Simulated Mode – kein echter Login.");
+      alert("Im Simulated Mode kein echter Meta-Login.");
       return;
     }
 
     const appId = "732040642590155";
-    const redirect = "https://amaschine.vercel.app/api/meta-auth";
+
+    // WICHTIG: kompletter Fix – Redirect MUSS stimmen
+    const redirect = "https://amaschine.vercel.app/meta-popup.html";
+
     const scopes = "ads_management,ads_read,business_management";
 
     const authUrl =
@@ -135,7 +134,6 @@ function setupMetaButton() {
 
 function updateMetaStatus() {
   const el = document.getElementById("metaStatus");
-  if (!el) return;
 
   if (window.mockMode) {
     el.textContent = "Simulated Mode aktiv";
@@ -158,13 +156,13 @@ function updateMetaStatus() {
 function restoreMetaSession() {
   const token = localStorage.getItem("meta_access_token");
   if (!token) return;
+
   MetaState.token = token;
   window.mockMode = false;
   updateMetaStatus();
   loadMetaData();
 }
 
-// ==== LIVE MODE ====
 async function loadMetaData() {
   if (window.mockMode) return loadMockData();
   if (!MetaState.token) return;
@@ -189,7 +187,6 @@ async function loadMetaData() {
 
     MetaState.accountId = accounts[0].account_id || accounts[0].id;
 
-    // INSIGHTS
     const preset = MetaState.period === "7d" ? "last_7d" : "yesterday";
 
     const insRes = await fetch("/api/meta-insights", {
@@ -277,7 +274,6 @@ function mapInsightsRow(row) {
   };
 }
 
-// ==== MOCK MODE ====
 function loadMockData() {
   showLoading(true);
 
@@ -318,7 +314,6 @@ function loadMockData() {
   showLoading(false);
 }
 
-// ==== LIVE CREATIVES ====
 async function loadCreativesForCampaign(campaignId) {
   if (window.mockMode) return loadMockData();
   if (!MetaState.token) return;
@@ -374,9 +369,8 @@ function setupFilterButtons() {
 }
 
 function renderOverview() {
-  const grid = document.getElementById("overviewGrid");
   const KPI = MetaState.kpi;
-  grid.innerHTML = `
+  document.getElementById("overviewGrid").innerHTML = `
     <div class="overview-card"><div class="metric-label">Impressions</div><div class="metric-value">${fmt.num(KPI.Impressions)}</div></div>
     <div class="overview-card"><div class="metric-label">Clicks</div><div class="metric-value">${fmt.num(KPI.Clicks)}</div></div>
     <div class="overview-card"><div class="metric-label">AddToCart</div><div class="metric-value">${fmt.num(KPI.AddToCart)}</div></div>
