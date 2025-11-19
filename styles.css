@@ -176,6 +176,14 @@ body {
     margin-top: 5px;
 }
 
+.status.red {
+  color: #e3342f; /* rot */
+}
+.status.green {
+  color: #38a169; /* grün */
+}
+
+
 /* ========================= FUNNEL ========================= */
 .funnel-section {
     margin-top: 30px;
@@ -365,4 +373,5 @@ body {
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
+
 
