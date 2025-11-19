@@ -59,7 +59,7 @@ async function loadMetaData() {
   const token = user.unsafeMetadata.meta_token;
 
   // Zur Demo hart ein Account ID:
-  const adAccountId = "732040642590155";
+  const adAccountId = "1147027830286117";
 
   try {
     const response = await fetch("/api/meta-insights", {
@@ -169,5 +169,6 @@ document.querySelectorAll(".toggle-btn").forEach((b) => {
     loadDummyData();
   });
 });
+
 
 
