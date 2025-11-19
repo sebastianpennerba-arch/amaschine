@@ -1,5 +1,5 @@
 // ======================================================
-// AdStream Analytics – FULL VERSION with UNIVERSAL MOCK LOADER
+// AdStream Analytics – KORRIGIERTE VERSION
 // ======================================================
 
 // GLOBAL STATE
@@ -14,7 +14,7 @@ const MetaState = {
   filter: "all",
 };
 
-let MOCK_MODE = false;
+let MOCK_MODE = true; // Standardmäßig im Mock-Modus starten
 
 // --------------------------------------------------------------------
 // FORMATTER
@@ -47,29 +47,61 @@ window.addEventListener("DOMContentLoaded", () => {
   setupMetaPostMessage();
   restoreMetaSession();
   initDate();
+  
+  // Mock-Modus beim Start laden
+  if (MOCK_MODE) {
+    loadMockCreatives();
+  }
 });
 
 // --------------------------------------------------------------------
 // MOCK SWITCH
 // --------------------------------------------------------------------
 function setupMockToggle() {
-  const liveBtn = document.getElementById("liveModeBtn");
-  const mockBtn = document.getElementById("mockModeBtn");
+  const liveBtn = document.getElementById("mode-live");
+  const mockBtn = document.getElementById("mode-sim");
+
+  if (!liveBtn || !mockBtn) {
+    console.error("Mode Toggle Buttons nicht gefunden!");
+    return;
+  }
 
   liveBtn.addEventListener("click", () => {
     MOCK_MODE = false;
     liveBtn.classList.add("active");
     mockBtn.classList.remove("active");
-    document.getElementById("mockStatus").innerHTML = "Live (Meta)";
-    loadMetaData();
+    
+    const status = document.getElementById("metaStatus");
+    if (status) {
+      status.textContent = MetaState.token ? "Meta verbunden" : "Meta nicht verbunden";
+      status.className = MetaState.token ? "status green" : "status red";
+    }
+    
+    if (MetaState.token) {
+      loadMetaData();
+    } else {
+      // Daten zurücksetzen wenn kein Token
+      MetaState.kpi = null;
+      MetaState.creatives = [];
+      renderOverview();
+      renderFunnel();
+      renderKPIs();
+      renderCreatives();
+    }
   });
 
   mockBtn.addEventListener("click", () => {
     MOCK_MODE = true;
     mockBtn.classList.add("active");
     liveBtn.classList.remove("active");
-    document.getElementById("mockStatus").innerHTML = "Simulated Mode aktiv";
-    loadMockAdAccounts();
+    
+    const status = document.getElementById("metaStatus");
+    if (status) {
+      status.textContent = "Simulated Mode aktiv";
+      status.className = "status green";
+    }
+    
+    loadMockCreatives();
   });
 }
 
@@ -119,22 +151,6 @@ async function loadMockCreatives() {
 }
 
 // --------------------------------------------------------------------
-// MOCK – AdAccounts
-// --------------------------------------------------------------------
-function loadMockAdAccounts() {
-  MetaState.accountId = "mock_acc_1";
-
-  MetaState.campaigns = [
-    { id: "mockCamp1", name: "Mock Kampagne A" },
-    { id: "mockCamp2", name: "Mock Kampagne B" },
-  ];
-
-  MetaState.selectedCampaignId = "mockCamp1";
-
-  loadMockCreatives();
-}
-
-// --------------------------------------------------------------------
 // MOCK – Insights / KPIs
 // --------------------------------------------------------------------
 function generateMockInsights() {
@@ -164,6 +180,8 @@ function generateMockInsights() {
 // --------------------------------------------------------------------
 function setupMetaButton() {
   const btn = document.getElementById("connectMeta");
+  if (!btn) return;
+  
   btn.addEventListener("click", () => {
     if (MOCK_MODE) {
       alert("Im Simulated Mode ist Meta Login deaktiviert.");
@@ -171,7 +189,7 @@ function setupMetaButton() {
     }
 
     const appId = "732040642590155";
-    const redirect = "https://amaschine.vercel.app/api/meta-auth";
+    const redirect = "https://amaschine.vercel.app/meta-popup.html";
     const scopes = "ads_management,ads_read,business_management";
 
     const authUrl =
@@ -190,18 +208,33 @@ function setupMetaPostMessage() {
     MetaState.token = event.data.access_token;
     localStorage.setItem("meta_access_token", MetaState.token);
 
-    document.getElementById("metaStatus").textContent = "Meta verbunden";
-    document.getElementById("metaStatus").style.color = "green";
+    const status = document.getElementById("metaStatus");
+    if (status) {
+      status.textContent = "Meta verbunden";
+      status.className = "status green";
+    }
 
-    loadMetaData();
+    if (!MOCK_MODE) {
+      loadMetaData();
+    }
   });
 }
 
 function restoreMetaSession() {
   const token = localStorage.getItem("meta_access_token");
   if (!token) return;
+  
   MetaState.token = token;
-  loadMetaData();
+  
+  const status = document.getElementById("metaStatus");
+  if (status && !MOCK_MODE) {
+    status.textContent = "Meta verbunden";
+    status.className = "status green";
+  }
+  
+  if (!MOCK_MODE) {
+    loadMetaData();
+  }
 }
 
 // --------------------------------------------------------------------
@@ -214,7 +247,12 @@ function setupPeriodToggle() {
       btns.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
       MetaState.period = btn.dataset.period === "7" ? "7d" : "24h";
-      if (!MOCK_MODE) loadMetaData();
+      
+      if (MOCK_MODE) {
+        loadMockCreatives();
+      } else if (MetaState.token) {
+        loadMetaData();
+      }
     });
   });
 }
@@ -228,54 +266,72 @@ async function loadMetaData() {
     return;
   }
 
+  if (!MetaState.token) {
+    console.warn("Kein Meta Token vorhanden");
+    return;
+  }
+
   console.log("Lade echte Meta-Daten…");
 
-  // 1) Accounts
-  const accRes = await fetch("/api/meta-adaccounts", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token: MetaState.token }),
-  });
-  const accJson = await accRes.json();
-  const accounts = accJson.data || [];
+  try {
+    // 1) Accounts
+    const accRes = await fetch("/api/meta-adaccounts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: MetaState.token }),
+    });
+    const accJson = await accRes.json();
+    const accounts = accJson.data || [];
 
-  MetaState.accountId = accounts[0].account_id;
+    if (!accounts.length) {
+      console.warn("Keine Werbekonten gefunden");
+      return;
+    }
 
-  // 2) Insights
-  const preset = MetaState.period === "7d" ? "last_7d" : "yesterday";
-  const insRes = await fetch("/api/meta-insights", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      token: MetaState.token,
-      accountId: MetaState.accountId,
-      preset,
-    }),
-  });
-  const insJson = await insRes.json();
-  const row = insJson.data?.[0] || null;
+    MetaState.accountId = accounts[0].account_id;
 
-  if (row) MetaState.kpi = mapInsightsRow(row);
+    // 2) Insights
+    const preset = MetaState.period === "7d" ? "last_7d" : "yesterday";
+    const insRes = await fetch("/api/meta-insights", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        token: MetaState.token,
+        accountId: MetaState.accountId,
+        preset,
+      }),
+    });
+    const insJson = await insRes.json();
+    const row = insJson.data?.[0] || null;
 
-  renderOverview();
-  renderFunnel();
-  renderKPIs();
+    if (row) {
+      MetaState.kpi = mapInsightsRow(row);
+    }
 
-  // 3) Campaigns
-  const campRes = await fetch("/api/meta-campaigns", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      token: MetaState.token,
-      accountId: MetaState.accountId,
-    }),
-  });
+    renderOverview();
+    renderFunnel();
+    renderKPIs();
 
-  const campJson = await campRes.json();
-  MetaState.campaigns = campJson.data || [];
-  MetaState.selectedCampaignId = MetaState.campaigns[0]?.id;
+    // 3) Campaigns
+    const campRes = await fetch("/api/meta-campaigns", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        token: MetaState.token,
+        accountId: MetaState.accountId,
+      }),
+    });
 
-  await loadCreativesForCampaign(MetaState.selectedCampaignId);
+    const campJson = await campRes.json();
+    MetaState.campaigns = campJson.data || [];
+    
+    if (MetaState.campaigns.length > 0) {
+      MetaState.selectedCampaignId = MetaState.campaigns[0]?.id;
+      await loadCreativesForCampaign(MetaState.selectedCampaignId);
+    }
+  } catch (err) {
+    console.error("Fehler beim Laden der Meta-Daten:", err);
+  }
 }
 
 // --------------------------------------------------------------------
@@ -323,37 +379,43 @@ function mapInsightsRow(row) {
 // LOAD CREATIVES (REAL)
 // --------------------------------------------------------------------
 async function loadCreativesForCampaign(campaignId) {
-  const adsRes = await fetch("/api/meta-ads", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token: MetaState.token, campaignId }),
-  });
-  const adsJson = await adsRes.json();
-  const ads = adsJson.data || [];
+  if (!campaignId) return;
+  
+  try {
+    const adsRes = await fetch("/api/meta-ads", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: MetaState.token, campaignId }),
+    });
+    const adsJson = await adsRes.json();
+    const ads = adsJson.data || [];
 
-  MetaState.creatives = ads.map((ad) => {
-    const cr = ad.creative || {};
-    const thumb =
-      cr.thumbnail_url ||
-      cr.image_url ||
-      cr.video_url ||
-      cr?.object_story_spec?.link_data?.picture ||
-      "";
+    MetaState.creatives = ads.map((ad) => {
+      const cr = ad.creative || {};
+      const thumb =
+        cr.thumbnail_url ||
+        cr.image_url ||
+        cr.video_url ||
+        cr?.object_story_spec?.link_data?.picture ||
+        "";
 
-    const isVideo = thumb.toLowerCase().includes(".mp4");
+      const isVideo = thumb.toLowerCase().includes(".mp4");
 
-    return {
-      id: ad.id,
-      name: ad.name || "Creative",
-      URL: thumb,
-      mediaType: isVideo ? "video" : "image",
-      CTR: MetaState.kpi.CTR,
-      CPC: MetaState.kpi.CPC,
-      ROAS: MetaState.kpi.ROAS,
-    };
-  });
+      return {
+        id: ad.id,
+        name: ad.name || "Creative",
+        URL: thumb,
+        mediaType: isVideo ? "video" : "image",
+        CTR: MetaState.kpi?.CTR || 0,
+        CPC: MetaState.kpi?.CPC || 0,
+        ROAS: MetaState.kpi?.ROAS || 0,
+      };
+    });
 
-  renderCreatives();
+    renderCreatives();
+  } catch (err) {
+    console.error("Fehler beim Laden der Creatives:", err);
+  }
 }
 
 // --------------------------------------------------------------------
@@ -372,18 +434,23 @@ function setupFilterButtons() {
 }
 
 // --------------------------------------------------------------------
-// RENDER FUNCTIONS (Overview / KPIs / Creatives)
+// RENDER FUNCTIONS
 // --------------------------------------------------------------------
 function renderOverview() {
   const grid = document.getElementById("overviewGrid");
   const KPI = MetaState.kpi;
-  if (!grid || !KPI) return;
+  if (!grid) return;
+  
+  if (!KPI) {
+    grid.innerHTML = '<div style="grid-column:1/-1; color:#6B7280;">Keine Daten verfügbar</div>';
+    return;
+  }
 
   const cards = [
-    { label: "Impressions", val: KPI.Impressions },
-    { label: "Clicks", val: KPI.Clicks },
-    { label: "AddToCart", val: KPI.AddToCart },
-    { label: "Purchases", val: KPI.Purchases },
+    { label: "Impressions", val: fmt.num(KPI.Impressions) },
+    { label: "Clicks", val: fmt.num(KPI.Clicks) },
+    { label: "AddToCart", val: fmt.num(KPI.AddToCart) },
+    { label: "Purchases", val: fmt.num(KPI.Purchases) },
     { label: "Revenue", val: fmt.curr(KPI.Revenue) },
     { label: "Spend", val: fmt.curr(KPI.Spend) },
     { label: "ROAS", val: fmt.num(KPI.ROAS, 2) },
@@ -404,7 +471,12 @@ function renderOverview() {
 function renderFunnel() {
   const el = document.getElementById("funnelSteps");
   const KPI = MetaState.kpi;
-  if (!el || !KPI) return;
+  if (!el) return;
+  
+  if (!KPI) {
+    el.innerHTML = '<div style="color:#6B7280;">Keine Daten verfügbar</div>';
+    return;
+  }
 
   el.innerHTML = `
     <div class="funnel-step"><div class="metric-label">Impressions</div><div>${fmt.num(KPI.Impressions)}</div></div>
@@ -417,7 +489,12 @@ function renderFunnel() {
 function renderKPIs() {
   const el = document.getElementById("kpiGrid");
   const KPI = MetaState.kpi;
-  if (!el || !KPI) return;
+  if (!el) return;
+  
+  if (!KPI) {
+    el.innerHTML = '<div style="grid-column:1/-1; color:#6B7280;">Keine Daten verfügbar</div>';
+    return;
+  }
 
   const cards = [
     { label: "CTR", val: fmt.pct(KPI.CTR) },
@@ -440,10 +517,7 @@ function renderKPIs() {
 }
 
 function renderCreatives() {
-  const grid =
-    document.getElementById("creativesGrid") ||
-    document.querySelector(".creative-grid");
-
+  const grid = document.getElementById("creativeGrid");
   if (!grid) return;
 
   let items = MetaState.creatives;
@@ -452,8 +526,7 @@ function renderCreatives() {
   if (MetaState.filter === "video") items = items.filter((c) => c.mediaType === "video");
 
   if (!items.length) {
-    grid.innerHTML =
-      `<div style="grid-column:1/-1; color:#6B7280;">Keine Creatives gefunden.</div>`;
+    grid.innerHTML = '<div style="grid-column:1/-1; color:#6B7280;">Keine Creatives gefunden.</div>';
     return;
   }
 
@@ -461,16 +534,17 @@ function renderCreatives() {
     .map((c) => {
       const isVideo = c.mediaType === "video";
       const media = isVideo
-        ? `<video class="creative-media" controls src="${c.URL}"></video>`
-        : `<img class="creative-media" src="${c.URL}" />`;
+        ? `<video class="creative-thumb" controls src="${c.URL}"></video>`
+        : `<img class="creative-thumb" src="${c.URL}" alt="${c.name}" />`;
 
       return `
         <div class="creative-card">
           ${media}
-          <div class="creative-metrics">
-            <span>ROAS: ${fmt.num(c.ROAS, 2)}</span>
-            <span>CTR: ${fmt.num(c.CTR, 2)}%</span>
-            <span>CPC: ${fmt.curr(c.CPC)}</span>
+          <div class="creative-title">${c.name}</div>
+          <div class="creative-kpis">
+            <span class="kpi-badge kpi-green">ROAS: ${fmt.num(c.ROAS, 2)}</span>
+            <span class="kpi-badge kpi-yellow">CTR: ${fmt.num(c.CTR, 2)}%</span>
+            <span class="kpi-badge kpi-red">CPC: ${fmt.curr(c.CPC)}</span>
           </div>
         </div>
       `;
