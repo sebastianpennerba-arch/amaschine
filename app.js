@@ -50,31 +50,40 @@ function setupMetaButton() {
 
 async function loadMetaData() {
   const user = Clerk.user;
+  const token = user.unsafeMetadata.meta_token;
 
-  if (!user || !user.unsafeMetadata || !user.unsafeMetadata.meta_token) {
-    console.log("Kein Meta Token gesetzt → Meta nicht verbunden.");
+  if (!token) {
+    console.log("Meta nicht verbunden.");
     return;
   }
 
-  const token = user.unsafeMetadata.meta_token;
+  // 1. Ad Accounts laden
+  const accResponse = await fetch("/api/meta-adaccounts", {
+    method: "POST",
+    body: JSON.stringify({ token }),
+  });
 
-  // Zur Demo hart ein Account ID:
-  const adAccountId = "1147027830286117";
+  const accounts = await accResponse.json();
+  console.log("Werbekonten:", accounts);
 
-  try {
-    const response = await fetch("/api/meta-insights", {
-      method: "POST",
-      body: JSON.stringify({
-        token: token,
-        accountId: adAccountId,
-      }),
-    });
+  const firstAccount = accounts.data?.[0]?.account_id;
+  if (!firstAccount) return;
 
-    const metaData = await response.json();
-    console.log("Meta Insights:", metaData);
-  } catch (err) {
-    console.error("Fehler Meta API:", err);
-  }
+  // 2. Insights laden
+  const insightResponse = await fetch("/api/meta-insights", {
+    method: "POST",
+    body: JSON.stringify({
+      token,
+      accountId: firstAccount,
+    }),
+  });
+
+  const insights = await insightResponse.json();
+  console.log("Insights:", insights);
+
+  // 3. Rendering
+  renderOverviewFromMeta(insights);
+  renderKPIsFromMeta(insights);
 }
 
 // ------------------------------
@@ -169,6 +178,7 @@ document.querySelectorAll(".toggle-btn").forEach((b) => {
     loadDummyData();
   });
 });
+
 
 
 
