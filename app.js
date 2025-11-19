@@ -537,4 +537,37 @@ function renderCreatives() {
     .join("");
 }
 
+// ======================================
+// Mock Mode: Live / Simulated
+// ======================================
+
+let MOCK_MODE = false;
+
+function setupModeToggle() {
+  const liveBtn = document.getElementById("mode-live");
+  const mockBtn = document.getElementById("mode-mock");
+
+  liveBtn.addEventListener("click", () => {
+    MOCK_MODE = false;
+    liveBtn.classList.add("active");
+    mockBtn.classList.remove("active");
+    console.log("Mode: LIVE (Meta)");
+    loadMetaData();
+  });
+
+  mockBtn.addEventListener("click", () => {
+    MOCK_MODE = true;
+    mockBtn.classList.add("active");
+    liveBtn.classList.remove("active");
+    console.log("Mode: SIMULATED (Mock)");
+    loadMockData();
+  });
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  setupModeToggle();
+});
+
+
+
 
