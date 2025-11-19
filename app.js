@@ -32,7 +32,7 @@ function setupMetaButton() {
   btn.addEventListener("click", () => {
     console.log("Meta verbinden geklickt.");
 
-    const metaAppId = "DEINE_META_APP_ID"; // <-- Ersetzen!
+    const metaAppId = "732040642590155"; // <-- Ersetzen!
 
     const authUrl =
       `https://www.facebook.com/v19.0/dialog/oauth?` +
@@ -169,4 +169,5 @@ document.querySelectorAll(".toggle-btn").forEach((b) => {
     loadDummyData();
   });
 });
+
 
