@@ -129,7 +129,10 @@ function setupMetaButton() {
 
 function updateMetaStatus() {
   const el = document.getElementById("metaStatus");
-  if (!el) return;
+  if (!el) {
+    console.warn("metaStatus Element fehlt");
+    return;
+  }
 
   if (!MetaState.token) {
     el.textContent = "Meta nicht verbunden";
@@ -141,6 +144,7 @@ function updateMetaStatus() {
     el.classList.add("green");
   }
 }
+
 
 function restoreMetaSession() {
   const token = localStorage.getItem("meta_access_token");
@@ -532,4 +536,5 @@ function renderCreatives() {
     })
     .join("");
 }
+
 
