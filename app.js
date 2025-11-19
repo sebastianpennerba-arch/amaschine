@@ -337,6 +337,17 @@ async function loadCampaignData() {
 
 // ============================ Creatives ============================
 async function loadCreativesForCampaign(campaignId) {
+
+  // 👇 Simulated Mode override
+  if (window.mockMode === true) {
+    const sim = await fetch("/api/mock-data");
+    const simJson = await sim.json();
+    MetaState.creatives = simJson.creatives;
+    renderCreatives();
+    return;
+  }
+
+  // ------- LIVE META -------
   if (!MetaState.token) return;
 
   const adsRes = await fetch("/api/meta-ads", {
@@ -349,8 +360,6 @@ async function loadCreativesForCampaign(campaignId) {
   });
 
   const adsJson = await adsRes.json();
-  console.log("Ads:", adsJson);
-
   const ads = adsJson.data || [];
   const kpi = MetaState.kpi || { CTR: 0, CPC: 0, ROAS: 0 };
 
@@ -360,16 +369,13 @@ async function loadCreativesForCampaign(campaignId) {
       cr.thumbnail_url ||
       cr.image_url ||
       cr.video_url ||
-      cr?.object_story_spec?.link_data?.picture ||
-      "";
-
-    const isVideo = typeof thumb === "string" && thumb.toLowerCase().includes(".mp4");
+      cr?.object_story_spec?.link_data?.picture || "";
 
     return {
       id: ad.id,
       name: ad.name || "Creative",
-      URL: thumb || "",
-      mediaType: isVideo ? "video" : "image",
+      mediaType: thumb.includes(".mp4") ? "video" : "image",
+      url: thumb,
       CTR: kpi.CTR,
       CPC: kpi.CPC,
       ROAS: kpi.ROAS,
@@ -378,6 +384,7 @@ async function loadCreativesForCampaign(campaignId) {
 
   renderCreatives();
 }
+
 
 function setupFilterButtons() {
   const btns = document.querySelectorAll(".filter-btn");
@@ -613,6 +620,7 @@ if (campSelect) {
   document.getElementById("metaStatus").textContent = "Simulated Mode aktiv";
   document.getElementById("metaStatus").style.color = "purple";
 }
+
 
 
 
