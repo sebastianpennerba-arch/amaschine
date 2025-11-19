@@ -1,0 +1,314 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --primary: #000000;
+    --accent: #0066FF;
+    --success: #00B870;
+    --warning: #FF9500;
+    --danger: #FF3B30;
+    --bg: #FFFFFF;
+    --bg-alt: #F8F9FA;
+    --text: #000000;
+    --text-light: #6B7280;
+    --border: #E5E7EB;
+    --shadow: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg-alt);
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* Wrapper */
+.wrapper {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* ========================= HEADER ========================= */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.logo {
+    height: 40px;
+}
+
+.divider {
+    width: 2px;
+    height: 35px;
+    background: var(--border);
+}
+
+.title {
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.date-display {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-light);
+}
+
+.btn {
+    background: var(--accent);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn:hover {
+    background: #005ADC;
+}
+
+/* ========================= TOGGLE ========================= */
+.toggle {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0 25px 0;
+}
+
+.toggle-btn {
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    font-size: 13px;
+    transition: 0.2s;
+}
+
+.toggle-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+/* ========================= SECTIONS ========================= */
+.section {
+    margin-top: 40px;
+    background: var(--bg);
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: var(--shadow-md);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 25px;
+}
+
+.section-number {
+    background: var(--accent);
+    color: white;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 8px 13px;
+    border-radius: 50%;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.section-subtitle {
+    color: var(--text-light);
+    font-size: 13px;
+}
+
+/* ========================= OVERVIEW GRID ========================= */
+.overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 15px;
+}
+
+.overview-card {
+    background: var(--bg-alt);
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+}
+
+.metric-label {
+    color: var(--text-light);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.metric-value {
+    font-size: 20px;
+    font-weight: 700;
+    margin-top: 5px;
+}
+
+/* ========================= FUNNEL ========================= */
+.funnel-section {
+    margin-top: 30px;
+}
+
+.funnel-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+.funnel-steps {
+    display: grid;
+    gap: 15px;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.funnel-step {
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+}
+
+.funnel-step-value {
+    font-size: 18px;
+    font-weight: 700;
+    margin-top: 8px;
+}
+
+/* ========================= KPIs ========================= */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+}
+
+.kpi-card {
+    background: var(--bg-alt);
+    padding: 18px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+}
+
+.kpi-label {
+    font-size: 13px;
+    color: var(--text-light);
+}
+
+.kpi-value {
+    font-size: 22px;
+    font-weight: 700;
+    margin-top: 5px;
+}
+
+/* ========================= CREATIVES ========================= */
+.filter-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.filter-btn {
+    padding: 7px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.filter-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+.creatives-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 18px;
+}
+
+.creative-card {
+    background: white;
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+}
+
+.creative-media {
+    width: 100%;
+    border-radius: 12px;
+    margin-bottom: 12px;
+}
+
+.creative-metrics {
+    font-size: 12px;
+    color: var(--text-light);
+    display: flex;
+    justify-content: space-between;
+}
+
+/* ========================= COLORS ========================= */
+.green { color: var(--success); }
+.yellow { color: var(--warning); }
+.red { color: var(--danger); }
+
+/* ========================= LOADING SPINNER ========================= */
+.loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(3px);
+    z-index: 999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.spinner {
+    width: 45px;
+    height: 45px;
+    border: 4px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}

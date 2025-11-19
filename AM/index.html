@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Elite Performance Dashboard</title>
+
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- ClerkJS Script -->
+  <script
+    async
+    crossorigin="anonymous"
+    data-clerk-publishable-key="pk_test_ZmVhc2libGUtY29yZ2ktMjEuY2xlcmsuYWNjb3VudHMuZGV2JA"
+    src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js">
+  </script>
+
+  <script>
+    window.Clerk.load().then(() => {
+      // Prüfen ob User eingeloggt ist
+      if (Clerk.user) {
+        showDashboard();
+      } else {
+        showLogin();
+      }
+    });
+  </script>
+
+  <script defer src="app.js"></script>
+  <script defer src="identity.js"></script>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div id="login-screen" class="login-container" style="display:none;">
+    <h2>Login</h2>
+    <button class="btn" onclick="Clerk.openSignIn()">Login</button>
+    <button class="btn" onclick="Clerk.openSignUp()">Registrieren</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboard-screen" style="display:none;">
+
+    <header class="header">
+      <h1>Elite Performance Dashboard</h1>
+      <button class="btn-secondary" onclick="Clerk.signOut()">Logout</button>
+    </header>
+
+    <!-- Period Toggle -->
+    <div class="toggle">
+      <button class="toggle-btn active" data-period="1">Letzte 24 Stunden</button>
+      <button class="toggle-btn" data-period="7">Letzte 7 Tage</button>
+    </div>
+
+    <!-- User Journey -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-number">1</div>
+        <div>
+          <div class="section-title">User Journey Überblick</div>
+          <div class="section-subtitle">Wichtigste Metriken auf einen Blick</div>
+        </div>
+      </div>
+
+      <div id="overviewGrid" class="overview-grid"></div>
+      <div class="funnel-section">
+        <div class="funnel-title">Conversion Funnel</div>
+        <div id="funnelSteps" class="funnel-steps"></div>
+      </div>
+    </section>
+
+    <!-- KPIs -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-number">2</div>
+        <div>
+          <div class="section-title">Detaillierte KPI-Analyse</div>
+          <div class="section-subtitle">CTR, CPC, ROAS & mehr</div>
+        </div>
+      </div>
+
+      <div id="kpiGrid" class="kpi-grid"></div>
+    </section>
+
+    <!-- Creatives -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-number">3</div>
+        <div>
+          <div class="section-title">Aktive Werbemittel</div>
+          <div class="section-subtitle">Bilder, Videos & Hooks</div>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <button class="filter-btn active" data-filter="all">Alle</button>
+        <button class="filter-btn" data-filter="image">Bilder</button>
+        <button class="filter-btn" data-filter="video">Videos</button>
+      </div>
+
+      <div id="creativesGrid" class="creatives-grid"></div>
+    </section>
+
+  </div>
+
+</body>
+</html>
