@@ -572,6 +572,13 @@ async function loadMockData() {
   console.log("Mock-Modus → Simulierte Daten werden geladen...");
 
   // Daten holen
+  const campSelect = document.getElementById("campaignSelect");
+if (campSelect) {
+  campSelect.innerHTML = campaigns.data
+    .map(c => `<option value="${c.id}">${c.name}</option>`)
+    .join("");
+}
+
   const accounts = await fetch("/api/mock-accounts").then(r => r.json());
   const campaigns = await fetch("/api/mock-campaigns").then(r => r.json());
   const insights = await fetch("/api/mock-insights").then(r => r.json());
@@ -601,6 +608,7 @@ async function loadMockData() {
   document.getElementById("metaStatus").textContent = "Simulated Mode aktiv";
   document.getElementById("metaStatus").style.color = "purple";
 }
+
 
 
 
