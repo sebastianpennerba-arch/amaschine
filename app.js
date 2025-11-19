@@ -1,953 +1,1058 @@
-// ======================================================
-// AdStream Analytics – PREMIUM VERSION
-// ======================================================
+/* styles.css */
+/* ========================= BASE ========================= */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
-// GLOBAL STATE
-const MetaState = {
-  token: null,
-  period: "24h",
-  accountId: null,
-  campaigns: [],
-  selectedCampaignId: null,
-  kpi: null,
-  creatives: [],
-  filter: "all",
-  sortBy: "roas"
-};
+:root {
+    --primary: #2457dd;
+    --primary-dark: #1b43aa;
+    --success: #1a8f63;
+    --success-light: #e7f4ee;
+    --warning: #bf7a15;
+    --warning-light: #fff5e5;
+    --danger: #c0392b;
+    --danger-light: #ffe6e3;
 
-let MOCK_MODE = true;
-let trendChart = null;
-let scoreChart = null;
+    --bg: #f4f5f7;
+    --bg-alt: #ffffff;
+    --text: #111827;
+    --text-light: #6b7280;
+    --text-lighter: #9ca3af;
+    --border: #e1e4ea;
+    --border-light: #f2f3f6;
 
-// --------------------------------------------------------------------
-// FORMATTER
-// --------------------------------------------------------------------
-const fmt = {
-  num: (v, d = 0) =>
-    Number(v || 0).toLocaleString("de-DE", {
-      minimumFractionDigits: d,
-      maximumFractionDigits: d,
-    }),
-  curr: (v) =>
-    Number(v || 0).toLocaleString("de-DE", {
-      style: "currency",
-      currency: "EUR",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }),
-  pct: (v) => (Number(v || 0)).toFixed(2).replace(".", ",") + " %",
-};
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+    --shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+    --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+    --shadow-lg: 0 6px 18px rgba(15, 23, 42, 0.10);
+}
 
-// --------------------------------------------------------------------
-// INIT
-// --------------------------------------------------------------------
-window.addEventListener("DOMContentLoaded", () => {
-  setupMockToggle();
-  setupPeriodToggle();
-  setupFilterButtons();
-  setupMetaButton();
-  setupMetaPostMessage();
-  restoreMetaSession();
-  initDate();
-  setupAIInsights();
-  setupSortSelect();
-  
-  if (MOCK_MODE) {
-    loadMockCreatives();
-  }
-  
-  updateLastUpdate();
-  setInterval(updateLastUpdate, 60000);
-});
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-// --------------------------------------------------------------------
-// MOCK TOGGLE
-// --------------------------------------------------------------------
-function setupMockToggle() {
-  const liveBtn = document.getElementById("mode-live");
-  const mockBtn = document.getElementById("mode-sim");
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
 
-  if (!liveBtn || !mockBtn) return;
+.wrapper {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 20px 24px 32px;
+}
 
-  liveBtn.addEventListener("click", () => {
-    MOCK_MODE = false;
-    liveBtn.classList.add("active");
-    mockBtn.classList.remove("active");
-    
-    updateStatusBadge();
-    
-    if (MetaState.token) {
-      loadMetaData();
-    } else {
-      clearDashboard();
+/* ========================= HEADER ========================= */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0 14px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo-icon {
+    font-size: 20px;
+    color: var(--primary);
+}
+
+.logo-title {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.25px;
+}
+
+.logo-subtitle {
+    font-size: 11px;
+    color: var(--text-light);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.divider {
+    width: 1px;
+    height: 34px;
+    background: var(--border);
+}
+
+.header-stats {
+    display: flex;
+    gap: 18px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.stat-label {
+    font-size: 11px;
+    color: var(--text-lighter);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.stat-value {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.pulse {
+    color: var(--success);
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.date-display {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-light);
+    padding: 6px 12px;
+    background: var(--bg-alt);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+}
+
+.mode-toggle {
+    display: flex;
+    gap: 2px;
+    background: var(--bg-alt);
+    padding: 2px;
+    border-radius: 7px;
+    border: 1px solid var(--border);
+}
+
+.mode-btn {
+    padding: 5px 10px;
+    border: none;
+    background: transparent;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-light);
+}
+
+.mode-btn.active {
+    background: var(--primary);
+    color: #fff;
+}
+
+.mode-icon {
+    font-size: 13px;
+}
+
+.btn {
+    padding: 7px 14px;
+    border-radius: 7px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: #fff;
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+}
+
+.status-badge {
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--border-light);
+    color: var(--text-light);
+}
+
+/* ========================= AI INSIGHTS BANNER ========================= */
+.ai-insights-banner {
+    background: var(--primary);
+    padding: 14px 18px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+    color: #fff;
+    box-shadow: var(--shadow-sm);
+}
+
+.ai-icon {
+    font-size: 24px;
+}
+
+.ai-content {
+    flex: 1;
+}
+
+.ai-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 3px;
+}
+
+.ai-text {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.ai-btn {
+    padding: 8px 14px;
+    background: #fff;
+    color: var(--primary);
+    border: none;
+    border-radius: 7px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+}
+
+.ai-btn:hover {
+    box-shadow: var(--shadow-sm);
+}
+
+.sparkle {
+    font-size: 14px;
+}
+
+/* ========================= PERIOD SELECTOR ========================= */
+.period-selector {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+    padding: 10px 14px;
+    background: var(--bg-alt);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+}
+
+.period-label {
+    font-weight: 500;
+    color: var(--text-light);
+    font-size: 12px;
+}
+
+.toggle {
+    display: flex;
+    gap: 4px;
+}
+
+.toggle-btn {
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-light);
+}
+
+.toggle-btn.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary-dark);
+}
+
+.export-btn {
+    margin-left: auto;
+    padding: 5px 10px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+/* ========================= SCORE SECTION ========================= */
+.score-section {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.score-card {
+    background: var(--bg-alt);
+    padding: 18px;
+    border-radius: 10px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+}
+
+.score-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.score-header h2 {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.score-trend {
+    font-size: 12px;
+    color: var(--success);
+    font-weight: 500;
+}
+
+.score-visual {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    margin: 0 auto 14px;
+}
+
+.score-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.score-number {
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--text);
+}
+
+.score-label {
+    font-size: 11px;
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+.score-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.score-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+}
+
+.score-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+}
+
+.score-item span:nth-child(2) {
+    flex: 1;
+    color: var(--text-light);
+}
+
+/* ========================= QUICK METRICS ========================= */
+.quick-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.quick-metric {
+    background: var(--bg-alt);
+    padding: 14px;
+    border-radius: 10px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    gap: 10px;
+    border: 1px solid var(--border);
+}
+
+.quick-metric.highlight {
+    background: #f0f3ff;
+}
+
+.metric-icon {
+    font-size: 22px;
+}
+
+.metric-content {
+    flex: 1;
+}
+
+.metric-label {
+    font-size: 11px;
+    color: var(--text-light);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.metric-value {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin: 2px 0;
+}
+
+.metric-change {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-block;
+    background: var(--bg);
+    color: var(--text-light);
+}
+
+/* ========================= SECTIONS ========================= */
+.section {
+    margin-bottom: 22px;
+    background: var(--bg-alt);
+    border-radius: 10px;
+    padding: 20px 18px 18px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.section-number {
+    background: var(--bg);
+    color: var(--text-light);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 10px;
+    border-radius: 7px;
+    border: 1px solid var(--border);
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+}
+
+.section-subtitle {
+    color: var(--text-light);
+    font-size: 12px;
+}
+
+.section-action {
+    margin-left: auto;
+    padding: 6px 10px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    font-weight: 500;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+/* ========================= OVERVIEW GRID ========================= */
+.overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.overview-card {
+    background: var(--bg);
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: none;
+    border: 1px solid var(--border);
+}
+
+.metric-label {
+    color: var(--text-light);
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.metric-value {
+    font-size: 20px;
+    font-weight: 700;
+    margin-top: 6px;
+}
+
+/* ========================= FUNNEL ========================= */
+.funnel-section {
+    margin-bottom: 18px;
+}
+
+.funnel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.funnel-header h3 {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.funnel-stats {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--text-light);
+}
+
+.funnel-visual {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+.funnel-step {
+    background: var(--bg);
+    padding: 14px;
+    border-radius: 8px;
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+
+.funnel-step .metric-label {
+    color: var(--text-light);
+}
+
+.funnel-step-value {
+    font-size: 20px;
+    font-weight: 700;
+    margin-top: 6px;
+}
+
+/* ========================= CHART ========================= */
+.chart-container {
+    margin-top: 18px;
+    padding: 14px 14px 10px;
+    background: var(--bg);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.chart-header h3 {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.chart-filters {
+    display: flex;
+    gap: 6px;
+}
+
+.chart-filter {
+    padding: 4px 8px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-light);
+}
+
+.chart-filter.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary-dark);
+}
+
+.chart-inner {
+    height: 200px;
+}
+
+#trendChart {
+    max-height: 180px;
+}
+
+/* ========================= KPI GRID ENHANCED ========================= */
+.kpi-grid-enhanced {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.kpi-card-enhanced {
+    background: var(--bg);
+    padding: 14px;
+    border-radius: 8px;
+    box-shadow: none;
+    border: 1px solid var(--border);
+    position: relative;
+}
+
+.kpi-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.kpi-label {
+    font-size: 11px;
+    color: var(--text-light);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.kpi-trend {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--bg-alt);
+}
+
+.kpi-value {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.kpi-comparison {
+    font-size: 11px;
+    color: var(--text-light);
+}
+
+.kpi-bar {
+    width: 100%;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 6px;
+}
+
+.kpi-bar-fill {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 2px;
+}
+
+/* ========================= HEATMAP ========================= */
+.heatmap-section {
+    margin-top: 18px;
+    padding: 14px;
+    background: var(--bg);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+
+.heatmap-header h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.heatmap-header p {
+    font-size: 12px;
+    color: var(--text-light);
+}
+
+.heatmap-container {
+    display: grid;
+    grid-template-columns: 60px repeat(7, 1fr);
+    gap: 3px;
+    margin: 10px 0 8px;
+}
+
+.heatmap-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-light);
+}
+
+.heatmap-cell {
+    aspect-ratio: 1;
+    border-radius: 4px;
+    border: 1px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 500;
+    cursor: default;
+}
+
+/* ========================= CREATIVES ========================= */
+.creative-view-toggle {
+    display: flex;
+    gap: 4px;
+    background: var(--bg);
+    padding: 3px;
+    border-radius: 7px;
+    border: 1px solid var(--border);
+}
+
+.view-btn {
+    padding: 4px 8px;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-light);
+}
+
+.view-btn.active {
+    background: var(--primary);
+    color: #fff;
+}
+
+.filter-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    align-items: center;
+}
+
+.filter-btn {
+    padding: 7px 12px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--bg-alt);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text);
+}
+
+.filter-btn.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary-dark);
+}
+
+.filter-icon {
+    font-size: 13px;
+}
+
+.count {
+    background: rgba(0,0,0,0.04);
+    padding: 1px 6px;
+    border-radius: 999px;
+    font-size: 10px;
+}
+
+.filter-spacer {
+    flex: 1;
+}
+
+.filter-select {
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--bg-alt);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.creative-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+}
+
+.creative-card {
+    background: var(--bg-alt);
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+}
+
+.creative-thumb {
+    width: 100%;
+    height: 190px;
+    border-radius: 6px;
+    object-fit: cover;
+    background: var(--bg);
+    margin-bottom: 10px;
+}
+
+.creative-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.creative-kpis {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.kpi-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.kpi-green {
+    background: var(--success-light);
+    color: var(--success);
+}
+
+.kpi-yellow {
+    background: var(--warning-light);
+    color: var(--warning);
+}
+
+.kpi-red {
+    background: var(--danger-light);
+    color: var(--danger);
+}
+
+/* ========================= WINNER/LOSER ========================= */
+.winner-loser-section {
+    background: var(--bg-alt);
+}
+
+.winner-loser-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.winner-card, .loser-card {
+    background: var(--bg);
+    padding: 14px;
+    border-radius: 8px;
+    box-shadow: none;
+    border: 1px solid var(--border);
+}
+
+.card-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 11px;
+    margin-bottom: 12px;
+}
+
+.card-badge.winner {
+    background: var(--success-light);
+    color: var(--success);
+}
+
+.card-badge.loser {
+    background: var(--warning-light);
+    color: var(--warning);
+}
+
+/* ========================= RECOMMENDATIONS ========================= */
+.recommendations-grid {
+    display: grid;
+    gap: 10px;
+}
+
+.recommendation-card {
+    background: var(--bg);
+    padding: 14px;
+    border-radius: 8px;
+    box-shadow: none;
+    border: 1px solid var(--border);
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.recommendation-card.priority-high {
+    border-left: 3px solid var(--danger);
+}
+
+.recommendation-card.priority-medium {
+    border-left: 3px solid var(--warning);
+}
+
+.recommendation-card.priority-low {
+    border-left: 3px solid var(--primary);
+}
+
+.rec-icon {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.rec-content h4 {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.rec-content p {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-bottom: 4px;
+}
+
+.rec-impact {
+    font-size: 11px;
+    color: var(--text-light);
+}
+
+.rec-impact strong {
+    color: var(--success);
+}
+
+.rec-action {
+    padding: 6px 10px;
+    background: var(--bg-alt);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    font-weight: 500;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+/* ========================= LOADING ========================= */
+.loading {
+    position: fixed;
+    inset: 0;
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(3px);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.spinner-modern {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 10px;
+}
+
+.spinner-container p {
+    color: var(--text-light);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ========================= RESPONSIVE ========================= */
+@media (max-width: 1200px) {
+    .score-section {
+        grid-template-columns: 1fr;
     }
-  });
-
-  mockBtn.addEventListener("click", () => {
-    MOCK_MODE = true;
-    mockBtn.classList.add("active");
-    liveBtn.classList.remove("active");
-    
-    updateStatusBadge();
-    loadMockCreatives();
-  });
 }
 
-function updateStatusBadge() {
-  const badge = document.getElementById("metaStatus");
-  if (!badge) return;
-  
-  if (MOCK_MODE) {
-    badge.textContent = "Demo Mode";
-    badge.style.background = "var(--warning-light)";
-    badge.style.color = "var(--warning)";
-  } else if (MetaState.token) {
-    badge.textContent = "Live Connected";
-    badge.style.background = "var(--success-light)";
-    badge.style.color = "var(--success)";
-  } else {
-    badge.textContent = "Not Connected";
-    badge.style.background = "var(--danger-light)";
-    badge.style.color = "var(--danger)";
-  }
-}
-
-function clearDashboard() {
-  MetaState.kpi = null;
-  MetaState.creatives = [];
-  renderAll();
-}
-
-// --------------------------------------------------------------------
-// MOCK LOADER
-// --------------------------------------------------------------------
-async function loadMockCreatives() {
-  console.log("🎭 Mock Mode → Lade Demo-Daten");
-
-  const mockFiles = [
-    "Creative1.png",
-    "Creative10.mp4",
-    "Creative11.mp4",
-    "Creative12.mp4",
-    "Creative2.png",
-    "Creative3.png",
-    "Creative4.png",
-    "Creative5.png",
-    "Creative6.png",
-    "Creative7.png",
-    "Creative8.png",
-    "Creative9.jpg"
-  ];
-
-  MetaState.creatives = mockFiles.map((file, i) => {
-    const lower = file.toLowerCase();
-    const isVideo = lower.endsWith(".mp4");
-    const roas = +(Math.random() * 4 + 1).toFixed(2);
-    const ctr = +(Math.random() * 3 + 0.5).toFixed(2);
-    const cpc = +(Math.random() * 0.50 + 0.20).toFixed(2);
-    const impressions = Math.floor(Math.random() * 10000 + 2000);
-
-    return {
-      id: "mock_" + i,
-      name: file.replace(/\.[^.]+$/, "").replace(/Creative(\d+)/, "Creative #$1"),
-      URL: "/mock/" + file,
-      mediaType: isVideo ? "video" : "image",
-      CTR: ctr,
-      CPC: cpc,
-      ROAS: roas,
-      impressions: impressions,
-      score: calculateCreativeScore(roas, ctr, cpc)
-    };
-  });
-
-  MetaState.kpi = generateMockInsights();
-  renderAll();
-}
-
-function calculateCreativeScore(roas, ctr, cpc) {
-  const roasScore = Math.min((roas / 5) * 40, 40);
-  const ctrScore = Math.min((ctr / 5) * 35, 35);
-  const cpcScore = Math.max(25 - (cpc * 20), 0);
-  return Math.round(roasScore + ctrScore + cpcScore);
-}
-
-function generateMockInsights() {
-  const impressions = Math.floor(Math.random() * 80000 + 20000);
-  const clicks = Math.floor(impressions * (Math.random() * 0.04 + 0.01));
-  const purchases = Math.floor(clicks * (Math.random() * 0.05 + 0.02));
-  const spend = +(Math.random() * 800 + 200).toFixed(2);
-  const revenue = +(purchases * (Math.random() * 50 + 40)).toFixed(2);
-
-  return {
-    Impressions: impressions,
-    Clicks: clicks,
-    AddToCart: Math.floor(clicks * (Math.random() * 0.4 + 0.2)),
-    Purchases: purchases,
-    Revenue: revenue,
-    Spend: spend,
-    ROAS: revenue / spend,
-    CTR: clicks / impressions * 100,
-    CPC: spend / clicks,
-    AOV: purchases ? revenue / purchases : 0,
-    CR: purchases / clicks * 100,
-  };
-}
-
-// --------------------------------------------------------------------
-// META INTEGRATION
-// --------------------------------------------------------------------
-function setupMetaButton() {
-  const btn = document.getElementById("connectMeta");
-  if (!btn) return;
-  
-  btn.addEventListener("click", () => {
-    if (MOCK_MODE) {
-      alert("Im Demo Mode ist Meta Login deaktiviert. Wechsle zu 'Live' Mode.");
-      return;
+@media (max-width: 900px) {
+    .wrapper {
+        padding: 16px;
     }
-
-    const appId = "732040642590155";
-    const redirect = "https://amaschine.vercel.app/meta-popup.html";
-    const scopes = "ads_management,ads_read,business_management";
-
-    const authUrl =
-      `https://www.facebook.com/v19.0/dialog/oauth?client_id=${appId}` +
-      `&redirect_uri=${encodeURIComponent(redirect)}` +
-      `&scope=${encodeURIComponent(scopes)}`;
-
-    window.open(authUrl, "metaAuth", "width=900,height=900");
-  });
-}
-
-function setupMetaPostMessage() {
-  window.addEventListener("message", (event) => {
-    if (!event.data?.access_token) return;
-
-    MetaState.token = event.data.access_token;
-    localStorage.setItem("meta_access_token", MetaState.token);
-
-    updateStatusBadge();
-
-    if (!MOCK_MODE) {
-      loadMetaData();
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
     }
-  });
-}
-
-function restoreMetaSession() {
-  const token = localStorage.getItem("meta_access_token");
-  if (!token) return;
-  
-  MetaState.token = token;
-  updateStatusBadge();
-  
-  if (!MOCK_MODE) {
-    loadMetaData();
-  }
-}
-
-async function loadMetaData() {
-  if (MOCK_MODE || !MetaState.token) return;
-
-  console.log("📡 Lade echte Meta-Daten…");
-
-  try {
-    const accRes = await fetch("/api/meta-adaccounts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token: MetaState.token }),
-    });
-    const accJson = await accRes.json();
-    const accounts = accJson.data || [];
-
-    if (!accounts.length) return;
-
-    MetaState.accountId = accounts[0].account_id;
-
-    const preset = MetaState.period === "7d" ? "last_7d" : "yesterday";
-    const insRes = await fetch("/api/meta-insights", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        token: MetaState.token,
-        accountId: MetaState.accountId,
-        preset,
-      }),
-    });
-    const insJson = await insRes.json();
-    const row = insJson.data?.[0] || null;
-
-    if (row) {
-      MetaState.kpi = mapInsightsRow(row);
+    .winner-loser-grid {
+        grid-template-columns: 1fr;
     }
-
-    const campRes = await fetch("/api/meta-campaigns", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        token: MetaState.token,
-        accountId: MetaState.accountId,
-      }),
-    });
-
-    const campJson = await campRes.json();
-    MetaState.campaigns = campJson.data || [];
-    
-    if (MetaState.campaigns.length > 0) {
-      MetaState.selectedCampaignId = MetaState.campaigns[0]?.id;
-      await loadCreativesForCampaign(MetaState.selectedCampaignId);
+    .quick-metrics {
+        grid-template-columns: repeat(2, 1fr);
     }
-
-    renderAll();
-  } catch (err) {
-    console.error("Fehler beim Laden der Meta-Daten:", err);
-  }
-}
-
-function mapInsightsRow(row) {
-  const imp = +row.impressions || 0;
-  const clicks = +row.clicks || 0;
-  const spend = +row.spend || 0;
-  const ctr = parseFloat(row.ctr || 0);
-  const cpc = parseFloat(row.cpc || 0);
-
-  let purchases = 0, revenue = 0;
-
-  if (Array.isArray(row.actions)) {
-    const p = row.actions.find((a) => a.action_type?.includes("purchase"));
-    if (p) purchases = +p.value || 0;
-  }
-  if (Array.isArray(row.action_values)) {
-    const v = row.action_values.find((a) => a.action_type?.includes("purchase"));
-    if (v) revenue = +v.value || 0;
-  }
-
-  return {
-    Impressions: imp,
-    Clicks: clicks,
-    AddToCart: 0,
-    Purchases: purchases,
-    Revenue: revenue,
-    Spend: spend,
-    ROAS: spend > 0 ? revenue / spend : 0,
-    CTR: ctr,
-    CPC: cpc,
-    AOV: purchases ? revenue / purchases : 0,
-    CR: clicks ? (purchases / clicks) * 100 : 0,
-  };
-}
-
-async function loadCreativesForCampaign(campaignId) {
-  if (!campaignId) return;
-  
-  try {
-    const adsRes = await fetch("/api/meta-ads", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token: MetaState.token, campaignId }),
-    });
-    const adsJson = await adsRes.json();
-    const ads = adsJson.data || [];
-
-    MetaState.creatives = ads.map((ad) => {
-      const cr = ad.creative || {};
-      const thumb =
-        cr.thumbnail_url ||
-        cr.image_url ||
-        cr.video_url ||
-        cr?.object_story_spec?.link_data?.picture ||
-        "";
-
-      const isVideo = thumb.toLowerCase().includes(".mp4");
-
-      return {
-        id: ad.id,
-        name: ad.name || "Creative",
-        URL: thumb,
-        mediaType: isVideo ? "video" : "image",
-        CTR: MetaState.kpi?.CTR || 0,
-        CPC: MetaState.kpi?.CPC || 0,
-        ROAS: MetaState.kpi?.ROAS || 0,
-        impressions: MetaState.kpi?.Impressions || 0,
-        score: 75
-      };
-    });
-  } catch (err) {
-    console.error("Fehler beim Laden der Creatives:", err);
-  }
-}
-
-// --------------------------------------------------------------------
-// PERIOD TOGGLE
-// --------------------------------------------------------------------
-function setupPeriodToggle() {
-  const btns = document.querySelectorAll(".toggle-btn");
-  btns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      btns.forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      
-      const period = btn.dataset.period;
-      if (period === "30") {
-        MetaState.period = "30d";
-      } else if (period === "7") {
-        MetaState.period = "7d";
-      } else {
-        MetaState.period = "24h";
-      }
-      
-      if (MOCK_MODE) {
-        loadMockCreatives();
-      } else if (MetaState.token) {
-        loadMetaData();
-      }
-    });
-  });
-}
-
-// --------------------------------------------------------------------
-// FILTER & SORT
-// --------------------------------------------------------------------
-function setupFilterButtons() {
-  const btns = document.querySelectorAll(".filter-btn");
-  btns.forEach((b) => {
-    b.addEventListener("click", () => {
-      btns.forEach((x) => x.classList.remove("active"));
-      b.classList.add("active");
-      MetaState.filter = b.dataset.filter;
-      renderCreatives();
-    });
-  });
-}
-
-function setupSortSelect() {
-  const select = document.getElementById("sortCreatives");
-  if (!select) return;
-  
-  select.addEventListener("change", (e) => {
-    MetaState.sortBy = e.target.value;
-    renderCreatives();
-  });
-}
-
-// --------------------------------------------------------------------
-// RENDER ALL
-// --------------------------------------------------------------------
-function renderAll() {
-  renderOverview();
-  renderFunnel();
-  renderKPIs();
-  renderCreatives();
-  renderPerformanceScore();
-  renderQuickMetrics();
-  renderTrendChart();
-  renderHeatmap();
-  renderWinnerLoser();
-  updateCreativeCounts();
-}
-
-// --------------------------------------------------------------------
-// PERFORMANCE SCORE
-// --------------------------------------------------------------------
-function renderPerformanceScore() {
-  const KPI = MetaState.kpi;
-  if (!KPI) return;
-
-  const roasScore = Math.min((KPI.ROAS / 5) * 100, 100);
-  const ctrScore = Math.min((KPI.CTR / 5) * 100, 100);
-  const crScore = Math.min((KPI.CR / 8) * 100, 100);
-  const avgScore = Math.round((roasScore + ctrScore + crScore) / 3);
-
-  const scoreEl = document.getElementById("performanceScore");
-  if (scoreEl) scoreEl.textContent = avgScore;
-
-  const canvas = document.getElementById("scoreChart");
-  if (!canvas) return;
-
-  if (scoreChart) scoreChart.destroy();
-
-  const ctx = canvas.getContext("2d");
-  scoreChart = new Chart(ctx, {
-    type: "doughnut",
-    data: {
-      datasets: [{
-        data: [avgScore, 100 - avgScore],
-        backgroundColor: ["#667eea", "#E5E7EB"],
-        borderWidth: 0,
-      }]
-    },
-    options: {
-      responsive: false,
-      cutout: "75%",
-      plugins: {
-        legend: { display: false },
-        tooltip: { enabled: false }
-      }
+    .overview-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
-  });
 }
 
-// --------------------------------------------------------------------
-// QUICK METRICS
-// --------------------------------------------------------------------
-function renderQuickMetrics() {
-  const KPI = MetaState.kpi;
-  if (!KPI) return;
-
-  const updates = [
-    { id: "quickCR", value: fmt.pct(KPI.CR) },
-    { id: "quickROAS", value: fmt.num(KPI.ROAS, 1) + "x" },
-    { id: "quickCTR", value: fmt.pct(KPI.CTR) },
-    { id: "quickRevenue", value: fmt.curr(KPI.Revenue) }
-  ];
-
-  updates.forEach(({ id, value }) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = value;
-  });
-}
-
-// --------------------------------------------------------------------
-// OVERVIEW GRID
-// --------------------------------------------------------------------
-function renderOverview() {
-  const grid = document.getElementById("overviewGrid");
-  const KPI = MetaState.kpi;
-  if (!grid) return;
-  
-  if (!KPI) {
-    grid.innerHTML = '<div style="grid-column:1/-1; color:var(--text-light);">Keine Daten verfügbar</div>';
-    return;
-  }
-
-  const cards = [
-    { label: "Impressions", val: fmt.num(KPI.Impressions), icon: "👁️" },
-    { label: "Clicks", val: fmt.num(KPI.Clicks), icon: "🖱️" },
-    { label: "Add to Cart", val: fmt.num(KPI.AddToCart), icon: "🛒" },
-    { label: "Purchases", val: fmt.num(KPI.Purchases), icon: "✅" },
-    { label: "Revenue", val: fmt.curr(KPI.Revenue), icon: "💰" },
-    { label: "Spend", val: fmt.curr(KPI.Spend), icon: "💸" },
-    { label: "ROAS", val: fmt.num(KPI.ROAS, 2), icon: "📈" },
-  ];
-
-  grid.innerHTML = cards
-    .map(c => `
-      <div class="overview-card">
-        <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:8px;">
-          <div class="metric-label">${c.label}</div>
-          <span style="font-size:20px;">${c.icon}</span>
-        </div>
-        <div class="metric-value">${c.val}</div>
-      </div>
-    `)
-    .join("");
-}
-
-// --------------------------------------------------------------------
-// FUNNEL
-// --------------------------------------------------------------------
-function renderFunnel() {
-  const el = document.getElementById("funnelSteps");
-  const KPI = MetaState.kpi;
-  if (!el) return;
-  
-  if (!KPI) {
-    el.innerHTML = '<div style="color:var(--text-light);">Keine Daten verfügbar</div>';
-    return;
-  }
-
-  const crEl = document.getElementById("totalCR");
-  if (crEl) crEl.textContent = fmt.pct(KPI.CR);
-
-  const steps = [
-    { label: "Impressions", value: KPI.Impressions, pct: 100 },
-    { label: "Clicks", value: KPI.Clicks, pct: (KPI.Clicks / KPI.Impressions * 100).toFixed(1) },
-    { label: "Add to Cart", value: KPI.AddToCart, pct: KPI.Clicks ? (KPI.AddToCart / KPI.Clicks * 100).toFixed(1) : 0 },
-    { label: "Purchases", value: KPI.Purchases, pct: KPI.Clicks ? (KPI.Purchases / KPI.Clicks * 100).toFixed(1) : 0 }
-  ];
-
-  el.innerHTML = steps.map(s => `
-    <div class="funnel-step">
-      <div class="metric-label">${s.label}</div>
-      <div class="funnel-step-value">${fmt.num(s.value)}</div>
-      <div style="font-size:12px; opacity:0.8; margin-top:4px;">${s.pct}%</div>
-    </div>
-  `).join("");
-}
-
-// --------------------------------------------------------------------
-// TREND CHART
-// --------------------------------------------------------------------
-function renderTrendChart() {
-  const canvas = document.getElementById("trendChart");
-  if (!canvas) return;
-
-  const labels = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
-  const data = Array.from({ length: 7 }, () => Math.random() * 3 + 2);
-
-  if (trendChart) trendChart.destroy();
-
-  const ctx = canvas.getContext("2d");
-  trendChart = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: labels,
-      datasets: [{
-        label: "ROAS",
-        data: data,
-        borderColor: "#667eea",
-        backgroundColor: "rgba(102, 126, 234, 0.1)",
-        tension: 0.4,
-        fill: true,
-        pointRadius: 6,
-        pointHoverRadius: 8,
-        pointBackgroundColor: "#667eea",
-        pointBorderColor: "#fff",
-        pointBorderWidth: 2
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: "#0A0E27",
-          padding: 12,
-          cornerRadius: 8,
-          titleFont: { size: 14, weight: "bold" },
-          bodyFont: { size: 13 }
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          grid: { color: "#E5E7EB" },
-          ticks: { font: { size: 11 } }
-        },
-        x: {
-          grid: { display: false },
-          ticks: { font: { size: 11 } }
-        }
-      }
+@media (max-width: 640px) {
+    .section {
+        padding: 16px 12px;
     }
-  });
-
-  setupChartFilters();
-}
-
-function setupChartFilters() {
-  const btns = document.querySelectorAll(".chart-filter");
-  btns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      btns.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-    });
-  });
-}
-
-// --------------------------------------------------------------------
-// KPIs
-// --------------------------------------------------------------------
-function renderKPIs() {
-  const el = document.getElementById("kpiGrid");
-  const KPI = MetaState.kpi;
-  if (!el) return;
-  
-  if (!KPI) {
-    el.innerHTML = '<div style="grid-column:1/-1; color:var(--text-light);">Keine Daten verfügbar</div>';
-    return;
-  }
-
-  const benchmarks = {
-    CTR: 2.5,
-    CPC: 0.80,
-    ROAS: 3.0,
-    AOV: 65,
-    CR: 3.5
-  };
-
-  const cards = [
-    { label: "CTR", val: fmt.pct(KPI.CTR), bench: benchmarks.CTR },
-    { label: "CPC", val: fmt.curr(KPI.CPC), bench: benchmarks.CPC },
-    { label: "ROAS", val: fmt.num(KPI.ROAS, 2), bench: benchmarks.ROAS },
-    { label: "AOV", val: fmt.curr(KPI.AOV), bench: benchmarks.AOV },
-    { label: "CR", val: fmt.pct(KPI.CR), bench: benchmarks.CR }
-  ];
-
-  el.className = "kpi-grid-enhanced";
-  el.innerHTML = cards
-    .map(c => {
-      const current = parseFloat(c.val.replace(/[^0-9,.-]/g, "").replace(",", "."));
-      const diff = ((current - c.bench) / c.bench * 100).toFixed(1);
-      const isPositive = diff > 0;
-      const barWidth = Math.min((current / c.bench) * 100, 100);
-
-      return `
-        <div class="kpi-card-enhanced">
-          <div class="kpi-header">
-            <div class="kpi-label">${c.label}</div>
-            <div class="kpi-trend ${isPositive ? 'positive' : 'negative'}">
-              ${isPositive ? '↗' : '↘'} ${Math.abs(diff)}%
-            </div>
-          </div>
-          <div class="kpi-value">${c.val}</div>
-          <div class="kpi-comparison">
-            <div class="kpi-vs">
-              <span>📊</span>
-              <span>Benchmark: ${typeof c.bench === 'number' && c.label !== 'AOV' && c.label !== 'CPC' ? fmt.num(c.bench, 2) + (c.label === 'ROAS' ? '' : '%') : fmt.curr(c.bench)}</span>
-            </div>
-          </div>
-          <div class="kpi-bar">
-            <div class="kpi-bar-fill" style="width: ${barWidth}%"></div>
-          </div>
-        </div>
-      `;
-    })
-    .join("");
-}
-
-// --------------------------------------------------------------------
-// HEATMAP
-// --------------------------------------------------------------------
-function renderHeatmap() {
-  const container = document.getElementById("heatmapContainer");
-  if (!container) return;
-
-  const days = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
-  const hours = ["0-6", "6-12", "12-18", "18-24"];
-
-  const data = hours.map(() =>
-    days.map(() => Math.random())
-  );
-
-  let html = '<div class="heatmap-label"></div>';
-  days.forEach(day => {
-    html += `<div class="heatmap-label">${day}</div>`;
-  });
-
-  hours.forEach((hour, i) => {
-    html += `<div class="heatmap-label">${hour}h</div>`;
-    days.forEach((_, j) => {
-      const value = data[i][j];
-      const intensity = value;
-      const color = `rgba(102, 126, 234, ${intensity})`;
-      const textColor = intensity > 0.5 ? "#fff" : "#0A0E27";
-      
-      html += `
-        <div class="heatmap-cell" 
-             style="background: ${color}; color: ${textColor};" 
-             title="${hour}h ${days[j]}: ${(value * 100).toFixed(0)}%">
-          ${(value * 100).toFixed(0)}
-        </div>
-      `;
-    });
-  });
-
-  container.innerHTML = html;
-}
-
-// --------------------------------------------------------------------
-// CREATIVES
-// --------------------------------------------------------------------
-function renderCreatives() {
-  const grid = document.getElementById("creativeGrid");
-  if (!grid) return;
-
-  let items = [...MetaState.creatives];
-
-  // Filter
-  if (MetaState.filter === "image") items = items.filter(c => c.mediaType === "image");
-  if (MetaState.filter === "video") items = items.filter(c => c.mediaType === "video");
-
-  // Sort
-  items.sort((a, b) => {
-    switch(MetaState.sortBy) {
-      case "roas": return b.ROAS - a.ROAS;
-      case "ctr": return b.CTR - a.CTR;
-      case "cpc": return a.CPC - b.CPC;
-      case "impressions": return b.impressions - a.impressions;
-      default: return 0;
+    .quick-metrics {
+        grid-template-columns: 1fr;
     }
-  });
-
-  if (!items.length) {
-    grid.innerHTML = '<div style="grid-column:1/-1; color:var(--text-light);">Keine Creatives gefunden.</div>';
-    return;
-  }
-
-  grid.innerHTML = items
-    .map(c => {
-      const isVideo = c.mediaType === "video";
-      const media = isVideo
-        ? `<video class="creative-thumb" controls src="${c.URL}"></video>`
-        : `<img class="creative-thumb" src="${c.URL}" alt="${c.name}" onerror="this.src='https://via.placeholder.com/280x280?text=Creative'" />`;
-
-      const roasClass = c.ROAS >= 3.5 ? "kpi-green" : c.ROAS >= 2 ? "kpi-yellow" : "kpi-red";
-      const ctrClass = c.CTR >= 2.5 ? "kpi-green" : c.CTR >= 1.5 ? "kpi-yellow" : "kpi-red";
-
-      return `
-        <div class="creative-card">
-          ${media}
-          <div class="creative-title">${c.name}</div>
-          <div class="creative-kpis">
-            <span class="kpi-badge ${roasClass}">💰 ROAS ${fmt.num(c.ROAS, 2)}</span>
-            <span class="kpi-badge ${ctrClass}">⚡ CTR ${fmt.num(c.CTR, 2)}%</span>
-            <span class="kpi-badge kpi-yellow">€ CPC ${fmt.curr(c.CPC)}</span>
-          </div>
-          <div style="margin-top:12px; font-size:12px; color:var(--text-light);">
-            Score: <strong>${c.score}/100</strong> | ${fmt.num(c.impressions)} Impressions
-          </div>
-        </div>
-      `;
-    })
-    .join("");
+    .overview-grid {
+        grid-template-columns: 1fr;
+    }
+    .funnel-visual {
+        grid-template-columns: 1fr;
+    }
+    .creative-grid {
+        grid-template-columns: 1fr;
+    }
 }
-
-function updateCreativeCounts() {
-  const all = MetaState.creatives.length;
-  const images = MetaState.creatives.filter(c => c.mediaType === "image").length;
-  const videos = MetaState.creatives.filter(c => c.mediaType === "video").length;
-
-  const updates = [
-    { id: "countAll", value: all },
-    { id: "countImages", value: images },
-    { id: "countVideos", value: videos }
-  ];
-
-  updates.forEach(({ id, value }) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = value;
-  });
-}
-
-// --------------------------------------------------------------------
-// WINNER / LOSER
-// --------------------------------------------------------------------
-function renderWinnerLoser() {
-  if (!MetaState.creatives.length) return;
-
-  const sorted = [...MetaState.creatives].sort((a, b) => b.ROAS - a.ROAS);
-  const winner = sorted[0];
-  const loser = sorted[sorted.length - 1];
-
-  const winnerEl = document.getElementById("winnerContent");
-  const loserEl = document.getElementById("loserContent");
-
-  if (winnerEl && winner) {
-    const isVideo = winner.mediaType === "video";
-    const media = isVideo
-      ? `<video style="width:100%; border-radius:12px; margin-bottom:16px;" controls src="${winner.URL}"></video>`
-      : `<img style="width:100%; border-radius:12px; margin-bottom:16px;" src="${winner.URL}" alt="${winner.name}" />`;
-
-    winnerEl.innerHTML = `
-      ${media}
-      <h3 style="font-size:18px; margin-bottom:12px;">${winner.name}</h3>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
-        <div style="background:var(--success-light); padding:12px; border-radius:8px;">
-          <div style="font-size:11px; color:var(--success); font-weight:600;">ROAS</div>
-          <div style="font-size:24px; font-weight:900; color:var(--success);">${fmt.num(winner.ROAS, 2)}</div>
-        </div>
-        <div style="background:var(--bg); padding:12px; border-radius:8px;">
-          <div style="font-size:11px; color:var(--text-light); font-weight:600;">CTR</div>
-          <div style="font-size:24px; font-weight:900;">${fmt.num(winner.CTR, 2)}%</div>
-        </div>
-      </div>
-      <div style="font-size:13px; color:var(--text-light); line-height:1.6;">
-        <strong>Performance-Analyse:</strong> Dieses Creative übertrifft den Durchschnitt um ${((winner.ROAS / (MetaState.kpi?.ROAS || 1) - 1) * 100).toFixed(0)}%. 
-        Die hohe Engagement-Rate deutet auf starke visuelle Anziehungskraft hin.
-      </div>
-    `;
-  }
-
-  if (loserEl && loser) {
-    const isVideo = loser.mediaType === "video";
-    const media = isVideo
-      ? `<video style="width:100%; border-radius:12px; margin-bottom:16px;" controls src="${loser.URL}"></video>`
-      : `<img style="width:100%; border-radius:12px; margin-bottom:16px;" src="${loser.URL}" alt="${loser.name}" />`;
-
-    loserEl.innerHTML = `
-      ${media}
-      <h3 style="font-size:18px; margin-bottom:12px;">${loser.name}</h3>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
-        <div style="background:var(--danger-light); padding:12px; border-radius:8px;">
-          <div style="font-size:11px; color:var(--danger); font-weight:600;">ROAS</div>
-          <div style="font-size:24px; font-weight:900; color:var(--danger);">${fmt.num(loser.ROAS, 2)}</div>
-        </div>
-        <div style="background:var(--bg); padding:12px; border-radius:8px;">
-          <div style="font-size:11px; color:var(--text-light); font-weight:600;">CPC</div>
-          <div style="font-size:24px; font-weight:900;">${fmt.curr(loser.CPC)}</div>
-        </div>
-      </div>
-      <div style="font-size:13px; color:var(--text-light); line-height:1.6;">
-        <strong>Verbesserungsvorschläge:</strong> Niedriger ROAS deutet auf schwache Conversion hin. 
-        Empfehlung: Creative pausieren oder A/B-Test mit neuem Hook durchführen.
-      </div>
-    `;
-  }
-}
-
-// --------------------------------------------------------------------
-// AI INSIGHTS
-// --------------------------------------------------------------------
-function setupAIInsights() {
-  const btn = document.getElementById("generateInsights");
-  if (!btn) return;
-
-  btn.addEventListener("click", async () => {
-    const textEl = document.getElementById("aiInsights");
-    if (!textEl) return;
-
-    btn.disabled = true;
-    btn.innerHTML = '<span class="sparkle">⏳</span> Generiere...';
-
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    const insights = [
-      "🎯 Top-Performer Creative #3 hat 67% höheren ROAS. Budget-Shift empfohlen.",
-      "📊 Video-Content zeigt 34% bessere Engagement-Rate als statische Bilder.",
-      "⚡ Peak-Performance zwischen 18-21 Uhr. Dayparting aktivieren für +15% Effizienz.",
-      "💡 Creatives mit ROAS < 2.0 sollten pausiert werden. Potentielle Ersparnis: €180/Woche.",
-      "🎬 Mobile Video Views haben 2.8x höhere Conversion-Rate als Desktop."
-    ];
-
-    const randomInsight = insights[Math.floor(Math.random() * insights.length)];
-    textEl.textContent = randomInsight;
-
-    btn.disabled = false;
-    btn.innerHTML = '<span class="sparkle">✨</span> Neu generieren';
-  });
-}
-
-// --------------------------------------------------------------------
-// UTILITY FUNCTIONS
-// --------------------------------------------------------------------
-function initDate() {
-  const el = document.getElementById("currentDate");
-  if (!el) return;
-  const now = new Date();
-  el.textContent = new Intl.DateTimeFormat("de-DE", {
-    weekday: "long",
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  }).format(now);
-}
-
-function updateLastUpdate() {
-  const el = document.getElementById("lastUpdate");
-  if (!el) return;
-  
-  const now = new Date();
-  const minutes = now.getMinutes();
-  const timeAgo = minutes % 10;
-  
-  el.textContent = `vor ${timeAgo === 0 ? 'wenigen Sek.' : timeAgo + ' Min.'}`;
-}
-
-// Export für mögliche externe Nutzung
-window.AdStreamAnalytics = {
-  state: MetaState,
-  refresh: renderAll,
-  loadMock: loadMockCreatives
-};
