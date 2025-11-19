@@ -1,45 +1,37 @@
 <!DOCTYPE html>
 <html>
-<head><title>Meta Auth</title></head>
+<head>
+  <title>Meta Auth</title>
+</head>
 <body>
 <script>
-  // 1) Code aus der URL holen
   const params = new URLSearchParams(window.location.search);
   const code = params.get("code");
 
   if (!code) {
+    window.opener.postMessage({ error: "NO_CODE" }, "*");
     window.close();
   }
 
-  // 2) Code → Token über dein Backend austauschen
   fetch("/api/meta-auth?code=" + code)
-    .then(r => r.json())
+    .then(res => res.json())
     .then(data => {
-      // 3) Token ans Hauptfenster senden
       if (data.access_token) {
         window.opener.postMessage(
           { access_token: data.access_token },
-          "*"    // wichtig!
-        );
-      } else {
-        window.opener.postMessage(
-          { error: "token_failed" },
           "*"
         );
+      } else {
+        window.opener.postMessage({ error: "TOKEN_EXCHANGE_FAILED" }, "*");
       }
-
-      // 4) Popup schließen
       window.close();
     })
-    .catch(() => {
-      window.opener.postMessage(
-        { error: "token_failed" },
-        "*"
-      );
+    .catch(err => {
+      window.opener.postMessage({ error: "REQUEST_FAILED" }, "*");
       window.close();
     });
 </script>
 
-<p>Meta Login erfolgreich.</p>
+<p>Meta Login erfolgreich. Dieses Fenster kann geschlossen werden.</p>
 </body>
 </html>
