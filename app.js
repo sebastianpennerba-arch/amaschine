@@ -111,29 +111,22 @@ function setupMetaButton() {
   const statusEl = document.getElementById("metaStatus");
   if (!btn) return;
 
-  btn.addEventListener("click", () => {
-    // Deine verifizierte Meta-App
-    const appId = "732040642590155";
-    const redirect = "https://amaschine.vercel.app/api/meta-auth";
-    const scopes =
-      "ads_management,ads_read,business_management";
+btn.addEventListener("click", () => {
+  const appId = "732040642590155";
+  const redirectUri = "https://amaschine.vercel.app/meta-popup.html";
+  const scopes = "ads_read,ads_management,business_management";
 
-    const authUrl =
-      `https://www.facebook.com/v19.0/dialog/oauth?client_id=${appId}` +
-      `&redirect_uri=${encodeURIComponent(redirect)}` +
-      `&scope=${encodeURIComponent(scopes)}`;
+  const authUrl =
+    `https://www.facebook.com/v19.0/dialog/oauth?client_id=${appId}` +
+    `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+    `&scope=${encodeURIComponent(scopes)}`;
 
-    const w = 900,
-      h = 900;
-    const left = window.screenX + (window.outerWidth - w) / 2;
-    const top = window.screenY + (window.outerHeight - h) / 2;
-
-    window.open(
-      authUrl,
-      "metaAuth",
-      `width=${w},height=${h},left=${left},top=${top}`
-    );
-  });
+  window.open(
+    authUrl,
+    "metaAuth",
+    "width=900,height=900,top=100,left=100"
+  );
+});
 
   updateMetaStatus();
 }
@@ -549,6 +542,7 @@ function renderCreatives() {
     })
     .join("");
 }
+
 
 
 
