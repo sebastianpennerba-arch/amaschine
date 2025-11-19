@@ -568,6 +568,30 @@ window.addEventListener("DOMContentLoaded", () => {
   setupModeToggle();
 });
 
+async function loadMockData() {
+  console.log("Mock-Modus aktiviert → Lade Simulationsdaten…");
+
+  const [accRes, campRes, insRes, adsRes] = await Promise.all([
+    fetch("/api/mock-accounts").then((r) => r.json()),
+    fetch("/api/mock-campaigns").then((r) => r.json()),
+    fetch("/api/mock-insights").then((r) => r.json()),
+    fetch("/api/mock-ads").then((r) => r.json())
+  ]);
+
+  MetaState.accountId = accRes.accounts[0].id;
+  MetaState.campaigns = campRes.data;
+  MetaState.kpi = insRes.data[0];
+  MetaState.creatives = adsRes.creatives;
+
+  renderOverview();
+  renderFunnel();
+  renderKPIs();
+  renderCreatives();
+
+  document.getElementById("metaStatus").textContent = "Simulated Mode aktiv";
+  document.getElementById("metaStatus").style.color = "purple";
+}
+
 
 
 
