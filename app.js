@@ -43,6 +43,20 @@ window.addEventListener("DOMContentLoaded", () => {
   restoreMetaSession();
 });
 
+window.addEventListener("message", (event) => {
+  if (event.data?.type === "META_AUTH_SUCCESS") {
+    const token = event.data.token;
+
+    localStorage.setItem("meta_access_token", token);
+
+    document.querySelector("#meta-status").innerText = "Meta verbunden";
+    document.querySelector("#meta-status").style.color = "green";
+
+    loadMetaData(token);
+  }
+});
+
+
 // ------------------------------------------------------
 // UI Helpers
 // ------------------------------------------------------
@@ -531,3 +545,4 @@ function renderCreatives() {
     })
     .join("");
 }
+
