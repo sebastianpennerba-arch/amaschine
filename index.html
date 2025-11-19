@@ -1,96 +1,156 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Elite Performance Dashboard</title>
-
-    <link rel="stylesheet" href="styles.css" />
+  <meta charset="UTF-8" />
+  <title>Elite Performance Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/styles.css" />
 </head>
-
 <body>
-<div class="wrapper">
-
-    <!-- ================= HEADER ================= -->
+  <div class="wrapper">
+    <!-- HEADER -->
     <header class="header">
-        <div class="header-left">
-            <img src="logo.png" class="logo" alt="Logo">
-            <div class="divider"></div>
-            <div class="title">Elite Performance Dashboard</div>
-        </div>
-
-        <div class="header-right">
-            <div id="currentDate" class="date-display"></div>
-            <button id="connectMeta" class="btn">Meta verbinden</button>
-            <span id="metaStatus" class="red" style="font-weight:600;">Meta nicht verbunden</span>
-        </div>
+      <div class="header-left">
+        <img src="https://via.placeholder.com/120x40?text=Logo" alt="Logo" class="logo" />
+        <div class="divider"></div>
+        <div class="title">Elite Performance Dashboard</div>
+      </div>
+      <div class="header-right">
+        <div class="date-display" id="currentDate"></div>
+        <span id="metaStatus" style="font-size:14px; font-weight:600; color:#DC2626;">
+          Meta nicht verbunden
+        </span>
+      </div>
     </header>
 
-    <!-- ================= RANGE TOGGLE ================= -->
+    <!-- TOGGLE -->
     <div class="toggle">
-        <button class="toggle-btn active" id="btn-24h" data-period="1">Letzte 24h</button>
-        <button class="toggle-btn" id="btn-7d" data-period="7">Letzte 7 Tage</button>
+      <button class="toggle-btn active" data-period="1">Letzte 24h</button>
+      <button class="toggle-btn" data-period="7">Letzte 7 Tage</button>
     </div>
 
-    <!-- ================= SECTION 1 ================= -->
-    <div class="section">
-        <div class="section-header">
-            <div class="section-number">1</div>
-            <div>
-                <div class="section-title">User Journey Überblick</div>
-                <div class="section-subtitle">Wichtigste Metriken auf einen Blick</div>
-            </div>
+    <!-- SECTION 1: OVERVIEW -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-number">1</div>
+        <div>
+          <div class="section-title">User Journey Überblick</div>
+          <div class="section-subtitle">Wichtigste Metriken auf einen Blick</div>
         </div>
+      </div>
 
-        <!-- OVERVIEW GRID -->
-        <div id="overviewGrid" class="overview-grid"></div>
-
-        <!-- FUNNEL -->
-        <div class="funnel-section">
-            <div class="funnel-title">Conversion Funnel</div>
-            <div id="funnelSteps" class="funnel-steps"></div>
+      <div class="overview-grid">
+        <div class="overview-card">
+          <div class="metric-label">Impressions</div>
+          <div class="metric-value" id="ov-impr">–</div>
         </div>
-    </div>
-
-    <!-- ================= SECTION 2 ================= -->
-    <div class="section">
-        <div class="section-header">
-            <div class="section-number">2</div>
-            <div>
-                <div class="section-title">Detaillierte KPI Analyse</div>
-                <div class="section-subtitle">CTR, CPC, ROAS & mehr</div>
-            </div>
+        <div class="overview-card">
+          <div class="metric-label">Clicks</div>
+          <div class="metric-value" id="ov-clicks">–</div>
         </div>
-
-        <div id="kpiGrid" class="kpi-grid"></div>
-    </div>
-
-    <!-- ================= SECTION 3 ================= -->
-    <div class="section">
-        <div class="section-header">
-            <div class="section-number">3</div>
-            <div>
-                <div class="section-title">Active Creatives</div>
-                <div class="section-subtitle">Alle Creatives der Kampagne</div>
-            </div>
+        <div class="overview-card">
+          <div class="metric-label">AddToCart</div>
+          <div class="metric-value" id="ov-atc">–</div>
         </div>
-
-        <div class="filter-bar">
-            <button class="filter-btn active" data-filter="all">Alle</button>
-            <button class="filter-btn" data-filter="image">Bilder</button>
-            <button class="filter-btn" data-filter="video">Videos</button>
+        <div class="overview-card">
+          <div class="metric-label">Purchases</div>
+          <div class="metric-value" id="ov-purchases">–</div>
         </div>
+        <div class="overview-card">
+          <div class="metric-label">Revenue</div>
+          <div class="metric-value" id="ov-revenue">–</div>
+        </div>
+        <div class="overview-card">
+          <div class="metric-label">Spend</div>
+          <div class="metric-value" id="ov-spend">–</div>
+        </div>
+        <div class="overview-card">
+          <div class="metric-label">ROAS</div>
+          <div class="metric-value" id="ov-roas">–</div>
+        </div>
+      </div>
 
-        <div id="creativesGrid" class="creatives-grid"></div>
-    </div>
+      <div class="funnel-section">
+        <div class="funnel-title">Conversion Funnel</div>
+        <div class="funnel-steps">
+          <div class="funnel-step">
+            <div class="metric-label">Impressions</div>
+            <div class="funnel-step-value" id="fn-impr">–</div>
+          </div>
+          <div class="funnel-step">
+            <div class="metric-label">Clicks</div>
+            <div class="funnel-step-value" id="fn-clicks">–</div>
+          </div>
+          <div class="funnel-step">
+            <div class="metric-label">ATCs</div>
+            <div class="funnel-step-value" id="fn-atc">–</div>
+          </div>
+          <div class="funnel-step">
+            <div class="metric-label">Purchases</div>
+            <div class="funnel-step-value" id="fn-pur">–</div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-</div>
+    <!-- SECTION 2: KPIs -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-number">2</div>
+        <div>
+          <div class="section-title">Detaillierte KPI-Analyse</div>
+          <div class="section-subtitle">CTR, CPC, ROAS &amp; mehr</div>
+        </div>
+      </div>
 
-<!-- =================== LOADING OVERLAY =================== -->
-<div id="loading" class="loading" style="display:none;">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">CTR</div>
+          <div class="kpi-value" id="kpi-ctr">–</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">CPC</div>
+          <div class="kpi-value" id="kpi-cpc">–</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">ROAS</div>
+          <div class="kpi-value" id="kpi-roas">–</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">AOV</div>
+          <div class="kpi-value" id="kpi-aov">–</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">CR</div>
+          <div class="kpi-value" id="kpi-cr">–</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: CREATIVES -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-number">3</div>
+        <div>
+          <div class="section-title">Active Creatives</div>
+          <div class="section-subtitle">Alle Creatives der Kampagne</div>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <button class="filter-btn active" data-filter="all">Alle</button>
+        <button class="filter-btn" data-filter="image">Bilder</button>
+        <button class="filter-btn" data-filter="video">Videos</button>
+      </div>
+
+      <div id="creativeGrid" class="creative-grid"></div>
+    </section>
+  </div>
+
+  <div class="loading" id="loading" style="display:none;">
     <div class="spinner"></div>
-</div>
+  </div>
 
-<script src="app.js"></script>
+  <script src="/app.js"></script>
 </body>
 </html>
