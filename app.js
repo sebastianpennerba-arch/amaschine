@@ -161,6 +161,41 @@ function makeCard(title, value) {
   `;
 }
 
+function renderCreativeGrid(items) {
+  const el = document.getElementById("creativeGrid");
+  if (!el) return;
+
+  el.innerHTML = items.map(c => {
+    const isVideo = c.thumbnail.match(/mp4|video/);
+    const thumb = c.thumbnail || "https://via.placeholder.com/400x300";
+
+    const roas = c.metrics?.roas || 0;
+    const ctr = c.metrics?.ctr || 0;
+    const spend = c.metrics?.spend || 0;
+
+    const roasClass =
+      roas >= 3 ? "kpi-green" : roas >= 1.5 ? "kpi-yellow" : "kpi-red";
+
+    return `
+      <div class="creative-card">
+        ${isVideo
+          ? `<video src="${thumb}" class="creative-thumb" controls muted></video>`
+          : `<img src="${thumb}" class="creative-thumb" />`
+        }
+
+        <div class="creative-title">${c.name}</div>
+
+        <div class="creative-kpis">
+          <div class="kpi-badge ${roasClass}">ROAS ${roas.toFixed(2)}</div>
+          <div class="kpi-badge">${ctr}% CTR</div>
+          <div class="kpi-badge">${spend}€ Spend</div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+
 // ----------------------------------------------------
 // 7. Toggle (letzte 24 Stunden / letzte 7 Tage)
 // ----------------------------------------------------
@@ -178,6 +213,7 @@ document.querySelectorAll(".toggle-btn").forEach((b) => {
     loadDummyData();
   });
 });
+
 
 
 
