@@ -1,33 +1,42 @@
 <!DOCTYPE html>
-<html>
-<head><title>Meta Auth</title></head>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Meta Auth</title>
+</head>
 <body>
 <script>
-const params = new URLSearchParams(window.location.search);
-const code = params.get("code");
+  (async () => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
 
-if (!code) {
-    window.close();
-}
-
-// Code an Backend schicken → Access Token holen
-fetch(`/api/meta-auth?code=${code}`)
-  .then(res => res.json())
-  .then(json => {
-      if (json.access_token) {
-          // An Dashboard schicken
-          window.opener.postMessage(
-              { access_token: json.access_token },
-              "*"
-          );
-      } else {
-          window.opener.postMessage(
-              { error: "token_failed" },
-              "*"
-          );
-      }
+    if (!code) {
+      window.opener?.postMessage({ error: "no_code" }, "*");
       window.close();
-  });
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/meta-auth?code=${encodeURIComponent(code)}`);
+      const json = await res.json();
+
+      if (json.access_token) {
+        window.opener?.postMessage(
+          { access_token: json.access_token, expires_in: json.expires_in },
+          "*"
+        );
+      } else {
+        window.opener?.postMessage(
+          { error: json.error || "token_failed" },
+          "*"
+        );
+      }
+    } catch (e) {
+      window.opener?.postMessage({ error: "network_error" }, "*");
+    } finally {
+      window.close();
+    }
+  })();
 </script>
 
 <p>Meta Login erfolgreich. Dieses Fenster kann geschlossen werden.</p>
