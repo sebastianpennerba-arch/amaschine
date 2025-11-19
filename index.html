@@ -18,39 +18,6 @@
       <div class="header-right">
     <div class="date-display" id="currentDate"></div>
     <button id="connectMeta" class="btn">Mit Meta verbinden</button>
-
-<script>
-  document.getElementById("connectMeta").onclick = function() {
-      const popup = window.open(
-          "https://www.facebook.com/v19.0/dialog/oauth" +
-          "?client_id=732040642590155" +
-          "&redirect_uri=" + encodeURIComponent("https://amaschine.vercel.app/meta-popup.html") +
-          "&response_type=code" +
-          "&scope=ads_management,ads_read,business_management,pages_show_list",
-          "Meta Login",
-          "width=600,height=700"
-      );
-  };
-
-  // Listen for message from popup
-  window.addEventListener("message", async (event) => {
-      if (event.data?.type === "META_AUTH_CODE") {
-          const code = event.data.code;
-
-          // Exchange code on server
-          const res = await fetch(`/api/meta-auth?code=${code}`);
-          const data = await res.json();
-
-          if (data.success) {
-              alert("Meta erfolgreich verbunden!");
-              location.reload();
-          } else {
-              alert("Fehler: " + data.error);
-          }
-      }
-  });
-</script>
-
     <span id="metaStatus" style="font-size:14px; font-weight:600; color:#DC2626;">
       Meta nicht verbunden
     </span>
@@ -187,8 +154,40 @@
   </div>
 
   <script src="/app.js"></script>
+  <script>
+  document.getElementById("connectMeta").onclick = function() {
+      const popup = window.open(
+          "https://www.facebook.com/v19.0/dialog/oauth" +
+          "?client_id=732040642590155" +
+          "&redirect_uri=" + encodeURIComponent("https://amaschine.vercel.app/meta-popup.html") +
+          "&response_type=code" +
+          "&scope=ads_management,ads_read,business_management,pages_show_list",
+          "Meta Login",
+          "width=600,height=700"
+      );
+  };
+
+  // Listen for message from popup
+  window.addEventListener("message", async (event) => {
+      if (event.data?.type === "META_AUTH_CODE") {
+          const code = event.data.code;
+
+          // Exchange code on server
+          const res = await fetch(`/api/meta-auth?code=${code}`);
+          const data = await res.json();
+
+          if (data.success) {
+              alert("Meta erfolgreich verbunden!");
+              location.reload();
+          } else {
+              alert("Fehler: " + data.error);
+          }
+      }
+  });
+</script>
 </body>
 </html>
+
 
 
 
