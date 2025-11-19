@@ -86,6 +86,31 @@ async function loadMetaData() {
   renderKPIsFromMeta(insights);
 }
 
+// 3) Ads laden
+const adsRes = await fetch("/api/meta-ads", {
+  method: "POST",
+  body: JSON.stringify({
+    token,
+    campaignId: firstCampaign
+  }),
+});
+const ads = await adsRes.json();
+
+// 4) Creatives extrahieren
+const creatives = ads.data?.map(ad => ({
+  id: ad.id,
+  name: ad.name,
+  thumbnail: ad.creative?.thumbnail_url,
+  metrics: {
+    roas: insights.data?.[0]?.purchase_roas || 0,
+    ctr: insights.data?.[0]?.ctr || 0,
+    spend: insights.data?.[0]?.spend || 0,
+  }
+}));
+
+renderCreativeGrid(creatives);
+
+
 // ------------------------------
 // 4. Dummy Daten fürs Dashboard
 // ------------------------------
@@ -213,6 +238,7 @@ document.querySelectorAll(".toggle-btn").forEach((b) => {
     loadDummyData();
   });
 });
+
 
 
 
