@@ -101,24 +101,19 @@ function updateMetaStatus() {
 // OAuth popup → Dashboard postMessage
 // ========================================
 function setupMetaPostMessage() {
-  window.addEventListener("message", (event) => {
-    const data = event.data || {};
+window.addEventListener("message", (event) => {
+    if (event.data?.access_token) {
+        console.log("ACCESS TOKEN:", event.data.access_token);
 
-    if (data.access_token) {
-      console.log("Meta token erhalten:", data.access_token);
+        MetaState.token = event.data.access_token;
+        localStorage.setItem("meta_access_token", MetaState.token);
 
-      MetaState.token = data.access_token;
-      localStorage.setItem("meta_access_token", data.access_token);
+        document.getElementById("metaStatus").textContent = "Meta verbunden";
+        document.getElementById("metaStatus").classList.add("green");
 
-      updateMetaStatus();
-      loadMetaData();
+        loadMetaData();
     }
-
-    if (data.error) {
-      console.error("OAuth Fehler:", data);
-      alert("Meta Login Fehler: " + (data.details?.error?.message || data.error));
-    }
-  });
+});
 }
 
 function restoreMetaSession() {
@@ -438,3 +433,4 @@ function setupFilterButtons() {
     });
   });
 }
+
