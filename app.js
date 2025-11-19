@@ -111,43 +111,44 @@ function setupMockToggle() {
 async function loadMockCreatives() {
   console.log("Mock Mode → Lade Dateien aus /mock/...");
 
-  try {
-    const res = await fetch("/mock/");
-    const html = await res.text();
+  // Hardcoded Liste basierend auf deinem GitHub /mock Ordner
+  const mockFiles = [
+    "Creative1.png",
+    "Creative10.mp4",
+    "Creative11.mp4",
+    "Creative12.mp4",
+    "Creative2.png",
+    "Creative3.png",
+    "Creative4.png",
+    "Creative5.png",
+    "Creative6.png",
+    "Creative7.png",
+    "Creative8.png",
+    "Creative9.jpg"
+  ];
 
-    const files = [...html.matchAll(/href="([^"]+)"/g)]
-      .map((m) => m[1])
-      .filter((name) =>
-        name.match(/\.(jpg|jpeg|png|mp4)$/i) &&
-        !name.includes("..") &&
-        !name.startsWith("/")
-      );
+  console.log("Mock Files:", mockFiles);
 
-    console.log("Mock Files:", files);
+  MetaState.creatives = mockFiles.map((file, i) => {
+    const lower = file.toLowerCase();
+    const isVideo = lower.endsWith(".mp4");
 
-    MetaState.creatives = files.map((file, i) => {
-      const lower = file.toLowerCase();
-      const isVideo = lower.endsWith(".mp4");
+    return {
+      id: "mock_" + i,
+      name: file.replace(/\.[^.]+$/, "").replace(/Creative(\d+)/, "Creative #$1"),
+      URL: "/mock/" + file,
+      mediaType: isVideo ? "video" : "image",
+      CTR: +(Math.random() * 3 + 1).toFixed(2),
+      CPC: +(Math.random() * 0.50 + 0.05).toFixed(2),
+      ROAS: +(Math.random() * 4 + 1).toFixed(2),
+    };
+  });
 
-      return {
-        id: "mock_" + i,
-        name: file,
-        URL: "/mock/" + file,
-        mediaType: isVideo ? "video" : "image",
-        CTR: +(Math.random() * 3 + 1).toFixed(2),
-        CPC: +(Math.random() * 0.50 + 0.05).toFixed(2),
-        ROAS: +(Math.random() * 4).toFixed(2),
-      };
-    });
-
-    MetaState.kpi = generateMockInsights();
-    renderOverview();
-    renderFunnel();
-    renderKPIs();
-    renderCreatives();
-  } catch (err) {
-    console.error("Fehler im Mock Loader:", err);
-  }
+  MetaState.kpi = generateMockInsights();
+  renderOverview();
+  renderFunnel();
+  renderKPIs();
+  renderCreatives();
 }
 
 // --------------------------------------------------------------------
