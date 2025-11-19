@@ -1,49 +1,35 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <title>Meta Auth</title>
-</head>
+<head><title>Meta Auth</title></head>
 <body>
-
 <script>
-  (async () => {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
+const params = new URLSearchParams(window.location.search);
+const code = params.get("code");
 
-    if (!code) {
-      window.opener.postMessage({ error: "NO_CODE" }, "*");
-      window.close();
-      return;
-    }
-
-    try {
-      const response = await fetch("/api/meta-auth?code=" + code);
-      const data = await response.json();
-
-      if (data.access_token) {
-        window.opener.postMessage(
-          { access_token: data.access_token },
-          "*"
-        );
-      } else {
-        window.opener.postMessage(
-          { error: "TOKEN_EXCHANGE_FAILED", details: data },
-          "*"
-        );
-      }
-    } catch (err) {
-      window.opener.postMessage(
-        { error: "REQUEST_FAILED", details: err.message },
-        "*"
-      );
-    }
-
+if (!code) {
     window.close();
-  })();
+}
+
+// Code an Backend schicken → Access Token holen
+fetch(`/api/meta-auth?code=${code}`)
+  .then(res => res.json())
+  .then(json => {
+      if (json.access_token) {
+          // An Dashboard schicken
+          window.opener.postMessage(
+              { access_token: json.access_token },
+              "*"
+          );
+      } else {
+          window.opener.postMessage(
+              { error: "token_failed" },
+              "*"
+          );
+      }
+      window.close();
+  });
 </script>
 
 <p>Meta Login erfolgreich. Dieses Fenster kann geschlossen werden.</p>
-
 </body>
 </html>
