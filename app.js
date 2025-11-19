@@ -1,4 +1,9 @@
-// AdStream Analytics - Professional Dashboard
+// app.js
+// ======================================================
+// AdStream Analytics – PREMIUM VERSION (cleaned layout)
+// ======================================================
+
+// GLOBAL STATE
 const MetaState = {
   token: null,
   period: "24h",
@@ -13,14 +18,30 @@ const MetaState = {
 
 let MOCK_MODE = true;
 let trendChart = null;
+let scoreChart = null;
 
+// --------------------------------------------------------------------
+// FORMATTER
+// --------------------------------------------------------------------
 const fmt = {
-  num: (v, d = 0) => Number(v || 0).toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d }),
-  curr: (v) => Number(v || 0).toLocaleString("de-DE", { style: "currency", currency: "EUR", minimumFractionDigits: 2 }),
-  pct: (v) => (Number(v || 0)).toFixed(2).replace(".", ",") + "%",
+  num: (v, d = 0) =>
+    Number(v || 0).toLocaleString("de-DE", {
+      minimumFractionDigits: d,
+      maximumFractionDigits: d,
+    }),
+  curr: (v) =>
+    Number(v || 0).toLocaleString("de-DE", {
+      style: "currency",
+      currency: "EUR",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }),
+  pct: (v) => (Number(v || 0)).toFixed(2).replace(".", ",") + " %",
 };
 
+// --------------------------------------------------------------------
 // INIT
+// --------------------------------------------------------------------
 window.addEventListener("DOMContentLoaded", () => {
   setupMockToggle();
   setupPeriodToggle();
@@ -29,28 +50,45 @@ window.addEventListener("DOMContentLoaded", () => {
   setupMetaPostMessage();
   restoreMetaSession();
   initDate();
+  setupAIInsights();
+  setupSortSelect();
   
-  if (MOCK_MODE) loadMockCreatives();
+  if (MOCK_MODE) {
+    loadMockCreatives();
+  }
+  
+  updateLastUpdate();
+  setInterval(updateLastUpdate, 60000);
 });
 
+// --------------------------------------------------------------------
+// MOCK TOGGLE
+// --------------------------------------------------------------------
 function setupMockToggle() {
   const liveBtn = document.getElementById("mode-live");
   const mockBtn = document.getElementById("mode-sim");
+
   if (!liveBtn || !mockBtn) return;
 
   liveBtn.addEventListener("click", () => {
     MOCK_MODE = false;
     liveBtn.classList.add("active");
     mockBtn.classList.remove("active");
+    
     updateStatusBadge();
-    if (MetaState.token) loadMetaData();
-    else clearDashboard();
+    
+    if (MetaState.token) {
+      loadMetaData();
+    } else {
+      clearDashboard();
+    }
   });
 
   mockBtn.addEventListener("click", () => {
     MOCK_MODE = true;
     mockBtn.classList.add("active");
     liveBtn.classList.remove("active");
+    
     updateStatusBadge();
     loadMockCreatives();
   });
@@ -61,17 +99,17 @@ function updateStatusBadge() {
   if (!badge) return;
   
   if (MOCK_MODE) {
-    badge.textContent = "Demo";
-    badge.style.background = "#fef3c7";
-    badge.style.color = "#f59e0b";
+    badge.textContent = "Demo Mode";
+    badge.style.background = "var(--warning-light)";
+    badge.style.color = "var(--warning)";
   } else if (MetaState.token) {
-    badge.textContent = "Connected";
-    badge.style.background = "#d1fae5";
-    badge.style.color = "#10b981";
+    badge.textContent = "Live Connected";
+    badge.style.background = "var(--success-light)";
+    badge.style.color = "var(--success)";
   } else {
-    badge.textContent = "Offline";
-    badge.style.background = "#fee2e2";
-    badge.style.color = "#ef4444";
+    badge.textContent = "Not Connected";
+    badge.style.background = "var(--danger-light)";
+    badge.style.color = "var(--danger)";
   }
 }
 
@@ -81,16 +119,28 @@ function clearDashboard() {
   renderAll();
 }
 
-// MOCK DATA
-function loadMockCreatives() {
+// --------------------------------------------------------------------
+// MOCK LOADER
+// --------------------------------------------------------------------
+async function loadMockCreatives() {
   const mockFiles = [
-    "Creative1.png", "Creative2.png", "Creative3.png", "Creative4.png",
-    "Creative5.png", "Creative6.png", "Creative7.png", "Creative8.png",
-    "Creative9.jpg", "Creative10.mp4", "Creative11.mp4", "Creative12.mp4"
+    "Creative1.png",
+    "Creative10.mp4",
+    "Creative11.mp4",
+    "Creative12.mp4",
+    "Creative2.png",
+    "Creative3.png",
+    "Creative4.png",
+    "Creative5.png",
+    "Creative6.png",
+    "Creative7.png",
+    "Creative8.png",
+    "Creative9.jpg"
   ];
 
   MetaState.creatives = mockFiles.map((file, i) => {
-    const isVideo = file.toLowerCase().endsWith(".mp4");
+    const lower = file.toLowerCase();
+    const isVideo = lower.endsWith(".mp4");
     const roas = +(Math.random() * 4 + 1).toFixed(2);
     const ctr = +(Math.random() * 3 + 0.5).toFixed(2);
     const cpc = +(Math.random() * 0.50 + 0.20).toFixed(2);
@@ -105,12 +155,19 @@ function loadMockCreatives() {
       CPC: cpc,
       ROAS: roas,
       impressions: impressions,
-      score: Math.round((roas / 5) * 40 + (ctr / 5) * 35 + Math.max(25 - (cpc * 20), 0))
+      score: calculateCreativeScore(roas, ctr, cpc)
     };
   });
 
   MetaState.kpi = generateMockInsights();
   renderAll();
+}
+
+function calculateCreativeScore(roas, ctr, cpc) {
+  const roasScore = Math.min((roas / 5) * 40, 40);
+  const ctrScore = Math.min((ctr / 5) * 35, 35);
+  const cpcScore = Math.max(25 - (cpc * 20), 0);
+  return Math.round(roasScore + ctrScore + cpcScore);
 }
 
 function generateMockInsights() {
@@ -135,7 +192,9 @@ function generateMockInsights() {
   };
 }
 
+// --------------------------------------------------------------------
 // META INTEGRATION
+// --------------------------------------------------------------------
 function setupMetaButton() {
   const btn = document.getElementById("connectMeta");
   if (!btn) return;
@@ -149,7 +208,12 @@ function setupMetaButton() {
     const appId = "732040642590155";
     const redirect = "https://amaschine.vercel.app/meta-popup.html";
     const scopes = "ads_management,ads_read,business_management";
-    const authUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${appId}&redirect_uri=${encodeURIComponent(redirect)}&scope=${encodeURIComponent(scopes)}`;
+
+    const authUrl =
+      `https://www.facebook.com/v19.0/dialog/oauth?client_id=${appId}` +
+      `&redirect_uri=${encodeURIComponent(redirect)}` +
+      `&scope=${encodeURIComponent(scopes)}`;
+
     window.open(authUrl, "metaAuth", "width=900,height=900");
   });
 }
@@ -157,19 +221,28 @@ function setupMetaButton() {
 function setupMetaPostMessage() {
   window.addEventListener("message", (event) => {
     if (!event.data?.access_token) return;
+
     MetaState.token = event.data.access_token;
     localStorage.setItem("meta_access_token", MetaState.token);
+
     updateStatusBadge();
-    if (!MOCK_MODE) loadMetaData();
+
+    if (!MOCK_MODE) {
+      loadMetaData();
+    }
   });
 }
 
 function restoreMetaSession() {
   const token = localStorage.getItem("meta_access_token");
   if (!token) return;
+  
   MetaState.token = token;
   updateStatusBadge();
-  if (!MOCK_MODE) loadMetaData();
+  
+  if (!MOCK_MODE) {
+    loadMetaData();
+  }
 }
 
 async function loadMetaData() {
@@ -183,6 +256,7 @@ async function loadMetaData() {
     });
     const accJson = await accRes.json();
     const accounts = accJson.data || [];
+
     if (!accounts.length) return;
 
     MetaState.accountId = accounts[0].account_id;
@@ -191,18 +265,28 @@ async function loadMetaData() {
     const insRes = await fetch("/api/meta-insights", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token: MetaState.token, accountId: MetaState.accountId, preset }),
+      body: JSON.stringify({
+        token: MetaState.token,
+        accountId: MetaState.accountId,
+        preset,
+      }),
     });
     const insJson = await insRes.json();
     const row = insJson.data?.[0] || null;
 
-    if (row) MetaState.kpi = mapInsightsRow(row);
+    if (row) {
+      MetaState.kpi = mapInsightsRow(row);
+    }
 
     const campRes = await fetch("/api/meta-campaigns", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token: MetaState.token, accountId: MetaState.accountId }),
+      body: JSON.stringify({
+        token: MetaState.token,
+        accountId: MetaState.accountId,
+      }),
     });
+
     const campJson = await campRes.json();
     MetaState.campaigns = campJson.data || [];
     
@@ -213,7 +297,7 @@ async function loadMetaData() {
 
     renderAll();
   } catch (err) {
-    console.error("Fehler:", err);
+    console.error("Fehler beim Laden der Meta-Daten:", err);
   }
 }
 
@@ -225,6 +309,7 @@ function mapInsightsRow(row) {
   const cpc = parseFloat(row.cpc || 0);
 
   let purchases = 0, revenue = 0;
+
   if (Array.isArray(row.actions)) {
     const p = row.actions.find((a) => a.action_type?.includes("purchase"));
     if (p) purchases = +p.value || 0;
@@ -263,7 +348,13 @@ async function loadCreativesForCampaign(campaignId) {
 
     MetaState.creatives = ads.map((ad) => {
       const cr = ad.creative || {};
-      const thumb = cr.thumbnail_url || cr.image_url || cr.video_url || cr?.object_story_spec?.link_data?.picture || "";
+      const thumb =
+        cr.thumbnail_url ||
+        cr.image_url ||
+        cr.video_url ||
+        cr?.object_story_spec?.link_data?.picture ||
+        "";
+
       const isVideo = thumb.toLowerCase().includes(".mp4");
 
       return {
@@ -279,11 +370,13 @@ async function loadCreativesForCampaign(campaignId) {
       };
     });
   } catch (err) {
-    console.error("Fehler:", err);
+    console.error("Fehler beim Laden der Creatives:", err);
   }
 }
 
+// --------------------------------------------------------------------
 // PERIOD TOGGLE
+// --------------------------------------------------------------------
 function setupPeriodToggle() {
   const btns = document.querySelectorAll(".toggle-btn");
   btns.forEach((btn) => {
@@ -292,15 +385,26 @@ function setupPeriodToggle() {
       btn.classList.add("active");
       
       const period = btn.dataset.period;
-      MetaState.period = period === "30" ? "30d" : period === "7" ? "7d" : "24h";
+      if (period === "30") {
+        MetaState.period = "30d";
+      } else if (period === "7") {
+        MetaState.period = "7d";
+      } else {
+        MetaState.period = "24h";
+      }
       
-      if (MOCK_MODE) loadMockCreatives();
-      else if (MetaState.token) loadMetaData();
+      if (MOCK_MODE) {
+        loadMockCreatives();
+      } else if (MetaState.token) {
+        loadMetaData();
+      }
     });
   });
 }
 
+// --------------------------------------------------------------------
 // FILTER & SORT
+// --------------------------------------------------------------------
 function setupFilterButtons() {
   const btns = document.querySelectorAll(".filter-btn");
   btns.forEach((b) => {
@@ -313,94 +417,191 @@ function setupFilterButtons() {
   });
 }
 
+function setupSortSelect() {
+  const select = document.getElementById("sortCreatives");
+  if (!select) return;
+  
+  select.addEventListener("change", (e) => {
+    MetaState.sortBy = e.target.value;
+    renderCreatives();
+  });
+}
+
+// --------------------------------------------------------------------
 // RENDER ALL
+// --------------------------------------------------------------------
 function renderAll() {
   renderOverview();
   renderFunnel();
   renderKPIs();
   renderCreatives();
+  renderPerformanceScore();
+  renderQuickMetrics();
   renderTrendChart();
+  renderHeatmap();
+  renderWinnerLoser();
+  updateCreativeCounts();
 }
 
+// --------------------------------------------------------------------
+// PERFORMANCE SCORE
+// --------------------------------------------------------------------
+function renderPerformanceScore() {
+  const KPI = MetaState.kpi;
+  if (!KPI) return;
+
+  const roasScore = Math.min((KPI.ROAS / 5) * 100, 100);
+  const ctrScore = Math.min((KPI.CTR / 5) * 100, 100);
+  const crScore = Math.min((KPI.CR / 8) * 100, 100);
+  const avgScore = Math.round((roasScore + ctrScore + crScore) / 3);
+
+  const scoreEl = document.getElementById("performanceScore");
+  if (scoreEl) scoreEl.textContent = avgScore;
+
+  const canvas = document.getElementById("scoreChart");
+  if (!canvas) return;
+
+  if (scoreChart) scoreChart.destroy();
+
+  const ctx = canvas.getContext("2d");
+  scoreChart = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      datasets: [{
+        data: [avgScore, 100 - avgScore],
+        backgroundColor: ["#2457dd", "#E5E7EB"],
+        borderWidth: 0,
+      }]
+    },
+    options: {
+      responsive: false,
+      cutout: "75%",
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: false }
+      }
+    }
+  });
+}
+
+// --------------------------------------------------------------------
+// QUICK METRICS
+// --------------------------------------------------------------------
+function renderQuickMetrics() {
+  const KPI = MetaState.kpi;
+  if (!KPI) return;
+
+  const updates = [
+    { id: "quickCR", value: fmt.pct(KPI.CR) },
+    { id: "quickROAS", value: fmt.num(KPI.ROAS, 1) + "x" },
+    { id: "quickCTR", value: fmt.pct(KPI.CTR) },
+    { id: "quickRevenue", value: fmt.curr(KPI.Revenue) }
+  ];
+
+  updates.forEach(({ id, value }) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  });
+}
+
+// --------------------------------------------------------------------
+// OVERVIEW GRID
+// --------------------------------------------------------------------
 function renderOverview() {
   const grid = document.getElementById("overviewGrid");
   const KPI = MetaState.kpi;
   if (!grid) return;
   
   if (!KPI) {
-    grid.innerHTML = '<div style="grid-column:1/-1; color:#6B7280;">Keine Daten verfügbar</div>';
+    grid.innerHTML = '<div style="grid-column:1/-1; color:var(--text-light);">Keine Daten verfügbar</div>';
     return;
   }
 
   const cards = [
-    { label: "Impressions", val: fmt.num(KPI.Impressions) },
-    { label: "Clicks", val: fmt.num(KPI.Clicks) },
-    { label: "Add to Cart", val: fmt.num(KPI.AddToCart) },
-    { label: "Purchases", val: fmt.num(KPI.Purchases) },
-    { label: "Revenue", val: fmt.curr(KPI.Revenue) },
-    { label: "Spend", val: fmt.curr(KPI.Spend) },
-    { label: "ROAS", val: fmt.num(KPI.ROAS, 2) },
+    { label: "Impressions", val: fmt.num(KPI.Impressions), icon: "👁️" },
+    { label: "Clicks", val: fmt.num(KPI.Clicks), icon: "🖱️" },
+    { label: "Add to Cart", val: fmt.num(KPI.AddToCart), icon: "🛒" },
+    { label: "Purchases", val: fmt.num(KPI.Purchases), icon: "✅" },
+    { label: "Revenue", val: fmt.curr(KPI.Revenue), icon: "💰" },
+    { label: "Spend", val: fmt.curr(KPI.Spend), icon: "💸" },
+    { label: "ROAS", val: fmt.num(KPI.ROAS, 2), icon: "📈" },
   ];
 
-  grid.innerHTML = cards.map(c => `
-    <div class="overview-card">
-      <div class="metric-label">${c.label}</div>
-      <div class="metric-value">${c.val}</div>
-    </div>
-  `).join("");
+  grid.innerHTML = cards
+    .map(c => `
+      <div class="overview-card">
+        <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:6px;">
+          <div class="metric-label">${c.label}</div>
+          <span style="font-size:16px;">${c.icon}</span>
+        </div>
+        <div class="metric-value">${c.val}</div>
+      </div>
+    `)
+    .join("");
 }
 
+// --------------------------------------------------------------------
+// FUNNEL
+// --------------------------------------------------------------------
 function renderFunnel() {
   const el = document.getElementById("funnelSteps");
   const KPI = MetaState.kpi;
   if (!el) return;
   
   if (!KPI) {
-    el.innerHTML = '<div style="color:#6B7280;">Keine Daten</div>';
+    el.innerHTML = '<div style="color:var(--text-light);">Keine Daten verfügbar</div>';
     return;
   }
 
+  const crEl = document.getElementById("totalCR");
+  if (crEl) crEl.textContent = fmt.pct(KPI.CR);
+
   const steps = [
-    { label: "Impressions", value: KPI.Impressions },
-    { label: "Clicks", value: KPI.Clicks },
-    { label: "Add to Cart", value: KPI.AddToCart },
-    { label: "Purchases", value: KPI.Purchases }
+    { label: "Impressions", value: KPI.Impressions, pct: 100 },
+    { label: "Clicks", value: KPI.Clicks, pct: (KPI.Clicks / KPI.Impressions * 100).toFixed(1) },
+    { label: "Add to Cart", value: KPI.AddToCart, pct: KPI.Clicks ? (KPI.AddToCart / KPI.Clicks * 100).toFixed(1) : 0 },
+    { label: "Purchases", value: KPI.Purchases, pct: KPI.Clicks ? (KPI.Purchases / KPI.Clicks * 100).toFixed(1) : 0 }
   ];
 
   el.innerHTML = steps.map(s => `
     <div class="funnel-step">
       <div class="metric-label">${s.label}</div>
       <div class="funnel-step-value">${fmt.num(s.value)}</div>
+      <div style="font-size:11px; opacity:0.85; margin-top:4px;">${s.pct}%</div>
     </div>
   `).join("");
 }
 
+// --------------------------------------------------------------------
+// TREND CHART – dezent, kompakt
+// --------------------------------------------------------------------
 function renderTrendChart() {
   const canvas = document.getElementById("trendChart");
   if (!canvas) return;
 
   const labels = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
-  const data = Array.from({ length: 7 }, () => Math.random() * 3 + 2);
+  const data = Array.from({ length: 7 }, () => +(Math.random() * 3 + 2).toFixed(2));
 
   if (trendChart) trendChart.destroy();
 
   const ctx = canvas.getContext("2d");
+
   trendChart = new Chart(ctx, {
     type: "line",
     data: {
-      labels: labels,
+      labels,
       datasets: [{
         label: "ROAS",
-        data: data,
-        borderColor: "#3b82f6",
-        backgroundColor: "rgba(59, 130, 246, 0.1)",
-        tension: 0.4,
-        fill: true,
-        borderWidth: 2,
-        pointRadius: 4,
-        pointBackgroundColor: "#3b82f6",
-        pointBorderColor: "#fff",
-        pointBorderWidth: 2
+        data,
+        borderColor: "#2457dd",
+        backgroundColor: "transparent",
+        tension: 0.25,
+        fill: false,
+        pointRadius: 2,
+        pointHoverRadius: 4,
+        pointBackgroundColor: "#2457dd",
+        pointBorderWidth: 0,
+        borderWidth: 1.5
       }]
     },
     options: {
@@ -409,16 +610,17 @@ function renderTrendChart() {
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: "#1a1a1a",
-          padding: 10,
-          titleFont: { size: 12 },
-          bodyFont: { size: 12 }
+          backgroundColor: "#111827",
+          padding: 8,
+          cornerRadius: 4,
+          titleFont: { size: 11, weight: "600" },
+          bodyFont: { size: 11 }
         }
       },
       scales: {
         y: {
           beginAtZero: true,
-          grid: { color: "#e5e7eb" },
+          grid: { color: "#E5E7EB" },
           ticks: { font: { size: 11 } }
         },
         x: {
@@ -428,34 +630,125 @@ function renderTrendChart() {
       }
     }
   });
+
+  setupChartFilters();
 }
 
+function setupChartFilters() {
+  const btns = document.querySelectorAll(".chart-filter");
+  btns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      btns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+    });
+  });
+}
+
+// --------------------------------------------------------------------
+// KPIs
+// --------------------------------------------------------------------
 function renderKPIs() {
   const el = document.getElementById("kpiGrid");
   const KPI = MetaState.kpi;
   if (!el) return;
   
   if (!KPI) {
-    el.innerHTML = '<div style="grid-column:1/-1; color:#6B7280;">Keine Daten</div>';
+    el.innerHTML = '<div style="grid-column:1/-1; color:var(--text-light);">Keine Daten verfügbar</div>';
     return;
   }
 
+  const benchmarks = {
+    CTR: 2.5,
+    CPC: 0.80,
+    ROAS: 3.0,
+    AOV: 65,
+    CR: 3.5
+  };
+
   const cards = [
-    { label: "CTR", val: fmt.pct(KPI.CTR) },
-    { label: "CPC", val: fmt.curr(KPI.CPC) },
-    { label: "ROAS", val: fmt.num(KPI.ROAS, 2) },
-    { label: "AOV", val: fmt.curr(KPI.AOV) },
-    { label: "CR", val: fmt.pct(KPI.CR) },
+    { label: "CTR", val: fmt.pct(KPI.CTR), bench: benchmarks.CTR },
+    { label: "CPC", val: fmt.curr(KPI.CPC), bench: benchmarks.CPC },
+    { label: "ROAS", val: fmt.num(KPI.ROAS, 2), bench: benchmarks.ROAS },
+    { label: "AOV", val: fmt.curr(KPI.AOV), bench: benchmarks.AOV },
+    { label: "CR", val: fmt.pct(KPI.CR), bench: benchmarks.CR }
   ];
 
-  el.innerHTML = cards.map(c => `
-    <div class="kpi-card">
-      <div class="kpi-label">${c.label}</div>
-      <div class="kpi-value">${c.val}</div>
-    </div>
-  `).join("");
+  el.className = "kpi-grid-enhanced";
+  el.innerHTML = cards
+    .map(c => {
+      const current = parseFloat(c.val.replace(/[^0-9,.-]/g, "").replace(",", "."));
+      const diff = ((current - c.bench) / c.bench * 100).toFixed(1);
+      const isPositive = diff > 0;
+      const barWidth = Math.min((current / c.bench) * 100, 100);
+
+      return `
+        <div class="kpi-card-enhanced">
+          <div class="kpi-header">
+            <div class="kpi-label">${c.label}</div>
+            <div class="kpi-trend ${isPositive ? 'positive' : 'negative'}">
+              ${isPositive ? '↗' : '↘'} ${Math.abs(diff)}%
+            </div>
+          </div>
+          <div class="kpi-value">${c.val}</div>
+          <div class="kpi-comparison">
+            Benchmark: ${
+              typeof c.bench === 'number' && c.label !== 'AOV' && c.label !== 'CPC'
+                ? fmt.num(c.bench, 2) + (c.label === 'ROAS' ? '' : '%')
+                : fmt.curr(c.bench)
+            }
+          </div>
+          <div class="kpi-bar">
+            <div class="kpi-bar-fill" style="width: ${barWidth}%"></div>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
 }
 
+// --------------------------------------------------------------------
+// HEATMAP
+// --------------------------------------------------------------------
+function renderHeatmap() {
+  const container = document.getElementById("heatmapContainer");
+  if (!container) return;
+
+  const days = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+  const hours = ["0-6", "6-12", "12-18", "18-24"];
+
+  const data = hours.map(() =>
+    days.map(() => Math.random())
+  );
+
+  let html = '<div class="heatmap-label"></div>';
+  days.forEach(day => {
+    html += `<div class="heatmap-label">${day}</div>`;
+  });
+
+  hours.forEach((hour, i) => {
+    html += `<div class="heatmap-label">${hour}h</div>`;
+    days.forEach((_, j) => {
+      const value = data[i][j];
+      const intensity = value;
+      const color = `rgba(36, 87, 221, ${0.15 + intensity * 0.75})`;
+      const textColor = intensity > 0.5 ? "#fff" : "#111827";
+      
+      html += `
+        <div class="heatmap-cell" 
+             style="background: ${color}; color: ${textColor};" 
+             title="${hour}h ${days[j]}: ${(value * 100).toFixed(0)}%">
+          ${(value * 100).toFixed(0)}
+        </div>
+      `;
+    });
+  });
+
+  container.innerHTML = html;
+}
+
+// --------------------------------------------------------------------
+// CREATIVES
+// --------------------------------------------------------------------
 function renderCreatives() {
   const grid = document.getElementById("creativeGrid");
   if (!grid) return;
@@ -465,37 +758,165 @@ function renderCreatives() {
   if (MetaState.filter === "image") items = items.filter(c => c.mediaType === "image");
   if (MetaState.filter === "video") items = items.filter(c => c.mediaType === "video");
 
-  items.sort((a, b) => b.ROAS - a.ROAS);
+  items.sort((a, b) => {
+    switch(MetaState.sortBy) {
+      case "roas": return b.ROAS - a.ROAS;
+      case "ctr": return b.CTR - a.CTR;
+      case "cpc": return a.CPC - b.CPC;
+      case "impressions": return b.impressions - a.impressions;
+      default: return 0;
+    }
+  });
 
   if (!items.length) {
-    grid.innerHTML = '<div style="grid-column:1/-1; color:#6B7280;">Keine Creatives</div>';
+    grid.innerHTML = '<div style="grid-column:1/-1; color:var(--text-light);">Keine Creatives gefunden.</div>';
     return;
   }
 
-  grid.innerHTML = items.map(c => {
-    const isVideo = c.mediaType === "video";
-    const media = isVideo
-      ? `<video class="creative-thumb" controls src="${c.URL}"></video>`
-      : `<img class="creative-thumb" src="${c.URL}" alt="${c.name}" onerror="this.src='https://via.placeholder.com/220x200?text=Creative'" />`;
+  grid.innerHTML = items
+    .map(c => {
+      const isVideo = c.mediaType === "video";
+      const media = isVideo
+        ? `<video class="creative-thumb" controls src="${c.URL}"></video>`
+        : `<img class="creative-thumb" src="${c.URL}" alt="${c.name}" onerror="this.src='https://via.placeholder.com/280x280?text=Creative'" />`;
 
-    const roasClass = c.ROAS >= 3 ? "kpi-green" : c.ROAS >= 1.5 ? "kpi-yellow" : "kpi-red";
-    const ctrClass = c.CTR >= 2 ? "kpi-green" : c.CTR >= 1 ? "kpi-yellow" : "kpi-red";
+      const roasClass = c.ROAS >= 3.5 ? "kpi-green" : c.ROAS >= 2 ? "kpi-yellow" : "kpi-red";
+      const ctrClass = c.CTR >= 2.5 ? "kpi-green" : c.CTR >= 1.5 ? "kpi-yellow" : "kpi-red";
 
-    return `
-      <div class="creative-card">
-        ${media}
-        <div class="creative-title">${c.name}</div>
-        <div class="creative-kpis">
-          <span class="kpi-badge ${roasClass}">ROAS ${fmt.num(c.ROAS, 2)}</span>
-          <span class="kpi-badge ${ctrClass}">CTR ${fmt.num(c.CTR, 2)}%</span>
-          <span class="kpi-badge kpi-yellow">CPC ${fmt.curr(c.CPC)}</span>
+      return `
+        <div class="creative-card">
+          ${media}
+          <div class="creative-title">${c.name}</div>
+          <div class="creative-kpis">
+            <span class="kpi-badge ${roasClass}">ROAS ${fmt.num(c.ROAS, 2)}</span>
+            <span class="kpi-badge ${ctrClass}">CTR ${fmt.num(c.CTR, 2)}%</span>
+            <span class="kpi-badge kpi-yellow">CPC ${fmt.curr(c.CPC)}</span>
+          </div>
+          <div style="margin-top:8px; font-size:11px; color:var(--text-light);">
+            Score: <strong>${c.score}/100</strong> · ${fmt.num(c.impressions)} Impressions
+          </div>
         </div>
-      </div>
-    `;
-  }).join("");
+      `;
+    })
+    .join("");
 }
 
-// UTILITY
+function updateCreativeCounts() {
+  const all = MetaState.creatives.length;
+  const images = MetaState.creatives.filter(c => c.mediaType === "image").length;
+  const videos = MetaState.creatives.filter(c => c.mediaType === "video").length;
+
+  const updates = [
+    { id: "countAll", value: all },
+    { id: "countImages", value: images },
+    { id: "countVideos", value: videos }
+  ];
+
+  updates.forEach(({ id, value }) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  });
+}
+
+// --------------------------------------------------------------------
+// WINNER / LOSER
+// --------------------------------------------------------------------
+function renderWinnerLoser() {
+  if (!MetaState.creatives.length) return;
+
+  const sorted = [...MetaState.creatives].sort((a, b) => b.ROAS - a.ROAS);
+  const winner = sorted[0];
+  const loser = sorted[sorted.length - 1];
+
+  const winnerEl = document.getElementById("winnerContent");
+  const loserEl = document.getElementById("loserContent");
+
+  if (winnerEl && winner) {
+    const isVideo = winner.mediaType === "video";
+    const media = isVideo
+      ? `<video style="width:100%; border-radius:6px; margin-bottom:8px;" controls src="${winner.URL}"></video>`
+      : `<img style="width:100%; border-radius:6px; margin-bottom:8px;" src="${winner.URL}" alt="${winner.name}" />`;
+
+    winnerEl.innerHTML = `
+      ${media}
+      <h3 style="font-size:14px; margin-bottom:8px; font-weight:600;">${winner.name}</h3>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
+        <div style="background:var(--success-light); padding:8px; border-radius:6px;">
+          <div style="font-size:10px; color:var(--success); font-weight:600; text-transform:uppercase; letter-spacing:0.4px;">ROAS</div>
+          <div style="font-size:18px; font-weight:700; color:var(--success);">${fmt.num(winner.ROAS, 2)}</div>
+        </div>
+        <div style="background:var(--bg-alt); padding:8px; border-radius:6px; border:1px solid var(--border);">
+          <div style="font-size:10px; color:var(--text-light); font-weight:600; text-transform:uppercase; letter-spacing:0.4px;">CTR</div>
+          <div style="font-size:18px; font-weight:700;">${fmt.num(winner.CTR, 2)}%</div>
+        </div>
+      </div>
+      <div style="font-size:12px; color:var(--text-light);">
+        Starker ROAS & CTR. Empfehlung: Budget schrittweise um <strong>+20–30%</strong> erhöhen.
+      </div>
+    `;
+  }
+
+  if (loserEl && loser) {
+    const isVideo = loser.mediaType === "video";
+    const media = isVideo
+      ? `<video style="width:100%; border-radius:6px; margin-bottom:8px;" controls src="${loser.URL}"></video>`
+      : `<img style="width:100%; border-radius:6px; margin-bottom:8px;" src="${loser.URL}" alt="${loser.name}" />`;
+
+    loserEl.innerHTML = `
+      ${media}
+      <h3 style="font-size:14px; margin-bottom:8px; font-weight:600;">${loser.name}</h3>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
+        <div style="background:var(--danger-light); padding:8px; border-radius:6px;">
+          <div style="font-size:10px; color:var(--danger); font-weight:600; text-transform:uppercase; letter-spacing:0.4px;">ROAS</div>
+          <div style="font-size:18px; font-weight:700; color:var(--danger);">${fmt.num(loser.ROAS, 2)}</div>
+        </div>
+        <div style="background:var(--bg-alt); padding:8px; border-radius:6px; border:1px solid var(--border);">
+          <div style="font-size:10px; color:var(--text-light); font-weight:600; text-transform:uppercase; letter-spacing:0.4px;">CPC</div>
+          <div style="font-size:18px; font-weight:700;">${fmt.curr(loser.CPC)}</div>
+        </div>
+      </div>
+      <div style="font-size:12px; color:var(--text-light);">
+        Schwacher ROAS. Empfehlung: Creative pausieren oder neuen Hook/Visual testen.
+      </div>
+    `;
+  }
+}
+
+// --------------------------------------------------------------------
+// AI INSIGHTS BUTTON
+// --------------------------------------------------------------------
+function setupAIInsights() {
+  const btn = document.getElementById("generateInsights");
+  if (!btn) return;
+
+  btn.addEventListener("click", async () => {
+    const textEl = document.getElementById("aiInsights");
+    if (!textEl) return;
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="sparkle">⏳</span> Generiere...';
+
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    const insights = [
+      "🎯 Top-Performer Creative #3 hat 67% höheren ROAS. Budget-Shift empfohlen.",
+      "📊 Video-Content zeigt 34% bessere Engagement-Rate als statische Bilder.",
+      "⚡ Peak-Performance zwischen 18-21 Uhr. Dayparting aktivieren für +15% Effizienz.",
+      "💡 Creatives mit ROAS < 2.0 sollten pausiert werden. Potentielle Ersparnis: €180/Woche.",
+      "🎬 Mobile Video Views haben 2.8x höhere Conversion-Rate als Desktop."
+    ];
+
+    const randomInsight = insights[Math.floor(Math.random() * insights.length)];
+    textEl.textContent = randomInsight;
+
+    btn.disabled = false;
+    btn.innerHTML = '<span class="sparkle">✨</span> Neu generieren';
+  });
+}
+
+// --------------------------------------------------------------------
+// UTILITY FUNCTIONS
+// --------------------------------------------------------------------
 function initDate() {
   const el = document.getElementById("currentDate");
   if (!el) return;
@@ -508,6 +929,18 @@ function initDate() {
   }).format(now);
 }
 
+function updateLastUpdate() {
+  const el = document.getElementById("lastUpdate");
+  if (!el) return;
+  
+  const now = new Date();
+  const minutes = now.getMinutes();
+  const timeAgo = minutes % 10;
+  
+  el.textContent = `vor ${timeAgo === 0 ? 'wenigen Sek.' : timeAgo + ' Min.'}`;
+}
+
+// Export für mögliche externe Nutzung
 window.AdStreamAnalytics = {
   state: MetaState,
   refresh: renderAll,
