@@ -43,14 +43,18 @@ window.addEventListener("DOMContentLoaded", () => {
   restoreMetaSession();
 });
 
-window.addEventListener("message", (event) => {
+window.addEventListener("message", event => {
   if (event.data.access_token) {
+    console.log("REAL META TOKEN:", event.data.access_token);
+
     MetaState.token = event.data.access_token;
     localStorage.setItem("meta_access_token", event.data.access_token);
+
     updateMetaStatus();
     loadMetaData();
   }
 });
+
 
 // ------------------------------------------------------
 // UI Helpers
@@ -540,5 +544,6 @@ function renderCreatives() {
     })
     .join("");
 }
+
 
 
