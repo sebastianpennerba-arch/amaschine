@@ -7,9 +7,9 @@ export default async function handler(req, res) {
     }
 
     const params = new URLSearchParams({
-      client_id: process.env.732040642590155,
-      client_secret: process.env.14f64aab9d45c4dbc27e0feaac530e11,
-      redirect_uri: process.env.https://amaschine.vercel.app/api/meta-auth,
+      client_id: process.env.META_APP_ID,
+      client_secret: process.env.META_APP_SECRET,
+      redirect_uri: process.env.META_REDIRECT_URI,
       code,
     });
 
