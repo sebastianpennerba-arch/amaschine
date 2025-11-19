@@ -25,6 +25,35 @@
 
     </header>
 
+<!-- Account & Campaign Selector -->
+<div class="section" id="accountSelector" style="display:none;">
+  <div class="section-header">
+    <div class="section-number">0</div>
+    <div>
+      <div class="section-title">Werbekonto & Kampagne wählen</div>
+      <div class="section-subtitle">Wähle dein Werbekonto und eine Kampagne</div>
+    </div>
+  </div>
+  
+  <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+    <div style="flex: 1;">
+      <label style="display: block; margin-bottom: 8px; font-weight: 600;">Werbekonto</label>
+      <select id="accountSelect" class="filter-btn" style="width: 100%; padding: 10px;">
+        <option value="">Lade Konten...</option>
+      </select>
+    </div>
+    
+    <div style="flex: 1;">
+      <label style="display: block; margin-bottom: 8px; font-weight: 600;">Kampagne</label>
+      <select id="campaignSelect" class="filter-btn" style="width: 100%; padding: 10px;">
+        <option value="">Zuerst Werbekonto wählen</option>
+      </select>
+    </div>
+  </div>
+  
+  <button id="loadDataBtn" class="btn" style="width: 100%;">Daten laden</button>
+</div>
+    
     <!-- TOGGLE -->
     <div class="toggle">
       <button class="toggle-btn active" data-period="1">Letzte 24h</button>
@@ -169,6 +198,7 @@
 </script>
 </body>
 </html>
+
 
 
 
