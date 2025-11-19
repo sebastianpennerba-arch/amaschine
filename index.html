@@ -2,14 +2,14 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>AdStream Analytics · Dashboard</title>
+  <title>AdStream Analytics · AI-Powered Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="/styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
   <div class="wrapper">
-    <!-- HEADER -->
+    <!-- PREMIUM HEADER -->
     <header class="header">
       <div class="header-left">
         <div class="logo-container">
@@ -34,21 +34,27 @@
       <div class="header-right">
         <div class="date-display" id="currentDate"></div>
         <div class="mode-toggle">
-          <button id="mode-live" class="mode-btn">
-            <span class="mode-icon">📡</span> Live
-          </button>
-          <button id="mode-sim" class="mode-btn active">
-            <span class="mode-icon">🎭</span> Demo
-          </button>
+          <button id="mode-live" class="mode-btn">📡 Live</button>
+          <button id="mode-sim" class="mode-btn active">🎭 Demo</button>
         </div>
         <button id="connectMeta" class="btn btn-primary">
-          <span>🔗</span> Meta verbinden
+          🔗 Meta verbinden
         </button>
         <div class="status-badge" id="metaStatus">Demo Mode</div>
       </div>
     </header>
 
-    <!-- AI Insights Banner -->
+    <!-- ANOMALY ALERT -->
+    <div class="anomaly-alert" id="anomalyAlert" style="display:none;">
+      <div class="anomaly-icon">⚠️</div>
+      <div class="anomaly-content">
+        <div class="anomaly-title">Anomalie erkannt!</div>
+        <div class="anomaly-text">Creative #7 zeigt ungewöhnlich hohe CPC-Werte (+250% vs. Durchschnitt)</div>
+      </div>
+      <button class="alert-dismiss" onclick="this.parentElement.style.display='none'">✕</button>
+    </div>
+
+    <!-- AI INSIGHTS BANNER -->
     <div class="ai-insights-banner">
       <div class="ai-icon">🤖</div>
       <div class="ai-content">
@@ -60,7 +66,65 @@
       </button>
     </div>
 
-    <!-- Time Period Selector -->
+    <!-- PREDICTIVE ANALYTICS -->
+    <div class="predictor-card">
+      <div class="predictor-header">
+        <div>
+          <div class="predictor-title">🔮 7-Tage Prognose</div>
+          <div style="font-size:12px; opacity:0.9;">AI-basierte Vorhersage</div>
+        </div>
+        <span class="premium-badge">⭐ Premium</span>
+      </div>
+      <div class="predictor-grid">
+        <div class="predictor-item">
+          <div class="predictor-label">ROAS</div>
+          <div class="predictor-value">4.2x</div>
+          <div class="predictor-change trend-up">+15%</div>
+        </div>
+        <div class="predictor-item">
+          <div class="predictor-label">Revenue</div>
+          <div class="predictor-value">€4,890</div>
+          <div class="predictor-change trend-up">+22%</div>
+        </div>
+        <div class="predictor-item">
+          <div class="predictor-label">CTR</div>
+          <div class="predictor-value">3.1%</div>
+          <div class="predictor-change trend-up">+8%</div>
+        </div>
+        <div class="predictor-item">
+          <div class="predictor-label">CPC</div>
+          <div class="predictor-value">€0.38</div>
+          <div class="predictor-change trend-down">-12%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUDGET OPTIMIZER -->
+    <div class="budget-optimizer">
+      <div class="optimizer-header">
+        <div>
+          <div class="optimizer-title">💡 Smart Budget Optimizer</div>
+          <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">Optimierte Budget-Verteilung basierend auf Performance</div>
+        </div>
+        <button class="btn btn-secondary" id="applyOptimization">Anwenden</button>
+      </div>
+      <div class="optimizer-content">
+        <div class="optimizer-item">
+          <div class="optimizer-label">Aktuelles Budget</div>
+          <div class="optimizer-value">€1,200</div>
+        </div>
+        <div class="optimizer-item">
+          <div class="optimizer-label">Empfohlenes Budget</div>
+          <div class="optimizer-value">€1,550</div>
+        </div>
+        <div class="optimizer-item">
+          <div class="optimizer-label">Erwarteter ROAS-Lift</div>
+          <div class="optimizer-value">+28%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIME PERIOD SELECTOR -->
     <div class="period-selector">
       <div class="period-label">📊 Zeitraum:</div>
       <div class="toggle">
@@ -68,18 +132,18 @@
         <button class="toggle-btn" data-period="7">7 Tage</button>
         <button class="toggle-btn" data-period="30">30 Tage</button>
       </div>
-      <button class="export-btn">📥 Export</button>
+      <button class="export-btn" id="exportBtn">📥 Export</button>
     </div>
 
-    <!-- Performance Score Card -->
+    <!-- PERFORMANCE SCORE -->
     <section class="score-section">
       <div class="score-card">
         <div class="score-header">
           <h2>Performance Score</h2>
-          <span class="score-trend">↗ +12% vs. letzte Periode</span>
+          <span class="score-trend trend-up">+12%</span>
         </div>
         <div class="score-visual">
-          <canvas id="scoreChart" width="120" height="120"></canvas>
+          <canvas id="scoreChart" width="140" height="140"></canvas>
           <div class="score-center">
             <div class="score-number" id="performanceScore">87</div>
             <div class="score-label">von 100</div>
@@ -87,19 +151,19 @@
         </div>
         <div class="score-breakdown">
           <div class="score-item">
-            <span class="score-dot" style="background: #00B870"></span>
+            <span class="score-dot" style="background: #10b981"></span>
             <span>ROAS Efficiency</span>
-            <strong>92/100</strong>
+            <strong class="value-positive">92/100</strong>
           </div>
           <div class="score-item">
-            <span class="score-dot" style="background: #1a1a1a"></span>
+            <span class="score-dot" style="background: #3b82f6"></span>
             <span>Engagement Rate</span>
-            <strong>85/100</strong>
+            <strong class="value-positive">85/100</strong>
           </div>
           <div class="score-item">
             <span class="score-dot" style="background: #f59e0b"></span>
             <span>Creative Quality</span>
-            <strong>78/100</strong>
+            <strong class="value-neutral">78/100</strong>
           </div>
         </div>
       </div>
@@ -140,7 +204,7 @@
       </div>
     </section>
 
-    <!-- Main Metrics Dashboard -->
+    <!-- CAMPAIGN OVERVIEW -->
     <section class="section">
       <div class="section-header">
         <div class="section-number">1</div>
@@ -153,12 +217,11 @@
 
       <div class="overview-grid" id="overviewGrid"></div>
 
-      <!-- Funnel Visualization -->
       <div class="funnel-section">
         <div class="funnel-header">
           <h3>Conversion Funnel</h3>
           <div class="funnel-stats">
-            <span>Gesamt-CR: <strong id="totalCR">4.2%</strong></span>
+            <span>Gesamt-CR: <strong id="totalCR" class="value-positive">4.2%</strong></span>
             <span class="divider">|</span>
             <span>Avg. Journey Time: <strong>12.4 Min.</strong></span>
           </div>
@@ -166,7 +229,6 @@
         <div class="funnel-visual" id="funnelSteps"></div>
       </div>
 
-      <!-- Performance Trend Chart -->
       <div class="chart-container">
         <div class="chart-header">
           <h3>Performance Trend</h3>
@@ -181,7 +243,7 @@
       </div>
     </section>
 
-    <!-- Detailed KPIs with Comparisons -->
+    <!-- DETAILED KPIs -->
     <section class="section">
       <div class="section-header">
         <div class="section-number">2</div>
@@ -193,7 +255,6 @@
 
       <div class="kpi-grid-enhanced" id="kpiGrid"></div>
 
-      <!-- Heatmap Section -->
       <div class="heatmap-section">
         <div class="heatmap-header">
           <h3>Performance Heatmap</h3>
@@ -208,7 +269,7 @@
       </div>
     </section>
 
-    <!-- Creative Performance Analysis -->
+    <!-- CREATIVE PERFORMANCE -->
     <section class="section">
       <div class="section-header">
         <div class="section-number">3</div>
@@ -217,12 +278,8 @@
           <div class="section-subtitle">AI-gestützte Analyse deiner Werbemittel</div>
         </div>
         <div class="creative-view-toggle">
-          <button class="view-btn active" data-view="grid">
-            <span>⊞</span> Grid
-          </button>
-          <button class="view-btn" data-view="list">
-            <span>☰</span> Liste
-          </button>
+          <button class="view-btn active" data-view="grid">⊞ Grid</button>
+          <button class="view-btn" data-view="list">☰ Liste</button>
         </div>
       </div>
 
@@ -248,7 +305,7 @@
       <div id="creativeGrid" class="creative-grid"></div>
     </section>
 
-    <!-- Winner/Loser Analysis -->
+    <!-- WINNER/LOSER ANALYSIS -->
     <section class="section winner-loser-section">
       <div class="section-header">
         <div class="section-number">4</div>
@@ -270,7 +327,7 @@
       </div>
     </section>
 
-    <!-- Recommendations -->
+    <!-- AI RECOMMENDATIONS -->
     <section class="section recommendations-section">
       <div class="section-header">
         <div class="section-number">5</div>
@@ -325,5 +382,32 @@
   </div>
 
   <script src="/app.js"></script>
+  <script>
+    // Export Functionality
+    document.getElementById('exportBtn')?.addEventListener('click', function() {
+      const data = window.AdStreamAnalytics?.state;
+      if (!data) return alert('Keine Daten zum Exportieren verfügbar');
+      
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `adstream-export-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // Budget Optimizer
+    document.getElementById('applyOptimization')?.addEventListener('click', function() {
+      alert('Budget-Optimierung wird angewendet... Dies würde in der Live-Version die Budgets automatisch anpassen.');
+    });
+
+    // Show anomaly randomly
+    setTimeout(() => {
+      if (Math.random() > 0.7) {
+        document.getElementById('anomalyAlert').style.display = 'flex';
+      }
+    }, 3000);
+  </script>
 </body>
 </html>
