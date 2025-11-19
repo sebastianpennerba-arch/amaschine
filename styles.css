@@ -1345,3 +1345,262 @@ body {
         text-align: center;
     }
 }
+
+/* =========================================================
+   CLEANER, KLEINER, EDLER – OVERRIDES
+   ========================================================= */
+
+/* Neue, gedecktere Farben */
+:root {
+    --primary: #2563EB;
+    --primary-dark: #1D4ED8;
+    --success: #16A34A;
+    --success-light: #E3F9E9;
+    --warning: #D97706;
+    --warning-light: #FFF7E6;
+    --danger: #DC2626;
+    --danger-light: #FEE2E2;
+    --bg: #F5F6F8;
+    --bg-alt: #FFFFFF;
+    --text: #111827;
+    --text-light: #6B7280;
+    --text-lighter: #9CA3AF;
+    --border: #E0E3EA;
+    --border-light: #EEF1F6;
+}
+
+/* Wrapper schmaler */
+.wrapper {
+    max-width: 1440px;
+}
+
+/* Flacher, weniger verspielt */
+.header {
+    padding: 12px 0 16px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.logo-icon {
+    font-size: 24px;
+    background: none;
+    -webkit-text-fill-color: inherit;
+}
+
+/* AI-Banner ohne starken Verlauf */
+.ai-insights-banner {
+    background: #111827;
+    box-shadow: var(--shadow-sm);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 18px;
+}
+.ai-insights-banner::before {
+    display: none;
+}
+.ai-icon {
+    font-size: 26px;
+    filter: none;
+}
+
+/* Period Selector enger */
+.period-selector {
+    margin-bottom: 18px;
+    padding: 10px 14px;
+    box-shadow: none;
+    border-radius: 8px;
+}
+
+/* Score-Section kleiner */
+.score-section {
+    grid-template-columns: 340px 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+.score-card {
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: var(--shadow-sm);
+}
+.score-number {
+    font-size: 42px;
+}
+.quick-metrics {
+    gap: 10px;
+}
+.quick-metric {
+    padding: 14px;
+    border-radius: 10px;
+    box-shadow: var(--shadow-xs);
+}
+.quick-metric.highlight {
+    background: #EFF4FF;
+    color: var(--text);
+}
+
+/* Sektionen insgesamt kleiner und flacher */
+.section {
+    padding: 22px 22px 24px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 22px;
+}
+.section-number {
+    background: #E5EBFF;
+    color: var(--primary-dark);
+    box-shadow: none;
+}
+
+/* Overview Cards neutral */
+.overview-grid {
+    gap: 12px;
+    margin-bottom: 22px;
+}
+.overview-card {
+    background: var(--bg-alt);
+    padding: 14px 12px;
+    border-radius: 8px;
+    box-shadow: none;
+    border: 1px solid var(--border);
+}
+.overview-card:hover {
+    transform: none;
+    border-color: var(--border);
+}
+
+/* Funnel ohne bunte Verläufe */
+.funnel-visual {
+    gap: 10px;
+}
+.funnel-step {
+    background: var(--bg-alt);
+    color: var(--text);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    padding: 16px 12px;
+}
+.funnel-step:nth-child(2),
+.funnel-step:nth-child(3),
+.funnel-step:nth-child(4) {
+    background: var(--bg-alt);
+}
+.funnel-step::after {
+    display: none;
+}
+.funnel-step .metric-label {
+    color: var(--text-light);
+}
+.funnel-step-value {
+    font-size: 22px;
+}
+
+/* Chart kompakt */
+.chart-container {
+    margin-top: 20px;
+    padding: 16px 14px 14px;
+    background: var(--bg-alt);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+}
+.chart-header h3 {
+    font-size: 16px;
+}
+.chart-inner {
+    position: relative;
+    height: 220px;
+}
+#trendChart {
+    position: absolute;
+    inset: 0;
+}
+
+/* KPI-Cards neutraler, kleiner */
+.kpi-grid-enhanced {
+    gap: 14px;
+    margin-bottom: 22px;
+}
+.kpi-card-enhanced {
+    background: var(--bg-alt);
+    padding: 16px 14px 14px;
+    border-radius: 8px;
+    box-shadow: none;
+    border: 1px solid var(--border);
+}
+.kpi-card-enhanced::before {
+    height: 2px;
+}
+.kpi-value {
+    font-size: 22px;
+}
+
+/* Heatmap dezenter */
+.heatmap-section {
+    margin-top: 20px;
+    padding: 16px 14px;
+    border-radius: 10px;
+}
+.heatmap-cell {
+    border-radius: 4px;
+}
+
+/* Creative Cards kleiner, ohne starken Hover */
+.creative-grid {
+    gap: 18px;
+}
+.creative-card {
+    border-radius: 10px;
+    padding: 12px;
+    box-shadow: none;
+    border: 1px solid var(--border);
+}
+.creative-card::before {
+    display: none;
+}
+.creative-card:hover {
+    transform: none;
+    box-shadow: var(--shadow-xs);
+    border-color: var(--border);
+}
+.creative-thumb {
+    height: 200px;
+    border-radius: 6px;
+}
+
+/* Winner/Loser kompakt, weniger laut */
+.winner-loser-section {
+    background: transparent;
+}
+.winner-loser-grid {
+    gap: 18px;
+}
+.winner-card, .loser-card {
+    border-radius: 10px;
+    padding: 16px 14px;
+    box-shadow: none;
+    border: 1px solid var(--border);
+}
+.winner-card::before,
+.loser-card::before {
+    height: 3px;
+}
+.card-badge {
+    font-size: 12px;
+    padding: 6px 10px;
+    margin-bottom: 12px;
+}
+
+/* Recommendation Cards ohne kräftige Verläufe */
+.recommendation-card {
+    padding: 16px 14px;
+    border-radius: 10px;
+    box-shadow: none;
+    background: var(--bg-alt);
+}
+.recommendation-card.priority-high,
+.recommendation-card.priority-medium,
+.recommendation-card.priority-low {
+    background: var(--bg-alt);
+}
+.recommendation-card.priority-high { border-left-color: var(--danger); }
+.recommendation-card.priority-medium { border-left-color: var(--warning); }
+.recommendation-card.priority-low { border-left-color: var(--primary); }
