@@ -5,6 +5,7 @@
   <title>Meta Auth</title>
 </head>
 <body>
+
 <script>
   (async () => {
     const params = new URLSearchParams(window.location.search);
@@ -22,7 +23,10 @@
 
       if (json.access_token) {
         window.opener?.postMessage(
-          { access_token: json.access_token, expires_in: json.expires_in },
+          {
+            access_token: json.access_token,
+            expires_in: json.expires_in
+          },
           "*"
         );
       } else {
@@ -40,5 +44,6 @@
 </script>
 
 <p>Meta Login erfolgreich. Dieses Fenster kann geschlossen werden.</p>
+
 </body>
 </html>
