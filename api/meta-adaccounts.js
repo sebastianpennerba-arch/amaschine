@@ -3,7 +3,9 @@
 export default async function handler(req, res) {
   try {
     const { token } = req.body || {};
-    if (!token) return res.status(400).json({ error: "No token" });
+    if (!token) {
+      return res.status(400).json({ error: "No token" });
+    }
 
     const version = process.env.META_API_VERSION || "v19.0";
 
