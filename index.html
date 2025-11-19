@@ -2,87 +2,144 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>AdStream Analytics · Dashboard</title>
+  <title>AdStream Analytics · AI-Powered Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="/styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
   <div class="wrapper">
-    <!-- HEADER -->
     <header class="header">
       <div class="header-left">
         <div class="logo-container">
-          <img src="/logo.png" alt="Logo" class="logo" />
+          <div class="logo-icon">⚡</div>
+          <div>
+            <div class="logo-title">AdStream Analytics</div>
+            <div class="logo-subtitle">AI-Powered Insights</div>
+          </div>
         </div>
         <div class="divider"></div>
-        <div class="title">AdStream Analytics</div>
+        <div class="header-stats">
+          <div class="stat-item">
+            <span class="stat-label">Live Status</span>
+            <span class="stat-value pulse" id="liveIndicator">●</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Aktualisiert</span>
+            <span class="stat-value" id="lastUpdate">vor 2 Min.</span>
+          </div>
+        </div>
       </div>
       <div class="header-right">
         <div class="date-display" id="currentDate"></div>
         <div class="mode-toggle">
-          <button id="mode-live" class="mode-btn">Live</button>
-          <button id="mode-sim" class="mode-btn active">Demo</button>
+          <button id="mode-live" class="mode-btn">
+            <span class="mode-icon">📡</span> Live
+          </button>
+          <button id="mode-sim" class="mode-btn active">
+            <span class="mode-icon">🎭</span> Demo
+          </button>
         </div>
-        <button id="connectMeta" class="btn">Mit Meta verbinden</button>
+        <button id="connectMeta" class="btn btn-primary">
+          <span>🔗</span> Meta verbinden
+        </button>
         <div class="status-badge" id="metaStatus">Demo Mode</div>
       </div>
     </header>
 
-    <!-- AI INSIGHTS -->
-    <div class="ai-banner">
+    <!-- AI Insights Banner -->
+    <div class="ai-insights-banner">
+      <div class="ai-icon">🤖</div>
       <div class="ai-content">
         <div class="ai-title">AI Performance Insights</div>
         <div class="ai-text" id="aiInsights">Analysiere Kampagnen-Performance in Echtzeit...</div>
       </div>
-      <button class="ai-btn" id="generateInsights">Insights generieren</button>
+      <button class="ai-btn" id="generateInsights">
+        <span class="sparkle">✨</span> Insights generieren
+      </button>
     </div>
 
-    <!-- PERIOD SELECTOR -->
+    <!-- Time Period Selector -->
     <div class="period-selector">
+      <div class="period-label">📊 Zeitraum:</div>
       <div class="toggle">
-        <button class="toggle-btn active" data-period="1">Letzte 24h</button>
-        <button class="toggle-btn" data-period="7">Letzte 7 Tage</button>
+        <button class="toggle-btn active" data-period="1">24h</button>
+        <button class="toggle-btn" data-period="7">7 Tage</button>
         <button class="toggle-btn" data-period="30">30 Tage</button>
       </div>
+      <button class="export-btn">📥 Export</button>
     </div>
 
-    <!-- PERFORMANCE SCORE -->
+    <!-- Performance Score Card -->
     <section class="score-section">
       <div class="score-card">
         <div class="score-header">
           <h2>Performance Score</h2>
+          <span class="score-trend">↗ +12% vs. letzte Periode</span>
         </div>
         <div class="score-visual">
-          <canvas id="scoreChart" width="140" height="140"></canvas>
+          <canvas id="scoreChart" width="200" height="200"></canvas>
           <div class="score-center">
             <div class="score-number" id="performanceScore">87</div>
             <div class="score-label">von 100</div>
           </div>
         </div>
+        <div class="score-breakdown">
+          <div class="score-item">
+            <span class="score-dot" style="background: #00B870"></span>
+            <span>ROAS Efficiency</span>
+            <strong>92/100</strong>
+          </div>
+          <div class="score-item">
+            <span class="score-dot" style="background: #0066FF"></span>
+            <span>Engagement Rate</span>
+            <strong>85/100</strong>
+          </div>
+          <div class="score-item">
+            <span class="score-dot" style="background: #FF9500"></span>
+            <span>Creative Quality</span>
+            <strong>78/100</strong>
+          </div>
+        </div>
       </div>
 
       <div class="quick-metrics">
-        <div class="quick-metric">
-          <div class="metric-label">Conversion Rate</div>
-          <div class="metric-value" id="quickCR">4.2%</div>
+        <div class="quick-metric highlight">
+          <div class="metric-icon">🎯</div>
+          <div class="metric-content">
+            <div class="metric-label">Conversion Rate</div>
+            <div class="metric-value" id="quickCR">4.2%</div>
+            <div class="metric-change positive">+0.8%</div>
+          </div>
         </div>
         <div class="quick-metric">
-          <div class="metric-label">ROAS</div>
-          <div class="metric-value" id="quickROAS">3.6x</div>
+          <div class="metric-icon">💰</div>
+          <div class="metric-content">
+            <div class="metric-label">ROAS</div>
+            <div class="metric-value" id="quickROAS">3.6x</div>
+            <div class="metric-change positive">+12%</div>
+          </div>
         </div>
         <div class="quick-metric">
-          <div class="metric-label">CTR</div>
-          <div class="metric-value" id="quickCTR">2.8%</div>
+          <div class="metric-icon">⚡</div>
+          <div class="metric-content">
+            <div class="metric-label">CTR</div>
+            <div class="metric-value" id="quickCTR">2.8%</div>
+            <div class="metric-change negative">-0.3%</div>
+          </div>
         </div>
         <div class="quick-metric">
-          <div class="metric-label">Revenue</div>
-          <div class="metric-value" id="quickRevenue">€3,355</div>
+          <div class="metric-icon">📈</div>
+          <div class="metric-content">
+            <div class="metric-label">Revenue</div>
+            <div class="metric-value" id="quickRevenue">€3,355</div>
+            <div class="metric-change positive">+24%</div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- OVERVIEW -->
+    <!-- Main Metrics Dashboard -->
     <section class="section">
       <div class="section-header">
         <div class="section-number">1</div>
@@ -90,24 +147,40 @@
           <div class="section-title">Campaign Overview</div>
           <div class="section-subtitle">Wichtigste Performance-Metriken</div>
         </div>
+        <button class="section-action">Details →</button>
       </div>
 
       <div class="overview-grid" id="overviewGrid"></div>
 
+      <!-- Funnel Visualization -->
       <div class="funnel-section">
-        <div class="funnel-title">Conversion Funnel</div>
+        <div class="funnel-header">
+          <h3>Conversion Funnel</h3>
+          <div class="funnel-stats">
+            <span>Gesamt-CR: <strong id="totalCR">4.2%</strong></span>
+            <span class="divider">|</span>
+            <span>Avg. Journey Time: <strong>12.4 Min.</strong></span>
+          </div>
+        </div>
         <div class="funnel-visual" id="funnelSteps"></div>
       </div>
 
+      <!-- Performance Trend Chart -->
       <div class="chart-container">
         <div class="chart-header">
           <h3>Performance Trend</h3>
+          <div class="chart-filters">
+            <button class="chart-filter active" data-metric="roas">ROAS</button>
+            <button class="chart-filter" data-metric="ctr">CTR</button>
+            <button class="chart-filter" data-metric="spend">Spend</button>
+            <button class="chart-filter" data-metric="revenue">Revenue</button>
+          </div>
         </div>
-        <canvas id="trendChart" height="200"></canvas>
+        <canvas id="trendChart" height="80"></canvas>
       </div>
     </section>
 
-    <!-- KPIs -->
+    <!-- Detailed KPIs with Comparisons -->
     <section class="section">
       <div class="section-header">
         <div class="section-number">2</div>
@@ -119,63 +192,85 @@
 
       <div class="kpi-grid-enhanced" id="kpiGrid"></div>
 
+      <!-- Heatmap Section -->
       <div class="heatmap-section">
         <div class="heatmap-header">
           <h3>Performance Heatmap</h3>
           <p>Beste Performance-Zeiten für deine Kampagnen</p>
         </div>
         <div class="heatmap-container" id="heatmapContainer"></div>
+        <div class="heatmap-legend">
+          <span>Niedrig</span>
+          <div class="legend-gradient"></div>
+          <span>Hoch</span>
+        </div>
       </div>
     </section>
 
-    <!-- CREATIVES -->
+    <!-- Creative Performance Analysis -->
     <section class="section">
       <div class="section-header">
         <div class="section-number">3</div>
         <div>
           <div class="section-title">Creative Performance</div>
-          <div class="section-subtitle">Analyse deiner Werbemittel</div>
+          <div class="section-subtitle">AI-gestützte Analyse deiner Werbemittel</div>
+        </div>
+        <div class="creative-view-toggle">
+          <button class="view-btn active" data-view="grid">
+            <span>⊞</span> Grid
+          </button>
+          <button class="view-btn" data-view="list">
+            <span>☰</span> Liste
+          </button>
         </div>
       </div>
 
       <div class="filter-bar">
-        <button class="filter-btn active" data-filter="all">Alle <span class="count" id="countAll">12</span></button>
-        <button class="filter-btn" data-filter="image">Bilder <span class="count" id="countImages">8</span></button>
-        <button class="filter-btn" data-filter="video">Videos <span class="count" id="countVideos">4</span></button>
+        <button class="filter-btn active" data-filter="all">
+          <span class="filter-icon">🎨</span> Alle <span class="count" id="countAll">12</span>
+        </button>
+        <button class="filter-btn" data-filter="image">
+          <span class="filter-icon">🖼️</span> Bilder <span class="count" id="countImages">8</span>
+        </button>
+        <button class="filter-btn" data-filter="video">
+          <span class="filter-icon">🎬</span> Videos <span class="count" id="countVideos">4</span>
+        </button>
+        <div class="filter-spacer"></div>
         <select class="filter-select" id="sortCreatives">
           <option value="roas">Sortieren: ROAS</option>
           <option value="ctr">Sortieren: CTR</option>
           <option value="cpc">Sortieren: CPC</option>
+          <option value="impressions">Sortieren: Impressions</option>
         </select>
       </div>
 
       <div id="creativeGrid" class="creative-grid"></div>
     </section>
 
-    <!-- WINNER/LOSER -->
-    <section class="section">
+    <!-- Winner/Loser Analysis -->
+    <section class="section winner-loser-section">
       <div class="section-header">
         <div class="section-number">4</div>
         <div>
           <div class="section-title">Winner vs. Loser Analyse</div>
-          <div class="section-subtitle">Top & Bottom Performer</div>
+          <div class="section-subtitle">Top & Bottom Performer deiner Kampagne</div>
         </div>
       </div>
 
       <div class="winner-loser-grid">
         <div class="winner-card">
-          <div class="card-badge winner">Top Performer</div>
+          <div class="card-badge winner">🏆 Top Performer</div>
           <div id="winnerContent"></div>
         </div>
         <div class="loser-card">
-          <div class="card-badge loser">Verbesserungsbedarf</div>
+          <div class="card-badge loser">⚠️ Verbesserungsbedarf</div>
           <div id="loserContent"></div>
         </div>
       </div>
     </section>
 
-    <!-- RECOMMENDATIONS -->
-    <section class="section">
+    <!-- Recommendations -->
+    <section class="section recommendations-section">
       <div class="section-header">
         <div class="section-number">5</div>
         <div>
@@ -185,28 +280,37 @@
       </div>
 
       <div class="recommendations-grid" id="recommendationsGrid">
-        <div class="recommendation-card">
+        <div class="recommendation-card priority-high">
+          <div class="rec-icon">🎯</div>
           <div class="rec-content">
             <div class="rec-badge">Hohe Priorität</div>
             <h4>Budget zu Top-Performern verschieben</h4>
             <p>Creatives mit ROAS > 4.0 haben 67% mehr Conversions. Empfehlung: +40% Budget.</p>
+            <div class="rec-impact">Erwarteter ROAS-Lift: <strong>+18%</strong></div>
           </div>
+          <button class="rec-action">Anwenden →</button>
         </div>
 
-        <div class="recommendation-card">
+        <div class="recommendation-card priority-medium">
+          <div class="rec-icon">🎬</div>
           <div class="rec-content">
             <div class="rec-badge">Mittlere Priorität</div>
             <h4>Video-Content verstärken</h4>
             <p>Video-Ads haben 34% höhere Engagement-Rate. 2 Low-Performer pausieren.</p>
+            <div class="rec-impact">Erwartete CTR-Steigerung: <strong>+0.8%</strong></div>
           </div>
+          <button class="rec-action">Details →</button>
         </div>
 
-        <div class="recommendation-card">
+        <div class="recommendation-card priority-low">
+          <div class="rec-icon">⏰</div>
           <div class="rec-content">
             <div class="rec-badge">Niedrige Priorität</div>
             <h4>Zeitplanung optimieren</h4>
             <p>Peak-Performance zwischen 18-21 Uhr. Dayparting aktivieren.</p>
+            <div class="rec-impact">Potentielle Kostenersparnis: <strong>€180/Woche</strong></div>
           </div>
+          <button class="rec-action">Planen →</button>
         </div>
       </div>
     </section>
@@ -214,7 +318,7 @@
 
   <div class="loading" id="loading" style="display:none;">
     <div class="spinner-container">
-      <div class="spinner"></div>
+      <div class="spinner-modern"></div>
       <p>Lade Kampagnendaten...</p>
     </div>
   </div>
