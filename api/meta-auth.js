@@ -1,48 +1,44 @@
 export default async function handler(req, res) {
-  const { code } = req.query;
+    try {
+        const { code } = req.query;
 
-  if (!code) {
-    return res.status(400).send("No ?code provided.");
-  }
+        if (!code) {
+            return res.status(400).json({ error: "No ?code provided" });
+        }
 
-  const appId = "732040642590155";
-  const appSecret = process.env.META_APP_SECRET; 
-  const redirectUri = "https://amaschine.vercel.app/api/meta-auth";
+        const client_id = process.env.META_APP_ID;         // LIVE APP
+        const client_secret = process.env.META_APP_SECRET; // LIVE SECRET
+        const redirect_uri = "https://amaschine.vercel.app/api/meta-auth";
 
-  // 1. Meta Code -> Token tauschen
-  const tokenUrl =
-    `https://graph.facebook.com/v19.0/oauth/access_token?` +
-    `client_id=${appId}&client_secret=${appSecret}` +
-    `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-    `&code=${code}`;
+        const tokenUrl =
+            `https://graph.facebook.com/v19.0/oauth/access_token?` +
+            `client_id=${client_id}&redirect_uri=${encodeURIComponent(redirect_uri)}` +
+            `&client_secret=${client_secret}&code=${code}`;
 
-  const tokenRes = await fetch(tokenUrl);
-  const tokenJson = await tokenRes.json();
+        const tokenResponse = await fetch(tokenUrl);
+        const tokenData = await tokenResponse.json();
 
-  if (!tokenJson.access_token) {
-    return res.status(500).json({ error: "Token exchange failed", details: tokenJson });
-  }
+        if (tokenData.error) {
+            console.error("Token Error:", tokenData);
+            return res.status(400).json({ error: "Token exchange failed", details: tokenData });
+        }
 
-  const accessToken = tokenJson.access_token;
+        const accessToken = tokenData.access_token;
 
-  // 2. RESPONSE = Popup -> sendet Token zurück ans Dashboard
-  res.setHeader("Content-Type", "text/html");
-  res.send(`
-<html>
-  <body style="font-family: sans-serif; font-size: 18px;">
-    <p>Meta Login erfolgreich. Dieses Fenster kann geschlossen werden.</p>
-    <script>
-      // WICHTIG: Token zurück an Hauptseite schicken
-      window.opener.postMessage(
-        {
-          type: "META_AUTH_SUCCESS",
-          token: "${accessToken}"
-        },
-        "*"
-      );
-      window.close();
-    </script>
-  </body>
-</html>
-  `);
+        return res.status(200).send(`
+            <html>
+            <script>
+                window.opener.postMessage(
+                    { type: "meta-auth-success", accessToken: "${accessToken}" },
+                    "*"
+                );
+                window.close();
+            </script>
+            <body>Meta Login erfolgreich. Dieses Fenster kann geschlossen werden.</body>
+            </html>
+        `);
+    } catch (e) {
+        console.error("Server Error:", e);
+        res.status(500).json({ error: "Server error", details: e.message });
+    }
 }
