@@ -106,6 +106,28 @@ function prepareData() {
     console.log("KPI:", KPI);
     console.log("Creatives:", CREATIVES);
 }
+async function loadMetaData() {
+  const user = Clerk.user;
+  const token = user.unsafeMetadata.meta_token;
+
+  if (!token) {
+    console.log("Kein Meta Token vorhanden");
+    return;
+  }
+
+  const response = await fetch("/api/meta-insights", {
+    method: "POST",
+    body: JSON.stringify({
+      token: token,
+      accountId: "HIER_DEIN_AD_ACCOUNT"
+    })
+  });
+
+  const metaData = await response.json();
+
+  console.log("Meta Insights:", metaData);
+}
+
 
 // ======================================================
 // RENDER: OVERVIEW
@@ -343,5 +365,6 @@ document.addEventListener("DOMContentLoaded", () => {
     window.open(authUrl, "_blank", "width=500,height=600");
   });
 });
+
 
 
