@@ -569,28 +569,40 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 async function loadMockData() {
-  console.log("Mock-Modus aktiviert → Lade Simulationsdaten…");
+  console.log("Mock-Modus → Simulierte Daten werden geladen...");
 
-  const [accRes, campRes, insRes, adsRes] = await Promise.all([
-    fetch("/api/mock-accounts").then((r) => r.json()),
-    fetch("/api/mock-campaigns").then((r) => r.json()),
-    fetch("/api/mock-insights").then((r) => r.json()),
-    fetch("/api/mock-ads").then((r) => r.json())
-  ]);
+  // Daten holen
+  const accounts = await fetch("/api/mock-accounts").then(r => r.json());
+  const campaigns = await fetch("/api/mock-campaigns").then(r => r.json());
+  const insights = await fetch("/api/mock-insights").then(r => r.json());
+  const ads = await fetch("/api/mock-ads").then(r => r.json());
 
-  MetaState.accountId = accRes.accounts[0].id;
-  MetaState.campaigns = campRes.data;
-  MetaState.kpi = insRes.data[0];
-  MetaState.creatives = adsRes.creatives;
+  // ACCOUNT
+  MetaState.accountId = accounts.accounts[0].id;
 
+  // CAMPAIGNS
+  MetaState.campaigns = campaigns.data;
+  MetaState.selectedCampaignId = campaigns.data[0]?.id || null;
+
+  // INSIGHTS → wichtig: echtes Mapping verwenden
+  const row = insights.data[0];
+  MetaState.kpi = mapInsightsRow(row);
+
+  // ADS
+  MetaState.creatives = ads.creatives;
+
+  // RENDER
   renderOverview();
   renderFunnel();
   renderKPIs();
   renderCreatives();
 
+  // UI
   document.getElementById("metaStatus").textContent = "Simulated Mode aktiv";
   document.getElementById("metaStatus").style.color = "purple";
 }
+
+
 
 
 
