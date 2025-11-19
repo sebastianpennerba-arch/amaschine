@@ -1,37 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>Meta Auth</title>
 </head>
 <body>
+
 <script>
-  const params = new URLSearchParams(window.location.search);
-  const code = params.get("code");
+  (async () => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
 
-  if (!code) {
-    window.opener.postMessage({ error: "NO_CODE" }, "*");
-    window.close();
-  }
+    if (!code) {
+      window.opener.postMessage({ error: "NO_CODE" }, "*");
+      window.close();
+      return;
+    }
 
-  fetch("/api/meta-auth?code=" + code)
-    .then(res => res.json())
-    .then(data => {
+    try {
+      const response = await fetch("/api/meta-auth?code=" + code);
+      const data = await response.json();
+
       if (data.access_token) {
         window.opener.postMessage(
           { access_token: data.access_token },
           "*"
         );
       } else {
-        window.opener.postMessage({ error: "TOKEN_EXCHANGE_FAILED" }, "*");
+        window.opener.postMessage(
+          { error: "TOKEN_EXCHANGE_FAILED", details: data },
+          "*"
+        );
       }
-      window.close();
-    })
-    .catch(err => {
-      window.opener.postMessage({ error: "REQUEST_FAILED" }, "*");
-      window.close();
-    });
+    } catch (err) {
+      window.opener.postMessage(
+        { error: "REQUEST_FAILED", details: err.message },
+        "*"
+      );
+    }
+
+    window.close();
+  })();
 </script>
 
 <p>Meta Login erfolgreich. Dieses Fenster kann geschlossen werden.</p>
+
 </body>
 </html>
