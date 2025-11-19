@@ -159,6 +159,11 @@ function restoreMetaSession() {
 
 // ============================ Meta Datenfluss ============================
 async function loadMetaData() {
+  if (window.simulatedMode === true) {
+    console.log("Simulated Mode aktiv → echte Meta API wird ignoriert.");
+    return loadMockData();
+}
+
   if (!MetaState.token) {
     console.warn("Kein Meta Token – bitte verbinden.");
     return;
@@ -608,6 +613,7 @@ if (campSelect) {
   document.getElementById("metaStatus").textContent = "Simulated Mode aktiv";
   document.getElementById("metaStatus").style.color = "purple";
 }
+
 
 
 
