@@ -330,3 +330,18 @@ window.onload = function () {
     setupEvents();
     initDashboard();
 };
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("connectMeta");
+  if (!btn) return;
+
+  btn.addEventListener("click", () => {
+    const authUrl = `https://www.facebook.com/v19.0/dialog/oauth?` +
+      `client_id=732040642590155&` +
+      `redirect_uri=https://amaschine.vercel.app/api/meta-auth&` +
+      `scope=ads_read,ads_management,business_management,pages_show_list`;
+
+    window.open(authUrl, "_blank", "width=500,height=600");
+  });
+});
+
+
