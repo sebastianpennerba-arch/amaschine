@@ -163,7 +163,6 @@ async function loadMetaData() {
   showLoading(true);
 
   try {
-    // 1) Werbekonten
     const accRes = await fetch("/api/meta-adaccounts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -174,68 +173,15 @@ async function loadMetaData() {
 
     const accounts = accJson.data || [];
     if (!accounts.length) {
-      console.warn("Keine Werbekonten gefunden");
-      MetaState.accountId = null;
-      renderOverviewEmpty();
-      renderFunnelEmpty();
-      renderKPIsEmpty();
-      renderCreatives();
+      alert("Keine Werbekonten gefunden!");
       return;
     }
 
-    MetaState.accountId = accounts[0].account_id || accounts[0].id;
-
-    // 2) Insights
-    const preset = MetaState.period === "7d" ? "last_7d" : "yesterday";
-
-    const insRes = await fetch("/api/meta-insights", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        token: MetaState.token,
-        accountId: MetaState.accountId,
-        preset,
-      }),
-    });
-    const insJson = await insRes.json();
-    console.log("Insights:", insJson);
-
-    const row = insJson.data?.[0] || null;
-    if (!row) {
-      MetaState.kpi = null;
-      renderOverviewEmpty();
-      renderFunnelEmpty();
-      renderKPIsEmpty();
-    } else {
-      MetaState.kpi = mapInsightsRow(row);
-      renderOverview();
-      renderFunnel();
-      renderKPIs();
-    }
-
-    // 3) Kampagnen
-    const campRes = await fetch("/api/meta-campaigns", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        token: MetaState.token,
-        accountId: MetaState.accountId,
-      }),
-    });
-    const campJson = await campRes.json();
-    console.log("Campaigns:", campJson);
-
-    const campaigns = campJson.data || [];
-    MetaState.campaigns = campaigns;
-
-    if (!campaigns.length) {
-      MetaState.creatives = [];
-      renderCreatives();
-      return;
-    }
-
-    MetaState.selectedCampaignId = campaigns[0].id;
-    await loadCreativesForCampaign(MetaState.selectedCampaignId);
+    showAccountSelector(accounts);
+    
+  } catch(e) {
+    console.error("Fehler:", e);
+    alert("Fehler beim Laden der Daten: " + e.message);
   } finally {
     showLoading(false);
   }
@@ -286,6 +232,98 @@ function mapInsightsRow(row) {
     AOV: aov,
     CR: cr,
   };
+}
+
+function showAccountSelector(accounts) {
+  const selector = document.getElementById("accountSelector");
+  const accountSelect = document.getElementById("accountSelect");
+  const campaignSelect = document.getElementById("campaignSelect");
+  const loadBtn = document.getElementById("loadDataBtn");
+  
+  if (!selector || !accountSelect) return;
+  
+  selector.style.display = "block";
+  
+  accountSelect.innerHTML = accounts.map(acc => 
+    `<option value="${acc.account_id || acc.id}">${acc.name} (${acc.account_id || acc.id})</option>`
+  ).join("");
+  
+  accountSelect.addEventListener("change", async () => {
+    const accountId = accountSelect.value;
+    if (!accountId) return;
+    
+    MetaState.accountId = accountId;
+    
+    const campRes = await fetch("/api/meta-campaigns", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        token: MetaState.token,
+        accountId: MetaState.accountId,
+      }),
+    });
+    const campJson = await campRes.json();
+    const campaigns = campJson.data || [];
+    
+    MetaState.campaigns = campaigns;
+    
+    campaignSelect.innerHTML = campaigns.length 
+      ? campaigns.map(c => `<option value="${c.id}">${c.name}</option>`).join("")
+      : '<option value="">Keine aktiven Kampagnen</option>';
+  });
+  
+  loadBtn.addEventListener("click", async () => {
+    const campaignId = campaignSelect.value;
+    if (!campaignId) {
+      alert("Bitte wähle eine Kampagne!");
+      return;
+    }
+    
+    MetaState.selectedCampaignId = campaignId;
+    await loadCampaignData();
+  });
+  
+  if (accounts.length > 0) {
+    accountSelect.dispatchEvent(new Event('change'));
+  }
+}
+
+async function loadCampaignData() {
+  showLoading(true);
+  
+  try {
+    const preset = MetaState.period === "7d" ? "last_7d" : "yesterday";
+    const insRes = await fetch("/api/meta-insights", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        token: MetaState.token,
+        accountId: MetaState.accountId,
+        preset,
+      }),
+    });
+    const insJson = await insRes.json();
+    
+    const row = insJson.data?.[0] || null;
+    if (row) {
+      MetaState.kpi = mapInsightsRow(row);
+      renderOverview();
+      renderFunnel();
+      renderKPIs();
+    } else {
+      renderOverviewEmpty();
+      renderFunnelEmpty();
+      renderKPIsEmpty();
+    }
+    
+    await loadCreativesForCampaign(MetaState.selectedCampaignId);
+    
+  } catch(e) {
+    console.error("Fehler beim Laden:", e);
+    alert("Fehler: " + e.message);
+  } finally {
+    showLoading(false);
+  }
 }
 
 // ============================ Creatives ============================
@@ -494,3 +532,4 @@ function renderCreatives() {
     })
     .join("");
 }
+
