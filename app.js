@@ -10,47 +10,38 @@ const MetaState = {
   campaigns: [],
   selectedCampaignId: null,
   kpi: null,      // aggregierte KPI (Account / Kampagne)
-  creatives: [],  // für Creative Grid (vereinheitlichte Objekte)
+  creatives: [],  // vereinheitlichte Creative-Objekte
   filter: "all",
 };
 
 // Formatter
 const fmt = {
-  num: (v, d = 0) => {
-    const n = Number(v || 0);
-    return n.toLocaleString("de-DE", {
-      minimumFractionDigits: d,
-      maximumFractionDigits: d,
-    });
-  },
-  curr: (v) => {
-    const n = Number(v || 0);
-    return n.toLocaleString("de-DE", {
-      style: "currency",
-      currency: "EUR",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-  },
-  pct: (v) => {
-    const n = Number(v || 0);
-    return n.toFixed(2).replace(".", ",") + " %";
-  },
+  num: (v, d = 0) => Number(v || 0).toLocaleString("de-DE", {
+    minimumFractionDigits: d,
+    maximumFractionDigits: d,
+  }),
+  curr: (v) => Number(v || 0).toLocaleString("de-DE", {
+    style: "currency",
+    currency: "EUR",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }),
+  pct: (v) => (Number(v || 0)).toFixed(2).replace(".", ",") + " %",
 };
 
 // DOM Ready
 window.addEventListener("DOMContentLoaded", () => {
-  console.log("Dashboard (Meta-only) initialisiert");
+  console.log("Dashboard (Meta-only) gestartet");
   setupMetaButton();
   setupPeriodToggle();
   setupFilterButtons();
-  setupMetaMessageListener();
+  setupMetaPostMessage();
   initDate();
   restoreMetaSession();
 });
 
 // ------------------------------------------------------
-// Allgemeine UI
+// UI Helpers
 // ------------------------------------------------------
 function initDate() {
   const el = document.getElementById("currentDate");
@@ -64,7 +55,6 @@ function initDate() {
   });
   el.textContent = f.format(now);
 }
-
 function showLoading(show) {
   const el = document.getElementById("loading");
   if (!el) return;
@@ -72,147 +62,117 @@ function showLoading(show) {
 }
 
 // ------------------------------------------------------
-// Zeitraum-Toggle (24h / 7 Tage)
+// Zeitraum Toggle
 // ------------------------------------------------------
 function setupPeriodToggle() {
-  const buttons = document.querySelectorAll(".toggle-btn");
-  if (!buttons.length) return;
-
-  buttons.forEach((btn) => {
+  const btns = document.querySelectorAll(".toggle-btn");
+  btns.forEach(btn => {
     btn.addEventListener("click", () => {
-      buttons.forEach((b) => b.classList.remove("active"));
+      btns.forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
 
-      const p = String(btn.dataset.period || "1");
-      MetaState.period = p === "7" ? "7d" : "24h";
-      console.log("Zeitraum gewechselt:", MetaState.period);
+      MetaState.period = btn.dataset.period === "7" ? "7d" : "24h";
+      console.log("Zeitraum:", MetaState.period);
 
       if (MetaState.token && MetaState.accountId) {
-        loadMetaKpiAndCreatives();
+        loadMetaData();
       }
     });
   });
 }
 
 // ------------------------------------------------------
-// Meta verbinden
+// Meta Connect Button
 // ------------------------------------------------------
 function setupMetaButton() {
-  const btn =
-    document.getElementById("connectMeta") ||
-    document.getElementById("metaConnectBtn") ||
-    document.getElementById("meta-connect-btn");
-  if (!btn) {
-    console.warn("Kein Meta-Connect Button im HTML gefunden.");
-    return;
-  }
+  const btn = document.getElementById("connectMeta");
+  const statusEl = document.getElementById("metaStatus");
 
   btn.addEventListener("click", () => {
-    console.log("Meta verbinden geklickt");
-
-    const metaAppId = "732040642590155"; // deine App-ID
-    const redirectUri = "https://amaschine.vercel.app/api/meta-auth";
-    const scopes = [
-      "ads_management",
-      "ads_read",
-      "business_management",
-    ].join(",");
+    const appId = "732040642590155";
+    const redirect = "https://amaschine.vercel.app/api/meta-auth";
+    const scopes = "ads_management,ads_read,business_management";
 
     const authUrl =
-      "https://www.facebook.com/v19.0/dialog/oauth?" +
-      `client_id=${encodeURIComponent(metaAppId)}` +
-      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+      `https://www.facebook.com/v19.0/dialog/oauth?client_id=${appId}` +
+      `&redirect_uri=${encodeURIComponent(redirect)}` +
       `&scope=${encodeURIComponent(scopes)}`;
 
-    const w = 900;
-    const h = 900;
+    const w = 900, h = 900;
     const left = window.screenX + (window.outerWidth - w) / 2;
     const top = window.screenY + (window.outerHeight - h) / 2;
 
-    window.open(
-      authUrl,
-      "meta_auth_popup",
-      `width=${w},height=${h},left=${left},top=${top}`
-    );
+    window.open(authUrl, "metaAuth", `width=${w},height=${h},left=${left},top=${top}`);
   });
 
   updateMetaStatus();
 }
 
-function setupMetaMessageListener() {
-  window.addEventListener("message", (event) => {
-    if (event.origin !== window.location.origin) return;
-
-    const data = event.data || {};
-    if (!data.access_token) {
-      console.warn("postMessage ohne access_token:", data);
-      return;
-    }
-    console.log("Meta-Token empfangen:", data);
-
-    MetaState.token = data.access_token;
-    localStorage.setItem("meta_access_token", MetaState.token);
-    updateMetaStatus();
-
-    alert("Meta erfolgreich verbunden!");
-    loadMetaKpiAndCreatives();
-  });
+function updateMetaStatus() {
+  const el = document.getElementById("metaStatus");
+  if (!MetaState.token) {
+    el.textContent = "Meta nicht verbunden";
+    el.classList.remove("green");
+    el.classList.add("red");
+  } else {
+    el.textContent = `Meta verbunden (${MetaState.token.slice(0,8)}…)`;
+    el.classList.remove("red");
+    el.classList.add("green");
+  }
 }
 
+// ------------------------------------------------------
+// OAuth Rückgabe per window.postMessage
+// ------------------------------------------------------
+function setupMetaPostMessage() {
+  window.addEventListener("message", (event) => {
+    if (event.origin !== window.location.origin) return;
+    const data = event.data || {};
+    if (!data.access_token) return;
+
+    console.log("Meta Token erhalten:", data.access_token);
+
+    MetaState.token = data.access_token;
+    localStorage.setItem("meta_access_token", data.access_token);
+    updateMetaStatus();
+
+    loadMetaData();
+  });
+}
 function restoreMetaSession() {
   const token = localStorage.getItem("meta_access_token");
   if (!token) return;
   MetaState.token = token;
+  console.log("Meta Token wiederhergestellt");
   updateMetaStatus();
-  loadMetaKpiAndCreatives();
-}
-
-function updateMetaStatus() {
-  const statusEl = document.getElementById("metaStatus");
-  if (!statusEl) return;
-
-  if (!MetaState.token) {
-    statusEl.textContent = "Meta nicht verbunden";
-    statusEl.classList.remove("green");
-    statusEl.classList.add("red");
-  } else {
-    const short = MetaState.token.slice(0, 8) + "…";
-    statusEl.textContent = `Meta verbunden (${short})`;
-    statusEl.classList.remove("red");
-    statusEl.classList.add("green");
-  }
+  loadMetaData();
 }
 
 // ------------------------------------------------------
-// Meta-Daten laden (KPI + Creatives)
+// Meta-Daten-Hauptfluss
 // ------------------------------------------------------
-async function loadMetaKpiAndCreatives() {
-  if (!MetaState.token) {
-    console.warn("Kein Meta-Token vorhanden.");
-    return;
-  }
-
+async function loadMetaData() {
   try {
     showLoading(true);
 
-    // 1) AdAccounts holen
+    // ===== AD ACCOUNTS =====
     const accRes = await fetch("/api/meta-adaccounts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token: MetaState.token }),
     });
-    const accJson = await accRes.json();
-    console.log("AdAccounts:", accJson);
 
+    const accJson = await accRes.json();
     const accounts = accJson.data || accJson.accounts || [];
     if (!accounts.length) {
-      console.warn("Keine AdAccounts gefunden.");
+      console.warn("Keine Werbekonten gefunden.");
       return;
     }
-    const firstAcc = accounts[0];
-    MetaState.accountId = firstAcc.account_id || firstAcc.id;
 
-    // 2) KPI / Insights holen (Account-Level)
+    MetaState.accountId = accounts[0].account_id || accounts[0].id;
+    console.log("Account:", MetaState.accountId);
+
+    // ===== KPI / INSIGHTS =====
     const preset = MetaState.period === "7d" ? "last_7d" : "yesterday";
 
     const insRes = await fetch("/api/meta-insights", {
@@ -224,20 +184,21 @@ async function loadMetaKpiAndCreatives() {
         preset,
       }),
     });
+
     const insJson = await insRes.json();
     console.log("Insights:", insJson);
 
-    const row = insJson.data && insJson.data[0] ? insJson.data[0] : null;
-    if (row) {
+    const row = insJson.data?.[0] || null;
+    if (!row) {
+      console.warn("Keine Insights verfügbar");
+    } else {
       MetaState.kpi = mapInsightsRow(row);
       renderOverview();
       renderFunnel();
       renderKPIs();
-    } else {
-      console.warn("Keine Insights-Daten erhalten.");
     }
 
-    // 3) Kampagnen holen
+    // ===== KAMPAGNEN =====
     const campRes = await fetch("/api/meta-campaigns", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -246,63 +207,55 @@ async function loadMetaKpiAndCreatives() {
         accountId: MetaState.accountId,
       }),
     });
+
     const campJson = await campRes.json();
-    console.log("Kampagnen:", campJson);
     const campaigns = campJson.data || campJson.campaigns || [];
     MetaState.campaigns = campaigns;
 
     if (!campaigns.length) {
-      console.warn("Keine Kampagnen gefunden.");
+      console.warn("Keine Kampagnen");
       MetaState.creatives = [];
       renderCreatives();
       return;
     }
 
-    const firstCampaignId = campaigns[0].id;
-    MetaState.selectedCampaignId = firstCampaignId;
-    await loadCreativesForCampaign(firstCampaignId);
-  } catch (err) {
-    console.error("Fehler beim Laden der Meta-Daten:", err);
+    MetaState.selectedCampaignId = campaigns[0].id;
+    await loadCreativesForCampaign(MetaState.selectedCampaignId);
+
   } finally {
     showLoading(false);
   }
 }
 
-// Mapping Insights → KPI Objekt
+// Mapping Insights → Dashboard-KPI
 function mapInsightsRow(row) {
-  const impressions = Number(row.impressions || 0);
-  const clicks = Number(row.clicks || 0);
-  const spend = Number(row.spend || 0);
+  const imp = +row.impressions || 0;
+  const clicks = +row.clicks || 0;
+  const spend = +row.spend || 0;
   const ctr = parseFloat(row.ctr || 0);
   const cpc = parseFloat(row.cpc || 0);
 
   let purchases = 0;
   let revenue = 0;
+
   if (Array.isArray(row.actions)) {
-    const a = row.actions.find(
-      (x) => x.action_type && x.action_type.toLowerCase().includes("purchase")
-    );
-    if (a) purchases = Number(a.value || 0);
+    const p = row.actions.find(a => a.action_type?.includes("purchase"));
+    if (p) purchases = +p.value || 0;
   }
   if (Array.isArray(row.action_values)) {
-    const v = row.action_values.find(
-      (x) => x.action_type && x.action_type.toLowerCase().includes("purchase")
-    );
-    if (v) revenue = Number(v.value || 0);
+    const v = row.action_values.find(a => a.action_type?.includes("purchase"));
+    if (v) revenue = +v.value || 0;
   }
 
   let roas = 0;
-  if (Array.isArray(row.purchase_roas) && row.purchase_roas[0]) {
-    roas = Number(row.purchase_roas[0].value || 0);
-  } else if (spend > 0 && revenue > 0) {
-    roas = revenue / spend;
-  }
+  if (row.purchase_roas?.[0]) roas = +row.purchase_roas[0].value || 0;
+  else if (spend > 0) roas = revenue / spend;
 
   const aov = purchases > 0 ? revenue / purchases : 0;
   const cr = clicks > 0 ? (purchases / clicks) * 100 : 0;
 
   return {
-    Impressions: impressions,
+    Impressions: imp,
     Clicks: clicks,
     AddToCart: 0,
     Purchases: purchases,
@@ -317,140 +270,114 @@ function mapInsightsRow(row) {
 }
 
 // ------------------------------------------------------
-// Creatives für Kampagne laden (MVP: Account-KPI für alle)
+// CREATIVES LADEN
 // ------------------------------------------------------
 async function loadCreativesForCampaign(campaignId) {
-  if (!MetaState.token || !campaignId) return;
+  const adsRes = await fetch("/api/meta-ads", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      token: MetaState.token,
+      campaignId,
+    }),
+  });
 
-  try {
-    showLoading(true);
-    const adsRes = await fetch("/api/meta-ads", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        token: MetaState.token,
-        campaignId,
-      }),
-    });
-    const adsJson = await adsRes.json();
-    console.log("Ads:", adsJson);
-    const ads = adsJson.data || adsJson.ads || [];
+  const adsJson = await adsRes.json();
+  const ads = adsJson.data || adsJson.ads || [];
 
-    const kpi = MetaState.kpi || {};
-    const creatives = ads.map((ad) => {
-      const creative = ad.creative || {};
-      const thumb =
-        creative.thumbnail_url ||
-        (creative.object_story_spec &&
-          creative.object_story_spec.link_data &&
-          creative.object_story_spec.link_data.picture) ||
-        "";
+  const kpi = MetaState.kpi || {};
 
-      const url = thumb || "";
-      const isVideo =
-        url.toLowerCase().includes(".mp4") ||
-        url.toLowerCase().includes("video");
+  MetaState.creatives = ads.map(ad => {
+    const cr = ad.creative || {};
+    const thumb =
+      cr.thumbnail_url ||
+      cr.image_url ||
+      cr.video_url ||
+      (cr?.object_story_spec?.link_data?.picture) ||
+      "";
 
-      return {
-        id: ad.id,
-        name: ad.name || "Creative",
-        URL: url,
-        mediaType: isVideo ? "video" : "image",
-        CTR: kpi.CTR || 0,
-        CPC: kpi.CPC || 0,
-        ROAS: kpi.ROAS || 0,
-      };
-    });
+    const isVideo = thumb.toLowerCase().includes(".mp4");
 
-    MetaState.creatives = creatives;
-    renderCreatives();
-  } catch (err) {
-    console.error("Fehler beim Laden der Creatives:", err);
-  } finally {
-    showLoading(false);
-  }
+    return {
+      id: ad.id,
+      name: ad.name || "Creative",
+      URL: thumb || "",
+      mediaType: isVideo ? "video" : "image",
+      CTR: kpi.CTR,
+      CPC: kpi.CPC,
+      ROAS: kpi.ROAS,
+    };
+  });
+
+  renderCreatives();
 }
 
 // ------------------------------------------------------
-// FILTER-BUTTONS (Alle / Bilder / Videos)
+// FILTER
 // ------------------------------------------------------
 function setupFilterButtons() {
-  const buttons = document.querySelectorAll(".filter-btn");
-  if (!buttons.length) return;
-  buttons.forEach((btn) => {
+  const btns = document.querySelectorAll(".filter-btn");
+  btns.forEach(btn => {
     btn.addEventListener("click", () => {
-      buttons.forEach((b) => b.classList.remove("active"));
+      btns.forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
-      MetaState.filter = btn.dataset.filter || "all";
+
+      MetaState.filter = btn.dataset.filter;
       renderCreatives();
     });
   });
 }
 
 // ------------------------------------------------------
-// RENDER: OVERVIEW
+// RENDER: Overview
 // ------------------------------------------------------
 function renderOverview() {
   const el = document.getElementById("overviewGrid");
-  if (!el || !MetaState.kpi) return;
+  if (!MetaState.kpi) return;
+
   const KPI = MetaState.kpi;
 
-  const metrics = [
-    { label: "Impressions", key: "Impressions" },
-    { label: "Clicks", key: "Clicks" },
-    { label: "AddToCart", key: "AddToCart" },
-    { label: "Purchases", key: "Purchases" },
-    { label: "Revenue", key: "Revenue", fmt: "curr" },
-    { label: "Spend", key: "Spend", fmt: "curr" },
-    { label: "ROAS", key: "ROAS", fmt: "num2" },
+  const cards = [
+    { label: "Impressions", val: KPI.Impressions },
+    { label: "Clicks", val: KPI.Clicks },
+    { label: "AddToCart", val: KPI.AddToCart },
+    { label: "Purchases", val: KPI.Purchases },
+    { label: "Revenue", val: fmt.curr(KPI.Revenue) },
+    { label: "Spend", val: fmt.curr(KPI.Spend) },
+    { label: "ROAS", val: fmt.num(KPI.ROAS, 2) },
   ];
 
-  el.innerHTML = metrics
-    .map((m) => {
-      const raw = Number(KPI[m.key] || 0);
-      let valText;
-      if (m.fmt === "curr") valText = fmt.curr(raw);
-      else if (m.fmt === "num2") valText = fmt.num(raw, 2);
-      else valText = fmt.num(raw, 0);
-
-      return `
-        <div class="overview-card">
-          <div class="metric-label">${m.label}</div>
-          <div class="metric-value">${valText}</div>
-        </div>`;
-    })
-    .join("");
+  el.innerHTML = cards.map(c => `
+    <div class="overview-card">
+      <div class="metric-label">${c.label}</div>
+      <div class="metric-value">${c.val}</div>
+    </div>
+  `).join("");
 }
 
 // ------------------------------------------------------
-// RENDER: FUNNEL
+// RENDER: Funnel
 // ------------------------------------------------------
 function renderFunnel() {
   const el = document.getElementById("funnelSteps");
-  if (!el || !MetaState.kpi) return;
   const KPI = MetaState.kpi;
-
-  const imp = Number(KPI.Impressions || 0);
-  const clicks = Number(KPI.Clicks || 0);
-  const atc = Number(KPI.AddToCart || 0);
-  const purchases = Number(KPI.Purchases || 0);
 
   el.innerHTML = `
     <div class="funnel-step">
       <div class="metric-label">Impressions</div>
-      <div class="funnel-step-value">${fmt.num(imp, 0)}</div>
+      <div class="funnel-step-value">${fmt.num(KPI.Impressions)}</div>
     </div>
     <div class="funnel-step">
       <div class="metric-label">Clicks</div>
-      <div class="funnel-step-value">${fmt.num(clicks, 0)}</div>
+      <div class="funnel-step-value">${fmt.num(KPI.Clicks)}</div>
     </div>
     <div class="funnel-step">
       <div class="metric-label">ATCs</div>
-      <div class="funnel-step-value">${fmt.num(atc, 0)}</div>
+      <div class="funnel-step-value">${fmt.num(KPI.AddToCart)}</div>
     </div>
     <div class="funnel-step">
       <div class="metric-label">Purchases</div>
-      <div class="funnel-step-value">${fmt.num(purchases, 0)}</div>
+      <div class="funnel-step-value">${fmt.num(KPI.Purchases)}</div>
     </div>
   `;
 }
@@ -460,80 +387,70 @@ function renderFunnel() {
 // ------------------------------------------------------
 function renderKPIs() {
   const el = document.getElementById("kpiGrid");
-  if (!el || !MetaState.kpi) return;
   const KPI = MetaState.kpi;
 
-  const metrics = [
-    { label: "CTR", key: "CTR", type: "pct" },
-    { label: "CPC", key: "CPC", type: "curr" },
-    { label: "ROAS", key: "ROAS", type: "num2" },
-    { label: "AOV", key: "AOV", type: "curr" },
-    { label: "CR", key: "CR", type: "pct" },
+  const cards = [
+    { label: "CTR", val: fmt.pct(KPI.CTR) },
+    { label: "CPC", val: fmt.curr(KPI.CPC) },
+    { label: "ROAS", val: fmt.num(KPI.ROAS, 2) },
+    { label: "AOV", val: fmt.curr(KPI.AOV) },
+    { label: "CR", val: fmt.pct(KPI.CR) },
   ];
 
-  el.innerHTML = metrics
-    .map((m) => {
-      const raw = Number(KPI[m.key] || 0);
-      let valText;
-      if (m.type === "curr") valText = fmt.curr(raw);
-      else if (m.type === "pct") valText = fmt.pct(raw);
-      else if (m.type === "num2") valText = fmt.num(raw, 2);
-      else valText = fmt.num(raw, 0);
-
-      return `
-        <div class="kpi-card">
-          <div class="kpi-label">${m.label}</div>
-          <div class="kpi-value">${valText}</div>
-        </div>`;
-    })
-    .join("");
+  el.innerHTML = cards.map(c => `
+    <div class="kpi-card">
+      <div class="kpi-label">${c.label}</div>
+      <div class="kpi-value">${c.val}</div>
+    </div>
+  `).join("");
 }
 
 // ------------------------------------------------------
-// RENDER: CREATIVES
+// RENDER: Creatives
 // ------------------------------------------------------
 function renderCreatives() {
   const grid = document.getElementById("creativesGrid");
-  if (!grid) return;
+  let items = MetaState.creatives;
 
-  let items = MetaState.creatives || [];
   if (MetaState.filter === "image") {
-    items = items.filter((c) => c.mediaType === "image");
+    items = items.filter(c => c.mediaType === "image");
   } else if (MetaState.filter === "video") {
-    items = items.filter((c) => c.mediaType === "video");
+    items = items.filter(c => c.mediaType === "video");
   }
 
   if (!items.length) {
     grid.innerHTML = `
-      <div style="grid-column:1 / -1; text-align:center; color:#6B7280; padding:20px;">
-        Keine Creatives vorhanden.
-      </div>`;
+      <div style="grid-column:1/-1; text-align:center; color:#6B7280;">
+        Keine Creatives vorhanden
+      </div>
+    `;
     return;
   }
 
-  grid.innerHTML = items
-    .map((c) => {
-      const ctr = Number(c.CTR || 0);
-      const cpc = Number(c.CPC || 0);
-      const roas = Number(c.ROAS || 0);
-      const url = c.URL || "";
-      const media =
-        c.mediaType === "video"
-          ? `<video class="creative-media" controls src="${url}"></video>`
-          : `<img class="creative-media" src="${url}" alt="Creative">`;
+  grid.innerHTML = items.map(c => {
+    const roasClass =
+      c.ROAS >= 3 ? "kpi-green" :
+      c.ROAS >= 1.5 ? "kpi-yellow" :
+      "kpi-red";
 
-      const roasClass = roas >= 3 ? "kpi-green" : roas >= 1.5 ? "kpi-yellow" : "kpi-red";
-      const ctrClass = ctr >= 2 ? "kpi-green" : ctr >= 1 ? "kpi-yellow" : "kpi-red";
+    const ctrClass =
+      c.CTR >= 2 ? "kpi-green" :
+      c.CTR >= 1 ? "kpi-yellow" :
+      "kpi-red";
 
-      return `
-        <div class="creative-card">
-          ${media}
-          <div class="creative-metrics">
-            <span class="${roasClass}">ROAS: ${fmt.num(roas, 2)}</span>
-            <span class="${ctrClass}">CTR: ${fmt.num(ctr, 2)} %</span>
-            <span>CPC: ${fmt.curr(cpc)}</span>
-          </div>
-        </div>`;
-    })
-    .join("");
+    const media = c.mediaType === "video"
+      ? `<video class="creative-media" controls src="${c.URL}"></video>`
+      : `<img class="creative-media" src="${c.URL}">`;
+
+    return `
+      <div class="creative-card">
+        ${media}
+        <div class="creative-metrics">
+          <span class="${roasClass}">ROAS: ${fmt.num(c.ROAS, 2)}</span>
+          <span class="${ctrClass}">CTR: ${fmt.num(c.CTR, 2)}%</span>
+          <span>CPC: ${fmt.curr(c.CPC)}</span>
+        </div>
+      </div>
+    `;
+  }).join("");
 }
