@@ -374,7 +374,23 @@
 
 <section class="view hidden" id="view-campaigns">
   <h2 class="view-title">Campaign Analytics</h2>
-  <p>Kampagnen-Analyse, KPIs, Budgetverteilung.</p>
+
+<div id="campaignLoading" class="campaign-loading hidden">Lade Daten…</div>
+
+<table class="campaign-table" id="campaignTable">
+  <thead>
+    <tr>
+      <th data-sort="name">Name</th>
+      <th data-sort="spend">Spend</th>
+      <th data-sort="impressions">Impr.</th>
+      <th data-sort="ctr">CTR</th>
+      <th data-sort="cpc">CPC</th>
+      <th data-sort="purchases">Purchases</th>
+      <th data-sort="roas">ROAS</th>
+    </tr>
+  </thead>
+  <tbody id="campaignTableBody"></tbody>
+</table>
 </section>
 
 <section class="view hidden" id="view-insights">
@@ -500,6 +516,7 @@
   <script src="/app.js"></script>
 </body>
 </html>
+
 
 
 
