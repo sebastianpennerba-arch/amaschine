@@ -105,45 +105,138 @@
   </header>
   <section class="view" id="dashboardView">
     <h2>Dashboard</h2>
+    
+    <div class="section-heading">
+        <h3>Performance Heroes</h3>
+        <p class="section-subline">Ihre besten Creatives im gewählten Zeitraum.</p>
+    </div>
 
+    <div class="hero-creatives-grid">
+        <div class="creative-hero-card card" onclick="handleDeadButton('Creative c1 Details')">
+            <div class="creative-media-container">
+                <div class="creative-media-preview" style="background-image: url('mock/Creative1.png');"></div>
+                <span class="creative-platform-badge">Meta</span>
+            </div>
+            <div class="creative-info">
+                <span class="creative-name">UGC Hook – Unboxing Reel</span>
+                <div class="creative-kpi-row">
+                    <span class="creative-kpi-badge success">ROAS 4.2x</span>
+                    <span class="creative-kpi-badge">CTR 2.7%</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="creative-hero-card card" onclick="handleDeadButton('Creative c2 Details')">
+            <div class="creative-media-container">
+                <div class="creative-media-preview" style="background-image: url('mock/Creative2.png');"></div>
+                <span class="creative-platform-badge">Google</span>
+            </div>
+            <div class="creative-info">
+                <span class="creative-name">Static – Hero Product Shot</span>
+                <div class="creative-kpi-row">
+                    <span class="creative-kpi-badge success">ROAS 3.2x</span>
+                    <span class="creative-kpi-badge">CPC 0.71€</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="creative-hero-card card" onclick="handleDeadButton('Creative c3 Details')">
+            <div class="creative-media-container">
+                <div class="creative-media-preview" style="background-image: url('mock/Creative3.png');"></div>
+                <span class="creative-platform-badge">TikTok</span>
+            </div>
+            <div class="creative-info">
+                <span class="creative-name">Video Ad – Problem/Solution</span>
+                <div class="creative-kpi-row">
+                    <span class="creative-kpi-badge warning">ROAS 2.1x</span>
+                    <span class="creative-kpi-badge">CTR 1.9%</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="creative-hero-card card card-placeholder" onclick="handleDeadButton('Zur Creative Library wechseln')">
+            <div class="placeholder-content">
+                <div class="placeholder-icon">📚</div>
+                <h4>Creative Library</h4>
+                <p>Alle 127 Creatives anzeigen</p>
+                <button class="button small primary">Zur Ansicht</button>
+            </div>
+        </div>
+    </div>
+    
     <div class="dashboard-controls">
-      <div class="period-toggles">
-        <button class="period-toggle active" data-period="last7days">Letzte 7 Tage</button>
-        <button class="period-toggle" data-period="last30days">Letzte 30 Tage</button>
-        <button class="period-toggle" data-period="month">Dieser Monat</button>
-        <button class="period-toggle" data-period="year">Dieses Jahr</button>
-      </div>
-      
-      <button class="button secondary" onclick="handleDeadButton('Dashboard Filter')">Filter</button> 
+        <div class="period-toggles">
+            <button class="period-toggle active" data-period="last7days">Letzte 7 Tage</button>
+            <button class="period-toggle" data-period="last30days">Letzte 30 Tage</button>
+            <button class="period-toggle" data-period="month">Dieser Monat</button>
+            <button class="period-toggle" data-period="year">Dieses Jahr</button>
+        </div>
+        <button class="button secondary" onclick="handleDeadButton('Dashboard Filter')">Filter</button> 
+    </div>
+
+    <div class="section-heading">
+        <h3>Globale Performance</h3>
+        <p class="section-subline">Aggregierte Daten über alle Plattformen.</p>
     </div>
 
     <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-title">ROAS (Avg)</div>
-        <div class="kpi-value primary" id="kpiRoas">3.8</div>
-        <div class="kpi-change success">▲ 12%</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-title">Umsatz (Revenue)</div>
-        <div class="kpi-value" id="kpiRevenue">845.6€</div>
-        <div class="kpi-change success">▲ 8%</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-title">Ausgaben (Spend)</div>
-        <div class="kpi-value" id="kpiSpend">222.3€</div>
-        <div class="kpi-change warning">▼ 2%</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-title">CTR (Avg)</div>
-        <div class="kpi-value" id="kpiCtr">2.7%</div>
-        <div class="kpi-change success">▲ 5%</div>
-      </div>
+        <div class="kpi-card">
+          <div class="kpi-title">ROAS (Avg)</div>
+          <div class="kpi-value primary" id="kpiRoas">3.8</div>
+          <div class="kpi-change success">▲ 12%</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Umsatz (Revenue)</div>
+          <div class="kpi-value" id="kpiRevenue">845.6€</div>
+          <div class="kpi-change success">▲ 8%</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Ausgaben (Spend)</div>
+          <div class="kpi-value" id="kpiSpend">222.3€</div>
+          <div class="kpi-change warning">▼ 2%</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">CTR (Avg)</div>
+          <div class="kpi-value" id="kpiCtr">2.7%</div>
+          <div class="kpi-change success">▲ 5%</div>
+        </div>
+    </div>
+    
+    <div class="section-heading">
+        <h3>Sensei Insights Vorschau</h3>
+        <p class="section-subline">Die neuesten KI-Erkenntnisse und Handlungsempfehlungen.</p>
+    </div>
+    
+    <div class="insights-grid">
+        <div class="insight-card card">
+            <span class="insight-impact-badge warning">Medium Impact</span>
+            <h4>CTR-Drop erkannt</h4>
+            <p>Das Creative "Static Product Shot" hat einen CTR-Drop von 1.1% in den letzten 2 Tagen. Es sollte pausiert werden.</p>
+            <button class="button small primary" onclick="handleDeadButton('Creative pausieren')">Pausieren</button>
+        </div>
+        <div class="insight-card card">
+            <span class="insight-impact-badge success">High Impact</span>
+            <h4>Skalierungs-Chance</h4>
+            <p>UGC Hook (ID c2) zeigt einen 18% höheren ROAS als alle anderen in Q3. Budget erhöhen.</p>
+            <button class="button small secondary" onclick="handleDeadButton('Strategie anwenden')">Sensei Workflow starten</button>
+        </div>
+        <div class="insight-card card">
+            <span class="insight-impact-badge primary">Low Impact</span>
+            <h4>Asset-Archiv</h4>
+            <p>Du hast 37 ungenutzte Assets im Archiv. Sensei kann sie analysieren und neue Hooks erstellen.</p>
+            <button class="button small secondary" onclick="handleDeadButton('Analyse starten')">Analyse starten</button>
+        </div>
+    </div>
+    
+    <div class="section-heading">
+        <h3>Creative Performance Chart</h3>
+        <p class="section-subline">Visualisierung Ihrer Kennzahlen im Zeitverlauf.</p>
     </div>
 
     <div class="dashboard-chart-container card">
-      <canvas id="creativePerformanceChart"></canvas>
+        <canvas id="creativePerformanceChart"></canvas>
     </div>
-  </section>
+</section>
   <section class="view hidden" id="creativesView">
     <h2>Creatives</h2>
 
@@ -414,5 +507,6 @@
 
 </body>
 </html>
+
 
 
