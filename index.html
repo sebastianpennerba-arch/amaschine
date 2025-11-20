@@ -2,558 +2,464 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>Corelytics – AdSensei Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="styles.css" />
+  <title>SignalOne.cloud Â· Creative Intelligence Platform</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
-  <div class="app-shell">
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="brand-logo">CL</div>
-        <div class="brand-text">
-          <span class="brand-name">Corelytics</span>
-          <span class="brand-sub">AdSensei</span>
+  <!-- SIDEBAR NAVIGATION -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-compact">
+        <div class="logo-icon">âš¡</div>
+        <div class="logo-text">
+          <div class="logo-title">SignalOne</div>
+          <div class="logo-subtitle">.cloud</div>
         </div>
       </div>
+      <button class="sidebar-toggle" id="sidebarToggle">â˜°</button>
+    </div>
 
-      <nav class="nav">
-        <div class="nav-section">
-          <span class="nav-section-label">Cockpit</span>
-          <button class="nav-item nav-item-active" data-view="dashboard">
-            <span>Command Center</span>
-          </button>
-          <button class="nav-item" data-view="creative-cockpit">
-            <span>Creative Cockpit</span>
-          </button>
-          <button class="nav-item" data-view="creative-library">
-            <span>Creative Library</span>
-          </button>
-          <button class="nav-item" data-view="testing-log">
-            <span>Testing Log</span>
-          </button>
-          <button class="nav-item" data-view="reports">
-            <span>Reports</span>
-          </button>
-        </div>
-
-        <div class="nav-section">
-          <span class="nav-section-label">AI</span>
-          <button class="nav-item" data-view="ai-hub">
-            <span>AI Actions</span>
-          </button>
-        </div>
-
-        <div class="nav-section">
-          <span class="nav-section-label">Verwaltung</span>
-          <button class="nav-item" data-view="integrations">
-            <span>Integrationen</span>
-          </button>
-          <button class="nav-item" data-view="settings">
-            <span>Einstellungen</span>
-          </button>
-          <button class="nav-item" data-view="billing">
-            <span>Abrechnung</span>
-          </button>
-        </div>
-      </nav>
-
-      <div class="sidebar-footer">
-        <div class="user-pill">
-          <div class="user-avatar">S</div>
-          <div class="user-info">
-            <span class="user-name">Sebastian</span>
-            <span class="user-role">Admin</span>
-          </div>
-        </div>
+    <div class="sidebar-menu">
+      <div class="menu-section">
+        <div class="menu-section-title">Analytics</div>
+        <a href="#dashboard" class="menu-item active" data-view="dashboard">
+          <span class="menu-icon">ðŸ“Š</span>
+          <span class="menu-label">Dashboard</span>
+        </a>
+        <a href="#creatives" class="menu-item" data-view="creatives">
+          <span class="menu-icon">ðŸŽ¨</span>
+          <span class="menu-label">Creatives</span>
+          <span class="menu-badge" id="creativeCount">12</span>
+        </a>
+        <a href="#campaigns" class="menu-item" data-view="campaigns">
+          <span class="menu-icon">ðŸŽ¯</span>
+          <span class="menu-label">Campaigns</span>
+        </a>
+        <a href="#insights" class="menu-item" data-view="insights">
+          <span class="menu-icon">ðŸ’¡</span>
+          <span class="menu-label">Insights</span>
+        </a>
       </div>
-    </aside>
 
-    <!-- MAIN -->
-    <main class="main">
+      <div class="menu-section">
+        <div class="menu-section-title">Tools</div>
+        <a href="#sensei" class="menu-item" data-view="sensei">
+          <span class="menu-icon">ðŸ§˜</span>
+          <span class="menu-label">SignalSensei</span>
+          <span class="menu-badge premium">PRO</span>
+        </a>
+        <a href="#library" class="menu-item" data-view="library">
+          <span class="menu-icon">ðŸ“š</span>
+          <span class="menu-label">Creative Library</span>
+        </a>
+        <a href="#reports" class="menu-item" data-view="reports">
+          <span class="menu-icon">ðŸ“ˆ</span>
+          <span class="menu-label">Reports</span>
+        </a>
+      </div>
+
+      <div class="menu-section">
+        <div class="menu-section-title">Settings</div>
+        <a href="#connections" class="menu-item" data-view="connections">
+          <span class="menu-icon">ðŸ”—</span>
+          <span class="menu-label">Connections</span>
+        </a>
+        <a href="#profile" class="menu-item" data-view="profile">
+          <span class="menu-icon">ðŸ‘¤</span>
+          <span class="menu-label">Profile</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="connection-status" id="connectionStatus">
+        <div class="status-indicator meta" title="Meta connected"></div>
+        <span class="status-label">Meta</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content" id="mainContent">
+    <div class="wrapper">
       <!-- TOP BAR -->
       <header class="topbar">
         <div class="topbar-left">
-          <h1 class="page-title" id="page-title">Command Center</h1>
-          <div class="topbar-badge">Meta • E-Com</div>
+          <h1 class="page-title">Dashboard Overview</h1>
+          <div class="breadcrumb">
+            <span>Dashboard</span>
+            <span class="breadcrumb-sep">â€º</span>
+            <span class="breadcrumb-current">Overview</span>
+          </div>
         </div>
-
         <div class="topbar-right">
-          <div class="topbar-group">
-            <label class="topbar-label">Zeitraum</label>
-            <select id="date-range" class="topbar-select">
-              <option value="7d">Letzte 7 Tage</option>
-              <option value="30d" selected>Letzte 30 Tage</option>
-              <option value="90d">Letzte 90 Tage</option>
-              <option value="custom">Custom…</option>
-            </select>
+          <div class="mode-toggle">
+            <button id="mode-live" class="mode-btn">ðŸ”¡ Live</button>
+            <button id="mode-sim" class="mode-btn active">ðŸŽ­ Demo</button>
           </div>
-
-          <div class="topbar-group">
-            <label class="topbar-label">Primäre Metrik</label>
-            <select id="primary-metric" class="topbar-select">
-              <option value="roas">ROAS</option>
-              <option value="cpa">Cost per Purchase</option>
-              <option value="ctr">CTR</option>
-              <option value="spend">Spend</option>
-            </select>
+          <div class="date-display" id="currentDate"></div>
+          <div class="header-actions">
+            <button class="icon-btn" title="Notifications">
+              <span class="notification-dot"></span>
+              ðŸ””
+            </button>
+            <button class="icon-btn" id="toggleSensei" title="SignalSensei Assistant">
+              ðŸ§˜
+            </button>
           </div>
-
-          <div class="topbar-group">
-            <label class="topbar-label">Plattform</label>
-            <select id="platform-filter" class="topbar-select">
-              <option value="all">Alle</option>
-              <option value="meta" selected>Meta</option>
-              <option value="tiktok" disabled>TikTok (bald)</option>
-              <option value="google" disabled>Google (bald)</option>
-            </select>
-          </div>
-
-          <button id="export-btn" class="btn btn-ghost">Export CSV</button>
         </div>
       </header>
 
-      <!-- DASHBOARD VIEW -->
-      <section id="view-dashboard" class="view view-active">
-        <!-- SUMMARY -->
-        <section class="panel panel-collapsible" data-section-id="summary">
-          <header class="panel-header">
-            <div>
-              <h2 class="panel-title">Account Overview</h2>
-              <p class="panel-subtitle">High-Level Performance der letzten 30 Tage</p>
-            </div>
-            <div class="panel-actions">
-              <label class="toggle-label">
-                <input type="checkbox" class="section-toggle" data-section-id="summary" checked />
-                Sichtbar
-              </label>
-              <button class="btn-icon panel-collapse-btn" data-section-id="summary">–</button>
-            </div>
-          </header>
-          <div class="panel-body grid-3">
-            <div class="stat-card">
-              <div class="stat-label">Account ROAS</div>
-              <div class="stat-value" id="stat-roas">4,32</div>
-              <div class="stat-delta stat-up">+18 % vs. vorheriger Zeitraum</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">Ad Spend</div>
-              <div class="stat-value" id="stat-spend">€ 48.300</div>
-              <div class="stat-delta stat-neutral">Budget im Plan</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">Top Plattform</div>
-              <div class="stat-value">
-                <span class="platform-pill platform-meta">Meta</span>
-              </div>
-              <div class="stat-delta">72 % des Umsatzes</div>
-            </div>
+      <!-- SIGNALSENSEI ASSISTANT PANEL -->
+      <aside class="sensei-panel" id="senseiPanel">
+        <div class="sensei-header">
+          <div class="sensei-avatar">ðŸ§˜</div>
+          <div>
+            <h3>SignalSensei</h3>
+            <p class="sensei-subtitle">Your Creative Intelligence Guide</p>
           </div>
-        </section>
-
-        <!-- RECOMMENDATIONS / ANOMALIES -->
-        <section class="panel panel-collapsible" data-section-id="insights">
-          <header class="panel-header">
-            <div>
-              <h2 class="panel-title">Empfehlungen & Anomalien</h2>
-              <p class="panel-subtitle">Von AdSensei automatisch erkannt</p>
-            </div>
-            <div class="panel-actions">
-              <label class="toggle-label">
-                <input type="checkbox" class="section-toggle" data-section-id="insights" checked />
-                Sichtbar
-              </label>
-              <button class="btn-icon panel-collapse-btn" data-section-id="insights">–</button>
-            </div>
-          </header>
-          <div class="panel-body grid-2">
-            <div class="list-card">
-              <div class="list-card-header">
-                <span>Empfohlene Aktionen</span>
-                <button class="btn-link" id="btn-run-all-actions">Alle KI-Aktionen ausführen</button>
-              </div>
-              <ul id="recommendations-list" class="list"></ul>
-            </div>
-            <div class="list-card">
-              <div class="list-card-header">
-                <span>Anomalien</span>
-                <button class="btn-link" id="btn-view-anomalies">Im Detail ansehen</button>
-              </div>
-              <ul id="anomalies-list" class="list"></ul>
-            </div>
+          <button class="close-btn" id="closeSensei">Ã—</button>
+        </div>
+        
+        <div class="sensei-content">
+          <div class="sensei-strategy" id="senseiStrategy">
+            <div class="strategy-badge">Analyzing your data...</div>
+            <p>Ich analysiere deine Kampagnen-Performance um die beste Strategie zu empfehlen.</p>
           </div>
-        </section>
 
-        <!-- TOP CREATIVES -->
-        <section class="panel panel-collapsible" data-section-id="top-creatives">
-          <header class="panel-header">
-            <div>
-              <h2 class="panel-title">Top Creatives</h2>
-              <p class="panel-subtitle">Bestperformer nach ausgewählter Metrik</p>
-            </div>
-            <div class="panel-actions">
-              <label class="toggle-label">
-                <input type="checkbox" class="section-toggle" data-section-id="top-creatives" checked />
-                Sichtbar
-              </label>
-              <button class="btn-icon panel-collapse-btn" data-section-id="top-creatives">–</button>
-            </div>
-          </header>
-          <div class="panel-body creatives-grid" id="top-creatives-grid"></div>
-        </section>
-      </section>
-
-      <!-- CREATIVE COCKPIT VIEW -->
-      <section id="view-creative-cockpit" class="view">
-        <section class="panel">
-          <header class="panel-header">
-            <div>
-              <h2 class="panel-title">Creative Cockpit</h2>
-              <p class="panel-subtitle">Media Mix, Hook- & Angle-Performance, Creator-Insights</p>
-            </div>
-          </header>
-          <div class="panel-body grid-2">
-            <div class="panel-sub">
-              <h3 class="sub-title">Media Mix</h3>
-              <div id="media-mix-placeholder" class="placeholder-box">
-                <span>Media Mix Chart (Platzhalter)</span>
-              </div>
-            </div>
-            <div class="panel-sub">
-              <h3 class="sub-title">Top Hooks & Angles</h3>
-              <div class="table-wrapper">
-                <table class="data-table" id="hook-angle-table">
-                  <thead>
-                    <tr>
-                      <th>Type</th>
-                      <th>Label</th>
-                      <th>Spend</th>
-                      <th>ROAS</th>
-                      <th>CTR</th>
-                    </tr>
-                  </thead>
-                  <tbody></tbody>
-                </table>
-              </div>
-            </div>
+          <div class="sensei-actions">
+            <button class="sensei-action-btn" data-action="optimize">
+              <span class="action-icon">âš¡</span>
+              <span>Quick Optimize</span>
+            </button>
+            <button class="sensei-action-btn" data-action="analyze">
+              <span class="action-icon">ðŸ”</span>
+              <span>Deep Analysis</span>
+            </button>
+            <button class="sensei-action-btn" data-action="predict">
+              <span class="action-icon">ðŸ”®</span>
+              <span>Forecast</span>
+            </button>
           </div>
-        </section>
 
-        <section class="panel">
-          <header class="panel-header">
-            <div>
-              <h2 class="panel-title">Creator Performance</h2>
-              <p class="panel-subtitle">Welche Creators liefern die besten Ergebnisse?</p>
-            </div>
-          </header>
-          <div class="panel-body">
-            <div class="table-wrapper">
-              <table class="data-table" id="creator-table">
-                <thead>
-                  <tr>
-                    <th>Creator</th>
-                    <th>Creatives</th>
-                    <th>Spend</th>
-                    <th>Purchases</th>
-                    <th>ROAS</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-      </section>
+          <div class="sensei-insights" id="senseiInsights"></div>
+        </div>
+      </aside>
 
-      <!-- CREATIVE LIBRARY VIEW -->
-      <section id="view-creative-library" class="view">
-        <section class="panel">
-          <header class="panel-header">
-            <div>
-              <h2 class="panel-title">Creative Library</h2>
-              <p class="panel-subtitle">Alle Creatives, filterbar nach Plattform, Hook, Angle & mehr</p>
-            </div>
-            <div class="panel-actions">
-              <button class="btn-ghost-small" id="btn-library-reset">Filter zurücksetzen</button>
-            </div>
-          </header>
-          <div class="panel-body">
-            <div class="filter-bar">
-              <input type="text" id="search-creatives" class="filter-input" placeholder="Suche nach Name / Hook / Creator…" />
-              <select id="filter-format" class="filter-select">
-                <option value="all">Format: Alle</option>
-                <option value="image">Image</option>
-                <option value="video">Video</option>
-                <option value="carousel">Carousel</option>
-              </select>
-              <select id="filter-hook" class="filter-select">
-                <option value="all">Hook: Alle</option>
-                <option value="education">Education</option>
-                <option value="emotional">Emotional</option>
-                <option value="offer">Offer</option>
-              </select>
-              <select id="filter-status" class="filter-select">
-                <option value="all">Status: Alle</option>
-                <option value="winner">Winner</option>
-                <option value="learning">Learning</option>
-                <option value="dieing">Fatigue</option>
-              </select>
-            </div>
-            <div class="panel-body creatives-grid" id="library-grid"></div>
-          </div>
-        </section>
-      </section>
-
-      <!-- TESTING LOG VIEW -->
-      <section id="view-testing-log" class="view">
-        <section class="panel">
-          <header class="panel-header">
-            <div>
-              <h2 class="panel-title">Testing Log</h2>
-              <p class="panel-subtitle">Experimente, Varianten & Teststatus im Überblick</p>
-            </div>
-          </header>
-          <div class="panel-body">
-            <div class="table-wrapper">
-              <table class="data-table" id="testing-log-table">
-                <thead>
-                  <tr>
-                    <th>Experiment</th>
-                    <th>Hook</th>
-                    <th>Angle</th>
-                    <th>Platform</th>
-                    <th>Spend</th>
-                    <th>Purchases</th>
-                    <th>ROAS</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-      </section>
-
-      <!-- REPORTS VIEW -->
-      <section id="view-reports" class="view">
-        <section class="panel">
-          <header class="panel-header">
-            <div>
-              <h2 class="panel-title">Reports</h2>
-              <p class="panel-subtitle">Top Creatives, Hooks, Angles, Creators & mehr</p>
-            </div>
-          </header>
-          <div class="panel-body grid-2">
-            <div class="panel-sub">
-              <h3 class="sub-title">Top Hooks</h3>
-              <div class="table-wrapper">
-                <table class="data-table" id="report-hooks">
-                  <thead>
-                    <tr>
-                      <th>Hook</th>
-                      <th>Creatives</th>
-                      <th>Spend</th>
-                      <th>ROAS</th>
-                    </tr>
-                  </thead>
-                  <tbody></tbody>
-                </table>
-              </div>
-            </div>
-            <div class="panel-sub">
-              <h3 class="sub-title">Top Angles</h3>
-              <div class="table-wrapper">
-                <table class="data-table" id="report-angles">
-                  <thead>
-                    <tr>
-                      <th>Angle</th>
-                      <th>Creatives</th>
-                      <th>Spend</th>
-                      <th>ROAS</th>
-                    </tr>
-                  </thead>
-                  <tbody></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </section>
-      </section>
-
-      <!-- AI HUB VIEW -->
-      <section id="view-ai-hub" class="view">
-        <section class="panel">
-          <header class="panel-header">
-            <div>
-              <h2 class="panel-title">AI Actions</h2>
-              <p class="panel-subtitle">Vorgefertigte KI-Workflows für Creatives & Tests</p>
-            </div>
-          </header>
-          <div class="panel-body ai-grid">
-            <div class="ai-card">
-              <h3>Hook Generator</h3>
-              <p>Generiert neue Hook-Ideen auf Basis deiner Top-Creatives.</p>
-              <button class="btn btn-primary" id="ai-hook-gen">Hooks generieren</button>
-            </div>
-            <div class="ai-card">
-              <h3>Creative Breakdown</h3>
-              <p>Analysiert ein Creative in Hook, Angle, Story, CTA, Pattern Interrupt.</p>
-              <button class="btn btn-primary" id="ai-breakdown">Creative analysieren</button>
-            </div>
-            <div class="ai-card">
-              <h3>Testplan Creator</h3>
-              <p>Erstellt einen Testplan (Budget, Varianten, Laufzeit) auf Basis deiner Daten.</p>
-              <button class="btn btn-primary" id="ai-testplan">Testplan erstellen</button>
-            </div>
-            <div class="ai-card">
-              <h3>UGC-Creator Briefing</h3>
-              <p>Schreibt ein fertiges Briefing für deinen UGC-Creator aus einem Top-Creative.</p>
-              <button class="btn btn-primary" id="ai-briefing">Briefing generieren</button>
-            </div>
-          </div>
-        </section>
-      </section>
-
-      <!-- INTEGRATIONS VIEW -->
-      <section id="view-integrations" class="view">
-        <section class="panel">
-          <header class="panel-header">
-            <div>
-              <h2 class="panel-title">Integrationen</h2>
-              <p class="panel-subtitle">Meta jetzt verbinden – weitere Plattformen folgen</p>
-            </div>
-          </header>
-          <div class="panel-body integrations-grid">
-            <div class="integration-card">
-              <div class="integration-header">
-                <span class="integration-name">Meta</span>
-                <span class="integration-status integration-status-connected">Verbunden</span>
-              </div>
-              <p class="integration-desc">Liest Kampagnen, Ad Sets, Ads & Creatives aus deinem Meta Business Manager.</p>
-              <button class="btn btn-ghost-small">Verbindung verwalten</button>
-            </div>
-            <div class="integration-card integration-disabled">
-              <div class="integration-header">
-                <span class="integration-name">TikTok</span>
-                <span class="integration-status">Bald verfügbar</span>
-              </div>
-              <p class="integration-desc">Creative-Analyse und Reporting für TikTok Ads.</p>
-              <button class="btn btn-ghost-small" disabled>Demnächst</button>
-            </div>
-            <div class="integration-card integration-disabled">
-              <div class="integration-header">
-                <span class="integration-name">Google Ads</span>
-                <span class="integration-status">Bald verfügbar</span>
-              </div>
-              <p class="integration-desc">Datenabgleich und Creative Insights für Google Ads.</p>
-              <button class="btn btn-ghost-small" disabled>Demnächst</button>
-            </div>
-          </div>
-        </section>
-      </section>
-
-      <!-- SETTINGS VIEW -->
-      <section id="view-settings" class="view">
-        <section class="panel">
-          <header class="panel-header">
-            <div>
-              <h2 class="panel-title">Einstellungen</h2>
-              <p class="panel-subtitle">Profil, Team, Ziele & Custom Metrics</p>
-            </div>
-          </header>
-          <div class="panel-body settings-grid">
-            <div class="settings-block">
-              <h3 class="sub-title">Profil</h3>
-              <div class="settings-field">
-                <label>Name</label>
-                <input type="text" value="Sebastian Penner" />
-              </div>
-              <div class="settings-field">
-                <label>E-Mail</label>
-                <input type="email" value="sebastian@example.com" />
-              </div>
-            </div>
-            <div class="settings-block">
-              <h3 class="sub-title">Ziele (Target Metrics)</h3>
-              <div class="settings-field">
-                <label>Ziel-ROAS</label>
-                <input type="number" step="0.1" value="3.5" />
-              </div>
-              <div class="settings-field">
-                <label>Max. CPA (€)</label>
-                <input type="number" step="1" value="40" />
-              </div>
-            </div>
-            <div class="settings-block">
-              <h3 class="sub-title">Custom Metrics</h3>
-              <div class="settings-field">
-                <label>Formel (z.B. Profit ROAS)</label>
-                <input type="text" placeholder="(Revenue - Spend) / Spend" />
-              </div>
-            </div>
-          </div>
-        </section>
-      </section>
-
-      <!-- BILLING VIEW -->
-      <section id="view-billing" class="view">
-        <section class="panel">
-          <header class="panel-header">
-            <div>
-              <h2 class="panel-title">Abrechnung</h2>
-              <p class="panel-subtitle">Plan, Limits pro Creative & Zahlungsinformationen</p>
-            </div>
-          </header>
-          <div class="panel-body billing-grid">
-            <div class="billing-block">
-              <h3 class="sub-title">Aktueller Plan</h3>
-              <p><strong>Growth Plan – 189 €/Monat</strong></p>
-              <ul class="billing-list">
-                <li>bis 5 Brands / Clients</li>
-                <li>bis 800 aktive Creatives / Monat</li>
-                <li>8 Ad Accounts</li>
-                <li>5 User</li>
-              </ul>
-              <button class="btn btn-ghost">Plan wechseln</button>
-            </div>
-            <div class="billing-block">
-              <h3 class="sub-title">Usage</h3>
-              <p>Aktive Creatives diesen Monat: <strong>624 / 800</strong></p>
-              <p>Overage ab 801: <strong>0,15 €/Creative</strong></p>
-            </div>
-            <div class="billing-block">
-              <h3 class="sub-title">Zahlungsdaten</h3>
-              <p>Karte: **** **** **** 4242</p>
-              <button class="btn btn-ghost-small">Karte ändern</button>
-            </div>
-          </div>
-        </section>
-      </section>
-    </main>
-  </div>
-
-  <!-- MODAL -->
-  <div class="modal-backdrop" id="creative-modal">
-    <div class="modal">
-      <header class="modal-header">
-        <h2 id="modal-title">Creative Details</h2>
-        <button class="btn-icon" id="modal-close">&times;</button>
-      </header>
-      <div class="modal-body">
-        <div class="modal-content">
-          <div class="modal-preview" id="modal-preview"></div>
-          <div class="modal-info">
-            <div class="modal-meta" id="modal-meta"></div>
-            <div class="modal-metrics" id="modal-metrics"></div>
-            <button class="btn btn-primary" id="btn-ai-analyze">KI-Analyse starten</button>
+      <!-- PERFORMANCE SCORE CARD -->
+      <section class="score-card-compact">
+        <div class="score-visual-compact">
+          <canvas id="scoreChart" width="100" height="100"></canvas>
+          <div class="score-center-compact">
+            <div class="score-number" id="performanceScore">87</div>
+            <div class="score-label">Score</div>
           </div>
         </div>
-      </div>
+        <div class="score-metrics">
+          <div class="score-metric">
+            <span class="metric-dot" style="background: #10b981"></span>
+            <span class="metric-name">ROAS</span>
+            <strong id="quickROAS">3.6x</strong>
+          </div>
+          <div class="score-metric">
+            <span class="metric-dot" style="background: #3b82f6"></span>
+            <span class="metric-name">CTR</span>
+            <strong id="quickCTR">2.8%</strong>
+          </div>
+          <div class="score-metric">
+            <span class="metric-dot" style="background: #f59e0b"></span>
+            <span class="metric-name">CR</span>
+            <strong id="quickCR">4.2%</strong>
+          </div>
+          <div class="score-metric">
+            <span class="metric-dot" style="background: #8b5cf6"></span>
+            <span class="metric-name">Revenue</span>
+            <strong id="quickRevenue">â‚¬3,355</strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- CREATIVE PERFORMANCE - HERO SECTION -->
+      <section class="section creative-hero">
+        <div class="section-header-enhanced">
+          <div class="section-title-group">
+            <h2 class="section-title-main">Creative Intelligence</h2>
+            <p class="section-description">Deine Ad Creatives im Detail - optimiert fÃ¼r Performance</p>
+          </div>
+          <div class="section-controls">
+            <div class="period-selector-compact">
+              <button class="toggle-btn active" data-period="1">24h</button>
+              <button class="toggle-btn" data-period="7">7d</button>
+              <button class="toggle-btn" data-period="30">30d</button>
+            </div>
+            <button class="btn-icon-label" id="exportCreatives">
+              <span>ðŸ“¥</span> Export
+            </button>
+          </div>
+        </div>
+
+        <!-- CREATIVE FILTERS & CONTROLS -->
+        <div class="creative-controls">
+          <div class="filter-group">
+            <button class="filter-chip active" data-filter="all">
+              <span class="chip-icon">ðŸŽ¨</span>
+              <span class="chip-label">Alle</span>
+              <span class="chip-count" id="countAll">12</span>
+            </button>
+            <button class="filter-chip" data-filter="image">
+              <span class="chip-icon">ðŸ–¼ï¸</span>
+              <span class="chip-label">Bilder</span>
+              <span class="chip-count" id="countImages">8</span>
+            </button>
+            <button class="filter-chip" data-filter="video">
+              <span class="chip-icon">ðŸŽ¬</span>
+              <span class="chip-label">Videos</span>
+              <span class="chip-count" id="countVideos">4</span>
+            </button>
+            <div class="filter-divider"></div>
+            <button class="filter-chip" data-filter="winner">
+              <span class="chip-icon">ðŸ†</span>
+              <span class="chip-label">Top Performer</span>
+            </button>
+            <button class="filter-chip" data-filter="attention">
+              <span class="chip-icon">âš ï¸</span>
+              <span class="chip-label">Needs Attention</span>
+            </button>
+          </div>
+
+          <div class="view-controls">
+            <div class="platform-filter">
+              <button class="platform-btn active" data-platform="meta" title="Meta Ads">
+                <span class="platform-icon meta-icon">f</span>
+              </button>
+              <button class="platform-btn disabled" data-platform="tiktok" title="TikTok (Coming Soon)">
+                <span class="platform-icon tiktok-icon">â™ª</span>
+              </button>
+              <button class="platform-btn disabled" data-platform="google" title="Google (Coming Soon)">
+                <span class="platform-icon google-icon">G</span>
+              </button>
+            </div>
+            
+            <select class="sort-select" id="sortCreatives">
+              <option value="roas">Sort: ROAS â†“</option>
+              <option value="ctr">Sort: CTR â†“</option>
+              <option value="cpc">Sort: CPC â†‘</option>
+              <option value="impressions">Sort: Reach â†“</option>
+              <option value="score">Sort: Score â†“</option>
+            </select>
+
+            <div class="view-switcher">
+              <button class="view-btn active" data-view="grid" title="Grid View">âŠž</button>
+              <button class="view-btn" data-view="list" title="List View">â˜°</button>
+              <button class="view-btn" data-view="compare" title="Compare View">âŠŸ</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CREATIVE GRID - ENHANCED -->
+        <div id="creativeGrid" class="creative-grid-enhanced"></div>
+
+        <!-- CREATIVE INSIGHTS SUMMARY -->
+        <div class="creative-summary">
+          <div class="summary-card">
+            <div class="summary-icon">ðŸŽ¯</div>
+            <div class="summary-content">
+              <div class="summary-label">Avg. ROAS</div>
+              <div class="summary-value" id="avgROAS">3.2x</div>
+              <div class="summary-trend positive">+12% vs. last period</div>
+            </div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-icon">âš¡</div>
+            <div class="summary-content">
+              <div class="summary-label">Avg. CTR</div>
+              <div class="summary-value" id="avgCTR">2.4%</div>
+              <div class="summary-trend positive">+0.3%</div>
+            </div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-icon">ðŸ’°</div>
+            <div class="summary-content">
+              <div class="summary-label">Total Spend</div>
+              <div class="summary-value" id="totalSpend">â‚¬2,840</div>
+              <div class="summary-trend neutral">vs. â‚¬2,650</div>
+            </div>
+          </div>
+          <div class="summary-card highlight">
+            <div class="summary-icon">ðŸ†</div>
+            <div class="summary-content">
+              <div class="summary-label">Top Performer</div>
+              <div class="summary-value" id="topCreative">Creative #3</div>
+              <div class="summary-trend positive">ROAS 5.2x</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PERFORMANCE OVERVIEW - COLLAPSIBLE -->
+      <section class="section collapsible" data-section="overview">
+        <div class="section-header-collapsible">
+          <button class="collapse-toggle">
+            <span class="collapse-icon">â–¼</span>
+          </button>
+          <div class="section-title-group">
+            <h2 class="section-title-main">Performance Overview</h2>
+            <p class="section-description">Wichtigste Metriken auf einen Blick</p>
+          </div>
+          <div class="section-meta">
+            <span class="update-indicator" id="lastUpdate">â— vor 2 Min.</span>
+          </div>
+        </div>
+        
+        <div class="section-content">
+          <div class="overview-grid" id="overviewGrid"></div>
+
+          <div class="funnel-section">
+            <div class="funnel-header">
+              <h3>Conversion Funnel</h3>
+              <div class="funnel-stats">
+                <span>Gesamt-CR: <strong id="totalCR" class="value-positive">4.2%</strong></span>
+              </div>
+            </div>
+            <div class="funnel-visual" id="funnelSteps"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- KPI ANALYSIS - COLLAPSIBLE -->
+      <section class="section collapsible" data-section="kpis">
+        <div class="section-header-collapsible">
+          <button class="collapse-toggle">
+            <span class="collapse-icon">â–¼</span>
+          </button>
+          <div class="section-title-group">
+            <h2 class="section-title-main">KPI Deep Dive</h2>
+            <p class="section-description">Detaillierte Metriken mit Benchmarks</p>
+          </div>
+        </div>
+        
+        <div class="section-content">
+          <div class="kpi-grid-enhanced" id="kpiGrid"></div>
+
+          <div class="chart-container">
+            <div class="chart-header">
+              <h3>Performance Trend</h3>
+              <div class="chart-filters">
+                <button class="chart-filter active" data-metric="roas">ROAS</button>
+                <button class="chart-filter" data-metric="ctr">CTR</button>
+                <button class="chart-filter" data-metric="spend">Spend</button>
+                <button class="chart-filter" data-metric="revenue">Revenue</button>
+              </div>
+            </div>
+            <canvas id="trendChart" height="180"></canvas>
+          </div>
+
+          <div class="heatmap-section">
+            <div class="heatmap-header">
+              <h3>Performance Heatmap</h3>
+              <p>Beste Performance-Zeiten fÃ¼r deine Kampagnen</p>
+            </div>
+            <div class="heatmap-container" id="heatmapContainer"></div>
+            <div class="heatmap-legend">
+              <span>Niedrig</span>
+              <div class="legend-gradient"></div>
+              <span>Hoch</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- WINNER/LOSER ANALYSIS - COLLAPSIBLE -->
+      <section class="section collapsible" data-section="comparison">
+        <div class="section-header-collapsible">
+          <button class="collapse-toggle">
+            <span class="collapse-icon">â–¼</span>
+          </button>
+          <div class="section-title-group">
+            <h2 class="section-title-main">Performance Comparison</h2>
+            <p class="section-description">Top & Bottom Performer im direkten Vergleich</p>
+          </div>
+        </div>
+        
+        <div class="section-content">
+          <div class="winner-loser-grid">
+            <div class="winner-card">
+              <div class="card-badge winner">ðŸ† Top Performer</div>
+              <div id="winnerContent"></div>
+            </div>
+            <div class="loser-card">
+              <div class="card-badge loser">âš ï¸ Verbesserungsbedarf</div>
+              <div id="loserContent"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI RECOMMENDATIONS - COLLAPSIBLE -->
+      <section class="section collapsible" data-section="recommendations">
+        <div class="section-header-collapsible">
+          <button class="collapse-toggle">
+            <span class="collapse-icon">â–¼</span>
+          </button>
+          <div class="section-title-group">
+            <h2 class="section-title-main">Smart Recommendations</h2>
+            <p class="section-description">KI-gestÃ¼tzte Handlungsempfehlungen</p>
+          </div>
+          <button class="btn-text" id="refreshRecommendations">
+            <span>ðŸ”„</span> Aktualisieren
+          </button>
+        </div>
+        
+        <div class="section-content">
+          <div class="recommendations-grid" id="recommendationsGrid">
+            <div class="recommendation-card priority-high">
+              <div class="rec-icon">ðŸŽ¯</div>
+              <div class="rec-content">
+                <div class="rec-badge">Hohe PrioritÃ¤t</div>
+                <h4>Budget zu Top-Performern verschieben</h4>
+                <p>Creatives mit ROAS > 4.0 haben 67% mehr Conversions. Empfehlung: +40% Budget.</p>
+                <div class="rec-impact">Erwarteter ROAS-Lift: <strong>+18%</strong></div>
+              </div>
+              <button class="rec-action">Anwenden â†’</button>
+            </div>
+
+            <div class="recommendation-card priority-medium">
+              <div class="rec-icon">ðŸŽ¬</div>
+              <div class="rec-content">
+                <div class="rec-badge">Mittlere PrioritÃ¤t</div>
+                <h4>Video-Content verstÃ¤rken</h4>
+                <p>Video-Ads haben 34% hÃ¶here Engagement-Rate. 2 Low-Performer pausieren.</p>
+                <div class="rec-impact">Erwartete CTR-Steigerung: <strong>+0.8%</strong></div>
+              </div>
+              <button class="rec-action">Details â†’</button>
+            </div>
+
+            <div class="recommendation-card priority-low">
+              <div class="rec-icon">â°</div>
+              <div class="rec-content">
+                <div class="rec-badge">Niedrige PrioritÃ¤t</div>
+                <h4>Zeitplanung optimieren</h4>
+                <p>Peak-Performance zwischen 18-21 Uhr. Dayparting aktivieren.</p>
+                <div class="rec-impact">Potentielle Kostenersparnis: <strong>â‚¬180/Woche</strong></div>
+              </div>
+              <button class="rec-action">Planen â†’</button>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <!-- LOADING OVERLAY -->
+  <div class="loading" id="loading" style="display:none;">
+    <div class="spinner-container">
+      <div class="spinner-modern"></div>
+      <p>Lade Kampagnendaten...</p>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
 </body>
 </html>
