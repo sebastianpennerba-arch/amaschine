@@ -1,11 +1,11 @@
 // ======================================================================
-// SignalOne.cloud – Rebuild mit Option 1 (Mock-System)
+// SignalOne.cloud – Rebuild Option 1 (Mock-System, Style A)
 // ======================================================================
 
 "use strict";
 
 // ----------------------------------------------------------------------
-// MOCK-DATEN (Option 1 – stylisches Demo-System)
+// MOCK-DATEN (stylisches Demo-System)
 // ----------------------------------------------------------------------
 
 const MockData = {
@@ -233,7 +233,7 @@ const MockData = {
   ]
 };
 
-// Library = einfach alle Creatives als Start
+// Library = alle Creatives
 MockData.library = [...MockData.creatives];
 
 // ----------------------------------------------------------------------
@@ -242,9 +242,10 @@ MockData.library = [...MockData.creatives];
 
 const AppState = {
   theme: "light",
-  mode: "demo", // "demo" | "live" (später einfach umschaltbar)
+  mode: "demo",      // "demo" | "live"
+  period: "30d",     // 24h | 7d | 30d (nur Label)
   creativeSort: "roas", // roas | ctr | cpc | impressions | score
-  creativeView: "grid", // grid | list | compare
+  creativeView: "grid", // grid | list
   connections: {
     meta: false,
     tiktok: false,
@@ -284,10 +285,12 @@ const fmt = {
   },
   pct(v, d = 2) {
     const n = Number(v || 0);
-    return n.toLocaleString("de-DE", {
-      minimumFractionDigits: d,
-      maximumFractionDigits: d
-    }) + " %";
+    return (
+      n.toLocaleString("de-DE", {
+        minimumFractionDigits: d,
+        maximumFractionDigits: d
+      }) + " %"
+    );
   },
   curr(v) {
     const n = Number(v || 0);
@@ -406,7 +409,9 @@ function setupModeToggle() {
   liveBtn.addEventListener("click", () => {
     AppState.mode = "live";
     updateButtons();
-    alert("Live-Mode: Hier hängst du später einfach die echte Meta-API dran. Aktuell noch Demo-Daten.");
+    alert(
+      "Live-Mode: Hier hängst du später einfach die echte Meta-API dran. Aktuell noch Demo-Daten."
+    );
     logEvent("mode:change", { mode: "live" });
   });
 
@@ -487,19 +492,19 @@ function setupSidebar() {
       }
 
       logEvent("nav:change", { view });
-      // Bei jedem View-Wechsel noch mal rendern, falls Daten/State geändert wurden
       renderAll();
     });
   });
 }
 
 // ----------------------------------------------------------------------
-// DASHBOARD
+// DASHBOARD (Style A)
 // ----------------------------------------------------------------------
 
 function renderDashboard() {
   const kpi = AppState.kpi;
-  // Hero Grid
+
+  // Hero Grid – Top 4 Creatives
   const hero = document.getElementById("creativeGridHero");
   if (hero) {
     const topCreatives = [...MockData.creatives]
@@ -513,8 +518,11 @@ function renderDashboard() {
           ? `<video class="creative-thumb" src="${c.url}" muted loop onmouseover="this.play()" onmouseout="this.pause()"></video>`
           : `<img class="creative-thumb" src="${c.url}" alt="${c.name}" onerror="this.src='https://via.placeholder.com/400x400?text=Creative'"/>`;
 
+        const roasClass = c.roas >= 3.5 ? "success" : c.roas >= 2 ? "warning" : "danger";
+        const ctrClass = c.ctr >= 2.5 ? "success" : c.ctr >= 1.5 ? "warning" : "danger";
+
         return `
-        <div class="creative-card-enhanced">
+        <article class="creative-card-enhanced creative-hero-card" data-creative-id="${c.id}">
           <div class="creative-media-container">
             ${media}
             <div class="creative-platform-badge">
@@ -525,11 +533,11 @@ function renderDashboard() {
           <div class="creative-card-body">
             <div class="creative-title">${c.name}</div>
             <div class="creative-metrics-grid">
-              <div class="metric-item">
+              <div class="metric-item ${roasClass}">
                 <div class="metric-label-sm">ROAS</div>
                 <div class="metric-value-sm">${fmt.num(c.roas, 2)}x</div>
               </div>
-              <div class="metric-item">
+              <div class="metric-item ${ctrClass}">
                 <div class="metric-label-sm">CTR</div>
                 <div class="metric-value-sm">${fmt.num(c.ctr, 2)}%</div>
               </div>
@@ -539,9 +547,17 @@ function renderDashboard() {
               </div>
             </div>
           </div>
-        </div>`;
+        </article>`;
       })
       .join("");
+
+    // Klick -> Details
+    hero.querySelectorAll("[data-creative-id]").forEach((el) => {
+      el.addEventListener("click", () => {
+        const id = el.getAttribute("data-creative-id");
+        showCreativeDetails(id);
+      });
+    });
   }
 
   // Summary Cards
@@ -556,7 +572,6 @@ function renderDashboard() {
     if (totalSpend) totalSpend.textContent = fmt.curr(kpi.spend);
     if (totalRevenue) totalRevenue.textContent = fmt.curr(kpi.revenue);
 
-    // einfache fiktive Trends
     setTrend("avgROASTrend", kpi.roas, 3.0);
     setTrend("avgCTRTrend", kpi.ctr, 2.0);
     setTrend("totalSpendTrend", kpi.spend, kpi.spend * 0.9, true);
@@ -583,24 +598,26 @@ function renderDashboard() {
   // Winner / Loser
   renderWinnerLoser();
 
-  // Insights Kurzfassung im Dashboard
+  // Kurz-Insights im Dashboard
   const insightsShort = document.getElementById("insightsContent");
   if (insightsShort) {
     const topInsights = MockData.insights.slice(0, 3);
     insightsShort.innerHTML = topInsights
       .map(
         (i) => `
-      <div class="insight-card" style="margin-bottom:12px;">
-        <div style="font-size:11px; text-transform:uppercase; color:var(--text-light); margin-bottom:4px;">
+      <div class="insight-card">
+        <div class="insight-meta">
           ${i.type.toUpperCase()} · Impact: ${i.impact.toUpperCase()}
         </div>
-        <div style="font-weight:600; font-size:13px; margin-bottom:4px;">${i.title}</div>
-        <div style="font-size:12px; color:var(--text-secondary); line-height:1.5;">${i.body}</div>
+        <div class="insight-title">${i.title}</div>
+        <div class="insight-body">${i.body}</div>
       </div>
     `
       )
       .join("");
   }
+
+  updatePeriodLabel();
 }
 
 function setTrend(id, value, baseline, invert = false) {
@@ -674,7 +691,9 @@ function setupCreativesControls() {
     });
   }
 
-  const viewBtns = document.querySelectorAll("#view-creatives .view-btn[data-view]");
+  const viewBtns = document.querySelectorAll(
+    "#view-creatives .view-btn[data-view]"
+  );
   viewBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       viewBtns.forEach((b) => b.classList.remove("active"));
@@ -684,159 +703,6 @@ function setupCreativesControls() {
       renderCreativesView();
     });
   });
-}
-
-function renderHeroCreatives() {
-  const container = document.getElementById("creativeGridHero");
-  if (!container) return;
-
-  const items = [...SignalState.creatives];
-  if (!items.length) {
-    container.innerHTML = `
-      <div style="grid-column:1/-1; padding:16px; font-size:12px; color:var(--text-secondary);">
-        Noch keine Creatives geladen – im Demo Mode werden automatisch Mock-Creatives generiert.
-      </div>
-    `;
-    return;
-  }
-
-  // Nach ROAS sortieren, Top 4
-  items.sort((a, b) => b.ROAS - a.ROAS);
-  const top = items.slice(0, 4);
-
-  container.innerHTML = top.map(c => {
-    const isVideo = c.mediaType === "video";
-    const roasClass = c.ROAS >= 3.5 ? "success" : c.ROAS >= 2 ? "warning" : "danger";
-    const ctrClass = c.CTR >= 2.5 ? "success" : c.CTR >= 1.5 ? "warning" : "danger";
-
-    return `
-      <div class="creative-card-enhanced creative-hero-card" data-creative-id="${c.id}">
-        <div class="creative-media-container">
-          ${
-            isVideo
-              ? `<video class="creative-thumb" src="${c.URL}" muted loop onmouseover="this.play()" onmouseout="this.pause()"></video>`
-              : `<img class="creative-thumb" src="${c.URL}" alt="${c.name}" onerror="this.src='https://via.placeholder.com/400x400?text=Creative'" />`
-          }
-          <div class="creative-platform-badge">
-            <span class="platform-icon meta-icon" style="color:#0084ff;">f</span>
-          </div>
-          <div class="creative-score-badge">${c.score}/100</div>
-        </div>
-        <div class="creative-card-body">
-          <div class="creative-title">${c.name}</div>
-          <div class="creative-metrics-grid">
-            <div class="metric-item ${roasClass}">
-              <div class="metric-label-sm">ROAS</div>
-              <div class="metric-value-sm">${fmt.num(c.ROAS, 2)}x</div>
-            </div>
-            <div class="metric-item ${ctrClass}">
-              <div class="metric-label-sm">CTR</div>
-              <div class="metric-value-sm">${fmt.num(c.CTR, 2)}%</div>
-            </div>
-            <div class="metric-item">
-              <div class="metric-label-sm">CPC</div>
-              <div class="metric-value-sm">${fmt.curr(c.CPC)}</div>
-            </div>
-            <div class="metric-item">
-              <div class="metric-label-sm">Spend</div>
-              <div class="metric-value-sm">${fmt.curr(c.spend || 0)}</div>
-            </div>
-          </div>
-          <div class="creative-footer">
-            <div class="creative-impressions">
-              <span>👁️</span>
-              <span>${fmt.short(c.impressions)}</span>
-            </div>
-            <div class="creative-actions">
-              <button class="action-btn-sm" title="Details" onclick="showCreativeDetails('${c.id}')">ℹ️</button>
-              <button class="action-btn-sm" title="Analyze" onclick="analyzeCreative('${c.id}')">🔍</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-  }).join("");
-}
-
-function renderInsightsSummary() {
-  const summary = document.getElementById("insightsContent");
-  const detail = document.getElementById("insightsDetail"); // im eigenen View
-
-  const noDataHtml = `
-    <div style="padding:12px; font-size:12px; color:var(--text-secondary);">
-      Noch keine Echtzeit-Daten. Im Demo Mode werden Mock-Daten verwendet.
-    </div>
-  `;
-
-  if (!SignalState.kpi) {
-    if (summary) summary.innerHTML = noDataHtml;
-    if (detail) detail.innerHTML = noDataHtml;
-    return;
-  }
-
-  const k = SignalState.kpi;
-  const hasStrongROAS = k.ROAS >= 3;
-  const hasWeakCTR = k.CTR < 2;
-  const hasWeakCR = k.CR < 3;
-
-  const cards = [];
-
-  if (hasStrongROAS) {
-    cards.push(`
-      <div class="sensei-insight">
-        <div class="insight-icon">🚀</div>
-        <div class="insight-content">
-          <strong>Scaling-Potenzial erkannt</strong><br/>
-          ROAS liegt bei <strong>${fmt.num(k.ROAS, 2)}x</strong>. Empfehlung:
-          Budget schrittweise um <strong>+30–50%</strong> erhöhen und Top-Creatives duplizieren.
-        </div>
-      </div>
-    `);
-  }
-
-  if (hasWeakCTR) {
-    cards.push(`
-      <div class="sensei-insight">
-        <div class="insight-icon">👁️</div>
-        <div class="insight-content">
-          <strong>CTR unter Benchmark</strong><br/>
-          Aktuelle CTR: <strong>${fmt.pct(k.CTR)}</strong>. Teste neue Hooks, Thumbnails
-          und stärkere Kontraste im Creative.
-        </div>
-      </div>
-    `);
-  }
-
-  if (hasWeakCR) {
-    cards.push(`
-      <div class="sensei-insight">
-        <div class="insight-icon">🛒</div>
-        <div class="insight-content">
-          <strong>Conversion-Rate ausbaufähig</strong><br/>
-          CR liegt bei <strong>${fmt.pct(k.CR)}</strong>. Prüfe Landing Page,
-          Checkout und Ladezeiten – nicht nur die Anzeigen.
-        </div>
-      </div>
-    `);
-  }
-
-  if (!cards.length) {
-    cards.push(`
-      <div class="sensei-insight">
-        <div class="insight-icon">✅</div>
-        <div class="insight-content">
-          <strong>Solide Performance</strong><br/>
-          Alle Kern-KPIs bewegen sich in einem gesunden Bereich.
-          Fokus: kontrolliertes Scaling & strukturiertes Creative-Testing.
-        </div>
-      </div>
-    `);
-  }
-
-  const html = cards.join("");
-
-  if (summary) summary.innerHTML = html;
-  if (detail) detail.innerHTML = html;
 }
 
 function renderCreativesView() {
@@ -912,41 +778,44 @@ function renderCreativesView() {
   });
 }
 
+// ----------------------------------------------------------------------
+// PERIOD / DATE RANGE TOGGLE (nur Label, Demo)
+// ----------------------------------------------------------------------
+
 function updatePeriodLabel() {
   const el = document.getElementById("dashPeriodLabel");
   if (!el) return;
 
-  let label = "Letzte 24 Stunden (Demo)";
-  if (SignalState.period === "7d") label = "Letzte 7 Tage (Demo)";
-  else if (SignalState.period === "30d") label = "Letzte 30 Tage (Demo)";
+  let label = "Letzte 30 Tage (Demo)";
+  if (AppState.period === "24h") label = "Letzte 24 Stunden (Demo)";
+  else if (AppState.period === "7d") label = "Letzte 7 Tage (Demo)";
 
   el.textContent = label;
 }
 
 function setupPeriodToggles() {
   const btns = document.querySelectorAll(".toggle-btn[data-period]");
-  btns.forEach(btn => {
+  if (!btns.length) return;
+
+  btns.forEach((btn) => {
     btn.addEventListener("click", () => {
-      btns.forEach(b => b.classList.remove("active"));
+      btns.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
 
       const period = btn.dataset.period;
-      if (period === "30") SignalState.period = "30d";
-      else if (period === "7") SignalState.period = "7d";
-      else SignalState.period = "24h";
+      if (period === "30") AppState.period = "30d";
+      else if (period === "7") AppState.period = "7d";
+      else AppState.period = "24h";
 
-      updatePeriodLabel(); // <-- HIER NEU
-
-      if (MOCK_MODE) {
-        loadMockCreatives();
-        loadMockCampaigns();
-        renderAll();
-      } else if (SignalState.token) {
-        loadMetaData();
-      }
+      logEvent("period:change", { period: AppState.period });
+      updatePeriodLabel();
     });
   });
 }
+
+// ----------------------------------------------------------------------
+// CREATIVE DETAILS (Alert – Demo)
+// ----------------------------------------------------------------------
 
 function showCreativeDetails(id) {
   const c = MockData.creatives.find((x) => x.id === id);
@@ -995,10 +864,12 @@ function renderCampaignsView() {
     tr.addEventListener("click", () => {
       alert(
         `Kampagne: ${c.name}\n\n` +
-          `Spend: ${fmt.curr(c.spend)}\nRevenue: ${fmt.curr(c.revenue)}\nROAS: ${fmt.num(
-            c.roas,
+          `Spend: ${fmt.curr(c.spend)}\nRevenue: ${fmt.curr(
+            c.revenue
+          )}\nROAS: ${fmt.num(c.roas, 2)}x\nCTR: ${fmt.num(
+            c.ctr,
             2
-          )}x\nCTR: ${fmt.num(c.ctr, 2)}%\nPurchases: ${fmt.int(c.purchases)}`
+          )}%\nPurchases: ${fmt.int(c.purchases)}`
       );
       logEvent("campaign:details", { id: c.id });
     });
@@ -1007,7 +878,7 @@ function renderCampaignsView() {
 }
 
 // ----------------------------------------------------------------------
-// INSIGHTS VIEW
+// INSIGHTS VIEW (Detailseite)
 // ----------------------------------------------------------------------
 
 function renderInsightsView() {
@@ -1027,12 +898,12 @@ function renderInsightsView() {
   const list = MockData.insights
     .map(
       (i) => `
-    <article style="border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:12px; background:var(--bg-card);">
-      <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-light); margin-bottom:4px;">
+    <article class="insight-card-lg">
+      <div class="insight-meta">
         ${i.type.toUpperCase()} · Impact: ${i.impact.toUpperCase()}
       </div>
-      <h3 style="font-size:13px; font-weight:700; margin-bottom:6px;">${i.title}</h3>
-      <p style="font-size:12px; color:var(--text-secondary); line-height:1.6;">${i.body}</p>
+      <h3 class="insight-title">${i.title}</h3>
+      <p class="insight-body">${i.body}</p>
     </article>
   `
     )
@@ -1042,7 +913,7 @@ function renderInsightsView() {
 }
 
 // ----------------------------------------------------------------------
-// SIGNAL SENSEI VIEW
+// SIGNAL SENSEI VIEW (Strategie-Box)
 // ----------------------------------------------------------------------
 
 function renderSenseiView() {
@@ -1057,16 +928,14 @@ function renderSenseiView() {
   const strategy = determineSenseiStrategy(kpi.roas, kpi.ctr, kpi.cr);
 
   out.innerHTML = `
-    <div style="border-radius:12px; border:1px solid var(--border); padding:16px; background:var(--bg-card); margin-bottom:16px;">
-      <div style="font-size:26px; margin-bottom:6px;">${strategy.icon}</div>
-      <div style="font-size:12px; text-transform:uppercase; color:var(--text-light); letter-spacing:0.8px; margin-bottom:4px;">
-        Empfohlene Strategie
-      </div>
-      <h3 style="font-size:15px; font-weight:700; margin-bottom:8px;">${strategy.title}</h3>
-      <p style="font-size:13px; color:var(--text-secondary); line-height:1.6; margin-bottom:12px;">
+    <div class="sensei-box">
+      <div class="sensei-icon">${strategy.icon}</div>
+      <div class="sensei-meta">Empfohlene Strategie</div>
+      <h3 class="sensei-title">${strategy.title}</h3>
+      <p class="sensei-body">
         ${strategy.description}
       </p>
-      <ul style="font-size:13px; padding-left:18px; color:var(--text); margin-bottom:8px;">
+      <ul class="sensei-actions">
         ${strategy.actions.map((a) => `<li>${a}</li>`).join("")}
       </ul>
     </div>
@@ -1173,7 +1042,7 @@ function renderLibraryView() {
 }
 
 // ----------------------------------------------------------------------
-// REPORTS VIEW (einfacher Report + Export)
+// REPORTS VIEW (Snapshot + JSON-Export)
 // ----------------------------------------------------------------------
 
 function renderReportsView() {
@@ -1261,7 +1130,7 @@ ${JSON.stringify(jsonExport, null, 2)}
 }
 
 // ----------------------------------------------------------------------
-// CONNECTIONS
+// CONNECTIONS (Meta-Demo)
 // ----------------------------------------------------------------------
 
 function setupConnections() {
@@ -1306,7 +1175,7 @@ function renderConnectionsView() {
 }
 
 // ----------------------------------------------------------------------
-// PROFILE & SETTINGS (lokales Speichern/Laden)
+// PROFILE & SETTINGS (LocalStorage)
 // ----------------------------------------------------------------------
 
 function loadProfileSettings() {
@@ -1379,7 +1248,7 @@ function setupProfileButtons() {
 }
 
 // ----------------------------------------------------------------------
-// STATE INSPECTOR (dein System-Menü – jetzt funktionierend)
+// STATE INSPECTOR (Systemmenü)
 // ----------------------------------------------------------------------
 
 function setupStateInspector() {
@@ -1441,6 +1310,7 @@ function renderInspector() {
       {
         mode: AppState.mode,
         theme: AppState.theme,
+        period: AppState.period,
         connections: AppState.connections,
         kpi: AppState.kpi
       },
@@ -1454,58 +1324,40 @@ function renderInspector() {
 }
 
 // ----------------------------------------------------------------------
-// INIT
+// RENDER ALL
 // ----------------------------------------------------------------------
 
 function renderAll() {
-  document.querySelectorAll(".view").forEach(v => v.classList.add("fade-in"));
+  // Kpi immer aus den Mock-Creatives neu berechnen
+  AppState.kpi = calculateGlobalKpi();
 
-  showSkeleton("dashboardSkeleton", true);
-  showSkeleton("dashboardReal", false);
-
-  // Dashboard-Bereiche
-  renderOverview();
-  renderFunnel();
-  renderKPIs();
-  renderHeatmap();
-  renderTrendChart();
-  renderPerformanceScore();
-  renderHeroCreatives();
-
-  // Rest
-  renderCreatives();
-  renderCampaigns();
-  renderWinnerLoser();
-  updateQuickMetrics();
-  updateCreativeCounts();
-  renderInsightsSummary();
-  updatePeriodLabel();
-
-  setTimeout(() => {
-    showSkeleton("dashboardSkeleton", false);
-    showSkeleton("dashboardReal", true);
-
-    if (SignalState.senseiActive) {
-      analyzeSenseiStrategy();
-    }
-
-    // Hero KPIs
-    if (SignalState.kpi) {
-      const elROAS = document.getElementById("dashROAS");
-      const elCTR = document.getElementById("dashCTR");
-      const elCR = document.getElementById("dashCR");
-      const elRev = document.getElementById("dashRevenue");
-
-      // Falls diese IDs nicht existieren, einfach nichts tun
-      if (elROAS) {
-        elROAS.dataset.suffix = "x";
-        animateNumber(elROAS, SignalState.kpi.ROAS);
-      }
-      if (elCTR) elCTR.textContent = SignalState.kpi.CTR.toFixed(2) + "%";
-      if (elCR) elCR.textContent = SignalState.kpi.CR.toFixed(2) + "%";
-      if (elRev) elRev.textContent = fmt.curr(SignalState.kpi.Revenue);
-    }
-  }, 800);
+  renderDashboard();
+  renderCreativesView();
+  renderCampaignsView();
+  renderInsightsView();
+  renderSenseiView();
+  renderLibraryView();
+  renderReportsView();
+  renderConnectionsView();
 }
 
+// ----------------------------------------------------------------------
+// INIT
+// ----------------------------------------------------------------------
 
+document.addEventListener("DOMContentLoaded", () => {
+  initTheme();
+  initDate();
+  setupThemeToggle();
+  setupModeToggle();
+  setupSidebar();
+  setupPeriodToggles();
+  setupCreativesControls();
+  setupConnections();
+  loadProfileSettings();
+  setupProfileButtons();
+  setupStateInspector();
+
+  AppState.kpi = calculateGlobalKpi();
+  renderAll();
+});
