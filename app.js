@@ -1266,7 +1266,36 @@ function updateCreativeCounts() {
     const el = document.getElementById(id);
     if (el) el.textContent = value;
   });
-  
+  function loadMockCampaigns() {
+  const names = [
+    "Prospecting - Broad", "Retargeting 7 Days", "German Lookalike 1%",
+    "Interest Stack - Fitness", "Advantage+ Shopping Test"
+  ];
+
+  SignalState.campaigns = names.map(name => {
+    const spend = +(Math.random() * 200 + 50).toFixed(2);
+    const impressions = Math.floor(Math.random() * 50000 + 5000);
+    const clicks = Math.floor(impressions * (Math.random() * 0.03 + 0.005));
+    const ctr = clicks / impressions * 100;
+    const cpc = spend / Math.max(clicks, 1);
+    const purchases = Math.floor(clicks * (Math.random() * 0.05 + 0.01));
+    const revenue = purchases * (Math.random() * 50 + 30);
+    const roas = revenue / spend;
+
+    return {
+      name,
+      spend,
+      impressions,
+      CTR: ctr,
+      CPC: cpc,
+      purchases,
+      ROAS: roas
+    };
+  });
+
+  renderCampaigns();
+}
+ 
   // Update summary metrics
   if (SignalState.creatives.length > 0) {
     const avgROAS = SignalState.creatives.reduce((sum, c) => sum + c.ROAS, 0) / SignalState.creatives.length;
@@ -1441,6 +1470,7 @@ window.SignalOne = {
   loadMock: loadMockCreatives,
   analyze: analyzeSenseiStrategy
 };
+
 
 
 
