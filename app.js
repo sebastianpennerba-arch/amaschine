@@ -641,7 +641,7 @@ function setupSidebar() {
         .forEach(v => v.classList.add("hidden"));
 
       const target = document.getElementById("view-" + view);
-      if (target) target.classList.remove("hidden");
+      target.classList.remove("hidden");
 
       const pageTitle = document.querySelector(".page-title");
       if (pageTitle) {
@@ -1657,8 +1657,6 @@ function updateLastUpdate() {
 }
 
 function renderAll() {
-  document.querySelectorAll(".view").forEach(v => v.classList.add("fade-in"));
-
   showSkeleton("dashboardSkeleton", true);
   showSkeleton("dashboardReal", false);
 
@@ -1839,3 +1837,4 @@ window.SignalOne = {
   },
   analyze: analyzeSenseiStrategy
 };
+
