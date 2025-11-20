@@ -15,7 +15,7 @@
   --bg-alt: #ffffff;
   --bg-card: #ffffff;
   --bg-elevated: #ffffff;
-  --bg-sidebar: #f3f4f6;  /* Sidebar im Dark Mode */
+  --bg-sidebar: #ffffff;  /* Sidebar im Dark Mode */
 
   --text: #1a1a1a;
   --text-secondary: #6b7280;
@@ -112,25 +112,26 @@ a {
    =========================================== */
 
 .main-content {
-  margin-left: 250px; /* Breite der Sidebar */
-  padding: 20px;
+  margin-left: 250px; /* Standardbreite Sidebar */
+  padding-top: 68px; /* ✅ FIX: Muss HÖHER sein als Top-Bar, um Platz zu lassen */
+  padding-bottom: 40px;
+  min-height: 100vh;
   transition: margin-left var(--motion-base) var(--ease-soft);
-  min-height: calc(100vh - 40px);
-  position: relative; /* Für das Loading Overlay */
 }
 
 .main-content.sidebar-collapsed {
   margin-left: 80px;
 }
 
+/* ✅ FIX: Einheitliches Spacing für alle Views */
 .view {
-  padding-top: 80px; /* Platz für Top-Bar */
+    padding: 32px; /* Einheitlicher Innenabstand (Luft) */
+    min-height: calc(100vh - 68px); 
 }
-.no-results-message {
-    padding: 30px;
-    text-align: center;
-    color: var(--text-secondary);
-    font-size: 16px;
+.view h2 {
+    font-size: 28px;
+    margin-top: 0; /* Wichtig */
+    margin-bottom: 32px;
 }
 
 /* ===========================================
@@ -361,9 +362,8 @@ a {
 
 .top-bar-icons {
   display: flex;
-  gap: 4px; /* Engere Icons */
+  gap: 4px; 
   align-items: center;
-  /* margin-left: 16px; <-- Entfernt, da es jetzt im gap ist */
 }
 
 /* Status Dot: Stellen Sie sicher, dass es rund und mittig ist */
@@ -380,21 +380,22 @@ a {
 .status-dot.success { background-color: var(--success); }
 .status-dot.warning { background-color: var(--warning); }
 
-
+/* Für Quick-Links (f, G, ♫) - Siehe HTML für die Umsetzung */
 .platform-icon {
-  font-weight: 800; /* Extra bold für Plattform-Kürzel */
+  font-weight: 800; 
   font-size: 14px;
-  width: 32px; /* Fixierte Größe */
+  width: 32px; 
   height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background-color: var(--bg-alt);
+  background-color: var(--bg-alt); /* Hell */
   color: var(--text-secondary);
+  border: 1px solid var(--border);
 }
 
-/* Icon-Buttons in der Top Bar */
+/* Anpassung der Icon-Buttons für Top-Bar */
 .top-bar-actions .icon-button {
     width: 38px;
     height: 38px;
@@ -404,6 +405,13 @@ a {
     align-items: center;
     justify-content: center;
     color: var(--text-secondary);
+    border-radius: 50%;
+    transition: background-color var(--motion-fast) ease, color var(--motion-fast) ease;
+}
+
+.top-bar-actions .icon-button:hover {
+    background-color: var(--border); /* Neutraler Hover-State */
+    color: var(--text);
 }
 
 /* ===========================================
@@ -1104,5 +1112,6 @@ td {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
 
 
