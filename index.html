@@ -620,8 +620,29 @@
   </div>
 
   <script src="/app.js"></script>
+        <div id="stateInspector" class="state-inspector hidden">
+  <div class="inspector-header">
+    <strong>State Inspector</strong>
+    <div class="inspector-actions">
+      <button id="inspectorCopy">Copy</button>
+      <button id="inspectorClose">✕</button>
+    </div>
+  </div>
+  
+  <div class="inspector-tabs">
+    <button class="inspector-tab active" data-tab="state">State</button>
+    <button class="inspector-tab" data-tab="events">Events</button>
+  </div>
+
+  <pre id="inspectorState" class="inspector-panel active"></pre>
+  <pre id="inspectorEvents" class="inspector-panel"></pre>
+</div>
+
+<button id="inspectorToggle" class="inspector-toggle">🛠</button>
+
 </body>
 </html>
+
 
 
 
