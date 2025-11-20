@@ -270,42 +270,53 @@
         <canvas id="creativePerformanceChart"></canvas>
     </div>
 </section>
-  <section class="view hidden" id="creativesView">
-    <h2>Creatives</h2>
-
-    <div class="dashboard-controls">
-      <div class="flex-group">
-        <div class="form-group search-input-group">
-          <input type="text" id="creativeSearchInput" class="form-input" placeholder="Nach Creative Name oder Plattform suchen..." />
+ <section class="view" id="creativesView">
+    <div class="view-header">
+        <h2>Creative Library (127 Assets)</h2>
+        <div class="view-header-actions">
+            <button class="button small secondary" onclick="handleDeadButton('Neues Creative Hochladen')">
+                <span class="icon">🚀</span> Upload Creative
+            </button>
+            <button class="button small primary" onclick="handleDeadButton('Export der Creative Daten')">
+                <span class="icon">⬇️</span> Export
+            </button>
         </div>
-
-        <div class="form-group">
-          <label for="creativeSortSelect">Sortieren nach:</label>
-          <select id="creativeSortSelect" class="form-select">
-            <option value="roas_desc">ROAS (Höchster)</option>
-            <option value="roas_asc">ROAS (Niedrigster)</option>
-            <option value="ctr_desc">CTR (Höchster)</option>
-            <option value="score_desc">Score (Höchster)</option>
-            <option value="name_asc">Name (A-Z)</option>
-          </select>
-        </div>
-
-        <div class="view-toggle">
-          <button id="creativeViewGrid" class="icon-button active" data-tooltip="Grid View">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-          </button>
-          <button id="creativeViewList" class="icon-button" data-tooltip="List View">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-          </button>
-        </div>
-      </div>
-      
-      <button class="button primary" id="createNewCreativeBtn">Neues Creative erstellen</button>
     </div>
 
-    <div id="creativesContainer" class="creatives-grid">
-      </div>
-  </section>
+    <div class="creative-toolbar card">
+        <div class="toolbar-left">
+            <button class="button secondary large-icon" onclick="handleDeadButton('Erweiterte Filter öffnen')">
+                <span class="icon">🔍</span> Filter (Active: 3)
+            </button>
+            
+            <div class="toolbar-sort">
+                <span class="sort-label">Sortieren nach:</span>
+                <select class="form-select small">
+                    <option>ROAS (High to Low)</option>
+                    <option>CTR (High to Low)</option>
+                    <option>Spend (High to Low)</option>
+                    <option>Creation Date (Newest)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="toolbar-right">
+            <input type="text" class="form-input search-input" placeholder="Suche nach Name, ID, Tag..." />
+            
+            <div class="view-toggle">
+                <button class="icon-button active" data-tooltip="Grid View" onclick="handleViewToggle('grid')">
+                    <span class="icon">▦</span>
+                </button>
+                <button class="icon-button" data-tooltip="List View" onclick="handleViewToggle('list')">
+                    <span class="icon">☰</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="creatives-grid">
+        </div>
+</section>
   <section class="view hidden" id="campaignsView">
     <h2>Kampagnen</h2>
 
@@ -540,6 +551,7 @@
 
 </body>
 </html>
+
 
 
 
