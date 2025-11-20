@@ -100,20 +100,39 @@ function setupSidebar() {
     }
   });
 
-  // Menu navigation
-  document.querySelectorAll(".menu-item").forEach(item => {
-    item.addEventListener("click", (e) => {
-      e.preventDefault();
-      document.querySelectorAll(".menu-item").forEach(i => i.classList.remove("active"));
-      item.classList.add("active");
+// ===== PAGE NAVIGATION FIX =====
+document.querySelectorAll(".menu-item").forEach(item => {
+  item.addEventListener("click", (e) => {
+    e.preventDefault();
 
-      // Mobile close after click
-      if (window.innerWidth <= 1200) {
-        sidebar.classList.remove("open");
-      }
-    });
+    const view = item.dataset.view;
+    if (!view) return;
+
+    // Navigation highlight
+    document.querySelectorAll(".menu-item")
+      .forEach(i => i.classList.remove("active"));
+    item.classList.add("active");
+
+    // All pages hide
+    document.querySelectorAll(".view")
+      .forEach(v => v.classList.add("hidden"));
+
+    // Target view show
+    const target = document.getElementById("view-" + view);
+    if (target) target.classList.remove("hidden");
+
+    // Update page title
+    const pageTitle = document.querySelector(".page-title");
+    if (pageTitle) {
+      pageTitle.textContent = item.querySelector(".menu-label").textContent;
+    }
+
+    // Mobile close
+    const sidebar = document.getElementById("sidebar");
+    if (window.innerWidth <= 1200) sidebar.classList.remove("open");
   });
-}
+});
+
 // ======================================================================
 // SIGNALSENSEI ASSISTANT
 // ======================================================================
@@ -1283,4 +1302,5 @@ window.SignalOne = {
   loadMock: loadMockCreatives,
   analyze: analyzeSenseiStrategy
 };
+
 
