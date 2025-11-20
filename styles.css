@@ -826,9 +826,10 @@ a {
 }
 
 /* ===========================================
-   CREATIVES VIEW (Prio 2.6 / 5. Search)
+   CREATIVES VIEW (V3 - DatAds Killer Style)
    =========================================== */
 
+/* Creative Controls (beibehalten) */
 .view-toggle .icon-button.active {
     background-color: var(--primary);
     color: white;
@@ -841,28 +842,31 @@ a {
 /* Grid View */
 .creatives-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
+    /* Weniger breite Karten, mehr passen in eine Reihe */
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); 
+    gap: 24px; /* Mehr Abstand */
 }
 
 .creative-card {
     background-color: var(--bg-card);
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    /* Tieferer Schatten als Standard-Cards für mehr Fokus */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08), 0 0 1px rgba(0,0,0,0.05); 
     overflow: hidden;
     cursor: pointer;
     border: 1px solid var(--border);
-    transition: transform var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
+    transition: all var(--motion-fast) var(--ease-soft);
 }
 .creative-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    transform: translateY(-4px); /* Stärkerer Hover-Effekt */
+    box-shadow: 0 12px 20px rgba(0,0,0,0.15); /* Kräftigerer Schatten */
 }
 
 .creative-media-container {
     position: relative;
     width: 100%;
-    height: 180px;
+    /* Etwas höhere Vorschau */
+    height: 160px; 
     background-color: var(--bg-elevated);
     overflow: hidden;
 }
@@ -890,58 +894,69 @@ a {
 }
 .creative-name {
     font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 8px;
+    font-weight: 700; /* Stärker hervorheben */
+    margin-bottom: 4px; /* Weniger Abstand zur Subline */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-.creative-badges {
-    margin-bottom: 8px;
-}
-.creative-kpis {
-    display: flex;
-    justify-content: space-between;
-    font-size: 14px;
+.creative-subline {
+    font-size: 12px;
     color: var(--text-secondary);
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px solid var(--border-light);
+    margin-bottom: 12px;
+    display: block;
 }
 
-/* List View */
-.creatives-list {
+/* Neuer Metriken-Container (dichter und prominenter) */
+.creative-kpis {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 Metriken pro Zeile */
+    gap: 8px 16px; 
+    
+    padding-top: 16px; /* Mehr Luft */
+    border-top: 1px solid var(--border);
+}
+
+.creative-kpi-item {
+    /* Container für Label und Wert */
     display: flex;
     flex-direction: column;
+}
+.creative-kpi-item .label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+.creative-kpi-item .value {
+    font-size: 18px;
+    font-weight: 800; /* Sehr dominant */
+    color: var(--text);
+    line-height: 1.1;
+}
+.creative-kpi-item .value.success { color: var(--success); }
+.creative-kpi-item .value.warning { color: var(--warning); }
+
+
+/* List View (Feinjustierung) */
+.creatives-list {
     gap: 10px;
 }
 .creative-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
-    background-color: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color var(--motion-fast) ease;
-}
-.creative-row:hover {
-    background-color: var(--border-light);
+    /* Alle card-Styles wurden bereits angepasst */
+    padding: 16px 24px; /* Mehr Padding */
+    border-radius: 12px;
 }
 .creative-row-details {
-    display: flex;
-    align-items: center;
-    gap: 16px;
+    gap: 24px;
     flex-grow: 1;
 }
 .creative-row-kpis {
-    display: flex;
-    gap: 20px;
-    font-size: 14px;
-    color: var(--text);
+    /* Wird durch die globalen .creative-row-kpis styles (vorherige Antwort) definiert */
+    gap: 30px; 
 }
-.creative-row .creative-name {
-    margin-bottom: 0;
-}
-
 
 /* ===========================================
    CAMPAIGNS / TABLES
@@ -1449,6 +1464,7 @@ td {
   height: 16px; 
   margin-bottom: 8px;
 }
+
 
 
 
