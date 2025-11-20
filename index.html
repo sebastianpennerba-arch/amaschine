@@ -144,38 +144,31 @@
         </div>
       </aside>
 
-      <!-- PERFORMANCE SCORE CARD -->
-      <section class="score-card-compact">
-        <div class="score-visual-compact">
-          <canvas id="scoreChart" width="100" height="100"></canvas>
-          <div class="score-center-compact">
-            <div class="score-number" id="performanceScore">87</div>
-            <div class="score-label">Score</div>
-          </div>
-        </div>
-        <div class="score-metrics">
-          <div class="score-metric">
-            <span class="metric-dot" style="background: #10b981"></span>
-            <span class="metric-name">ROAS</span>
-            <strong id="quickROAS">3.6x</strong>
-          </div>
-          <div class="score-metric">
-            <span class="metric-dot" style="background: #3b82f6"></span>
-            <span class="metric-name">CTR</span>
-            <strong id="quickCTR">2.8%</strong>
-          </div>
-          <div class="score-metric">
-            <span class="metric-dot" style="background: #f59e0b"></span>
-            <span class="metric-name">CR</span>
-            <strong id="quickCR">4.2%</strong>
-          </div>
-          <div class="score-metric">
-            <span class="metric-dot" style="background: #8b5cf6"></span>
-            <span class="metric-name">Revenue</span>
-            <strong id="quickRevenue">€3,355</strong>
-          </div>
-        </div>
-      </section>
+<section class="dashboard-section" id="dashboard-metrics">
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <label>ROAS</label>
+      <strong id="dashROAS">–</strong>
+    </div>
+    <div class="kpi-card">
+      <label>CTR</label>
+      <strong id="dashCTR">–</strong>
+    </div>
+    <div class="kpi-card">
+      <label>CR</label>
+      <strong id="dashCR">–</strong>
+    </div>
+    <div class="kpi-card">
+      <label>Revenue</label>
+      <strong id="dashRevenue">–</strong>
+    </div>
+  </div>
+
+  <div class="score-ring">
+    <canvas id="scoreChart"></canvas>
+    <div class="score-value" id="scoreValue">–</div>
+  </div>
+</section>
 
       <!-- CREATIVE PERFORMANCE - HERO SECTION -->
       <section class="section creative-hero">
@@ -506,6 +499,7 @@
   <script src="/app.js"></script>
 </body>
 </html>
+
 
 
 
