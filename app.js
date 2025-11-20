@@ -72,6 +72,10 @@ function renderScoreChart(value = 70) {
 
     grid.appendChild(card);
   });
+function showSkeleton(id, show = true) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle("hidden", !show);
+}
 
 
 // ======================================================================
@@ -773,24 +777,29 @@ function renderAll() {
   updateCreativeCounts();
   updateQuickMetrics();
   
+// Erst Skeleton zeigen
+showSkeleton("dashboardSkeleton", true);
+showSkeleton("dashboardReal", false);
+
+// Simulated loading (oder nach API fetch)
+setTimeout(() => {
+  showSkeleton("dashboardSkeleton", false);
+  showSkeleton("dashboardReal", true);
+  
   if (SignalState.senseiActive) {
     analyzeSenseiStrategy();
   }
   if (SignalState.kpi) {
-  document.getElementById("dashROAS").textContent = SignalState.kpi.ROAS.toFixed(2) + "x";
-  document.getElementById("dashCTR").textContent = SignalState.kpi.CTR.toFixed(2) + "%";
-  document.getElementById("dashCR").textContent = SignalState.kpi.CR.toFixed(2) + "%";
-  document.getElementById("dashRevenue").textContent = fmt.curr(SignalState.kpi.Revenue);
+    document.getElementById("dashROAS").textContent = SignalState.kpi.ROAS.toFixed(2) + "x";
+    document.getElementById("dashCTR").textContent = SignalState.kpi.CTR.toFixed(2) + "%";
+    document.getElementById("dashCR").textContent = SignalState.kpi.CR.toFixed(2) + "%";
+    document.getElementById("dashRevenue").textContent = fmt.curr(SignalState.kpi.Revenue);
 
-  const score = Math.min(
-    100,
-    Math.round(
-      SignalState.kpi.ROAS * 12 +
-      SignalState.kpi.CTR * 4 +
-      SignalState.kpi.CR * 6
-    )
-  );
-
+    const score = Math.round(SignalState.kpi.ROAS * 12 + SignalState.kpi.CTR * 4 + SignalState.kpi.CR * 6);
+    document.getElementById("scoreValue").textContent = score;
+    renderScoreChart(score);
+  }
+}, 800);
   document.getElementById("scoreValue").textContent = score;
   renderScoreChart(score);
 }
@@ -1102,6 +1111,33 @@ function renderHeatmap() {
 // CREATIVES - ENHANCED RENDERING
 // ======================================================================
 function renderCreatives() {
+  showSkeleton("creativeSkeleton", true);
+
+setTimeout(() => {
+  showSkeleton("creativeSkeleton", false);
+
+  // erst ab hier normale Renderlogik
+  const grid = document.getElementById("creativeGrid");
+  grid.innerHTML = "";
+
+  SignalState.creatives.forEach(c => {
+    const card = document.createElement("div");
+    card.className = "creative-card";
+    card.innerHTML = `
+      <div class="creative-badge">${c.ROAS.toFixed(1)}x ROAS</div>
+      ${c.mediaType === "video"
+        ? `<video class="creative-thumb" src="${c.URL}" autoplay muted loop></video>`
+        : `<img class="creative-thumb" src="${c.URL}">`
+      }
+      <div class="creative-info">
+        <span>${c.name}</span>
+        <strong>${c.score}</strong>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}, 700);
+
   const grid = document.getElementById("creativeGrid");
   if (!grid) return;
 
@@ -1200,6 +1236,15 @@ function renderCreatives() {
 }
 
 function renderCampaigns() {
+  showSkeleton("campaignSkeleton", true);
+document.getElementById("campaignTableBody").innerHTML = "";
+
+setTimeout(() => {
+  showSkeleton("campaignSkeleton", false);
+
+  // ab hier deine Kampagnen-Renderlogik
+  SignalState.campaigns.forEach(...)
+}, 700);
   const body = document.getElementById("campaignTableBody");
   const loading = document.getElementById("campaignLoading");
 
@@ -1514,6 +1559,7 @@ window.SignalOne = {
   loadMock: loadMockCreatives,
   analyze: analyzeSenseiStrategy
 };
+
 
 
 
