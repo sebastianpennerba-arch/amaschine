@@ -267,6 +267,15 @@ window.addEventListener("DOMContentLoaded", () => {
         });
     });
 });
+// MENU CLICK HANDLER
+document.querySelectorAll(".menu-item").forEach(item => {
+    item.addEventListener("click", () => {
+        const view = item.dataset.view;
+        if (!view) return;
+
+        location.hash = view;
+    });
+});
 
 /* ===========================================================
    END
