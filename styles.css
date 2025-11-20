@@ -2237,6 +2237,60 @@ body {
   font-size: 12px;
   border-radius: 6px;
 }
+/* CAMPAIGN TABLE */
+.campaign-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.campaign-table th {
+  background: var(--gray-100);
+  padding: 12px;
+  text-align: left;
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.campaign-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.campaign-table tr:hover {
+  background: var(--gray-50);
+}
+
+/* KPI COLORS */
+.kpi-good { color: var(--success); font-weight: 600; }
+.kpi-warn { color: var(--warning); font-weight: 600; }
+.kpi-bad {  color: var(--danger);  font-weight: 600; }
+
+/* LOADING */
+.campaign-loading {
+  padding: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.hidden { display:none!important; }
+
+@media (max-width: 768px) {
+  .campaign-table th:nth-child(3),
+  .campaign-table td:nth-child(3),
+  .campaign-table th:nth-child(5),
+  .campaign-table td:nth-child(5) {
+    display: none; /* versteckt: Impressions, CPC */
+  }
+}
+
 
 
 
