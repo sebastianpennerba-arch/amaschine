@@ -148,11 +148,179 @@
 <!-- =============================== -->
 
 <section class="view active" id="view-dashboard">
+  <div class="dashboard-shell">
 
-  <!-- CREATIVE HERO GRID -->
-  <div id="creativeGridHero" class="creative-grid-hero">
-    <!-- Dynamisch via JS gefüllt -->
+    <!-- HERO: Greeting + Quick KPIs + Score -->
+    <div class="dash-row dash-row-top">
+      <div class="dash-hero-left">
+        <div class="dash-greeting">
+          <div class="dash-hello" id="dashGreeting">Hallo, Sebastian 👋</div>
+          <div class="dash-sub">
+            Account: <span id="dashAccountName">Demo – SignalOne</span> ·
+            Zeitraum: <span id="dashPeriodLabel">Letzte 7 Tage (Demo)</span>
+          </div>
+        </div>
+
+        <div class="dash-status-row">
+          <span class="dash-status-pill" id="lastUpdate">● vor wenigen Sek.</span>
+          <span class="dash-status-pill dash-status-demo">Demo Mode – Mock Daten</span>
+        </div>
+
+        <div class="dash-quick-metrics">
+          <div class="quick-card">
+            <span class="quick-label">Revenue</span>
+            <span class="quick-value" id="quickRevenue">–</span>
+          </div>
+          <div class="quick-card">
+            <span class="quick-label">ROAS</span>
+            <span class="quick-value" id="quickROAS">–</span>
+          </div>
+          <div class="quick-card">
+            <span class="quick-label">CTR</span>
+            <span class="quick-value" id="quickCTR">–</span>
+          </div>
+          <div class="quick-card">
+            <span class="quick-label">CR</span>
+            <span class="quick-value" id="quickCR">–</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-hero-right">
+        <div class="score-card">
+          <div class="score-header">
+            <div class="score-label">Account Performance Score</div>
+            <div class="score-value" id="scoreValue">–</div>
+          </div>
+          <div class="score-chart-wrapper">
+            <canvas id="scoreChart"></canvas>
+          </div>
+          <div class="score-footnote">
+            Basierend auf ROAS, CTR & CR (Demo-Daten)
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN: Overview + Funnel + KPIs + Heatmap -->
+    <div class="dash-row dash-row-main">
+      <div class="dash-column">
+        <!-- Account Overview -->
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <div>
+              <h2 class="dash-card-title">Account Overview</h2>
+              <p class="dash-card-sub">Alle Kernzahlen auf einen Blick</p>
+            </div>
+          </div>
+          <div class="overview-grid" id="overviewGrid"></div>
+        </div>
+
+        <!-- Funnel -->
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <div>
+              <h2 class="dash-card-title">Conversion Funnel</h2>
+              <p class="dash-card-sub">Von Impression bis Kauf</p>
+            </div>
+            <div class="dash-card-meta">
+              Gesamt-CR: <span id="totalCR">–</span>
+            </div>
+          </div>
+          <div class="funnel-grid" id="funnelSteps"></div>
+        </div>
+      </div>
+
+      <div class="dash-column">
+        <!-- KPI Deep Dive -->
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <div>
+              <h2 class="dash-card-title">KPI Deep Dive</h2>
+              <p class="dash-card-sub">vs. Benchmarks aus E-Com</p>
+            </div>
+          </div>
+          <div class="kpi-grid-enhanced" id="kpiGrid"></div>
+        </div>
+
+        <!-- Heatmap -->
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <div>
+              <h2 class="dash-card-title">Best Time to Spend</h2>
+              <p class="dash-card-sub">Tages- & Zeit-Slots mit Top-Performance</p>
+            </div>
+          </div>
+          <div class="heatmap-grid" id="heatmapContainer"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Creatives -->
+    <div class="dash-row">
+      <div class="dash-card">
+        <div class="dash-card-header">
+          <div>
+            <h2 class="dash-card-title">Top Creatives</h2>
+            <p class="dash-card-sub">Beste Ads nach ROAS (Top 4)</p>
+          </div>
+        </div>
+        <div id="creativeGridHero" class="creative-grid-hero"></div>
+      </div>
+    </div>
+
+    <!-- Winner / Loser Comparison (deins behalten, nur eingehängt) -->
+    <section class="section collapsible" data-section="comparison">
+      <div class="section-header-collapsible">
+        <button class="collapse-toggle">
+          <span class="collapse-icon">▼</span>
+        </button>
+
+        <div class="section-title-group">
+          <h2 class="section-title-main">Performance Comparison</h2>
+          <p class="section-description">
+            Top & Bottom Performer im direkten Vergleich
+          </p>
+        </div>
+      </div>
+
+      <div class="section-content">
+        <div class="winner-loser-grid">
+          <div class="winner-card">
+            <div class="card-badge winner">🏆 Top Performer</div>
+            <div id="winnerContent"></div>
+          </div>
+
+          <div class="loser-card">
+            <div class="card-badge loser">⚠️ Verbesserungsbedarf</div>
+            <div id="loserContent"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Insights kurz (Dashboard-Teaser) -->
+    <section class="section collapsible" data-section="insights">
+      <div class="section-header-collapsible">
+        <button class="collapse-toggle">
+          <span class="collapse-icon">▼</span>
+        </button>
+
+        <div class="section-title-group">
+          <h2 class="section-title-main">Insights & Empfehlungen</h2>
+          <p class="section-description">
+            KI-basierte Optimierungsvorschläge für Creatives & Kampagnen
+          </p>
+        </div>
+      </div>
+
+      <div class="section-content">
+        <div id="insightsContent"></div>
+      </div>
+    </section>
+
   </div>
+</section>
 
   <!-- =============================== -->
   <!-- SUMMARY CARDS                  -->
@@ -593,3 +761,4 @@
 
 </body>
 </html>
+
