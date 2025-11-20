@@ -4,17 +4,13 @@
   <meta charset="UTF-8" />
   <title>SignalOne.cloud · Creative Intelligence Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="styles (2).css" /> 
 
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 
 <body>
 
-<!-- =============================== -->
-<!-- SIDEBAR                         -->
-<!-- =============================== -->
 <nav class="sidebar" id="sidebar">
 
   <div class="sidebar-header">
@@ -33,14 +29,13 @@
     </a>
 
     <a href="#creatives" class="menu-item" data-view="creatives" data-tooltip="Creatives">
-      <span class="menu-icon">🎨</span>
+      <span class="menu-icon">🖼️</span>
       <span class="menu-label">Creatives</span>
-      <span class="menu-badge" id="creativeCount">12</span>
     </a>
 
-    <a href="#campaigns" class="menu-item" data-view="campaigns" data-tooltip="Campaigns">
+    <a href="#campaigns" class="menu-item" data-view="campaigns" data-tooltip="Kampagnen">
       <span class="menu-icon">🎯</span>
-      <span class="menu-label">Campaigns</span>
+      <span class="menu-label">Kampagnen</span>
     </a>
 
     <a href="#insights" class="menu-item" data-view="insights" data-tooltip="Insights">
@@ -48,10 +43,11 @@
       <span class="menu-label">Insights</span>
     </a>
 
-    <a href="#sensei" class="menu-item" data-view="sensei" data-tooltip="SignalSensei">
-      <span class="menu-icon">🧘</span>
-      <span class="menu-label">SignalSensei</span>
-      <span class="menu-badge premium">PRO</span>
+    <div class="menu-section-title">Tools & Setup</div>
+
+    <a href="#sensei" class="menu-item" data-view="sensei" data-tooltip="Sensei (AI)">
+      <span class="menu-icon">🧠</span>
+      <span class="menu-label">Sensei (AI)</span>
     </a>
 
     <a href="#library" class="menu-item" data-view="library" data-tooltip="Creative Library">
@@ -60,7 +56,7 @@
     </a>
 
     <a href="#reports" class="menu-item" data-view="reports" data-tooltip="Reports">
-      <span class="menu-icon">📈</span>
+      <span class="menu-icon">📄</span>
       <span class="menu-label">Reports</span>
     </a>
 
@@ -68,697 +64,353 @@
       <span class="menu-icon">🔗</span>
       <span class="menu-label">Connections</span>
     </a>
-
-    <a href="#profile" class="menu-item" data-view="profile" data-tooltip="Profil / Settings">
-      <span class="menu-icon">👤</span>
-      <span class="menu-label">Profile</span>
-    </a>
-
   </div>
 
-  <!-- Connection Status -->
-  <div class="connection-status" id="connectionStatus">
-    <div class="status-indicator meta" id="metaStatusDot"></div>
-    <div class="status-text">
-      <span class="status-label">Meta</span>
-      <span class="status-sub" id="metaStatusText">Idle</span>
-    </div>
+  <div class="sidebar-footer">
+    <button class="icon-button" id="sidebarProfileBtn" data-view="profile" data-tooltip="Mein Profil">👤</button>
+    <button class="icon-button" id="themeToggle" data-tooltip="Theme wechseln">🌓</button>
   </div>
 
 </nav>
-
-<!-- =============================== -->
-<!-- MAIN CONTENT                    -->
-<!-- =============================== -->
 <div class="main-content" id="mainContent">
+  
+  <div class="loading-overlay hidden" id="loadingOverlay">
+      <div class="loading-spinner"></div>
+      <p>Lade Ansicht...</p>
+  </div>
 
-  <!-- TOPBAR -->
-  <header class="topbar">
-    <div class="topbar-left">
-      <h1 class="page-title">Creative Intelligence</h1>
-      <div class="breadcrumb">
-        <span>Dashboard</span>
-        <span class="breadcrumb-sep">›</span>
-        <span class="breadcrumb-current">Overview</span>
+  <header class="top-bar">
+    <div class="top-bar-info">
+      <div class="top-bar-user-info">
+        <div class="top-bar-welcome" id="topBarWelcome">Hallo, Schatz</div> 
+        <div class="top-bar-subline" id="topBarSubline">Eingeloggt als: Demo-Brand - Konto: 123456</div>
       </div>
+      <div class="top-bar-date" id="currentDate"></div>
     </div>
 
-    <div class="topbar-right">
+    <div class="top-bar-actions">
+      <span class="status-dot error" id="topBarMetaDot" data-tooltip="Meta: Getrennt"></span>
 
-      <!-- Theme -->
-      <button id="themeToggle" class="theme-toggle">🌓</button>
-
-      <!-- Mode -->
-      <div class="mode-toggle">
-        <button id="mode-live" class="mode-btn">🔡 Live</button>
-        <button id="mode-sim" class="mode-btn active">🎭 Demo</button>
+      <div class="top-bar-icons">
+        <button class="icon-button" id="notificationIcon" data-tooltip="Benachrichtigungen">🔔</button>
+        <button class="icon-button platform-icon" id="topBarMetaIcon" data-tooltip="Meta Quick-Link">f</button>
+        <button class="icon-button platform-icon" id="topBarGoogleIcon" data-tooltip="Google Quick-Link">G</button>
+        <button class="icon-button platform-icon" id="topBarSpotifyIcon" data-tooltip="Spotify Quick-Link">♫</button>
       </div>
 
-      <!-- Date -->
-      <div class="date-display" id="currentDate"></div>
-
-      <!-- Actions -->
-      <div class="header-actions">
-        <button class="icon-btn" title="Benachrichtigungen">
-          <span class="notification-dot"></span>
-          🔔
-        </button>
-
-        <button class="icon-btn" id="toggleSensei" title="SignalSensei Assistant">
-          🧘
-        </button>
-
-        <button class="platform-btn active" title="Meta Connected">
-          <span class="platform-icon meta-icon">f</span>
-        </button>
-
-        <button class="platform-btn disabled" title="TikTok – Coming Soon">
-          <span class="platform-icon tiktok-icon">♪</span>
-        </button>
-
-        <button class="platform-btn disabled" title="Google – Coming Soon">
-          <span class="platform-icon google-icon">G</span>
-        </button>
-      </div>
-
+      <button id="settingsIcon" class="icon-button" data-view="settings" data-tooltip="Einstellungen">⚙️</button>
+      
+      <button class="button small" id="modeToggle">Demo-Daten</button>
     </div>
   </header>
-<!-- =============================== -->
-<!-- CREATIVE HERO GRID              -->
-<!-- =============================== -->
+  <section class="view" id="dashboardView">
+    <h2>Dashboard</h2>
 
-<section class="view active" id="view-dashboard">
-  <div class="dashboard-shell">
-
-    <!-- HERO: Greeting + Quick KPIs + Score -->
-    <div class="dash-row dash-row-top">
-      <div class="dash-hero-left">
-        <div class="dash-greeting">
-          <div class="dash-hello" id="dashGreeting">Hallo, Sebastian 👋</div>
-          <div class="dash-sub">
-            Account: <span id="dashAccountName">Demo – SignalOne</span> ·
-            Zeitraum: <span id="dashPeriodLabel">Letzte 7 Tage (Demo)</span>
-          </div>
-        </div>
-
-        <div class="dash-status-row">
-          <span class="dash-status-pill" id="lastUpdate">● vor wenigen Sek.</span>
-          <span class="dash-status-pill dash-status-demo">Demo Mode – Mock Daten</span>
-        </div>
-
-        <div class="dash-quick-metrics">
-          <div class="quick-card">
-            <span class="quick-label">Revenue</span>
-            <span class="quick-value" id="quickRevenue">–</span>
-          </div>
-          <div class="quick-card">
-            <span class="quick-label">ROAS</span>
-            <span class="quick-value" id="quickROAS">–</span>
-          </div>
-          <div class="quick-card">
-            <span class="quick-label">CTR</span>
-            <span class="quick-value" id="quickCTR">–</span>
-          </div>
-          <div class="quick-card">
-            <span class="quick-label">CR</span>
-            <span class="quick-value" id="quickCR">–</span>
-          </div>
-        </div>
+    <div class="dashboard-controls">
+      <div class="period-toggles">
+        <button class="period-toggle active" data-period="last7days">Letzte 7 Tage</button>
+        <button class="period-toggle" data-period="last30days">Letzte 30 Tage</button>
+        <button class="period-toggle" data-period="month">Dieser Monat</button>
+        <button class="period-toggle" data-period="year">Dieses Jahr</button>
       </div>
+      
+      <button class="button secondary" onclick="handleDeadButton('Dashboard Filter')">Filter</button> 
+    </div>
 
-      <div class="dash-hero-right">
-        <div class="score-card">
-          <div class="score-header">
-            <div class="score-label">Account Performance Score</div>
-            <div class="score-value" id="scoreValue">–</div>
-          </div>
-          <div class="score-chart-wrapper">
-            <canvas id="scoreChart"></canvas>
-          </div>
-          <div class="score-footnote">
-            Basierend auf ROAS, CTR & CR (Demo-Daten)
-          </div>
-        </div>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-title">ROAS (Avg)</div>
+        <div class="kpi-value primary" id="kpiRoas">3.8</div>
+        <div class="kpi-change success">▲ 12%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Umsatz (Revenue)</div>
+        <div class="kpi-value" id="kpiRevenue">845.6€</div>
+        <div class="kpi-change success">▲ 8%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Ausgaben (Spend)</div>
+        <div class="kpi-value" id="kpiSpend">222.3€</div>
+        <div class="kpi-change warning">▼ 2%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">CTR (Avg)</div>
+        <div class="kpi-value" id="kpiCtr">2.7%</div>
+        <div class="kpi-change success">▲ 5%</div>
       </div>
     </div>
 
-    <!-- MAIN: Overview + Funnel + KPIs + Heatmap -->
-    <div class="dash-row dash-row-main">
-      <div class="dash-column">
-        <!-- Account Overview -->
-        <div class="dash-card">
-          <div class="dash-card-header">
-            <div>
-              <h2 class="dash-card-title">Account Overview</h2>
-              <p class="dash-card-sub">Alle Kernzahlen auf einen Blick</p>
-            </div>
-          </div>
-          <div class="overview-grid" id="overviewGrid"></div>
-        </div>
-
-        <!-- Funnel -->
-        <div class="dash-card">
-          <div class="dash-card-header">
-            <div>
-              <h2 class="dash-card-title">Conversion Funnel</h2>
-              <p class="dash-card-sub">Von Impression bis Kauf</p>
-            </div>
-            <div class="dash-card-meta">
-              Gesamt-CR: <span id="totalCR">–</span>
-            </div>
-          </div>
-          <div class="funnel-grid" id="funnelSteps"></div>
-        </div>
-      </div>
-
-      <div class="dash-column">
-        <!-- KPI Deep Dive -->
-        <div class="dash-card">
-          <div class="dash-card-header">
-            <div>
-              <h2 class="dash-card-title">KPI Deep Dive</h2>
-              <p class="dash-card-sub">vs. Benchmarks aus E-Com</p>
-            </div>
-          </div>
-          <div class="kpi-grid-enhanced" id="kpiGrid"></div>
-        </div>
-
-        <!-- Heatmap -->
-        <div class="dash-card">
-          <div class="dash-card-header">
-            <div>
-              <h2 class="dash-card-title">Best Time to Spend</h2>
-              <p class="dash-card-sub">Tages- & Zeit-Slots mit Top-Performance</p>
-            </div>
-          </div>
-          <div class="heatmap-grid" id="heatmapContainer"></div>
-        </div>
-      </div>
+    <div class="dashboard-chart-container card">
+      <canvas id="creativePerformanceChart"></canvas>
     </div>
-
-    <!-- Top Creatives -->
-    <div class="dash-row">
-      <div class="dash-card">
-        <div class="dash-card-header">
-          <div>
-            <h2 class="dash-card-title">Top Creatives</h2>
-            <p class="dash-card-sub">Beste Ads nach ROAS (Top 4)</p>
-          </div>
-        </div>
-        <div id="creativeGridHero" class="creative-grid-hero"></div>
-      </div>
-    </div>
-
-    <!-- Winner / Loser Comparison (deins behalten, nur eingehängt) -->
-    <section class="section collapsible" data-section="comparison">
-      <div class="section-header-collapsible">
-        <button class="collapse-toggle">
-          <span class="collapse-icon">▼</span>
-        </button>
-
-        <div class="section-title-group">
-          <h2 class="section-title-main">Performance Comparison</h2>
-          <p class="section-description">
-            Top & Bottom Performer im direkten Vergleich
-          </p>
-        </div>
-      </div>
-
-      <div class="section-content">
-        <div class="winner-loser-grid">
-          <div class="winner-card">
-            <div class="card-badge winner">🏆 Top Performer</div>
-            <div id="winnerContent"></div>
-          </div>
-
-          <div class="loser-card">
-            <div class="card-badge loser">⚠️ Verbesserungsbedarf</div>
-            <div id="loserContent"></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Insights kurz (Dashboard-Teaser) -->
-    <section class="section collapsible" data-section="insights">
-      <div class="section-header-collapsible">
-        <button class="collapse-toggle">
-          <span class="collapse-icon">▼</span>
-        </button>
-
-        <div class="section-title-group">
-          <h2 class="section-title-main">Insights & Empfehlungen</h2>
-          <p class="section-description">
-            KI-basierte Optimierungsvorschläge für Creatives & Kampagnen
-          </p>
-        </div>
-      </div>
-
-      <div class="section-content">
-        <div id="insightsContent"></div>
-      </div>
-    </section>
-
-  </div>
-</section>
-
-  <!-- =============================== -->
-  <!-- SUMMARY CARDS                  -->
-  <!-- =============================== -->
-  <div class="creative-summary">
-
-    <div class="summary-card">
-      <div class="summary-icon">🎯</div>
-      <div class="summary-content">
-        <div class="summary-label">Avg. ROAS</div>
-        <div class="summary-value" id="avgROAS">–</div>
-        <div class="summary-trend positive" id="avgROASTrend">+0%</div>
-      </div>
-    </div>
-
-    <div class="summary-card">
-      <div class="summary-icon">⚡</div>
-      <div class="summary-content">
-        <div class="summary-label">Avg. CTR</div>
-        <div class="summary-value" id="avgCTR">–</div>
-        <div class="summary-trend positive" id="avgCTRTrend">+0%</div>
-      </div>
-    </div>
-
-    <div class="summary-card">
-      <div class="summary-icon">💰</div>
-      <div class="summary-content">
-        <div class="summary-label">Total Spend</div>
-        <div class="summary-value" id="totalSpend">–</div>
-        <div class="summary-trend neutral" id="totalSpendTrend">0%</div>
-      </div>
-    </div>
-
-    <div class="summary-card">
-      <div class="summary-icon">📈</div>
-      <div class="summary-content">
-        <div class="summary-label">Total Revenue</div>
-        <div class="summary-value" id="totalRevenue">–</div>
-        <div class="summary-trend positive" id="totalRevenueTrend">0%</div>
-      </div>
-    </div>
-
-  </div>
-  <!-- =============================== -->
-  <!-- WINNER / LOSER COMPARISON       -->
-  <!-- =============================== -->
-
-  <section class="section collapsible" data-section="comparison">
-
-    <div class="section-header-collapsible">
-      <button class="collapse-toggle">
-        <span class="collapse-icon">▼</span>
-      </button>
-
-      <div class="section-title-group">
-        <h2 class="section-title-main">Performance Comparison</h2>
-        <p class="section-description">
-          Top & Bottom Performer im direkten Vergleich
-        </p>
-      </div>
-    </div>
-
-    <div class="section-content">
-      <div class="winner-loser-grid">
-
-        <!-- WINNER -->
-        <div class="winner-card">
-          <div class="card-badge winner">🏆 Top Performer</div>
-          <div id="winnerContent">
-            <!-- via JS gesetzt -->
-          </div>
-        </div>
-
-        <!-- LOSER -->
-        <div class="loser-card">
-          <div class="card-badge loser">⚠️ Verbesserungsbedarf</div>
-          <div id="loserContent">
-            <!-- via JS gesetzt -->
-          </div>
-        </div>
-
-      </div>
-    </div>
-
   </section>
-  <!-- =============================== -->
-  <!-- KPI DEEP DIVE                  -->
-  <!-- =============================== -->
+  <section class="view hidden" id="creativesView">
+    <h2>Creatives</h2>
 
-  <section class="section collapsible" data-section="kpi-deepdive">
+    <div class="dashboard-controls">
+      <div class="flex-group">
+        <div class="form-group search-input-group">
+          <input type="text" id="creativeSearchInput" class="form-input" placeholder="Nach Creative Name oder Plattform suchen..." />
+        </div>
 
-    <div class="section-header-collapsible">
-      <button class="collapse-toggle">
-        <span class="collapse-icon">▼</span>
-      </button>
+        <div class="form-group">
+          <label for="creativeSortSelect">Sortieren nach:</label>
+          <select id="creativeSortSelect" class="form-select">
+            <option value="roas_desc">ROAS (Höchster)</option>
+            <option value="roas_asc">ROAS (Niedrigster)</option>
+            <option value="ctr_desc">CTR (Höchster)</option>
+            <option value="score_desc">Score (Höchster)</option>
+            <option value="name_asc">Name (A-Z)</option>
+          </select>
+        </div>
 
-      <div class="section-title-group">
-        <h2 class="section-title-main">KPI Deep Dive</h2>
-        <p class="section-description">
-          Detaillierte Analyse aller Performance-Faktoren
-        </p>
-      </div>
-    </div>
-
-    <div class="section-content">
-
-      <div class="kpi-cards-grid">
-        <div class="kpi-card motion-card">
-          <label>ROAS</label>
-          <strong id="deepROAS">–</strong>
-        </div>
-        <div class="kpi-card motion-card">
-          <label>CTR</label>
-          <strong id="deepCTR">–</strong>
-        </div>
-        <div class="kpi-card motion-card">
-          <label>CPC</label>
-          <strong id="deepCPC">–</strong>
-        </div>
-        <div class="kpi-card motion-card">
-          <label>CR</label>
-          <strong id="deepCR">–</strong>
-        </div>
-        <div class="kpi-card motion-card">
-          <label>AOV</label>
-          <strong id="deepAOV">–</strong>
-        </div>
-        <div class="kpi-card motion-card">
-          <label>Revenue</label>
-          <strong id="deepRevenue">–</strong>
+        <div class="view-toggle">
+          <button id="creativeViewGrid" class="icon-button active" data-tooltip="Grid View">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          </button>
+          <button id="creativeViewList" class="icon-button" data-tooltip="List View">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          </button>
         </div>
       </div>
-
+      
+      <button class="button primary" id="createNewCreativeBtn">Neues Creative erstellen</button>
     </div>
 
+    <div id="creativesContainer" class="creatives-grid">
+      </div>
   </section>
+  <section class="view hidden" id="campaignsView">
+    <h2>Kampagnen</h2>
 
-
-  <!-- =============================== -->
-  <!-- INSIGHTS SUMMARY                -->
-  <!-- =============================== -->
-
-  <section class="section collapsible" data-section="insights">
-
-    <div class="section-header-collapsible">
-      <button class="collapse-toggle">
-        <span class="collapse-icon">▼</span>
-      </button>
-
-      <div class="section-title-group">
-        <h2 class="section-title-main">Insights & Empfehlungen</h2>
-        <p class="section-description">
-          KI-basierte Optimierungsvorschläge für Creatives & Kampagnen
-        </p>
+    <div class="dashboard-controls">
+      <div class="period-toggles">
+        <button class="period-toggle active" data-period="current">Aktuell</button>
+        <button class="period-toggle" data-period="finished">Beendet</button>
       </div>
+      <button class="button primary" onclick="handleDeadButton('Neue Kampagne')">Neue Kampagne</button>
     </div>
 
-    <div class="section-content">
-      <div id="insightsContent">
-        <!-- Dynamisch via JS -->
-      </div>
+    <div class="table-card card">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Ziel</th>
+            <th>Budget</th>
+            <th>ROAS</th>
+            <th>Spend</th>
+          </tr>
+        </thead>
+        <tbody>
+          </tbody>
+      </table>
     </div>
-
   </section>
-
-
-  <!-- =============================== -->
-  <!-- DASHBOARD SECTION CLOSE         -->
-  <!-- =============================== -->
-
-</section> <!-- END OF #view-dashboard -->
-<!-- =============================== -->
-<!-- CREATIVES VIEW                  -->
-<!-- =============================== -->
-<section class="view hidden" id="view-creatives">
-
-  <h2 class="view-title">Creatives</h2>
-
-  <!-- Sorting -->
-  <div class="creatives-controls">
-    <select class="sort-select" id="sortCreatives">
-      <option value="roas">Sort: ROAS ↓</option>
-      <option value="ctr">Sort: CTR ↓</option>
-      <option value="cpc">Sort: CPC ↑</option>
-      <option value="impressions">Sort: Reach ↓</option>
-      <option value="score">Sort: Score ↓</option>
-    </select>
-
-    <div class="view-switcher">
-      <button class="view-btn active" data-view="grid" title="Grid View">⊞</button>
-      <button class="view-btn" data-view="list" title="List View">☰</button>
-      <button class="view-btn" data-view="compare" title="Compare View">⊟</button>
+  <section class="view hidden" id="insightsView">
+    <h2>Insights</h2>
+    <div class="card p-4">
+      <h3>KI-gestützte Erkenntnisse</h3>
+      <p>Hier zeigt die Plattform KI-gestützte Insights und Empfehlungen an. Die Ergebnisse wären auf Basis des Sensei Workflows.</p>
+      <button class="button secondary" onclick="handleDeadButton('Insights laden')">Insights laden</button>
     </div>
-  </div>
-
-  <!-- Creative Grid -->
-  <div id="creativeGrid" class="creative-grid"></div>
-
-</section>
-
-
-<!-- =============================== -->
-<!-- CAMPAIGNS VIEW                  -->
-<!-- =============================== -->
-<section class="view hidden" id="view-campaigns">
-
-  <h2 class="view-title">Campaigns</h2>
-
-  <table class="campaign-table">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Spend</th>
-        <th>Impressions</th>
-        <th>Clicks</th>
-        <th>CTR</th>
-        <th>Purchases</th>
-        <th>ROAS</th>
-      </tr>
-    </thead>
-    <tbody id="campaignTableBody"></tbody>
-  </table>
-
-</section>
-
-
-<!-- =============================== -->
-<!-- INSIGHTS VIEW                   -->
-<!-- =============================== -->
-<section class="view hidden" id="view-insights">
-  <h2 class="view-title">Insights</h2>
-  <p>Datengetriebene Optimierungsempfehlungen.</p>
-  <div id="insightsDetail"></div>
-</section>
-
-
-<!-- =============================== -->
-<!-- SENSEI VIEW                     -->
-<!-- =============================== -->
-<section class="view hidden" id="view-sensei">
-  <h2 class="view-title">SignalSensei</h2>
-  <p>Strategische Vorschläge & Echtzeit-Analysen.</p>
-  <div id="senseiOutput"></div>
-</section>
-
-
-<!-- =============================== -->
-<!-- LIBRARY VIEW                    -->
-<!-- =============================== -->
-<section class="view hidden" id="view-library">
-  <h2 class="view-title">Creative Library</h2>
-  <div id="libraryGrid" class="creative-grid"></div>
-</section>
-
-
-<!-- =============================== -->
-<!-- REPORTS VIEW                    -->
-<!-- =============================== -->
-<section class="view hidden" id="view-reports">
-  <h2 class="view-title">Reports & Analytics</h2>
-  <p>PDF- & CSV-Exports, Trendanalysen & Benchmarks.</p>
-  <div id="reportsContainer"></div>
-</section>
-
-
-<!-- =============================== -->
-<!-- CONNECTIONS VIEW                -->
-<!-- =============================== -->
-<section class="view hidden" id="view-connections">
-  <h2 class="view-title">Integrations</h2>
-  <p>Meta, Google, TikTok, Sheets – zentrale API-Verbindungen.</p>
-
-  <div class="integration-list">
-
-    <div class="integration-item">
-      <span class="integration-icon meta-icon">f</span>
-      <div class="integration-info">
-        <strong>Meta</strong>
-        <span id="metaConnectionStatus">Not connected</span>
+  </section>
+  <section class="view hidden" id="senseiView">
+    <h2>Sensei (AI) Workflows</h2>
+    <p>Wähle einen Workflow, um deine Performance Creatives mit KI-Optimierung zu iterieren.</p>
+    
+    <div class="workflows-grid">
+      <div class="workflow-card card" data-workflow="Iterate Ads">
+        <span class="workflow-icon">🔄</span>
+        <h4>Iterate Ads</h4>
+        <p>Erstelle automatisch 5 Varianten deines Top-Performers (mit Copy/Hook-Änderungen).</p>
       </div>
-      <button class="button small" id="connectMeta">Connect</button>
-    </div>
-
-    <div class="integration-item disabled">
-      <span class="integration-icon tiktok-icon">♪</span>
-      <div class="integration-info">
-        <strong>TikTok</strong>
-        <span>Coming Soon</span>
+      <div class="workflow-card card" data-workflow="Generate New Hooks">
+        <span class="workflow-icon">💡</span>
+        <h4>Generate New Hooks</h4>
+        <p>Erhalte sofort 10 neue, Performance-orientierte Hooks für ein bestimmtes Creative-Format.</p>
+      </div>
+      <div class="workflow-card card" data-workflow="Create new Script">
+        <span class="workflow-icon">📝</span>
+        <h4>Create new Script</h4>
+        <p>Generiere ein komplettes 9:16 Video-Script basierend auf einem Ziel und einer Zielgruppe.</p>
+      </div>
+      <div class="workflow-card card" data-workflow="Create new Copy">
+        <span class="workflow-icon">✍️</span>
+        <h4>Create new Copy</h4>
+        <p>Erstelle Anzeigen-Texte für Meta/Google mit AIDA-Struktur.</p>
       </div>
     </div>
-
-    <div class="integration-item disabled">
-      <span class="integration-icon google-icon">G</span>
-      <div class="integration-info">
-        <strong>Google</strong>
-        <span>Coming Soon</span>
-      </div>
+  </section>
+  <section class="view hidden" id="libraryView">
+    <h2>Creative Library</h2>
+    <div class="card p-4">
+      <h3>Dein Creative Asset Archiv</h3>
+      <p>Hier werden alle Creatives und deren Metadaten gespeichert.</p>
+      <button class="button primary" onclick="handleDeadButton('Creative hochladen')">Creative hochladen</button>
+    </div>
+  </section>
+  <section class="view hidden" id="reportsView">
+    <h2>Reports</h2>
+    <div class="dashboard-controls">
+      <button class="button primary" id="createReportBtn">Neuen Report erstellen</button>
+      <button class="button secondary" id="exportJsonBtn">JSON Export</button>
     </div>
 
-  </div>
-</section>
-
-
-<!-- =============================== -->
-<!-- PROFILE / SETTINGS VIEW         -->
-<!-- =============================== -->
-<section class="view hidden" id="view-profile">
-
-  <h2 class="view-title">Einstellungen</h2>
-
-  <div class="settings-container">
-
-    <div class="settings-tabs">
-      <button class="settings-tab active" data-tab="account">Account</button>
-      <button class="settings-tab" data-tab="api">Integrationen</button>
-      <button class="settings-tab" data-tab="branding">Branding</button>
-      <button class="settings-tab" data-tab="plan">Abo & Limits</button>
-      <button class="settings-tab" data-tab="app">App</button>
+    <div class="card p-4">
+      <h3>Export & Reporting</h3>
+      <p>Erstelle hier benutzerdefinierte Performance-Reports und exportiere Rohdaten.</p>
     </div>
+  </section>
+  <section class="view hidden" id="connectionsView">
+    <h2>Connections</h2>
 
-    <div class="settings-content">
+    <div class="connections-grid">
 
-      <!-- ACCOUNT -->
-      <div class="settings-panel active" id="tab-account">
-        <div class="form-group">
-          <label>Name</label>
-          <input id="profileName" type="text" placeholder="Dein Name">
+      <div class="connection-card card">
+        <div class="connection-header">
+          <h4>Meta Ads (Facebook/Instagram)</h4>
+          <span id="metaStatusDot" class="status-dot error"></span>
         </div>
-
-        <div class="form-group">
-          <label>E-Mail</label>
-          <input id="profileEmail" type="email" placeholder="name@example.com">
-        </div>
-
-        <div class="form-group">
-          <label>Avatar URL</label>
-          <input id="profileAvatar" type="text" placeholder="https://...">
-        </div>
-
-        <button id="saveAccount" class="button primary">Speichern</button>
+        <p id="metaStatusText">Getrennt</p>
+        <button id="connectMetaBtn" class="button primary">Verbinden</button>
       </div>
 
-      <!-- API -->
-      <div class="settings-panel" id="tab-api">
-        <h3>Meta Integration</h3>
-        <p>Status: <span id="metaApiStatus">Nicht verbunden</span></p>
-        <button id="connectMetaSettings" class="button">Meta verbinden</button>
-      </div>
-
-      <!-- BRANDING -->
-      <div class="settings-panel" id="tab-branding">
-        <div class="form-group">
-          <label>Brand Name</label>
-          <input id="brandName" type="text" placeholder="Deine Marke">
+      <div class="connection-card card">
+        <div class="connection-header">
+          <h4>Google Ads</h4>
+          <span id="googleStatusDot" class="status-dot error"></span>
         </div>
-
-        <div class="form-group">
-          <label>Primärfarbe</label>
-          <input id="brandColor" type="color" value="#6366f1">
+        <p id="googleStatusText">Getrennt</p>
+        <button id="connectGoogleBtn" class="button primary">Verbinden</button>
+      </div>
+      
+      <div class="connection-card card">
+        <div class="connection-header">
+          <h4>TikTok Ads</h4>
+          <span id="tiktokStatusDot" class="status-dot error"></span>
         </div>
-
-        <button id="saveBranding" class="button primary">Branding speichern</button>
+        <p id="tiktokStatusText">Getrennt</p>
+        <button id="connectTikTokBtn" class="button primary">Verbinden</button>
+      </div>
+      
+      <div class="connection-card card">
+        <div class="connection-header">
+          <h4>Amazon Ads</h4>
+          <span id="amazonStatusDot" class="status-dot error"></span>
+        </div>
+        <p id="amazonStatusText">Getrennt</p>
+        <button id="connectAmazonBtn" class="button primary">Verbinden</button>
       </div>
 
-      <!-- PLAN -->
-      <div class="settings-panel" id="tab-plan">
-        <h3>Dein Plan</h3>
-        <p>Aktueller Plan: <strong id="currentPlan">Free</strong></p>
-        <p>Limits: 3 Live-Syncs/Tag</p>
-        <button id="upgradePlan" class="button primary">Upgrade auf PRO</button>
-      </div>
+      <div class="connection-card card connection-other">
+        <div class="connection-header">
+            <h4>Weitere Verbindungen</h4>
+        </div>
+        <p>Integrationen für Shop-Systeme und Analytik.</p>
+        <button id="connectOtherBtn" class="button secondary">Integrationen</button>
+    </div>
+    </div>
+  </section>
+  <section class="view hidden" id="profileView">
+    <h2>Mein Profil</h2>
 
-      <!-- APP SETTINGS -->
-      <div class="settings-panel" id="tab-app">
+    <div class="card p-4">
+      <h3>Account-Einstellungen</h3>
+      <div class="form-grid">
         <div class="form-group">
-          <label>Theme</label>
-          <select id="appTheme">
-            <option value="auto">Auto (System)</option>
-            <option value="light">Hell</option>
-            <option value="dark">Dunkel</option>
+          <label for="accountName">Ihr Name</label>
+          <input type="text" id="accountName" class="form-input" value="Schatz" />
+        </div>
+        <div class="form-group">
+          <label for="accountBrand">Brand-Name</label>
+          <input type="text" id="accountBrand" class="form-input" value="SignalOne Demo Brand" />
+        </div>
+        <div class="form-group">
+          <label for="adAccountName">Haupt-Ad-Account</label>
+          <input type="text" id="adAccountName" class="form-input" value="Ad Account 123456" />
+        </div>
+      </div>
+      <button id="saveAccountSettings" class="button primary">Speichern</button> 
+    </div>
+  </section>
+  <section class="view hidden" id="settingsView">
+    <h2>Einstellungen</h2>
+
+    <div class="card p-4">
+      <h3>System-Einstellungen</h3>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="languageSelect">Sprache</label>
+          <select id="languageSelect" class="form-select">
+            <option value="de">Deutsch</option>
+            <option value="en">English (Coming Soon)</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="timezoneSelect">Zeitzone</label>
+          <select id="timezoneSelect" class="form-select">
+            <option value="cet">CET (Central European Time)</option>
+            <option value="utc">UTC (Coming Soon)</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label>Animationen</label>
-          <select id="appMotion">
-            <option value="on">An</option>
-            <option value="off">Aus</option>
+          <label for="dataRetention">Datenaufbewahrung</label>
+          <select id="dataRetention" class="form-select">
+            <option>1 Jahr</option>
+            <option>2 Jahre</option>
           </select>
         </div>
-
-        <button id="saveAppSettings" class="button primary">Speichern</button>
       </div>
 
+      <button id="saveAppSettings" class="button primary">Speichern</button>
+    </div>
+
+  </section>
+  </div> <section id="simpleModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="simpleModalTitle">Titel</h3>
+      <button id="simpleModalClose" class="modal-close">✕</button>
+    </div>
+    <div id="simpleModalContent" class="modal-body">
+      Inhalt des Modals.
+    </div>
+    <div class="modal-footer">
+        <button class="button secondary" onclick="closeModal()">Schließen</button> 
     </div>
   </div>
 </section>
-<!-- =============================== -->
-<!-- END OF ALL VIEWS                -->
-<!-- =============================== -->
 
-</div> <!-- END OF .main-content -->
 
-<!-- =============================== -->
-<!-- TOAST CONTAINER                 -->
-<!-- =============================== -->
 <div id="toastContainer" class="toast-container"></div>
 
-<!-- =============================== -->
-<!-- STATE INSPECTOR                 -->
-<!-- =============================== -->
 <div id="stateInspector" class="state-inspector hidden">
 
   <div class="inspector-header">
     <strong>State Inspector</strong>
     <div class="inspector-actions">
-      <button id="inspectorCopy">Copy</button>
+      <button id="inspectorCopy" onclick="handleDeadButton('State Copy')">Copy</button> 
       <button id="inspectorClose">✕</button>
     </div>
   </div>
 
   <div class="inspector-tabs">
     <button class="inspector-tab active" data-tab="state">State</button>
-    <button class="inspector-tab" data-tab="events">Events</button>
+    <button class="inspector-tab" data-tab="events" onclick="handleDeadButton('Event Log')">Events</button>
   </div>
 
   <pre id="inspectorState" class="inspector-panel active"></pre>
-  <pre id="inspectorEvents" class="inspector-panel"></pre>
+  <pre id="inspectorEvents" class="inspector-panel">Event Log (Noch leer)</pre>
 
 </div>
 
 <button id="inspectorToggle" class="inspector-toggle">🛠</button>
 
-<!-- =============================== -->
-<!-- SCRIPTS                          -->
-<!-- =============================== -->
-<script src="/app.js"></script>
+<script src="app (1).js"></script>
 
 </body>
 </html>
-
