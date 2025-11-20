@@ -1,5 +1,7 @@
 // ======================================================================
 // SignalOne.cloud – Rebuild Option 1 (Mock-System, Style A)
+// FINALE VERSION: Alle Prio 1, Prio 2, Prio 5, Prio 13 und UX-Elemente implementiert.
+// DIESE DATEI ARBEITET MIT "index (1).html" UND "styles (2).css"
 // ======================================================================
 
 "use strict";
@@ -38,1271 +40,982 @@ const MockData = {
       cpc: 0.71,
       impressions: 19840,
       spend: 141.9,
-      revenue: 454.2,
-      score: 84,
+      revenue: 454.1,
+      score: 75,
       platform: "Meta"
     },
     {
       id: "c3",
-      name: "Carousel – Before / After",
-      mediaType: "image",
-      url: "/mock/Creative2.png",
+      name: "Carousel – 5 Benefits",
+      mediaType: "carousel",
+      url: "/mock/Creative3.png",
       format: "1:1",
-      objective: "Sales",
-      roas: 2.4,
-      ctr: 1.9,
-      cpc: 0.84,
-      impressions: 16200,
-      spend: 136.1,
-      revenue: 326.4,
-      score: 73,
-      platform: "Meta"
+      objective: "Leads",
+      roas: 2.1,
+      ctr: 1.2,
+      cpc: 0.95,
+      impressions: 45000,
+      spend: 427.5,
+      revenue: 900.0,
+      score: 62,
+      platform: "Google"
     },
     {
       id: "c4",
-      name: "Story – Rabatt Countdown",
-      mediaType: "image",
-      url: "/mock/Creative3.png",
-      format: "9:16",
-      objective: "Sales",
-      roas: 1.6,
-      ctr: 1.3,
-      cpc: 0.92,
-      impressions: 14890,
-      spend: 137.0,
-      revenue: 219.2,
-      score: 58,
+      name: "Video – Problem/Solution",
+      mediaType: "video",
+      url: "/mock/Creative5.mp4",
+      format: "16:9",
+      objective: "Traffic",
+      roas: 1.5,
+      ctr: 3.1,
+      cpc: 0.45,
+      impressions: 92000,
+      spend: 414.0,
+      revenue: 621.0,
+      score: 80,
       platform: "Meta"
     },
     {
       id: "c5",
-      name: "Feed Video – Testimonial",
-      mediaType: "video",
-      url: "/mock/Creative11.mp4",
+      name: "Static – Testimonial Card",
+      mediaType: "image",
+      url: "/mock/Creative7.png",
       format: "4:5",
       objective: "Sales",
-      roas: 4.1,
-      ctr: 3.1,
-      cpc: 0.69,
-      impressions: 26210,
-      spend: 180.4,
-      revenue: 739.2,
-      score: 92,
-      platform: "Meta"
-    },
-    {
-      id: "c6",
-      name: "Static – Minimalist Brand Ad",
-      mediaType: "image",
-      url: "/mock/Creative4.png",
-      format: "1:1",
-      objective: "Awareness",
-      roas: 1.9,
-      ctr: 0.9,
-      cpc: 1.02,
-      impressions: 22110,
-      spend: 225.3,
-      revenue: 285.4,
-      score: 52,
-      platform: "Meta"
-    },
-    {
-      id: "c7",
-      name: "Reel – POV Use Case",
-      mediaType: "video",
-      url: "/mock/Creative12.mp4",
-      format: "9:16",
-      objective: "Sales",
-      roas: 2.9,
-      ctr: 2.3,
-      cpc: 0.76,
-      impressions: 17890,
-      spend: 135.9,
-      revenue: 394.8,
-      score: 81,
-      platform: "Meta"
-    },
-    {
-      id: "c8",
-      name: "Static – Bold Offer 20% OFF",
-      mediaType: "image",
-      url: "/mock/Creative5.png",
-      format: "1:1",
-      objective: "Sales",
-      roas: 1.3,
-      ctr: 0.8,
-      cpc: 1.15,
-      impressions: 15430,
-      spend: 177.5,
-      revenue: 230.1,
-      score: 44,
+      roas: 4.5,
+      ctr: 1.9,
+      cpc: 0.82,
+      impressions: 35000,
+      spend: 287.0,
+      revenue: 1291.5,
+      score: 95,
       platform: "Meta"
     }
   ],
   campaigns: [
     {
-      id: "cmp1",
-      name: "Prospecting – Broad DE",
-      spend: 640.3,
-      impressions: 118_400,
-      clicks: 2_436,
-      ctr: 2.06,
-      cpc: 0.26,
-      purchases: 212,
-      revenue: 13_420.0,
-      roas: 4.19
+      id: "k1",
+      name: "Summer Sales - Prospecting",
+      status: "Aktiv",
+      objective: "Sales",
+      budget: 12000,
+      kpi: { roas: 3.5, spend: 3500.2, revenue: 12250.7 }
     },
     {
-      id: "cmp2",
-      name: "Retargeting – 7 Days",
-      spend: 280.4,
-      impressions: 34_820,
-      clicks: 1_512,
-      ctr: 4.34,
-      cpc: 0.19,
-      purchases: 164,
-      revenue: 9_780.0,
-      roas: 6.96
+      id: "k2",
+      name: "Remarketing - Q4 Focus",
+      status: "Pausiert",
+      objective: "Conversions",
+      budget: 5000,
+      kpi: { roas: 5.1, spend: 1200.0, revenue: 6120.0 }
     },
     {
-      id: "cmp3",
-      name: "Lookalike 1% – AT / CH",
-      spend: 420.7,
-      impressions: 82_330,
-      clicks: 1_623,
-      ctr: 1.97,
-      cpc: 0.26,
-      purchases: 118,
-      revenue: 5_840.0,
-      roas: 3.88
-    },
-    {
-      id: "cmp4",
-      name: "Advantage+ Shopping Test",
-      spend: 310.2,
-      impressions: 71_940,
-      clicks: 1_284,
-      ctr: 1.79,
-      cpc: 0.24,
-      purchases: 101,
-      revenue: 4_560.0,
-      roas: 3.68
-    },
-    {
-      id: "cmp5",
-      name: "Remarketing – Abandoned Cart",
-      spend: 190.4,
-      impressions: 21_740,
-      clicks: 984,
-      ctr: 4.52,
-      cpc: 0.19,
-      purchases: 137,
-      revenue: 6_120.0,
-      roas: 8.08
+      id: "k3",
+      name: "TOFU - Brand Awareness",
+      status: "Aktiv",
+      objective: "Impressions",
+      budget: 8000,
+      kpi: { roas: 1.1, spend: 6500.5, revenue: 7150.5 }
     }
   ],
-  insights: [
-    {
-      id: "ins1",
-      type: "creative",
-      title: "UGC-Videos outperformen Static Ads um +38% ROAS",
-      body: "Deine UGC Reels (Unboxing & POV) liefern deutlich besseren ROAS als statische Produktbilder. Du solltest das Budget schrittweise von schwachen Statics zu diesen Formaten verschieben.",
-      impact: "hoch"
-    },
-    {
-      id: "ins2",
-      type: "funnel",
-      title: "Starker CTR, aber Conversion-Rate unter Benchmarks",
-      body: "Klicks sind solide, aber die CR nach Klick ist schwächer. Vermutlich brechen Nutzer auf der Produktseite ab – Landing-Page-Optimierung lohnt sich hier.",
-      impact: "mittel"
-    },
-    {
-      id: "ins3",
-      type: "audience",
-      title: "Retargeting 7 Tage ist dein heimlicher Champion",
-      body: "Retargeting-Kampagnen haben den besten ROAS. Prüfe, ob du hier mehr Budget allokieren und die Zielgruppen-Logik verfeinern kannst.",
-      impact: "hoch"
-    },
-    {
-      id: "ins4",
-      type: "offer",
-      title: "Offer-Ad mit starkem Rabatt zieht, aber ist ineffizient",
-      body: "Die 20%-Rabatt-Creatives holen viele Klicks, aber die Profitabilität ist niedrig. Rabatthöhe & Communication solltest du testen.",
-      impact: "mittel"
-    }
-  ]
+  // Mock data for the chart: Revenue and Spend over 7 days
+  chartData: {
+    labels: ["Tag -6", "Tag -5", "Tag -4", "Tag -3", "Tag -2", "Tag -1", "Heute"],
+    revenue: [1020, 1150, 980, 1400, 1550, 1300, 1650],
+    spend: [280, 310, 270, 350, 380, 320, 400]
+  }
 };
 
-// Library = alle Creatives
-MockData.library = [...MockData.creatives];
-
 // ----------------------------------------------------------------------
-// APP STATE + LOG
+// APP STATE
 // ----------------------------------------------------------------------
 
 const AppState = {
-  theme: "light",
-  mode: "demo",      // "demo" | "live"
-  period: "30d",     // 24h | 7d | 30d (nur Label)
-  creativeSort: "roas", // roas | ctr | cpc | impressions | score
-  creativeView: "grid", // grid | list
+  activeView: "dashboard",
+  theme: localStorage.getItem("signalOneTheme") || "light",
+  mode: "demo",
+  sidebarCollapsed: localStorage.getItem("sidebarCollapsed") === "true",
+  period: "last7days",
+  kpi: null,
+  creativeView: "grid",
+  creativeSort: "roas_desc",
+  creativeFilterText: "", 
   connections: {
     meta: false,
-    tiktok: false,
-    google: false
+    google: false,
+    tiktok: false
   },
-  kpi: null
+  account: {
+    name: "Schatz",
+    brand: "SignalOne Demo Brand",
+    adAccount: "Ad Account 123456"
+  }
 };
 
-const EventLog = [];
+let myChart = null; // Für Chart.js Instanz
 
-function logEvent(type, payload = {}) {
-  EventLog.push({
-    type,
-    payload,
-    ts: new Date().toISOString()
-  });
-  if (EventLog.length > 200) EventLog.shift();
-  if (document.getElementById("stateInspector")?.classList.contains("open")) {
-    renderInspector();
+// ----------------------------------------------------------------------
+// HELPER FUNCTIONS (MODAL/TOAST/FORMATTING/LOADING)
+// ----------------------------------------------------------------------
+
+const modalEl = document.getElementById('simpleModal');
+const mainContentEl = document.getElementById("mainContent");
+const loadingOverlayEl = document.getElementById("loadingOverlay");
+
+/** Schließt das globale Modal. */
+function closeModal() {
+  if (modalEl) {
+    modalEl.classList.add('hidden');
   }
 }
 
-// ----------------------------------------------------------------------
-// FORMATTER
-// ----------------------------------------------------------------------
-
-const fmt = {
-  num(v, d = 1) {
-    const n = Number(v || 0);
-    return n.toLocaleString("de-DE", {
-      minimumFractionDigits: d,
-      maximumFractionDigits: d
-    });
-  },
-  int(v) {
-    return Number(v || 0).toLocaleString("de-DE");
-  },
-  pct(v, d = 2) {
-    const n = Number(v || 0);
-    return (
-      n.toLocaleString("de-DE", {
-        minimumFractionDigits: d,
-        maximumFractionDigits: d
-      }) + " %"
-    );
-  },
-  curr(v) {
-    const n = Number(v || 0);
-    return n.toLocaleString("de-DE", {
-      style: "currency",
-      currency: "EUR",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
-  },
-  short(v) {
-    const n = Number(v || 0);
-    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(".", ",") + "M";
-    if (n >= 1_000) return (n / 1_000).toFixed(1).replace(".", ",") + "K";
-    return n.toString();
+/**
+ * Öffnet das globale Modal mit Titel und Inhalt.
+ * @param {string} title - Der Titel des Modals.
+ * @param {string} content - Der HTML-Inhalt des Modals.
+ */
+function openModal(title, content) {
+  if (modalEl) {
+    document.getElementById('simpleModalTitle').textContent = title;
+    document.getElementById('simpleModalContent').innerHTML = content;
+    modalEl.classList.remove('hidden');
+    // NEU: Fokus auf das Modal, um das Scrollen des Hauptfensters zu verhindern
+    modalEl.focus(); 
   }
-};
+}
+
+/**
+ * Zeigt eine flüchtige Toast-Benachrichtigung an (Prio 1.1).
+ * @param {string} message - Die anzuzeigende Nachricht.
+ */
+function showSoonToast(message) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast show';
+  toast.textContent = message || 'Feature kommt bald – aktuell noch im Demo-Aufbau.';
+
+  if (container) {
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove('show');
+        toast.classList.add('hide');
+        toast.addEventListener('transitionend', () => toast.remove());
+      }, 4000);
+  }
+}
+
+/**
+ * Globaler Handler für "tote" Buttons (Prio 1.1).
+ * @param {string} featureName - Der Name des Features.
+ */
+function handleDeadButton(featureName) {
+    showSoonToast(`${featureName} kommt im Januar-Release. Elite-Fokus liegt auf den Kern-Views.`);
+}
+
+/** NEU: Zeigt einen Skeleton-Loading-Zustand an. (UX Improvement) */
+function showLoadingOverlay() {
+  if (loadingOverlayEl) {
+    loadingOverlayEl.classList.remove('hidden');
+    // NEU: Verstecke den Overlay nach einer kurzen Verzögerung von 500ms
+    setTimeout(() => {
+        loadingOverlayEl.classList.add('hidden');
+    }, 500);
+  }
+}
+
+function formatCurrency(value) {
+  return new Intl.NumberFormat("de-DE", {
+    style: "currency",
+    currency: "EUR"
+  }).format(value);
+}
+
+function formatPercent(value) {
+  return value.toFixed(1) + "%";
+}
 
 // ----------------------------------------------------------------------
-// KPI BERECHNUNG (aus Mock-Creatives)
+// KPI CALCULATIONS
 // ----------------------------------------------------------------------
 
 function calculateGlobalKpi() {
-  const list = MockData.creatives;
-  if (!list.length) return null;
-
-  const acc = list.reduce(
-    (a, c) => {
-      a.impressions += c.impressions;
-      const clicks = Math.round(c.impressions * (c.ctr / 100));
-      a.clicks += clicks;
-      a.spend += c.spend;
-      a.revenue += c.revenue;
-      return a;
-    },
-    { impressions: 0, clicks: 0, spend: 0, revenue: 0 }
+  const totalSpend = MockData.creatives.reduce((sum, c) => sum + c.spend, 0);
+  const totalRevenue = MockData.creatives.reduce((sum, c) => sum + c.revenue, 0);
+  const totalImpressions = MockData.creatives.reduce(
+    (sum, c) => sum + c.impressions,
+    0
   );
 
-  const purchases = Math.round(acc.revenue / 60); // grob: 60€ AOV
-  const ctr = acc.impressions ? (acc.clicks / acc.impressions) * 100 : 0;
-  const cpc = acc.clicks ? acc.spend / acc.clicks : 0;
-  const roas = acc.spend ? acc.revenue / acc.spend : 0;
-  const cr = acc.clicks ? (purchases / acc.clicks) * 100 : 0;
-  const aov = purchases ? acc.revenue / purchases : 0;
+  const totalClicks = MockData.creatives.reduce(
+    (sum, c) => sum + (c.impressions * (c.ctr / 100)),
+    0
+  );
+
+  const avgCpc = totalSpend / totalClicks;
+  const avgCtr = (totalClicks / totalImpressions) * 100;
+  const avgRoas = totalRevenue / totalSpend;
 
   return {
-    impressions: acc.impressions,
-    clicks: acc.clicks,
-    spend: acc.spend,
-    revenue: acc.revenue,
-    roas,
-    ctr,
-    cpc,
-    cr,
-    aov,
-    purchases
+    totalSpend: totalSpend,
+    totalRevenue: totalRevenue,
+    avgRoas: avgRoas,
+    avgCtr: avgCtr,
+    avgCpc: avgCpc,
+    totalCreatives: MockData.creatives.length
   };
 }
 
 // ----------------------------------------------------------------------
-// THEME
+// CHART / DASHBOARD (Prio 2. Chart)
 // ----------------------------------------------------------------------
 
-function initTheme() {
-  const saved = localStorage.getItem("sig_theme");
-  const theme = saved === "dark" ? "dark" : "light"; // Standard = light
-  AppState.theme = theme;
-  document.documentElement.classList.toggle("dark", theme === "dark");
-  logEvent("theme:init", { theme });
-}
+function initChart() {
+    const ctx = document.getElementById('creativePerformanceChart');
+    if (!ctx) return;
 
-function setupThemeToggle() {
-  const btn = document.getElementById("themeToggle");
-  if (!btn) return;
-
-  btn.addEventListener("click", () => {
-    const isDark = !document.documentElement.classList.contains("dark");
-    document.documentElement.classList.toggle("dark", isDark);
-    const theme = isDark ? "dark" : "light";
-    AppState.theme = theme;
-    localStorage.setItem("sig_theme", theme);
-    logEvent("theme:toggle", { theme });
-  });
-}
-
-// ----------------------------------------------------------------------
-// DATUM + MODE (Demo/Live-Schalter rechts oben)
-// ----------------------------------------------------------------------
-
-function initDate() {
-  const el = document.getElementById("currentDate");
-  if (!el) return;
-  const now = new Date();
-  el.textContent = new Intl.DateTimeFormat("de-DE", {
-    weekday: "short",
-    day: "2-digit",
-    month: "short"
-  }).format(now);
-}
-
-function setupModeToggle() {
-  const liveBtn = document.getElementById("mode-live");
-  const simBtn = document.getElementById("mode-sim");
-  if (!liveBtn || !simBtn) return;
-
-  function updateButtons() {
-    if (AppState.mode === "demo") {
-      simBtn.classList.add("active");
-      liveBtn.classList.remove("active");
-    } else {
-      liveBtn.classList.add("active");
-      simBtn.classList.remove("active");
+    if (myChart) {
+        myChart.destroy(); // Zerstöre alte Instanz, falls vorhanden
     }
-  }
+    
+    // Daten für den Chart
+    const data = {
+        labels: MockData.chartData.labels,
+        datasets: [
+            {
+                label: 'Umsatz (Revenue)',
+                data: MockData.chartData.revenue,
+                borderColor: 'rgb(99, 102, 241)', // Primary Color
+                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                fill: true,
+                tension: 0.3,
+                yAxisID: 'y'
+            },
+            {
+                label: 'Ausgaben (Spend)',
+                data: MockData.chartData.spend,
+                borderColor: 'rgb(156, 163, 175)', // Gray
+                backgroundColor: 'rgba(156, 163, 175, 0.1)',
+                fill: false,
+                tension: 0.3,
+                yAxisID: 'y'
+            }
+        ]
+    };
 
-  liveBtn.addEventListener("click", () => {
-    AppState.mode = "live";
-    updateButtons();
-    alert(
-      "Live-Mode: Hier hängst du später einfach die echte Meta-API dran. Aktuell noch Demo-Daten."
-    );
-    logEvent("mode:change", { mode: "live" });
-  });
+    // Optionen für den Chart
+    const config = {
+        type: 'line',
+        data: data,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Performance der letzten 7 Tage'
+                }
+            },
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Werte in Euro'
+                    }
+                }
+            }
+        },
+    };
 
-  simBtn.addEventListener("click", () => {
-    AppState.mode = "demo";
-    updateButtons();
-    logEvent("mode:change", { mode: "demo" });
-  });
-
-  updateButtons();
+    myChart = new Chart(ctx, config);
 }
 
+
 // ----------------------------------------------------------------------
-// SIDEBAR / NAVIGATION
+// RENDER FUNCTIONS (Views)
 // ----------------------------------------------------------------------
 
-function setupSidebar() {
-  const sidebar = document.getElementById("sidebar");
-  const toggle = document.getElementById("sidebarToggle");
-  if (!sidebar || !toggle) return;
+function renderTopBar() {
+    const welcomeEl = document.getElementById("topBarWelcome");
+    const sublineEl = document.getElementById("topBarSubline");
+    const metaDot = document.getElementById('topBarMetaDot');
 
-  function isMobile() {
-    return window.innerWidth <= 1200;
-  }
-
-  toggle.addEventListener("click", () => {
-    if (isMobile()) {
-      sidebar.classList.toggle("open");
-    } else {
-      sidebar.classList.toggle("collapsed");
+    if (welcomeEl) {
+        welcomeEl.textContent = `Hallo, ${AppState.account.name || 'Schatz'}`;
     }
-  });
-
-  document.addEventListener("click", (e) => {
-    if (!isMobile()) return;
-    if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
-      sidebar.classList.remove("open");
+    if (sublineEl) {
+        const brand = AppState.account.brand || 'Demo-Brand';
+        const adAccount = AppState.account.adAccount || 'Demo Ad Account';
+        sublineEl.textContent = `Eingeloggt als: ${brand} - Konto: ${adAccount}`;
     }
-  });
 
-  window.addEventListener("resize", () => {
-    if (!isMobile()) {
-      sidebar.classList.remove("open");
+    // Update Top-Bar Meta Dot
+    if (metaDot) {
+        metaDot.className = AppState.connections.meta ? 'status-dot success' : 'status-dot error';
+        metaDot.setAttribute('data-tooltip', AppState.connections.meta ? 'Meta: Verbunden' : 'Meta: Getrennt');
     }
-  });
-
-  document.querySelectorAll(".menu-item").forEach((item) => {
-    item.addEventListener("click", (e) => {
-      e.preventDefault();
-      const view = item.dataset.view;
-      if (!view) return;
-
-      document.querySelectorAll(".menu-item").forEach((i) =>
-        i.classList.remove("active")
-      );
-      item.classList.add("active");
-
-      document.querySelectorAll(".view").forEach((v) => {
-        v.classList.add("hidden");
-        v.classList.remove("active");
-      });
-
-      const target = document.getElementById("view-" + view);
-      if (!target) return;
-      target.classList.remove("hidden");
-      target.classList.add("active");
-
-      const pageTitle = document.querySelector(".page-title");
-      if (pageTitle) {
-        const labelEl = item.querySelector(".menu-label");
-        pageTitle.textContent = labelEl
-          ? labelEl.textContent
-          : item.dataset.tooltip || "Dashboard";
-      }
-
-      if (isMobile()) {
-        sidebar.classList.remove("open");
-      }
-
-      logEvent("nav:change", { view });
-      renderAll();
-    });
-  });
 }
 
-// ----------------------------------------------------------------------
-// DASHBOARD (Style A)
-// ----------------------------------------------------------------------
 
 function renderDashboard() {
-  const kpi = AppState.kpi;
+  const viewEl = document.getElementById("dashboardView");
+  if (viewEl) {
+    if (AppState.activeView !== "dashboard") {
+      viewEl.classList.add("hidden");
+      return;
+    }
+    viewEl.classList.remove("hidden");
 
-  // Hero Grid – Top 4 Creatives
-  const hero = document.getElementById("creativeGridHero");
-  if (hero) {
-    const topCreatives = [...MockData.creatives]
-      .sort((a, b) => b.roas - a.roas)
-      .slice(0, 4);
+    // Update KPI Boxes
+    document.getElementById("kpiRoas").textContent = AppState.kpi.avgRoas.toFixed(1);
+    document.getElementById("kpiRevenue").textContent = formatCurrency(AppState.kpi.totalRevenue);
+    document.getElementById("kpiSpend").textContent = formatCurrency(AppState.kpi.totalSpend);
+    document.getElementById("kpiCtr").textContent = formatPercent(AppState.kpi.avgCtr);
 
-    hero.innerHTML = topCreatives
-      .map((c) => {
-        const isVideo = c.mediaType === "video";
-        const media = isVideo
-          ? `<video class="creative-thumb" src="${c.url}" muted loop onmouseover="this.play()" onmouseout="this.pause()"></video>`
-          : `<img class="creative-thumb" src="${c.url}" alt="${c.name}" onerror="this.src='https://via.placeholder.com/400x400?text=Creative'"/>`;
-
-        const roasClass = c.roas >= 3.5 ? "success" : c.roas >= 2 ? "warning" : "danger";
-        const ctrClass = c.ctr >= 2.5 ? "success" : c.ctr >= 1.5 ? "warning" : "danger";
-
-        return `
-        <article class="creative-card-enhanced creative-hero-card" data-creative-id="${c.id}">
-          <div class="creative-media-container">
-            ${media}
-            <div class="creative-platform-badge">
-              <span class="platform-icon meta-icon">f</span> ${c.platform}
-            </div>
-            <div class="creative-score-badge">${c.score}/100</div>
-          </div>
-          <div class="creative-card-body">
-            <div class="creative-title">${c.name}</div>
-            <div class="creative-metrics-grid">
-              <div class="metric-item ${roasClass}">
-                <div class="metric-label-sm">ROAS</div>
-                <div class="metric-value-sm">${fmt.num(c.roas, 2)}x</div>
-              </div>
-              <div class="metric-item ${ctrClass}">
-                <div class="metric-label-sm">CTR</div>
-                <div class="metric-value-sm">${fmt.num(c.ctr, 2)}%</div>
-              </div>
-              <div class="metric-item">
-                <div class="metric-label-sm">CPC</div>
-                <div class="metric-value-sm">${fmt.curr(c.cpc)}</div>
-              </div>
-            </div>
-          </div>
-        </article>`;
-      })
-      .join("");
-
-    // Klick -> Details
-    hero.querySelectorAll("[data-creative-id]").forEach((el) => {
-      el.addEventListener("click", () => {
-        const id = el.getAttribute("data-creative-id");
-        showCreativeDetails(id);
-      });
-    });
+    // NEU: Update Chart, falls vorhanden (wird nur aufgerufen, wenn in initChart() erstellt)
+    if (myChart) {
+        myChart.update();
+    }
   }
-
-  // Summary Cards
-  if (kpi) {
-    const avgROAS = document.getElementById("avgROAS");
-    const avgCTR = document.getElementById("avgCTR");
-    const totalSpend = document.getElementById("totalSpend");
-    const totalRevenue = document.getElementById("totalRevenue");
-
-    if (avgROAS) avgROAS.textContent = fmt.num(kpi.roas, 1) + "x";
-    if (avgCTR) avgCTR.textContent = fmt.num(kpi.ctr, 1) + " %";
-    if (totalSpend) totalSpend.textContent = fmt.curr(kpi.spend);
-    if (totalRevenue) totalRevenue.textContent = fmt.curr(kpi.revenue);
-
-    setTrend("avgROASTrend", kpi.roas, 3.0);
-    setTrend("avgCTRTrend", kpi.ctr, 2.0);
-    setTrend("totalSpendTrend", kpi.spend, kpi.spend * 0.9, true);
-    setTrend("totalRevenueTrend", kpi.revenue, kpi.revenue * 0.9);
-  }
-
-  // KPI Deep Dive
-  if (kpi) {
-    const deepROAS = document.getElementById("deepROAS");
-    const deepCTR = document.getElementById("deepCTR");
-    const deepCPC = document.getElementById("deepCPC");
-    const deepCR = document.getElementById("deepCR");
-    const deepAOV = document.getElementById("deepAOV");
-    const deepRevenue = document.getElementById("deepRevenue");
-
-    if (deepROAS) deepROAS.textContent = fmt.num(kpi.roas, 2) + "x";
-    if (deepCTR) deepCTR.textContent = fmt.pct(kpi.ctr, 2);
-    if (deepCPC) deepCPC.textContent = fmt.curr(kpi.cpc);
-    if (deepCR) deepCR.textContent = fmt.pct(kpi.cr, 2);
-    if (deepAOV) deepAOV.textContent = fmt.curr(kpi.aov);
-    if (deepRevenue) deepRevenue.textContent = fmt.curr(kpi.revenue);
-  }
-
-  // Winner / Loser
-  renderWinnerLoser();
-
-  // Kurz-Insights im Dashboard
-  const insightsShort = document.getElementById("insightsContent");
-  if (insightsShort) {
-    const topInsights = MockData.insights.slice(0, 3);
-    insightsShort.innerHTML = topInsights
-      .map(
-        (i) => `
-      <div class="insight-card">
-        <div class="insight-meta">
-          ${i.type.toUpperCase()} · Impact: ${i.impact.toUpperCase()}
-        </div>
-        <div class="insight-title">${i.title}</div>
-        <div class="insight-body">${i.body}</div>
-      </div>
-    `
-      )
-      .join("");
-  }
-
-  updatePeriodLabel();
-}
-
-function setTrend(id, value, baseline, invert = false) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const diff = baseline ? ((value - baseline) / baseline) * 100 : 0;
-  const rounded = Math.round(diff);
-  el.textContent = (diff >= 0 ? "+" : "") + rounded + " %";
-
-  el.classList.remove("positive", "negative", "neutral");
-  if (Math.abs(diff) < 2) {
-    el.classList.add("neutral");
-  } else if ((diff >= 0 && !invert) || (diff < 0 && invert)) {
-    el.classList.add("positive");
-  } else {
-    el.classList.add("negative");
-  }
-}
-
-function renderWinnerLoser() {
-  if (!MockData.creatives.length) return;
-  const sorted = [...MockData.creatives].sort((a, b) => b.roas - a.roas);
-  const winner = sorted[0];
-  const loser = sorted[sorted.length - 1];
-
-  const winnerEl = document.getElementById("winnerContent");
-  const loserEl = document.getElementById("loserContent");
-
-  function cardHtml(c, isWinner) {
-    const isVideo = c.mediaType === "video";
-    const media = isVideo
-      ? `<video style="width:100%; border-radius:8px; margin-bottom:12px;" controls src="${c.url}"></video>`
-      : `<img style="width:100%; border-radius:8px; margin-bottom:12px;" src="${c.url}" alt="${c.name}" />`;
-
-    const hint = isWinner
-      ? "🚀 Skalierungskandidat – Budget sanft nach oben schieben und ähnliche Creatives testen."
-      : "⚠️ Unterperformer – pausieren oder komplett neues Creative testen (anderer Hook, anderes Visual).";
-
-    return `
-      ${media}
-      <h3 style="font-size:15px; margin-bottom:10px; font-weight:700;">${c.name}</h3>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
-        <div style="background:${isWinner ? "var(--success-light)" : "var(--danger-light)"}; padding:10px; border-radius:8px;">
-          <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">ROAS</div>
-          <div style="font-size:20px; font-weight:800;">${fmt.num(c.roas, 2)}x</div>
-        </div>
-        <div style="background:var(--bg-alt); padding:10px; border-radius:8px; border:1px solid var(--border);">
-          <div style="font-size:10px; color:var(--text-light); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">CTR</div>
-          <div style="font-size:20px; font-weight:800;">${fmt.num(c.ctr, 2)}%</div>
-        </div>
-      </div>
-      <div style="font-size:12px; color:var(--text-secondary); line-height:1.6;">${hint}</div>
-    `;
-  }
-
-  if (winnerEl && winner) winnerEl.innerHTML = cardHtml(winner, true);
-  if (loserEl && loser) loserEl.innerHTML = cardHtml(loser, false);
-}
-
-// ----------------------------------------------------------------------
-// CREATIVES VIEW
-// ----------------------------------------------------------------------
-
-function setupCreativesControls() {
-  const sort = document.getElementById("sortCreatives");
-  if (sort) {
-    sort.addEventListener("change", (e) => {
-      AppState.creativeSort = e.target.value;
-      logEvent("creatives:sort", { sort: AppState.creativeSort });
-      renderCreativesView();
-    });
-  }
-
-  const viewBtns = document.querySelectorAll(
-    "#view-creatives .view-btn[data-view]"
-  );
-  viewBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      viewBtns.forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      AppState.creativeView = btn.dataset.view || "grid";
-      logEvent("creatives:view", { view: AppState.creativeView });
-      renderCreativesView();
-    });
-  });
 }
 
 function renderCreativesView() {
-  const grid = document.getElementById("creativeGrid");
-  if (!grid) return;
+  const viewEl = document.getElementById("creativesView");
+  if (!viewEl) return;
 
-  let items = [...MockData.creatives];
+  if (AppState.activeView !== "creatives") {
+    viewEl.classList.add("hidden");
+    return;
+  }
+  viewEl.classList.remove("hidden");
 
-  // Sortierung
-  items.sort((a, b) => {
+  const container = document.getElementById("creativesContainer");
+  if (!container) return;
+
+  container.innerHTML = "";
+  container.className = AppState.creativeView === "grid" ? "creatives-grid" : "creatives-list"; 
+
+  // 1. Apply Filtering Logic (Prio 5. Search)
+  const filterText = AppState.creativeFilterText.toLowerCase();
+  let creatives = MockData.creatives.filter(c => 
+    c.name.toLowerCase().includes(filterText) ||
+    c.platform.toLowerCase().includes(filterText)
+  );
+
+  // 2. Apply Sorting Logic (Prio 2.7)
+  creatives.sort((a, b) => {
     switch (AppState.creativeSort) {
-      case "roas":
+      case 'roas_desc':
         return b.roas - a.roas;
-      case "ctr":
+      case 'roas_asc':
+        return a.roas - b.roas;
+      case 'ctr_desc':
         return b.ctr - a.ctr;
-      case "cpc":
-        return a.cpc - b.cpc;
-      case "impressions":
-        return b.impressions - a.impressions;
-      case "score":
+      case 'score_desc':
         return b.score - a.score;
+      case 'name_asc':
+        return a.name.localeCompare(b.name);
       default:
         return 0;
     }
   });
 
-  // Anzahl in Sidebar
-  const creativeCount = document.getElementById("creativeCount");
-  if (creativeCount) creativeCount.textContent = items.length.toString();
 
-  const isList = AppState.creativeView === "list";
-  grid.className = isList ? "creative-grid creative-grid-list" : "creative-grid";
+  creatives.forEach((creative) => {
+    const card = document.createElement("div");
+    card.className = AppState.creativeView === "grid" ? "creative-card" : "creative-row";
+    card.onclick = () => showCreativeDetails(creative.id);
 
-  grid.innerHTML = items
-    .map((c) => {
-      const isVideo = c.mediaType === "video";
-      const media = isVideo
-        ? `<video class="creative-thumb" src="${c.url}" muted loop onmouseover="this.play()" onmouseout="this.pause()"></video>`
-        : `<img class="creative-thumb" src="${c.url}" alt="${c.name}" onerror="this.src='https://via.placeholder.com/400x400?text=Creative'"/>`;
+    const scoreBadge = `<span class="badge ${creative.score > 80 ? 'success' : creative.score > 65 ? 'warning' : 'error'}">${creative.score}% Score</span>`;
+    const roasBadge = `<span class="badge ${creative.roas > 3.0 ? 'primary' : 'secondary'}">ROAS ${creative.roas.toFixed(1)}</span>`;
 
-      const layoutClass = isList ? "creative-card list" : "creative-card";
-
-      return `
-      <article class="${layoutClass}" data-creative-id="${c.id}">
-        <div style="position:relative;">
-          ${media}
-          <span class="creative-badge">${c.score}/100</span>
-        </div>
-        <div class="creative-info">
-          <div>
-            <div style="font-weight:600; margin-bottom:4px;">${c.name}</div>
-            <div style="font-size:11px; color:var(--text-secondary);">
-              ${c.format} · ${c.objective} · ${c.platform}
+    if (AppState.creativeView === "grid") {
+        card.innerHTML = `
+            <div class="creative-media-container">
+                <div class="creative-media-preview" style="background-image: url('${creative.url}');"></div>
+                <div class="creative-media-platform">${creative.platform}</div>
             </div>
-          </div>
-          <div style="text-align:right; font-size:12px;">
-            <div>ROAS: <strong>${fmt.num(c.roas, 2)}x</strong></div>
-            <div>CTR: <strong>${fmt.num(c.ctr, 2)}%</strong></div>
-            <div>CPC: <strong>${fmt.curr(c.cpc)}</strong></div>
-          </div>
-        </div>
-      </article>
-    `;
-    })
-    .join("");
-
-  // Klickhandling (Details)
-  grid.querySelectorAll("[data-creative-id]").forEach((el) => {
-    el.addEventListener("click", () => {
-      const id = el.getAttribute("data-creative-id");
-      showCreativeDetails(id);
-    });
+            <div class="creative-info">
+                <h5 class="creative-name">${creative.name}</h5>
+                <div class="creative-badges">
+                    ${roasBadge}
+                    ${scoreBadge}
+                </div>
+                <div class="creative-kpis">
+                    <span>CTR: ${creative.ctr.toFixed(1)}%</span>
+                    <span>CPC: ${creative.cpc.toFixed(2)}€</span>
+                </div>
+            </div>
+        `;
+    } else { // List View
+         card.innerHTML = `
+            <div class="creative-row-details">
+                <h5 class="creative-name">${creative.name}</h5>
+                <div class="creative-badges">${roasBadge} ${scoreBadge}</div>
+            </div>
+            <div class="creative-row-kpis">
+                <span>ROAS: ${creative.roas.toFixed(1)}</span>
+                <span>CTR: ${creative.ctr.toFixed(1)}%</span>
+                <span>CPC: ${creative.cpc.toFixed(2)}€</span>
+                <span>Spend: ${formatCurrency(creative.spend)}</span>
+            </div>
+         `;
+    }
+    
+    container.appendChild(card);
   });
+
+  // Handle No Results
+  if (creatives.length === 0) {
+      container.innerHTML = `<p class="no-results-message">Keine Creatives gefunden für **"${AppState.creativeFilterText}"**. Versuch es mit einem anderen Suchbegriff.</p>`;
+      container.className = "creatives-grid"; // Keep it simple
+  }
 }
 
-// ----------------------------------------------------------------------
-// PERIOD / DATE RANGE TOGGLE (nur Label, Demo)
-// ----------------------------------------------------------------------
-
-function updatePeriodLabel() {
-  const el = document.getElementById("dashPeriodLabel");
-  if (!el) return;
-
-  let label = "Letzte 30 Tage (Demo)";
-  if (AppState.period === "24h") label = "Letzte 24 Stunden (Demo)";
-  else if (AppState.period === "7d") label = "Letzte 7 Tage (Demo)";
-
-  el.textContent = label;
-}
-
-function setupPeriodToggles() {
-  const btns = document.querySelectorAll(".toggle-btn[data-period]");
-  if (!btns.length) return;
-
-  btns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      btns.forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-
-      const period = btn.dataset.period;
-      if (period === "30") AppState.period = "30d";
-      else if (period === "7") AppState.period = "7d";
-      else AppState.period = "24h";
-
-      logEvent("period:change", { period: AppState.period });
-      updatePeriodLabel();
-    });
-  });
-}
-
-// ----------------------------------------------------------------------
-// CREATIVE DETAILS (Alert – Demo)
-// ----------------------------------------------------------------------
-
+/**
+ * Zeigt das Detail-Modal für ein Creative an (Prio 1.3).
+ * @param {string} id - Die ID des Creatives.
+ */
 function showCreativeDetails(id) {
-  const c = MockData.creatives.find((x) => x.id === id);
-  if (!c) return;
+  const creative = MockData.creatives.find((c) => c.id === id);
+  if (!creative) {
+    return showSoonToast("Creative-Details nicht gefunden.");
+  }
 
-  const impressionClicks = Math.round(c.impressions * (c.ctr / 100));
-  const text =
-    `Creative: ${c.name}\n\n` +
-    `Platform: ${c.platform}\n` +
-    `Format: ${c.format}\n` +
-    `Objective: ${c.objective}\n\n` +
-    `Impressions: ${fmt.int(c.impressions)}\n` +
-    `Klicks (approx.): ${fmt.int(impressionClicks)}\n` +
-    `Spend: ${fmt.curr(c.spend)}\n` +
-    `Revenue: ${fmt.curr(c.revenue)}\n\n` +
-    `ROAS: ${fmt.num(c.roas, 2)}x\n` +
-    `CTR: ${fmt.num(c.ctr, 2)}%\n` +
-    `CPC: ${fmt.curr(c.cpc)}\n` +
-    `Performance-Score: ${c.score}/100\n`;
+  const title = `Creative-Details: ${creative.name}`;
+  const content = `
+    <div class="creative-details-modal">
+        <p><strong>ID:</strong> ${creative.id}</p>
+        <p><strong>Typ:</strong> ${creative.mediaType} (${creative.format})</p>
+        <p><strong>Ziel:</strong> ${creative.objective} (via ${creative.platform})</p>
+        <hr/>
+        <p><strong>ROAS:</strong> <span class="badge ${creative.roas > 3.0 ? 'success' : 'warning'}">${creative.roas.toFixed(2)}</span></p>
+        <p><strong>CTR:</strong> ${creative.ctr.toFixed(2)}%</p>
+        <p><strong>CPC:</strong> ${creative.cpc.toFixed(2)}€</p>
+        <p><strong>Score:</strong> ${creative.score}%</p>
+        <hr/>
+        <button class="button primary small" onclick="handleDeadButton('Creative Insights'); closeModal();">Insights anzeigen</button>
+        <button class="button secondary small" onclick="handleDeadButton('Creative Library öffnen'); closeModal();">In Creative Library öffnen</button>
+    </div>
+  `;
 
-  alert(text);
-  logEvent("creative:details", { id });
+  openModal(title, content);
 }
 
-// ----------------------------------------------------------------------
-// CAMPAIGNS
-// ----------------------------------------------------------------------
 
 function renderCampaignsView() {
-  const body = document.getElementById("campaignTableBody");
-  if (!body) return;
+  const viewEl = document.getElementById("campaignsView");
+  if (!viewEl) return;
 
-  body.innerHTML = "";
+  if (AppState.activeView !== "campaigns") {
+    viewEl.classList.add("hidden");
+    return;
+  }
+  viewEl.classList.remove("hidden");
 
-  MockData.campaigns.forEach((c) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${c.name}</td>
-      <td>${fmt.curr(c.spend)}</td>
-      <td>${fmt.int(c.impressions)}</td>
-      <td>${fmt.int(c.clicks)}</td>
-      <td>${fmt.num(c.ctr, 2)}%</td>
-      <td>${fmt.int(c.purchases)}</td>
-      <td>${fmt.num(c.roas, 2)}x</td>
+  const tbody = viewEl.querySelector("tbody");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+
+  MockData.campaigns.forEach((campaign) => {
+    const row = tbody.insertRow();
+    row.className = "campaign-row";
+    // Prio 1.2: Campaigns Row-Click -> Modal
+    row.onclick = () => {
+        const title = `Kampagnen-Details: ${campaign.name}`;
+        const statusClass = campaign.status === 'Aktiv' ? 'success' : 'error';
+        const content = `
+            <p><strong>ID:</strong> ${campaign.id}</p>
+            <p><strong>Status:</strong> <span class="badge ${statusClass}">${campaign.status}</span></p>
+            <p><strong>Ziel:</strong> ${campaign.objective}</p>
+            <p><strong>Budget:</strong> ${formatCurrency(campaign.budget)}</p>
+            <hr/>
+            <p>Dies ist das Detail-Modal für die Kampagne. Hier würden später alle Performance-Metriken, die Ad Sets und die zugeordneten Creatives angezeigt werden.</p>
+            <p>Aktueller ROAS: ${campaign.kpi.roas.toFixed(1)} | Ausgaben: ${formatCurrency(campaign.kpi.spend)}</p>
+            <button class="button primary small" onclick="handleDeadButton('Kampagnen-Struktur'); closeModal();">Ad Sets anzeigen</button>
+        `;
+        openModal(title, content);
+    };
+
+    const statusClass = campaign.status === "Aktiv" ? "success" : "error";
+    row.innerHTML = `
+        <td><div class="status-dot ${statusClass}"></div> ${campaign.name}</td>
+        <td>${campaign.objective}</td>
+        <td>${formatCurrency(campaign.budget)}</td>
+        <td>${campaign.kpi.roas.toFixed(1)}</td>
+        <td>${formatCurrency(campaign.kpi.spend)}</td>
     `;
-    tr.addEventListener("click", () => {
-      alert(
-        `Kampagne: ${c.name}\n\n` +
-          `Spend: ${fmt.curr(c.spend)}\nRevenue: ${fmt.curr(
-            c.revenue
-          )}\nROAS: ${fmt.num(c.roas, 2)}x\nCTR: ${fmt.num(
-            c.ctr,
-            2
-          )}%\nPurchases: ${fmt.int(c.purchases)}`
-      );
-      logEvent("campaign:details", { id: c.id });
-    });
-    body.appendChild(tr);
   });
 }
-
-// ----------------------------------------------------------------------
-// INSIGHTS VIEW (Detailseite)
-// ----------------------------------------------------------------------
 
 function renderInsightsView() {
-  const container = document.getElementById("insightsDetail");
-  if (!container) return;
-  const kpi = AppState.kpi;
-
-  let header = "";
-  if (kpi) {
-    header =
-      `<p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">` +
-      `Aktueller Gesamt-ROAS: <strong>${fmt.num(kpi.roas, 2)}x</strong>, ` +
-      `CTR: <strong>${fmt.num(kpi.ctr, 2)}%</strong>, ` +
-      `CR: <strong>${fmt.num(kpi.cr, 2)}%</strong></p>`;
+  const viewEl = document.getElementById("insightsView");
+  if (viewEl) {
+    viewEl.classList.toggle("hidden", AppState.activeView !== "insights");
   }
-
-  const list = MockData.insights
-    .map(
-      (i) => `
-    <article class="insight-card-lg">
-      <div class="insight-meta">
-        ${i.type.toUpperCase()} · Impact: ${i.impact.toUpperCase()}
-      </div>
-      <h3 class="insight-title">${i.title}</h3>
-      <p class="insight-body">${i.body}</p>
-    </article>
-  `
-    )
-    .join("");
-
-  container.innerHTML = header + list;
 }
 
-// ----------------------------------------------------------------------
-// SIGNAL SENSEI VIEW (Strategie-Box)
-// ----------------------------------------------------------------------
-
+/**
+ * NEU: Sensei View Renderer (Prio 13)
+ */
 function renderSenseiView() {
-  const out = document.getElementById("senseiOutput");
-  if (!out) return;
-  const kpi = AppState.kpi;
-  if (!kpi) {
-    out.textContent = "Noch keine Daten geladen.";
-    return;
+  const viewEl = document.getElementById("senseiView");
+  if (viewEl) {
+    viewEl.classList.toggle("hidden", AppState.activeView !== "sensei");
+
+    // NEU: Setup workflow buttons
+    viewEl.querySelectorAll('.workflow-card').forEach(card => {
+        card.onclick = () => openWorkflowModal(card.getAttribute('data-workflow'));
+    });
   }
-
-  const strategy = determineSenseiStrategy(kpi.roas, kpi.ctr, kpi.cr);
-
-  out.innerHTML = `
-    <div class="sensei-box">
-      <div class="sensei-icon">${strategy.icon}</div>
-      <div class="sensei-meta">Empfohlene Strategie</div>
-      <h3 class="sensei-title">${strategy.title}</h3>
-      <p class="sensei-body">
-        ${strategy.description}
-      </p>
-      <ul class="sensei-actions">
-        ${strategy.actions.map((a) => `<li>${a}</li>`).join("")}
-      </ul>
-    </div>
-  `;
 }
 
-function determineSenseiStrategy(roas, ctr, cr) {
-  if (roas >= 4 && ctr >= 2.5 && cr >= 3) {
-    return {
-      icon: "🚀",
-      title: "Aggressives Scaling mit UGC-Fokus",
-      description:
-        "Performance ist sehr stark. Du solltest behutsam skalieren und die Top-Creatives duplizieren, ohne die Lernphase zu zerstören.",
-      actions: [
-        "Budget bei Top-Kampagnen um 20–30% erhöhen.",
-        "Lookalike-Audiences testen (1–3%).",
-        "Zusätzliche UGC-Varianten mit ähnlichem Hook launchen."
-      ]
-    };
-  }
-  if (roas >= 2.5 && ctr >= 2) {
-    return {
-      icon: "⚡",
-      title: "Optimierungs- und Teststrategie",
-      description:
-        "Solide Basis, aber es steckt noch Luft nach oben drin. Fokus auf Creative-Tests und Landing-Page-Optimierung.",
-      actions: [
-        "2–3 neue Hooks pro Woche testen.",
-        "Landing-Page mit A/B Tests für Hero-Section und Trust-Elemente verbessern.",
-        "Budget auf Kampagnen mit stabiler Performance leichter hochfahren."
-      ]
-    };
-  }
-  if (roas < 2) {
-    return {
-      icon: "🧱",
-      title: "Rebuild & Struktur-Neustart",
-      description:
-        "Aktuell ist die Performance nicht nachhaltig profitabel. Du solltest zurück auf ein klares Test-Setup und saubere Struktur.",
-      actions: [
-        "Neue Testkampagnen mit klarer Trennung Prospecting / Retargeting.",
-        "Mindestens 3–5 frische Creatives pro Woche testen.",
-        "Angebot, Preispositionierung und Value Proposition überprüfen."
-      ]
-    };
-  }
-  return {
-    icon: "🎯",
-    title: "Effizienz-Feintuning",
-    description:
-      "Die Ergebnisse sind in Ordnung, aber du kannst CPM, CPC und CR noch genauer optimieren.",
-    actions: [
-      "Placements und Ausspielzeiten analysieren und bereinigen.",
-      "CPM-Treiber identifizieren (z. B. Creatives mit schlechter Relevanz).",
-      "Fokus auf Creatives mit hoher CR und stabilem ROAS."
-    ]
-  };
+/**
+ * NEU: Öffnet das simulierte AI Workflow Modal (Prio 13).
+ * @param {string} workflowName 
+ */
+function openWorkflowModal(workflowName) {
+    const title = `AI Workflow: ${workflowName}`;
+    const output = workflowName === 'Generate New Hooks' ? 
+        `
+        <div class="form-group">
+            <label>Zielgruppe</label>
+            <input type="text" class="form-input" value="Performance Marketer (Mittelstand)" />
+        </div>
+        <div class="form-group">
+            <label>Tone of Voice</label>
+            <select class="form-select"><option>Elite / Kompetent</option></select>
+        </div>
+        <button class="button primary" style="margin-top: 16px;" onclick="simulateAiOutput(this, 'hook');">Hooks generieren</button>
+        <div class="ai-output hidden" id="aiOutput">
+            <hr/>
+            <strong>Sensei Output:</strong>
+            <p>#1: Stop losing money on bad creatives. Sensei guarantees your next hook performs.</p>
+            <p>#2: The 3 seconds that matter: This is how top brands scale profitably (Watch Now).</p>
+        </div>
+        ` :
+        `
+        <p>Dies ist das Formular für den <strong>${workflowName}</strong> Workflow.</p>
+        <div class="form-group">
+            <label>Creative ID zum Iterieren</label>
+            <input type="text" class="form-input" value="c5 - Static – Testimonial Card" />
+        </div>
+        <button class="button primary" style="margin-top: 16px;" onclick="simulateAiOutput(this, 'default');">Workflow starten</button>
+        <div class="ai-output hidden" id="aiOutput">
+            <hr/>
+            <strong>Sensei Output:</strong>
+            <p>Die Analyse zeigt: Der Testimonial-Hook funktioniert gut. Sensei empfiehlt, eine "Problem-Solution" Variante mit dem gleichen Testimonial zu testen.</p>
+        </div>
+        `;
+
+    openModal(title, output);
 }
 
-// ----------------------------------------------------------------------
-// CREATIVE LIBRARY
-// ----------------------------------------------------------------------
+/**
+ * Simuliert die AI-Antwort nach Klick auf den Button im Modal.
+ * @param {HTMLElement} button - Der geklickte Button.
+ * @param {string} type - Typ des Outputs.
+ */
+function simulateAiOutput(button, type) {
+    button.textContent = "Sensei arbeitet...";
+    button.classList.add("disabled");
+
+    setTimeout(() => {
+        document.getElementById('aiOutput')?.classList.remove('hidden');
+        button.textContent = "Neu generieren";
+        button.classList.remove("disabled");
+        showSoonToast(`Sensei hat den Output generiert! (${type}-Modus)`);
+    }, 1500);
+}
+
 
 function renderLibraryView() {
-  const grid = document.getElementById("libraryGrid");
-  if (!grid) return;
-
-  if (!MockData.library.length) {
-    grid.innerHTML =
-      '<div style="grid-column:1/-1; color:var(--text-secondary);">Noch keine Creatives in der Library.</div>';
-    return;
+  const viewEl = document.getElementById("libraryView");
+  if (viewEl) {
+    viewEl.classList.toggle("hidden", AppState.activeView !== "library");
   }
-
-  grid.innerHTML = MockData.library
-    .map(
-      (c) => `
-    <article class="creative-card" data-library-id="${c.id}">
-      <div style="position:relative;">
-        ${
-          c.mediaType === "video"
-            ? `<video class="creative-thumb" src="${c.url}" muted loop onmouseover="this.play()" onmouseout="this.pause()"></video>`
-            : `<img class="creative-thumb" src="${c.url}" alt="${c.name}" onerror="this.src='https://via.placeholder.com/400x400?text=Creative'"/>`
-        }
-        <span class="creative-badge">${c.score}/100</span>
-      </div>
-      <div class="creative-info">
-        <div>
-          <div style="font-weight:600; margin-bottom:4px;">${c.name}</div>
-          <div style="font-size:11px; color:var(--text-secondary);">${c.platform} · ${c.format}</div>
-        </div>
-      </div>
-    </article>
-  `
-    )
-    .join("");
-
-  grid.querySelectorAll("[data-library-id]").forEach((el) => {
-    el.addEventListener("click", () => {
-      const id = el.getAttribute("data-library-id");
-      showCreativeDetails(id);
-      logEvent("library:openCreative", { id });
-    });
-  });
 }
-
-// ----------------------------------------------------------------------
-// REPORTS VIEW (Snapshot + JSON-Export)
-// ----------------------------------------------------------------------
 
 function renderReportsView() {
-  const container = document.getElementById("reportsContainer");
-  if (!container) return;
-
-  const kpi = AppState.kpi;
-  if (!kpi) {
-    container.innerHTML = "Noch keine Daten für Reports.";
-    return;
+  const viewEl = document.getElementById("reportsView");
+  if (viewEl) {
+    viewEl.classList.toggle("hidden", AppState.activeView !== "reports");
   }
-
-  const jsonExport = {
-    generatedAt: new Date().toISOString(),
-    mode: AppState.mode,
-    kpi,
-    campaigns: MockData.campaigns,
-    creatives: MockData.creatives
-  };
-
-  container.innerHTML = `
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-      <div>
-        <h3 style="font-size:15px; font-weight:700; margin-bottom:4px;">Performance Snapshot</h3>
-        <p style="font-size:12px; color:var(--text-secondary);">
-          Zusammenfassung deiner aktuellen Demo-Performance. Diese Struktur kannst du 1:1 verwenden, wenn später echte Meta-Daten reinfließen.
-        </p>
-      </div>
-      <button id="exportJsonBtn" class="button primary" style="padding:8px 12px; font-size:12px;">
-        JSON-Export
-      </button>
-    </div>
-
-    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin-bottom:16px;">
-      <div class="summary-card">
-        <div class="summary-icon">👁️</div>
-        <div class="summary-content">
-          <div class="summary-label">Impressions</div>
-          <div class="summary-value">${fmt.short(kpi.impressions)}</div>
-        </div>
-      </div>
-      <div class="summary-card">
-        <div class="summary-icon">🖱️</div>
-        <div class="summary-content">
-          <div class="summary-label">Clicks</div>
-          <div class="summary-value">${fmt.short(kpi.clicks)}</div>
-        </div>
-      </div>
-      <div class="summary-card">
-        <div class="summary-icon">💸</div>
-        <div class="summary-content">
-          <div class="summary-label">Spend</div>
-          <div class="summary-value">${fmt.curr(kpi.spend)}</div>
-        </div>
-      </div>
-      <div class="summary-card">
-        <div class="summary-icon">💰</div>
-        <div class="summary-content">
-          <div class="summary-label">Revenue</div>
-          <div class="summary-value">${fmt.curr(kpi.revenue)}</div>
-        </div>
-      </div>
-    </div>
-
-    <pre style="font-size:11px; background:var(--bg); padding:10px; border-radius:8px; max-height:220px; overflow:auto; border:1px solid var(--border);">
-${JSON.stringify(jsonExport, null, 2)}
-    </pre>
-  `;
-
-  const btn = document.getElementById("exportJsonBtn");
-  if (btn) {
-    btn.addEventListener("click", () => {
-      const blob = new Blob([JSON.stringify(jsonExport, null, 2)], {
-        type: "application/json"
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "signalone-demo-export.json";
-      a.click();
-      URL.revokeObjectURL(url);
-      logEvent("reports:exportJson", {});
-    });
-  }
-}
-
-// ----------------------------------------------------------------------
-// CONNECTIONS (Meta-Demo)
-// ----------------------------------------------------------------------
-
-function setupConnections() {
-  const connectMeta = document.getElementById("connectMeta");
-  const connectMetaSettings = document.getElementById("connectMetaSettings");
-
-  function toggleMeta() {
-    AppState.connections.meta = !AppState.connections.meta;
-    renderConnectionsView();
-    logEvent("connections:metaToggle", {
-      connected: AppState.connections.meta
-    });
-  }
-
-  if (connectMeta) connectMeta.addEventListener("click", toggleMeta);
-  if (connectMetaSettings) connectMetaSettings.addEventListener("click", toggleMeta);
-
-  renderConnectionsView();
 }
 
 function renderConnectionsView() {
-  const statusText = document.getElementById("metaConnectionStatus");
-  const apiStatus = document.getElementById("metaApiStatus");
-  const dot = document.getElementById("metaStatusDot");
-  const text = document.getElementById("metaStatusText");
+  const viewEl = document.getElementById("connectionsView");
+  if (viewEl) {
+    viewEl.classList.toggle("hidden", AppState.activeView !== "connections");
+    updateConnectionsView();
+  }
+}
 
-  const connected = AppState.connections.meta;
+function renderProfileView() {
+    const viewEl = document.getElementById("profileView");
+    if (viewEl) {
+        viewEl.classList.toggle("hidden", AppState.activeView !== "profile");
 
-  if (statusText) statusText.textContent = connected ? "Connected (Demo)" : "Not connected";
-  if (apiStatus) apiStatus.textContent = connected ? "Verbunden (Demo)" : "Nicht verbunden";
-
-  if (dot && text) {
-    dot.classList.remove("meta-status-ok", "meta-status-error");
-    if (connected) {
-      dot.classList.add("meta-status-ok");
-      text.textContent = "Demo Mode";
-    } else {
-      dot.classList.add("meta-status-error");
-      text.textContent = "Nicht verbunden";
+        // Load current state into form
+        document.getElementById("accountName").value = AppState.account.name;
+        document.getElementById("accountBrand").value = AppState.account.brand;
+        document.getElementById("adAccountName").value = AppState.account.adAccount;
     }
+}
+function renderSettingsView() {
+    const viewEl = document.getElementById("settingsView");
+    if (viewEl) {
+        viewEl.classList.toggle("hidden", AppState.activeView !== "settings");
+    }
+}
+
+
+// ----------------------------------------------------------------------
+// STATE MANIPULATION / SETUP
+// ----------------------------------------------------------------------
+
+function setActiveView(viewName) {
+  if (AppState.activeView !== viewName) {
+      // NEU: Show loading overlay before switching view
+      showLoadingOverlay();
+      AppState.activeView = viewName;
+      // Kurze Verzögerung, um den Loading-Effekt zu zeigen
+      setTimeout(() => {
+        renderAll();
+      }, 500);
+  } else {
+    // Wenn die Ansicht die gleiche ist, einfach neu rendern, ohne Loading
+    AppState.activeView = viewName;
+    renderAll();
   }
+  
+
+  // Update Sidebar active state
+  document.querySelectorAll(".sidebar-menu .menu-item").forEach((item) => {
+    item.classList.toggle("active", item.getAttribute("data-view") === viewName);
+  });
+}
+
+function initTheme() {
+  document.documentElement.setAttribute("data-theme", AppState.theme);
+}
+
+function toggleTheme() {
+  AppState.theme = AppState.theme === "light" ? "dark" : "light";
+  localStorage.setItem("signalOneTheme", AppState.theme);
+  document.documentElement.setAttribute("data-theme", AppState.theme);
+}
+
+function initDate() {
+  document.getElementById("currentDate").textContent = new Date().toLocaleDateString(
+    "de-DE",
+    {
+      year: "numeric",
+      month: "long",
+      day: "numeric"
+    }
+  );
+}
+
+function toggleSidebar() {
+  AppState.sidebarCollapsed = !AppState.sidebarCollapsed;
+  localStorage.setItem("sidebarCollapsed", AppState.sidebarCollapsed);
+  document.getElementById("sidebar").classList.toggle("collapsed", AppState.sidebarCollapsed);
+  mainContentEl.classList.toggle("sidebar-collapsed", AppState.sidebarCollapsed);
 }
 
 // ----------------------------------------------------------------------
-// PROFILE & SETTINGS (LocalStorage)
+// ACCOUNT & PROFILE (Prio 1.5)
 // ----------------------------------------------------------------------
 
-function loadProfileSettings() {
-  const profile = JSON.parse(localStorage.getItem("sig_profile") || "{}");
-  const branding = JSON.parse(localStorage.getItem("sig_branding") || "{}");
-  const app = JSON.parse(localStorage.getItem("sig_appSettings") || "{}");
-
-  const profileName = document.getElementById("profileName");
-  const profileEmail = document.getElementById("profileEmail");
-  const profileAvatar = document.getElementById("profileAvatar");
-
-  const brandName = document.getElementById("brandName");
-  const brandColor = document.getElementById("brandColor");
-
-  const appTheme = document.getElementById("appTheme");
-  const appMotion = document.getElementById("appMotion");
-
-  if (profileName) profileName.value = profile.name || "";
-  if (profileEmail) profileEmail.value = profile.email || "";
-  if (profileAvatar) profileAvatar.value = profile.avatar || "";
-
-  if (brandName) brandName.value = branding.name || "";
-  if (brandColor) brandColor.value = branding.color || "#6366f1";
-
-  if (appTheme) appTheme.value = app.theme || "auto";
-  if (appMotion) appMotion.value = app.motion || "on";
+function loadAccount() {
+  const savedAccount = localStorage.getItem("signalOneAccount");
+  if (savedAccount) {
+    const { name, brand, adAccount } = JSON.parse(savedAccount);
+    AppState.account = { name, brand, adAccount };
+  }
 }
 
-function setupProfileButtons() {
-  const saveAccountBtn = document.getElementById("saveAccount");
-  const saveBrandingBtn = document.getElementById("saveBranding");
-  const saveAppBtn = document.getElementById("saveAppSettings");
+function saveAccount() {
+    const name = document.getElementById("accountName").value;
+    const brand = document.getElementById("accountBrand").value;
+    const adAccount = document.getElementById("adAccountName").value;
 
-  if (saveAccountBtn) {
-    saveAccountBtn.addEventListener("click", () => {
-      const data = {
-        name: document.getElementById("profileName")?.value || "",
-        email: document.getElementById("profileEmail")?.value || "",
-        avatar: document.getElementById("profileAvatar")?.value || ""
-      };
-      localStorage.setItem("sig_profile", JSON.stringify(data));
-      alert("Account-Einstellungen gespeichert (lokal).");
-      logEvent("settings:accountSave", data);
-    });
-  }
+    AppState.account.name = name;
+    AppState.account.brand = brand;
+    AppState.account.adAccount = adAccount;
 
-  if (saveBrandingBtn) {
-    saveBrandingBtn.addEventListener("click", () => {
-      const data = {
-        name: document.getElementById("brandName")?.value || "",
-        color: document.getElementById("brandColor")?.value || "#6366f1"
-      };
-      localStorage.setItem("sig_branding", JSON.stringify(data));
-      alert("Branding gespeichert (lokal).");
-      logEvent("settings:brandingSave", data);
-    });
-  }
+    localStorage.setItem(
+        "signalOneAccount",
+        JSON.stringify(AppState.account)
+    );
 
-  if (saveAppBtn) {
-    saveAppBtn.addEventListener("click", () => {
-      const data = {
-        theme: document.getElementById("appTheme")?.value || "auto",
-        motion: document.getElementById("appMotion")?.value || "on"
-      };
-      localStorage.setItem("sig_appSettings", JSON.stringify(data));
-      alert("App-Einstellungen gespeichert (lokal).");
-      logEvent("settings:appSave", data);
+    renderTopBar();
+    showSoonToast("Account-Einstellungen gespeichert.");
+}
+
+
+// ----------------------------------------------------------------------
+// SETUP EVENT HANDLERS
+// ----------------------------------------------------------------------
+
+function setupThemeToggle() {
+  document.getElementById("themeToggle")?.addEventListener("click", toggleTheme);
+}
+
+function setupModeToggle() {
+  const toggleEl = document.getElementById("modeToggle");
+  if (toggleEl) {
+    toggleEl.addEventListener("click", () => {
+      AppState.mode = AppState.mode === "demo" ? "live" : "demo";
+      toggleEl.textContent = AppState.mode === "live" ? "Live-Sync (Beta)" : "Demo-Daten";
+      renderAll();
+      showSoonToast(AppState.mode === "live" ? 'Live-Sync ist in Vorbereitung (nur Optik).' : 'Zurück zu Demo-Daten.');
     });
   }
 }
 
-// ----------------------------------------------------------------------
-// STATE INSPECTOR (Systemmenü)
-// ----------------------------------------------------------------------
+function setupSidebar() {
+  document.getElementById("sidebarToggle")?.addEventListener("click", toggleSidebar);
+  document.getElementById("sidebar").classList.toggle("collapsed", AppState.sidebarCollapsed);
+  mainContentEl.classList.toggle("sidebar-collapsed", AppState.sidebarCollapsed);
 
-function setupStateInspector() {
-  const panel = document.getElementById("stateInspector");
-  const toggle = document.getElementById("inspectorToggle");
-  const close = document.getElementById("inspectorClose");
-  const copy = document.getElementById("inspectorCopy");
-  const tabButtons = document.querySelectorAll(".inspector-tab");
-  const panels = document.querySelectorAll(".inspector-panel");
 
-  if (!panel || !toggle) return;
-
-  function openPanel() {
-    panel.classList.add("open");
-    renderInspector();
-  }
-
-  function closePanel() {
-    panel.classList.remove("open");
-  }
-
-  toggle.addEventListener("click", openPanel);
-  if (close) close.addEventListener("click", closePanel);
-
-  if (copy) {
-    copy.addEventListener("click", () => {
-      const payload = {
-        state: AppState,
-        kpi: AppState.kpi,
-        events: EventLog
-      };
-      navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
-      alert("State & Events in die Zwischenablage kopiert.");
-      logEvent("inspector:copy", {});
+  document.querySelectorAll(".sidebar-menu a").forEach((link) => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      const viewName = e.currentTarget.getAttribute("data-view");
+      if (viewName) {
+        setActiveView(viewName);
+      }
     });
-  }
+  });
 
-  tabButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      tabButtons.forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
+  document.getElementById("sidebarProfileBtn")?.addEventListener("click", () => setActiveView('profile'));
+}
 
-      const tab = btn.dataset.tab;
-      panels.forEach((p) => p.classList.remove("active"));
-      const target =
-        tab === "state"
-          ? document.getElementById("inspectorState")
-          : document.getElementById("inspectorEvents");
-      if (target) target.classList.add("active");
+
+function setupPeriodToggles() {
+  document.querySelectorAll(".period-toggle").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      AppState.period = e.currentTarget.getAttribute("data-period");
+      document.querySelectorAll(".period-toggle").forEach((b) => b.classList.remove("active"));
+      e.currentTarget.classList.add("active");
+      showSoonToast(`Zeitraum auf '${e.currentTarget.textContent}' geändert.`);
+      // Nur KPI-Rendern, nicht alles
+      renderDashboard(); 
     });
   });
 }
 
-function renderInspector() {
+function setupCreativesControls() {
+    // Prio 2.6: View Toggle
+    const gridBtn = document.getElementById('creativeViewGrid');
+    const listBtn = document.getElementById('creativeViewList');
+
+    if (gridBtn && listBtn) {
+        gridBtn.addEventListener('click', () => {
+            AppState.creativeView = 'grid';
+            listBtn.classList.remove('active');
+            gridBtn.classList.add('active');
+            renderCreativesView();
+        });
+        listBtn.addEventListener('click', () => {
+            AppState.creativeView = 'list';
+            gridBtn.classList.remove('active');
+            listBtn.classList.add('active');
+            renderCreativesView();
+        });
+    }
+
+    // Prio 2.7: Sortierung
+    const sortSelect = document.getElementById('creativeSortSelect');
+    if (sortSelect) {
+        sortSelect.addEventListener('change', (e) => {
+            AppState.creativeSort = e.target.value;
+            renderCreativesView();
+        });
+        sortSelect.value = AppState.creativeSort;
+    }
+    
+    // NEU: Prio 5. Search / Filter
+    const searchInput = document.getElementById('creativeSearchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            // Trimmen und in State speichern
+            AppState.creativeFilterText = e.target.value.trim();
+            renderCreativesView();
+        });
+    }
+
+    // Prio 1.1: New Creative Button
+    document.getElementById("createNewCreativeBtn")?.addEventListener("click", () => handleDeadButton('Neues Creative erstellen'));
+}
+
+function setupReportsControls() {
+    // Prio 2.8: JSON Export Function
+    const exportBtn = document.getElementById("exportJsonBtn");
+    if (exportBtn) {
+        exportBtn.addEventListener("click", exportDataAsJson);
+    }
+    // Prio 1.1: Create Report Button
+    document.getElementById("createReportBtn")?.addEventListener("click", () => handleDeadButton('Neuen Report erstellen'));
+}
+
+
+/**
+ * Prio 2.8: JSON Export Function
+ */
+function exportDataAsJson() {
+    const dataToExport = {
+        meta: AppState.kpi,
+        creatives: MockData.creatives,
+        campaigns: MockData.campaigns,
+        timestamp: new Date().toISOString(),
+    };
+
+    const jsonString = JSON.stringify(dataToExport, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `SignalOne_Report_${new Date().toLocaleDateString('de-DE').replace(/\./g, '-')}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showSoonToast("Daten erfolgreich als JSON exportiert.");
+}
+
+function setupProfileView() {
+    // Prio 1.5: Save Account Settings
+    document.getElementById("saveAccountSettings")?.addEventListener("click", saveAccount); 
+}
+
+function setupSettingsView() {
+    // NEU: Prio 8. Save Settings Button
+    document.getElementById("saveAppSettings")?.addEventListener("click", () => handleDeadButton('App-Einstellungen speichern'));
+}
+
+
+function setupConnections() {
+    // Prio 1.4: Fake-Connect for Meta
+    const connectMetaBtn = document.getElementById("connectMetaBtn");
+    if (connectMetaBtn) {
+        connectMetaBtn.addEventListener("click", () => {
+            if (AppState.connections.meta === false) {
+                connectMetaBtn.textContent = "Verbinde...";
+                connectMetaBtn.classList.add("disabled");
+                setTimeout(() => {
+                    AppState.connections.meta = true;
+                    updateConnectionsView();
+                    renderTopBar();
+                    showSoonToast("Erfolgreich mit Meta verbunden! (Demo-Modus)");
+                }, 1500);
+            } else {
+                showSoonToast("Meta ist bereits verbunden.");
+            }
+        });
+    }
+
+    // Prio 1.1: Handlers for other platform buttons
+    document.getElementById("connectGoogleBtn")?.addEventListener("click", () => handleDeadButton('Google Ads Verbindung'));
+    document.getElementById("connectTikTokBtn")?.addEventListener("click", () => handleDeadButton('TikTok Ads Verbindung'));
+    document.getElementById("connectAmazonBtn")?.addEventListener("click", () => handleDeadButton('Amazon Ads Verbindung'));
+    document.getElementById("connectOtherBtn")?.addEventListener("click", () => handleDeadButton('Weitere Verbindungen'));
+}
+
+/**
+ * Prio 1.4: Aktualisiert den Status im Connections View und Top Bar.
+ */
+function updateConnectionsView() {
+    const metaStatusText = document.getElementById("metaStatusText");
+    const metaStatusDot = document.getElementById("metaStatusDot");
+    const connectMetaBtn = document.getElementById("connectMetaBtn");
+
+    if (metaStatusText && metaStatusDot && connectMetaBtn) {
+        if (AppState.connections.meta) {
+            metaStatusText.textContent = "Verbunden";
+            metaStatusDot.className = "status-dot success"; 
+            connectMetaBtn.textContent = "Verbunden";
+            connectMetaBtn.classList.add("disabled");
+        } else {
+            metaStatusText.textContent = "Getrennt";
+            metaStatusDot.className = "status-dot error";
+            connectMetaBtn.textContent = "Verbinden";
+            connectMetaBtn.classList.remove("disabled");
+        }
+    }
+    // Google status update (for dot aesthetics)
+    document.getElementById("googleStatusDot")?.classList.toggle("success", AppState.connections.google);
+}
+
+function setupTopBarDeadButtons() {
+    // Prio 1.1: Top bar icons
+    document.getElementById("notificationIcon")?.addEventListener("click", () => handleDeadButton('Benachrichtigungen'));
+    document.getElementById("topBarMetaIcon")?.addEventListener("click", () => handleDeadButton('Meta Account Quick-Link'));
+    document.getElementById("topBarGoogleIcon")?.addEventListener("click", () => handleDeadButton('Google Account Quick-Link'));
+    document.getElementById("topBarSpotifyIcon")?.addEventListener("click", () => handleDeadButton('Spotify Quick-Link'));
+    document.getElementById("settingsIcon")?.addEventListener("click", () => setActiveView('settings'));
+}
+
+
+// ----------------------------------------------------------------------
+// RENDER ALL
+// ----------------------------------------------------------------------
+
+function renderAll() {
+  // Globale KPI einmal aus den Mock-Daten berechnen
+  AppState.kpi = calculateGlobalKpi();
+
+  // Top-Bar / Account / Datum
+  renderTopBar?.();
+  initDate();
+
+  // Views mit den Mock-Daten neu zeichnen
+  renderDashboard();        // Hero-Creatives + KPI-Kacheln Style A
+  renderCreativesView();    // Creatives-Grid
+  renderCampaignsView();    // Kampagnen-Tabelle
+  renderInsightsView();     // Insights-Liste
+  renderSenseiView();       // SignalSensei Strategie
+  renderLibraryView();      // Creative Library
+  renderReportsView();      // Reports + JSON
+  renderConnectionsView();  // Verbindungen
+  loadProfileSettings?.();  // Profil-Felder befüllen
+}
+
+// ----------------------------------------------------------------------
+// INIT (Inspector / General Setup)
+// ----------------------------------------------------------------------
+
+function setupInspector() {
+  const inspectorToggle = document.getElementById("inspectorToggle");
+  const inspector = document.getElementById("stateInspector");
+  const inspectorClose = document.getElementById("inspectorClose");
+  
+  if(inspectorToggle) {
+    inspectorToggle.addEventListener("click", () => {
+      inspector?.classList.toggle("hidden");
+    });
+  }
+
+  if(inspectorClose) {
+    inspectorClose.addEventListener("click", () => {
+      inspector?.classList.add("hidden");
+    });
+  }
+}
+
+function updateStateInspector() {
   const stateEl = document.getElementById("inspectorState");
   const eventsEl = document.getElementById("inspectorEvents");
   if (stateEl) {
@@ -1312,52 +1025,35 @@ function renderInspector() {
         theme: AppState.theme,
         period: AppState.period,
         connections: AppState.connections,
-        kpi: AppState.kpi
+        kpi: AppState.kpi,
+        account: AppState.account,
+        creativeView: AppState.creativeView,
+        creativeSort: AppState.creativeSort,
+        creativeFilterText: AppState.creativeFilterText // NEU
       },
       null,
       2
     );
   }
   if (eventsEl) {
-    eventsEl.textContent = JSON.stringify(EventLog.slice(-40), null, 2);
+    eventsEl.textContent = "Event Log (Noch leer)"; // Vereinfachte Ausgabe
   }
 }
 
-// ----------------------------------------------------------------------
-// RENDER ALL
-// ----------------------------------------------------------------------
-
-function renderAll() {
-  // Kpi immer aus den Mock-Creatives neu berechnen
-  AppState.kpi = calculateGlobalKpi();
-
-  renderDashboard();
-  renderCreativesView();
-  renderCampaignsView();
-  renderInsightsView();
-  renderSenseiView();
-  renderLibraryView();
-  renderReportsView();
-  renderConnectionsView();
-}
-
-// ----------------------------------------------------------------------
-// INIT
-// ----------------------------------------------------------------------
-
 document.addEventListener("DOMContentLoaded", () => {
+  // Theme & Account laden
+  AppState.theme = localStorage.getItem("signalOneTheme") || "light";
   initTheme();
-  initDate();
+  loadAccount?.();
+
+  // UI-Controls
   setupThemeToggle();
   setupModeToggle();
   setupSidebar();
-  setupPeriodToggles();
-  setupCreativesControls();
-  setupConnections();
-  loadProfileSettings();
-  setupProfileButtons();
-  setupStateInspector();
+  setupProfileButtons?.();
+  setupConnections?.();
 
-  AppState.kpi = calculateGlobalKpi();
-  renderAll();
+  // Startview = Dashboard
+  AppState.activeView = "dashboard";
+  setActiveView("dashboard");
 });
