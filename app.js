@@ -154,32 +154,36 @@ function renderScoreChart(value = 70) {
       responsive: true
     }
   });
-  function renderCreatives() {
+}
+
+function renderCreatives() {
   const grid = document.getElementById("creativeGrid");
   if (!grid) return;
 
   grid.innerHTML = "";
 
-  SignalState.creatives.forEach(c => {
+  SignalState.creatives.forEach((creative) => {
     const card = document.createElement("div");
     card.className = "creative-card";
 
-    const isVideo = c.mediaType === "video";
+    const isVideo = creative.mediaType === "video";
 
     card.innerHTML = `
-      <div class="creative-badge">${c.ROAS.toFixed(1)}x ROAS</div>
-      ${isVideo ? 
-        `<video class="creative-thumb" src="${c.URL}" autoplay muted loop></video>` :
-        `<img class="creative-thumb" src="${c.URL}">`
+      <div class="creative-badge">${creative.ROAS.toFixed(1)}x ROAS</div>
+      ${isVideo ?
+        `<video class="creative-thumb" src="${creative.URL}" autoplay muted loop></video>` :
+        `<img class="creative-thumb" src="${creative.URL}">`
       }
       <div class="creative-info">
-        <span>${c.name}</span>
-        <strong>${c.score}</strong>
+        <span>${creative.name}</span>
+        <strong>${creative.score}</strong>
       </div>
     `;
 
     grid.appendChild(card);
   });
+}
+
 function showSkeleton(id, show = true) {
   const el = document.getElementById(id);
   if (el) el.classList.toggle("hidden", !show);
@@ -266,46 +270,48 @@ window.addEventListener("DOMContentLoaded", () => {
   setupCollapsible();
   setupMetaButton();
   setupSettingsTabs();
-loadSettings();
-  // Reaktionen auf State-Änderungen
-StateBus.subscribe(["kpi"], () => {
-  // Dashboard neu zeichnen
-  // (falls du schon eine renderDashboard() Funktion hast, sonst via renderAll)
-  renderAll();
-});
+  loadSettings();
 
-StateBus.subscribe(["campaigns"], () => {
-  renderCampaigns();
-});
+  StateBus.subscribe(["kpi"], () => {
+    renderAll();
+  });
 
-StateBus.subscribe(["creatives"], () => {
-  renderCreatives();
-});
+  StateBus.subscribe(["campaigns"], () => {
+    renderCampaigns();
+  });
 
-// Debug: alles loggen
-// StateBus.subscribe("*", ({ key, value, meta }) => {
-//   console.log("[STATE]", key, value, meta);
-// });
+  StateBus.subscribe(["creatives"], () => {
+    renderCreatives();
+  });
 
-
-document.getElementById("saveAccount").addEventListener("click", saveAccountSettings);
-document.getElementById("saveBranding").addEventListener("click", saveBranding);
-document.getElementById("saveAppSettings").addEventListener("click", saveAppSettings);
+  document.getElementById("saveAccount").addEventListener("click", saveAccountSettings);
+  document.getElementById("saveBranding").addEventListener("click", saveBranding);
+  document.getElementById("saveAppSettings").addEventListener("click", saveAppSettings);
 
   setupMetaPostMessage();
-  function restoreMetaSession() {
-  const token = localStorage.getItem("signalone_meta_token");
-  if (!token) {
-    setMetaStatus("error", "Nicht verbunden");
-    return;
+  restoreMetaSession();
+
+  renderAll();
+  setMetaStatus("ok", "Live");
+
+  initDate();
+  initTheme();
+  setupThemeToggle();
+
+  if (MOCK_MODE) {
+    loadMockCreatives();
   }
- // ======================================================
+
+  updateLastUpdate();
+  setInterval(updateLastUpdate, 60000);
+});
+
+// ======================================================
 // TOAST / ALERT ENGINE
 // ======================================================
-
 function toast(message, options = {}) {
   const {
-    type = "info",      // "success" | "error" | "info"
+    type = "info", // "success" | "error" | "info"
     duration = 3000,
     icon
   } = options;
@@ -330,7 +336,6 @@ function toast(message, options = {}) {
 
   container.appendChild(div);
 
-  // show
   requestAnimationFrame(() => div.classList.add("show"));
 
   const close = () => {
@@ -342,40 +347,6 @@ function toast(message, options = {}) {
   setTimeout(close, duration);
 }
 
-
-updateState(
-  {
-    campaigns,
-    kpi: {
-      Impressions: totalImpressions,
-      Clicks: totalClicks,
-      Spend: totalSpend,
-      Revenue: totalRevenue,
-      Purchases: totalPurchases,
-      CTR,
-      CPC,
-      ROAS,
-      CR,
-      AOV
-    }
-  },
-  { source: "loadMetaData", type: "meta-sync" }
-);
-
-renderAll();
-setMetaStatus("ok", "Live");
-
-  initDate();
-  initTheme();
-  setupThemeToggle();
-  
-  if (MOCK_MODE) {
-    loadMockCreatives();
-  }
-  
-  updateLastUpdate();
-  setInterval(updateLastUpdate, 60000);
-});
 // ========================================================
 // SETTINGS ENGINE
 // ========================================================
@@ -504,9 +475,6 @@ if (target) {
   requestAnimationFrame(() => target.classList.add("active"));
 }
 
-      const target = document.getElementById("view-" + view);
-      if (target) target.classList.remove("hidden");
-
       const pageTitle = document.querySelector(".page-title");
       if (pageTitle) {
         const labelEl = item.querySelector(".menu-label");
@@ -596,20 +564,20 @@ function setupSensei() {
   close.addEventListener("click", closePanel);
   overlay.addEventListener("click", closePanel);
 
-  window.addEventListener("resize", () => {
-    if (window.innerWidth > 768) return;
-    if (!panel.classList.contains("open")) return;
-    closePanel();
-  });
-}
-  // Sensei actions
-  document.querySelectorAll(".sensei-action-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const action = btn.dataset.action;
-      executeSenseiAction(action);
+    window.addEventListener("resize", () => {
+      if (window.innerWidth > 768) return;
+      if (!panel.classList.contains("open")) return;
+      closePanel();
     });
-  });
-}
+
+    // Sensei actions
+    document.querySelectorAll(".sensei-action-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const action = btn.dataset.action;
+        executeSenseiAction(action);
+      });
+    });
+  }
 
 function analyzeSenseiStrategy() {
   const strategyEl = document.getElementById("senseiStrategy");
@@ -646,16 +614,16 @@ function determineStrategy(roas, ctr, cr) {
       icon: "🚀",
       actions: ["Increase budget by 30-50%", "Test new audiences", "Expand to new placements"]
     };
-  } else if (roas > 3 && roas <= 4 && ctr > 2) {
-    return {
-      name: "Optimizer",
-      title: "Continuous Optimization Strategy",
-      description: "Gute Performance mit Verbesserungspotential. Fokus auf kontinuierliche Optimierung und Testing.",
-      icon: "⚡",DOMContentLoaded
-      actions: ["A/B test creatives", "Optimize ad schedule", "Refine targeting"]
-    };
-  } else if (roas > 2 && roas <= 3) {
-    return {
+    } else if (roas > 3 && roas <= 4 && ctr > 2) {
+      return {
+        name: "Optimizer",
+        title: "Continuous Optimization Strategy",
+        description: "Gute Performance mit Verbesserungspotential. Fokus auf kontinuierliche Optimierung und Testing.",
+        icon: "⚡",
+        actions: ["A/B test creatives", "Optimize ad schedule", "Refine targeting"]
+      };
+    } else if (roas > 2 && roas <= 3) {
+      return {
       name: "Creative Tester",
       title: "Creative Testing Strategy",
       description: "Solide Basis, aber Creative-Performance kann verbessert werden. Mehr Testing nötig.",
@@ -1225,42 +1193,40 @@ function renderAll() {
   renderTrendChart();
   renderHeatmap();
   renderWinnerLoser();
-  renderCreatives();
   renderCampaigns();
   updateCreativeCounts();
   updateQuickMetrics();
   document.querySelectorAll(".view")
-  .forEach(v => v.classList.add("fade-in"));
+    .forEach(v => v.classList.add("fade-in"));
 
-// Erst Skeleton zeigen
-showSkeleton("dashboardSkeleton", true);
-showSkeleton("dashboardReal", false);
+  showSkeleton("dashboardSkeleton", true);
+  showSkeleton("dashboardReal", false);
 
-// Simulated loading (oder nach API fetch)
-setTimeout(() => {
-  showSkeleton("dashboardSkeleton", false);
-  showSkeleton("dashboardReal", true);
-  
-  if (SignalState.senseiActive) {
-    analyzeSenseiStrategy();
-  }
-  if (SignalState.kpi) {
-    const elROAS = document.getElementById("dashROAS");
-elROAS.dataset.suffix = "x";
-animateNumber(elROAS, SignalState.kpi.ROAS);
-    document.getElementById("dashCTR").textContent = SignalState.kpi.CTR.toFixed(2) + "%";
-    document.getElementById("dashCR").textContent = SignalState.kpi.CR.toFixed(2) + "%";
-    document.getElementById("dashRevenue").textContent = fmt.curr(SignalState.kpi.Revenue);
+  setTimeout(() => {
+    showSkeleton("dashboardSkeleton", false);
+    showSkeleton("dashboardReal", true);
 
-    const score = Math.round(SignalState.kpi.ROAS * 12 + SignalState.kpi.CTR * 4 + SignalState.kpi.CR * 6);
-    document.getElementById("scoreValue").textContent = score;
-    renderScoreChart(score);
-  }
-}, 800);
-  document.getElementById("scoreValue").textContent = score;
-  renderScoreChart(score);
-}
+    if (SignalState.senseiActive) {
+      analyzeSenseiStrategy();
+    }
 
+    if (SignalState.kpi) {
+      const elROAS = document.getElementById("dashROAS");
+      elROAS.dataset.suffix = "x";
+      animateNumber(elROAS, SignalState.kpi.ROAS);
+      document.getElementById("dashCTR").textContent = SignalState.kpi.CTR.toFixed(2) + "%";
+      document.getElementById("dashCR").textContent = SignalState.kpi.CR.toFixed(2) + "%";
+      document.getElementById("dashRevenue").textContent = fmt.curr(SignalState.kpi.Revenue);
+
+      const score = Math.round(
+        SignalState.kpi.ROAS * 12 +
+        SignalState.kpi.CTR * 4 +
+        SignalState.kpi.CR * 6
+      );
+      document.getElementById("scoreValue").textContent = score;
+      renderScoreChart(score);
+    }
+  }, 800);
 }
 
 // ======================================================================
@@ -1693,30 +1659,20 @@ setTimeout(() => {
 }
 
 function renderCampaigns() {
-  showSkeleton("campaignSkeleton", true);
-document.getElementById("campaignTableBody").innerHTML = "";
-
-setTimeout(() => {
-  showSkeleton("campaignSkeleton", false);
-
-  // ab hier deine Kampagnen-Renderlogik
-  SignalState.campaigns.forEach(...)
-}, 700);
   const body = document.getElementById("campaignTableBody");
   const loading = document.getElementById("campaignLoading");
 
-  if (!body) return;
+  if (!body || !loading) return;
 
   loading.classList.remove("hidden");
   body.innerHTML = "";
 
-  setTimeout(() => {  // leichter Delay für UX
+  setTimeout(() => {
     loading.classList.add("hidden");
 
     SignalState.campaigns.forEach(c => {
       const tr = document.createElement("tr");
 
-      // KPI Coloring
       const roasClass = c.ROAS >= 2 ? "kpi-good" : c.ROAS >= 1 ? "kpi-warn" : "kpi-bad";
       const ctrClass  = c.CTR  >= 2 ? "kpi-good" : c.CTR  >= 1 ? "kpi-warn" : "kpi-bad";
 

@@ -76,6 +76,8 @@ html, body, .sidebar, .main-content, .menu-item, .kpi-card, .creative-card, .cam
   transition: background-color .25s ease, color .25s ease, border-color .25s ease;
 }
   
+/* Base Design Tokens */
+:root {
   /* Neutrals */
   --gray-50: #f9fafb;
   --gray-100: #f3f4f6;
@@ -87,7 +89,7 @@ html, body, .sidebar, .main-content, .menu-item, .kpi-card, .creative-card, .cam
   --gray-700: #374151;
   --gray-800: #1f2937;
   --gray-900: #111827;
-  
+
   /* UI Colors */
   --bg: #ffffff;
   --bg-alt: #f9fafb;
@@ -97,21 +99,21 @@ html, body, .sidebar, .main-content, .menu-item, .kpi-card, .creative-card, .cam
   --text: #111827;
   --text-secondary: #6b7280;
   --text-light: #9ca3af;
-  
+
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  
+
   /* Spacing */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
   --spacing-lg: 24px;
   --spacing-xl: 32px;
-  
+
   /* Typography */
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-size-xs: 11px;
@@ -121,7 +123,7 @@ html, body, .sidebar, .main-content, .menu-item, .kpi-card, .creative-card, .cam
   --font-size-xl: 16px;
   --font-size-2xl: 20px;
   --font-size-3xl: 24px;
-  
+
   /* Layout */
   --sidebar-width: 240px;
   --sidebar-collapsed: 72px;
