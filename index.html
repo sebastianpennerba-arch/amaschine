@@ -66,13 +66,13 @@
   <span class="menu-label">Profile</span>
 </a>
 
-    <div class="sidebar-footer">
-      <div class="connection-status" id="connectionStatus">
-        <div class="status-indicator meta" title="Meta connected"></div>
-        <span class="status-label">Meta</span>
-      </div>
-    </div>
-  </nav>
+<div class="connection-status" id="connectionStatus">
+  <div class="status-indicator meta" id="metaStatusDot"></div>
+  <div class="status-text">
+    <span class="status-label">Meta</span>
+    <span class="status-sub" id="metaStatusText">Idle</span>
+  </div>
+</div>
 
   <!-- MAIN CONTENT -->
   <div class="main-content" id="mainContent">
@@ -537,6 +537,7 @@
   <script src="/app.js"></script>
 </body>
 </html>
+
 
 
 
