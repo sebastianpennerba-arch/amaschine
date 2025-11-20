@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>SignalOne.cloud Â· Creative Intelligence Platform</title>
+  <title>SignalOne.cloud · Creative Intelligence Platform</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="/styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -12,33 +12,33 @@
   <nav class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="logo-compact">
-        <div class="logo-icon">âš¡</div>
+        <div class="logo-icon">⚡</div>
         <div class="logo-text">
           <div class="logo-title">SignalOne</div>
           <div class="logo-subtitle">.cloud</div>
         </div>
       </div>
-      <button class="sidebar-toggle" id="sidebarToggle">â˜°</button>
+      <button class="sidebar-toggle" id="sidebarToggle">☰</button>
     </div>
 
     <div class="sidebar-menu">
       <div class="menu-section">
         <div class="menu-section-title">Analytics</div>
         <a href="#dashboard" class="menu-item active" data-view="dashboard">
-          <span class="menu-icon">ðŸ“Š</span>
+          <span class="menu-icon">📊</span>
           <span class="menu-label">Dashboard</span>
         </a>
         <a href="#creatives" class="menu-item" data-view="creatives">
-          <span class="menu-icon">ðŸŽ¨</span>
+          <span class="menu-icon">🎨</span>
           <span class="menu-label">Creatives</span>
           <span class="menu-badge" id="creativeCount">12</span>
         </a>
         <a href="#campaigns" class="menu-item" data-view="campaigns">
-          <span class="menu-icon">ðŸŽ¯</span>
+          <span class="menu-icon">🎯</span>
           <span class="menu-label">Campaigns</span>
         </a>
         <a href="#insights" class="menu-item" data-view="insights">
-          <span class="menu-icon">ðŸ’¡</span>
+          <span class="menu-icon">💡</span>
           <span class="menu-label">Insights</span>
         </a>
       </div>
@@ -46,16 +46,16 @@
       <div class="menu-section">
         <div class="menu-section-title">Tools</div>
         <a href="#sensei" class="menu-item" data-view="sensei">
-          <span class="menu-icon">ðŸ§˜</span>
+          <span class="menu-icon">🧘</span>
           <span class="menu-label">SignalSensei</span>
           <span class="menu-badge premium">PRO</span>
         </a>
         <a href="#library" class="menu-item" data-view="library">
-          <span class="menu-icon">ðŸ“š</span>
+          <span class="menu-icon">📚</span>
           <span class="menu-label">Creative Library</span>
         </a>
         <a href="#reports" class="menu-item" data-view="reports">
-          <span class="menu-icon">ðŸ“ˆ</span>
+          <span class="menu-icon">📈</span>
           <span class="menu-label">Reports</span>
         </a>
       </div>
@@ -63,11 +63,11 @@
       <div class="menu-section">
         <div class="menu-section-title">Settings</div>
         <a href="#connections" class="menu-item" data-view="connections">
-          <span class="menu-icon">ðŸ”—</span>
+          <span class="menu-icon">🔗</span>
           <span class="menu-label">Connections</span>
         </a>
         <a href="#profile" class="menu-item" data-view="profile">
-          <span class="menu-icon">ðŸ‘¤</span>
+          <span class="menu-icon">👤</span>
           <span class="menu-label">Profile</span>
         </a>
       </div>
@@ -90,23 +90,23 @@
           <h1 class="page-title">Dashboard Overview</h1>
           <div class="breadcrumb">
             <span>Dashboard</span>
-            <span class="breadcrumb-sep">â€º</span>
+            <span class="breadcrumb-sep">›</span>
             <span class="breadcrumb-current">Overview</span>
           </div>
         </div>
         <div class="topbar-right">
           <div class="mode-toggle">
-            <button id="mode-live" class="mode-btn">ðŸ”¡ Live</button>
-            <button id="mode-sim" class="mode-btn active">ðŸŽ­ Demo</button>
+            <button id="mode-live" class="mode-btn">🔡 Live</button>
+            <button id="mode-sim" class="mode-btn active">🎭 Demo</button>
           </div>
           <div class="date-display" id="currentDate"></div>
           <div class="header-actions">
             <button class="icon-btn" title="Notifications">
               <span class="notification-dot"></span>
-              ðŸ””
+              🔔
             </button>
             <button class="icon-btn" id="toggleSensei" title="SignalSensei Assistant">
-              ðŸ§˜
+              🧘
             </button>
           </div>
         </div>
@@ -115,12 +115,12 @@
       <!-- SIGNALSENSEI ASSISTANT PANEL -->
       <aside class="sensei-panel" id="senseiPanel">
         <div class="sensei-header">
-          <div class="sensei-avatar">ðŸ§˜</div>
+          <div class="sensei-avatar">🧘</div>
           <div>
             <h3>SignalSensei</h3>
             <p class="sensei-subtitle">Your Creative Intelligence Guide</p>
           </div>
-          <button class="close-btn" id="closeSensei">Ã—</button>
+          <button class="close-btn" id="closeSensei">×</button>
         </div>
         
         <div class="sensei-content">
@@ -131,15 +131,15 @@
 
           <div class="sensei-actions">
             <button class="sensei-action-btn" data-action="optimize">
-              <span class="action-icon">âš¡</span>
+              <span class="action-icon">⚡</span>
               <span>Quick Optimize</span>
             </button>
             <button class="sensei-action-btn" data-action="analyze">
-              <span class="action-icon">ðŸ”</span>
+              <span class="action-icon">🔍</span>
               <span>Deep Analysis</span>
             </button>
             <button class="sensei-action-btn" data-action="predict">
-              <span class="action-icon">ðŸ”®</span>
+              <span class="action-icon">🔮</span>
               <span>Forecast</span>
             </button>
           </div>
@@ -176,7 +176,7 @@
           <div class="score-metric">
             <span class="metric-dot" style="background: #8b5cf6"></span>
             <span class="metric-name">Revenue</span>
-            <strong id="quickRevenue">â‚¬3,355</strong>
+            <strong id="quickRevenue">€3,355</strong>
           </div>
         </div>
       </section>
@@ -186,7 +186,7 @@
         <div class="section-header-enhanced">
           <div class="section-title-group">
             <h2 class="section-title-main">Creative Intelligence</h2>
-            <p class="section-description">Deine Ad Creatives im Detail - optimiert fÃ¼r Performance</p>
+            <p class="section-description">Deine Ad Creatives im Detail - optimiert für Performance</p>
           </div>
           <div class="section-controls">
             <div class="period-selector-compact">
@@ -195,7 +195,7 @@
               <button class="toggle-btn" data-period="30">30d</button>
             </div>
             <button class="btn-icon-label" id="exportCreatives">
-              <span>ðŸ“¥</span> Export
+              <span>📥</span> Export
             </button>
           </div>
         </div>
@@ -204,27 +204,27 @@
         <div class="creative-controls">
           <div class="filter-group">
             <button class="filter-chip active" data-filter="all">
-              <span class="chip-icon">ðŸŽ¨</span>
+              <span class="chip-icon">🎨</span>
               <span class="chip-label">Alle</span>
               <span class="chip-count" id="countAll">12</span>
             </button>
             <button class="filter-chip" data-filter="image">
-              <span class="chip-icon">ðŸ–¼ï¸</span>
+              <span class="chip-icon">🖼️</span>
               <span class="chip-label">Bilder</span>
               <span class="chip-count" id="countImages">8</span>
             </button>
             <button class="filter-chip" data-filter="video">
-              <span class="chip-icon">ðŸŽ¬</span>
+              <span class="chip-icon">🎬</span>
               <span class="chip-label">Videos</span>
               <span class="chip-count" id="countVideos">4</span>
             </button>
             <div class="filter-divider"></div>
             <button class="filter-chip" data-filter="winner">
-              <span class="chip-icon">ðŸ†</span>
+              <span class="chip-icon">🏆</span>
               <span class="chip-label">Top Performer</span>
             </button>
             <button class="filter-chip" data-filter="attention">
-              <span class="chip-icon">âš ï¸</span>
+              <span class="chip-icon">⚠️</span>
               <span class="chip-label">Needs Attention</span>
             </button>
           </div>
@@ -235,7 +235,7 @@
                 <span class="platform-icon meta-icon">f</span>
               </button>
               <button class="platform-btn disabled" data-platform="tiktok" title="TikTok (Coming Soon)">
-                <span class="platform-icon tiktok-icon">â™ª</span>
+                <span class="platform-icon tiktok-icon">♪</span>
               </button>
               <button class="platform-btn disabled" data-platform="google" title="Google (Coming Soon)">
                 <span class="platform-icon google-icon">G</span>
@@ -243,17 +243,17 @@
             </div>
             
             <select class="sort-select" id="sortCreatives">
-              <option value="roas">Sort: ROAS â†“</option>
-              <option value="ctr">Sort: CTR â†“</option>
-              <option value="cpc">Sort: CPC â†‘</option>
-              <option value="impressions">Sort: Reach â†“</option>
-              <option value="score">Sort: Score â†“</option>
+              <option value="roas">Sort: ROAS ↓</option>
+              <option value="ctr">Sort: CTR ↓</option>
+              <option value="cpc">Sort: CPC ↑</option>
+              <option value="impressions">Sort: Reach ↓</option>
+              <option value="score">Sort: Score ↓</option>
             </select>
 
             <div class="view-switcher">
-              <button class="view-btn active" data-view="grid" title="Grid View">âŠž</button>
-              <button class="view-btn" data-view="list" title="List View">â˜°</button>
-              <button class="view-btn" data-view="compare" title="Compare View">âŠŸ</button>
+              <button class="view-btn active" data-view="grid" title="Grid View">⊞</button>
+              <button class="view-btn" data-view="list" title="List View">☰</button>
+              <button class="view-btn" data-view="compare" title="Compare View">⊟</button>
             </div>
           </div>
         </div>
@@ -264,7 +264,7 @@
         <!-- CREATIVE INSIGHTS SUMMARY -->
         <div class="creative-summary">
           <div class="summary-card">
-            <div class="summary-icon">ðŸŽ¯</div>
+            <div class="summary-icon">🎯</div>
             <div class="summary-content">
               <div class="summary-label">Avg. ROAS</div>
               <div class="summary-value" id="avgROAS">3.2x</div>
@@ -272,7 +272,7 @@
             </div>
           </div>
           <div class="summary-card">
-            <div class="summary-icon">âš¡</div>
+            <div class="summary-icon">⚡</div>
             <div class="summary-content">
               <div class="summary-label">Avg. CTR</div>
               <div class="summary-value" id="avgCTR">2.4%</div>
@@ -280,15 +280,15 @@
             </div>
           </div>
           <div class="summary-card">
-            <div class="summary-icon">ðŸ’°</div>
+            <div class="summary-icon">💰</div>
             <div class="summary-content">
               <div class="summary-label">Total Spend</div>
-              <div class="summary-value" id="totalSpend">â‚¬2,840</div>
-              <div class="summary-trend neutral">vs. â‚¬2,650</div>
+              <div class="summary-value" id="totalSpend">€2,840</div>
+              <div class="summary-trend neutral">vs. €2,650</div>
             </div>
           </div>
           <div class="summary-card highlight">
-            <div class="summary-icon">ðŸ†</div>
+            <div class="summary-icon">🏆</div>
             <div class="summary-content">
               <div class="summary-label">Top Performer</div>
               <div class="summary-value" id="topCreative">Creative #3</div>
@@ -302,14 +302,14 @@
       <section class="section collapsible" data-section="overview">
         <div class="section-header-collapsible">
           <button class="collapse-toggle">
-            <span class="collapse-icon">â–¼</span>
+            <span class="collapse-icon">▼</span>
           </button>
           <div class="section-title-group">
             <h2 class="section-title-main">Performance Overview</h2>
             <p class="section-description">Wichtigste Metriken auf einen Blick</p>
           </div>
           <div class="section-meta">
-            <span class="update-indicator" id="lastUpdate">â— vor 2 Min.</span>
+            <span class="update-indicator" id="lastUpdate">● vor 2 Min.</span>
           </div>
         </div>
         
@@ -332,7 +332,7 @@
       <section class="section collapsible" data-section="kpis">
         <div class="section-header-collapsible">
           <button class="collapse-toggle">
-            <span class="collapse-icon">â–¼</span>
+            <span class="collapse-icon">▼</span>
           </button>
           <div class="section-title-group">
             <h2 class="section-title-main">KPI Deep Dive</h2>
@@ -359,7 +359,7 @@
           <div class="heatmap-section">
             <div class="heatmap-header">
               <h3>Performance Heatmap</h3>
-              <p>Beste Performance-Zeiten fÃ¼r deine Kampagnen</p>
+              <p>Beste Performance-Zeiten für deine Kampagnen</p>
             </div>
             <div class="heatmap-container" id="heatmapContainer"></div>
             <div class="heatmap-legend">
@@ -375,7 +375,7 @@
       <section class="section collapsible" data-section="comparison">
         <div class="section-header-collapsible">
           <button class="collapse-toggle">
-            <span class="collapse-icon">â–¼</span>
+            <span class="collapse-icon">▼</span>
           </button>
           <div class="section-title-group">
             <h2 class="section-title-main">Performance Comparison</h2>
@@ -386,11 +386,11 @@
         <div class="section-content">
           <div class="winner-loser-grid">
             <div class="winner-card">
-              <div class="card-badge winner">ðŸ† Top Performer</div>
+              <div class="card-badge winner">🏆 Top Performer</div>
               <div id="winnerContent"></div>
             </div>
             <div class="loser-card">
-              <div class="card-badge loser">âš ï¸ Verbesserungsbedarf</div>
+              <div class="card-badge loser">⚠️ Verbesserungsbedarf</div>
               <div id="loserContent"></div>
             </div>
           </div>
@@ -401,50 +401,50 @@
       <section class="section collapsible" data-section="recommendations">
         <div class="section-header-collapsible">
           <button class="collapse-toggle">
-            <span class="collapse-icon">â–¼</span>
+            <span class="collapse-icon">▼</span>
           </button>
           <div class="section-title-group">
             <h2 class="section-title-main">Smart Recommendations</h2>
-            <p class="section-description">KI-gestÃ¼tzte Handlungsempfehlungen</p>
+            <p class="section-description">KI-gestützte Handlungsempfehlungen</p>
           </div>
           <button class="btn-text" id="refreshRecommendations">
-            <span>ðŸ”„</span> Aktualisieren
+            <span>🔄</span> Aktualisieren
           </button>
         </div>
         
         <div class="section-content">
           <div class="recommendations-grid" id="recommendationsGrid">
             <div class="recommendation-card priority-high">
-              <div class="rec-icon">ðŸŽ¯</div>
+              <div class="rec-icon">🎯</div>
               <div class="rec-content">
-                <div class="rec-badge">Hohe PrioritÃ¤t</div>
+                <div class="rec-badge">Hohe Priorität</div>
                 <h4>Budget zu Top-Performern verschieben</h4>
                 <p>Creatives mit ROAS > 4.0 haben 67% mehr Conversions. Empfehlung: +40% Budget.</p>
                 <div class="rec-impact">Erwarteter ROAS-Lift: <strong>+18%</strong></div>
               </div>
-              <button class="rec-action">Anwenden â†’</button>
+              <button class="rec-action">Anwenden →</button>
             </div>
 
             <div class="recommendation-card priority-medium">
-              <div class="rec-icon">ðŸŽ¬</div>
+              <div class="rec-icon">🎬</div>
               <div class="rec-content">
-                <div class="rec-badge">Mittlere PrioritÃ¤t</div>
-                <h4>Video-Content verstÃ¤rken</h4>
-                <p>Video-Ads haben 34% hÃ¶here Engagement-Rate. 2 Low-Performer pausieren.</p>
+                <div class="rec-badge">Mittlere Priorität</div>
+                <h4>Video-Content verstärken</h4>
+                <p>Video-Ads haben 34% höhere Engagement-Rate. 2 Low-Performer pausieren.</p>
                 <div class="rec-impact">Erwartete CTR-Steigerung: <strong>+0.8%</strong></div>
               </div>
-              <button class="rec-action">Details â†’</button>
+              <button class="rec-action">Details →</button>
             </div>
 
             <div class="recommendation-card priority-low">
-              <div class="rec-icon">â°</div>
+              <div class="rec-icon">⏰</div>
               <div class="rec-content">
-                <div class="rec-badge">Niedrige PrioritÃ¤t</div>
+                <div class="rec-badge">Niedrige Priorität</div>
                 <h4>Zeitplanung optimieren</h4>
                 <p>Peak-Performance zwischen 18-21 Uhr. Dayparting aktivieren.</p>
-                <div class="rec-impact">Potentielle Kostenersparnis: <strong>â‚¬180/Woche</strong></div>
+                <div class="rec-impact">Potentielle Kostenersparnis: <strong>€180/Woche</strong></div>
               </div>
-              <button class="rec-action">Planen â†’</button>
+              <button class="rec-action">Planen →</button>
             </div>
           </div>
         </div>
