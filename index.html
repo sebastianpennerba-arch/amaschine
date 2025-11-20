@@ -1,657 +1,307 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-  <meta charset="UTF-8" />
-  <title>SignalOne.cloud · Creative Intelligence Platform</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="/styles.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-</head>
-<body>
-  <!-- SIDEBAR NAVIGATION -->
-  <nav class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-  <a href="#dashboard" class="sidebar-logo">
-    <img src="/Logo_qu_tr.png" alt="SignalOne Logo" class="sidebar-logo-img">
-  </a>
-  <button class="sidebar-toggle" id="sidebarToggle">☰</button>
-</div>
-    <div class="sidebar-menu">
-      <div class="menu-section">
-        <div class="menu-section-title">Analytics</div>
-<a href="#dashboard" class="menu-item active" data-view="dashboard" data-tooltip="Dashboard">
-  <span class="menu-icon">📊</span>
-  <span class="menu-label">Dashboard</span>
-</a>
-
-<a href="#creatives" class="menu-item" data-view="creatives" data-tooltip="Creatives">
-  <span class="menu-icon">🎨</span>
-  <span class="menu-label">Creatives</span>
-  <span class="menu-badge" id="creativeCount">12</span>
-</a>
-
-<a href="#campaigns" class="menu-item" data-view="campaigns" data-tooltip="Campaigns">
-  <span class="menu-icon">🎯</span>
-  <span class="menu-label">Campaigns</span>
-</a>
-
-<a href="#insights" class="menu-item" data-view="insights" data-tooltip="Insights">
-  <span class="menu-icon">💡</span>
-  <span class="menu-label">Insights</span>
-</a>
-
-<a href="#sensei" class="menu-item" data-view="sensei" data-tooltip="SignalSensei">
-  <span class="menu-icon">🧘</span>
-  <span class="menu-label">SignalSensei</span>
-  <span class="menu-badge premium">PRO</span>
-</a>
-
-<a href="#library" class="menu-item" data-view="library" data-tooltip="Creative Library">
-  <span class="menu-icon">📚</span>
-  <span class="menu-label">Creative Library</span>
-</a>
-
-<a href="#reports" class="menu-item" data-view="reports" data-tooltip="Reports">
-  <span class="menu-icon">📈</span>
-  <span class="menu-label">Reports</span>
-</a>
-
-<a href="#connections" class="menu-item" data-view="connections" data-tooltip="Connections">
-  <span class="menu-icon">🔗</span>
-  <span class="menu-label">Connections</span>
-</a>
-
-<a href="#profile" class="menu-item" data-view="profile" data-tooltip="Profile">
-  <span class="menu-icon">👤</span>
-  <span class="menu-label">Profile</span>
-</a>
-
-<div class="connection-status" id="connectionStatus">
-  <div class="status-indicator meta" id="metaStatusDot"></div>
-  <div class="status-text">
-    <span class="status-label">Meta</span>
-    <span class="status-sub" id="metaStatusText">Idle</span>
-  </div>
-</div>
-
-  <!-- MAIN CONTENT -->
-  <div class="main-content" id="mainContent">
-    <div class="wrapper">
-      <!-- TOP BAR -->
-      <header class="topbar">
-        <div class="topbar-left">
-          <h1 class="page-title">Dashboard Overview</h1>
-          <div class="breadcrumb">
-            <span>Dashboard</span>
-            <span class="breadcrumb-sep">›</span>
-            <span class="breadcrumb-current">Overview</span>
-          </div>
-        </div>
-        <div class="topbar-right">
-          <button id="themeToggle" class="theme-toggle">🌓</button>
-          <div class="mode-toggle">
-            <button id="mode-live" class="mode-btn">🔡 Live</button>
-            <button id="mode-sim" class="mode-btn active">🎭 Demo</button>
-          </div>
-          <div class="date-display" id="currentDate"></div>
-          <div class="header-actions">
-            <button class="icon-btn" title="Notifications">
-              <span class="notification-dot"></span>
-              🔔
-            </button>
-            <button class="icon-btn" id="toggleSensei" title="SignalSensei Assistant">
-              🧘
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <!-- SIGNALSENSEI ASSISTANT PANEL -->
-            <aside class="sensei-panel" id="senseiPanel">
-        <div id="senseiOverlay" class="sensei-overlay"></div>
-        <div class="sensei-header">
-          <div class="sensei-avatar">🧘</div>
-          <div>
-            <h3>SignalSensei</h3>
-            <p class="sensei-subtitle">Your Creative Intelligence Guide</p>
-          </div>
-          <button class="close-btn" id="closeSensei">×</button>
-        </div>
-        <div id="senseiSkeleton">
-  <div class="skeleton skeleton-box" style="width:90%;height:14px;"></div>
-  <div class="skeleton skeleton-box" style="width:80%;height:14px;"></div>
-  <div class="skeleton skeleton-box" style="width:60%;height:14px;"></div>
-</div>
-
-        <div class="sensei-content">
-          <div class="sensei-strategy" id="senseiStrategy">
-            <div class="strategy-badge">Analyzing your data...</div>
-            <p>Ich analysiere deine Kampagnen-Performance um die beste Strategie zu empfehlen.</p>
-          </div>
-
-          <div class="sensei-actions">
-            <button class="sensei-action-btn" data-action="optimize">
-              <span class="action-icon">⚡</span>
-              <span>Quick Optimize</span>
-            </button>
-            <button class="sensei-action-btn" data-action="analyze">
-              <span class="action-icon">🔍</span>
-              <span>Deep Analysis</span>
-            </button>
-            <button class="sensei-action-btn" data-action="predict">
-              <span class="action-icon">🔮</span>
-              <span>Forecast</span>
-            </button>
-          </div>
-
-          <div class="sensei-insights" id="senseiInsights"></div>
-        </div>
-      </aside>
-
-<section class="dashboard-section" id="dashboard-metrics">
-<div id="dashboardSkeleton" class="dashboard-skeleton">
-  <div class="kpi-grid">
-    <div class="kpi-card"><div class="skeleton skeleton-box"></div></div>
-    <div class="kpi-card"><div class="skeleton skeleton-box"></div></div>
-    <div class="kpi-card"><div class="skeleton skeleton-box"></div></div>
-    <div class="kpi-card"><div class="skeleton skeleton-box"></div></div>
-  </div>
-
-  <div class="score-ring" style="margin-top: 30px;">
-    <div class="skeleton skeleton-circle" style="width:170px;height:170px;margin:0 auto;"></div>
-  </div>
-</div>
-
-<div id="dashboardReal" class="hidden">
-  <!-- Hier bleibt dein echter KPI-Block + Score-Chart -->
-  <div class="kpi-grid">
-    <div class="kpi-card"><label>ROAS</label><strong id="dashROAS">–</strong></div>
-    <div class="kpi-card"><label>CTR</label><strong id="dashCTR">–</strong></div>
-    <div class="kpi-card"><label>CR</label><strong id="dashCR">–</strong></div>
-    <div class="kpi-card"><label>Revenue</label><strong id="dashRevenue">–</strong></div>
-  </div>
-
-  <div class="score-ring">
-    <canvas id="scoreChart"></canvas>
-    <div class="score-value" id="scoreValue">–</div>
-  </div>
-</div>
-
-      <!-- CREATIVE PERFORMANCE - HERO SECTION -->
-      <section class="section creative-hero">
-        <div class="section-header-enhanced">
-          <div class="section-title-group">
-            <h2 class="section-title-main">Creative Intelligence</h2>
-            <p class="section-description">Deine Ad Creatives im Detail - optimiert für Performance</p>
-          </div>
-          <div class="section-controls">
-            <div class="period-selector-compact">
-              <button class="toggle-btn active" data-period="1">24h</button>
-              <button class="toggle-btn" data-period="7">7d</button>
-              <button class="toggle-btn" data-period="30">30d</button>
-            </div>
-            <button class="btn-icon-label" id="exportCreatives">
-              <span>📥</span> Export
-            </button>
-          </div>
-        </div>
-
-        <!-- CREATIVE FILTERS & CONTROLS -->
-        <div class="creative-controls">
-          <div class="filter-group">
-            <button class="filter-chip active" data-filter="all">
-              <span class="chip-icon">🎨</span>
-              <span class="chip-label">Alle</span>
-              <span class="chip-count" id="countAll">12</span>
-            </button>
-            <button class="filter-chip" data-filter="image">
-              <span class="chip-icon">🖼️</span>
-              <span class="chip-label">Bilder</span>
-              <span class="chip-count" id="countImages">8</span>
-            </button>
-            <button class="filter-chip" data-filter="video">
-              <span class="chip-icon">🎬</span>
-              <span class="chip-label">Videos</span>
-              <span class="chip-count" id="countVideos">4</span>
-            </button>
-            <div class="filter-divider"></div>
-            <button class="filter-chip" data-filter="winner">
-              <span class="chip-icon">🏆</span>
-              <span class="chip-label">Top Performer</span>
-            </button>
-            <button class="filter-chip" data-filter="attention">
-              <span class="chip-icon">⚠️</span>
-              <span class="chip-label">Needs Attention</span>
-            </button>
-          </div>
-
-          <div class="view-controls">
-            <div class="platform-filter">
-              <button class="platform-btn active" data-platform="meta" title="Meta Ads">
-                <span class="platform-icon meta-icon">f</span>
-              </button>
-              <button class="platform-btn disabled" data-platform="tiktok" title="TikTok (Coming Soon)">
-                <span class="platform-icon tiktok-icon">♪</span>
-              </button>
-              <button class="platform-btn disabled" data-platform="google" title="Google (Coming Soon)">
-                <span class="platform-icon google-icon">G</span>
-              </button>
-            </div>
-            
-            <select class="sort-select" id="sortCreatives">
-              <option value="roas">Sort: ROAS ↓</option>
-              <option value="ctr">Sort: CTR ↓</option>
-              <option value="cpc">Sort: CPC ↑</option>
-              <option value="impressions">Sort: Reach ↓</option>
-              <option value="score">Sort: Score ↓</option>
-            </select>
-
-            <div class="view-switcher">
-              <button class="view-btn active" data-view="grid" title="Grid View">⊞</button>
-              <button class="view-btn" data-view="list" title="List View">☰</button>
-              <button class="view-btn" data-view="compare" title="Compare View">⊟</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- CREATIVE GRID - ENHANCED -->
-        <div id="creativeGrid" class="creative-grid-enhanced"></div>
-
-        <!-- CREATIVE INSIGHTS SUMMARY -->
-        <div class="creative-summary">
-          <div class="summary-card">
-            <div class="summary-icon">🎯</div>
-            <div class="summary-content">
-              <div class="summary-label">Avg. ROAS</div>
-              <div class="summary-value" id="avgROAS">3.2x</div>
-              <div class="summary-trend positive">+12% vs. last period</div>
-            </div>
-          </div>
-          <div class="summary-card">
-            <div class="summary-icon">⚡</div>
-            <div class="summary-content">
-              <div class="summary-label">Avg. CTR</div>
-              <div class="summary-value" id="avgCTR">2.4%</div>
-              <div class="summary-trend positive">+0.3%</div>
-            </div>
-          </div>
-          <div class="summary-card">
-            <div class="summary-icon">💰</div>
-            <div class="summary-content">
-              <div class="summary-label">Total Spend</div>
-              <div class="summary-value" id="totalSpend">€2,840</div>
-              <div class="summary-trend neutral">vs. €2,650</div>
-            </div>
-          </div>
-          <div class="summary-card highlight">
-            <div class="summary-icon">🏆</div>
-            <div class="summary-content">
-              <div class="summary-label">Top Performer</div>
-              <div class="summary-value" id="topCreative">Creative #3</div>
-              <div class="summary-trend positive">ROAS 5.2x</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- PERFORMANCE OVERVIEW - COLLAPSIBLE -->
-      <section class="section collapsible" data-section="overview">
-        <div class="section-header-collapsible">
-          <button class="collapse-toggle">
-            <span class="collapse-icon">▼</span>
-          </button>
-          <div class="section-title-group">
-            <h2 class="section-title-main">Performance Overview</h2>
-            <p class="section-description">Wichtigste Metriken auf einen Blick</p>
-          </div>
-          <div class="section-meta">
-            <span class="update-indicator" id="lastUpdate">● vor 2 Min.</span>
-          </div>
-        </div>
-        
-        <div class="section-content">
-          <div class="overview-grid" id="overviewGrid"></div>
-
-          <div class="funnel-section">
-            <div class="funnel-header">
-              <h3>Conversion Funnel</h3>
-              <div class="funnel-stats">
-                <span>Gesamt-CR: <strong id="totalCR" class="value-positive">4.2%</strong></span>
-              </div>
-            </div>
-            <div class="funnel-visual" id="funnelSteps"></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- KPI ANALYSIS - COLLAPSIBLE -->
-      <section class="section collapsible" data-section="kpis">
-        <div class="section-header-collapsible">
-          <button class="collapse-toggle">
-            <span class="collapse-icon">▼</span>
-          </button>
-          <div class="section-title-group">
-            <h2 class="section-title-main">KPI Deep Dive</h2>
-            <p class="section-description">Detaillierte Metriken mit Benchmarks</p>
-          </div>
-        </div>
-        
-        <div class="section-content">
-          <div class="kpi-grid-enhanced" id="kpiGrid"></div>
-
-          <div class="chart-container">
-            <div class="chart-header">
-              <h3>Performance Trend</h3>
-              <div class="chart-filters">
-                <button class="chart-filter active" data-metric="roas">ROAS</button>
-                <button class="chart-filter" data-metric="ctr">CTR</button>
-                <button class="chart-filter" data-metric="spend">Spend</button>
-                <button class="chart-filter" data-metric="revenue">Revenue</button>
-              </div>
-            </div>
-            <canvas id="trendChart" height="180"></canvas>
-          </div>
-
-          <div class="heatmap-section">
-            <div class="heatmap-header">
-              <h3>Performance Heatmap</h3>
-              <p>Beste Performance-Zeiten für deine Kampagnen</p>
-            </div>
-            <div class="heatmap-container" id="heatmapContainer"></div>
-            <div class="heatmap-legend">
-              <span>Niedrig</span>
-              <div class="legend-gradient"></div>
-              <span>Hoch</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- PAGE VIEWS -->
-<section class="view" id="view-dashboard">
-  <h2 class="view-title">Dashboard</h2>
-  <p>Übersicht deiner wichtigsten Performance-KPIs.</p>
-</section>
-
-<section class="view hidden" id="view-creatives">
-  <div id="creativeSkeleton" class="creative-grid">
-  <div class="skeleton skeleton-creative"></div>
-  <div class="skeleton skeleton-creative"></div>
-  <div class="skeleton skeleton-creative"></div>
-  <div class="skeleton skeleton-creative"></div>
-  <div class="skeleton skeleton-creative"></div>
-  <div class="skeleton skeleton-creative"></div>
-</div>
-  <div class="creative-grid" id="creativeGrid"></div>
-  <h2 class="view-title">Creatives</h2>
-  <p>Deine Creatives, Scores, ROAS & CTR Auswertungen.</p>
-</section>
-
-<section class="view hidden" id="view-campaigns">
-  <h2 class="view-title">Campaign Analytics</h2>
-<div id="campaignSkeleton">
-  <div class="skeleton skeleton-row"></div>
-  <div class="skeleton skeleton-row"></div>
-  <div class="skeleton skeleton-row"></div>
-  <div class="skeleton skeleton-row"></div>
-</div>
-
-<div id="campaignLoading" class="campaign-loading hidden">Lade Daten…</div>
-
-<table class="campaign-table" id="campaignTable">
-  <thead>
-    <tr>
-      <th data-sort="name">Name</th>
-      <th data-sort="spend">Spend</th>
-      <th data-sort="impressions">Impr.</th>
-      <th data-sort="ctr">CTR</th>
-      <th data-sort="cpc">CPC</th>
-      <th data-sort="purchases">Purchases</th>
-      <th data-sort="roas">ROAS</th>
-    </tr>
-  </thead>
-  <tbody id="campaignTableBody"></tbody>
-</table>
-</section>
-
-<section class="view hidden" id="view-insights">
-  <h2 class="view-title">Insights</h2>
-  <p>Datengetriebene Optimierungsempfehlungen.</p>
-</section>
-
-<section class="view hidden" id="view-sensei">
-  <h2 class="view-title">SignalSensei</h2>
-  <p>Strategische Vorschläge & Analysen.</p>
-</section>
-
-<section class="view hidden" id="view-library">
-  <h2 class="view-title">Creative Library</h2>
-  <p>Alle Creatives zentral gespeichert.</p>
-</section>
-
-<section class="view hidden" id="view-reports">
-  <h2 class="view-title">Reports & Analytics</h2>
-  <p>Berichte, Analysen & KPI-Exports.</p>
-</section>
-
-<section class="view hidden" id="view-connections">
-  <h2 class="view-title">Integrations</h2>
-  <p>Meta, Google, Sheets & Tracking Setup.</p>
-</section>
-
-<h2 class="view-title">Einstellungen</h2>
-
-<div class="settings-container">
-
-  <div class="settings-tabs">
-    <button class="settings-tab active" data-tab="account">Account</button>
-    <button class="settings-tab" data-tab="api">Integrationen</button>
-    <button class="settings-tab" data-tab="branding">Branding</button>
-    <button class="settings-tab" data-tab="plan">Abo & Limits</button>
-    <button class="settings-tab" data-tab="app">App</button>
-  </div>
-
-  <div class="settings-content">
-
-    <!-- ACCOUNT -->
-    <div class="settings-panel active" id="tab-account">
-      <div class="form-group">
-        <label>Name</label>
-        <input id="profileName" type="text" placeholder="Dein Name">
-      </div>
-
-      <div class="form-group">
-        <label>E-Mail</label>
-        <input id="profileEmail" type="email" placeholder="name@example.com">
-      </div>
-
-      <div class="form-group">
-        <label>Avatar URL</label>
-        <input id="profileAvatar" type="text" placeholder="https://...">
-      </div>
-
-      <button id="saveAccount" class="button primary">Speichern</button>
-    </div>
-
-    <!-- API -->
-    <div class="settings-panel" id="tab-api">
-      <h3>Meta Integration</h3>
-      <p>Status: <span id="metaApiStatus">Nicht verbunden</span></p>
-      <button id="connectMeta" class="button">Meta verbinden</button>
-    </div>
-
-    <!-- BRANDING -->
-    <div class="settings-panel" id="tab-branding">
-      <div class="form-group">
-        <label>Brand Name</label>
-        <input id="brandName" type="text" placeholder="Deine Marke">
-      </div>
-
-      <div class="form-group">
-        <label>Primärfarbe</label>
-        <input id="brandColor" type="color" value="#6366f1">
-      </div>
-
-      <button id="saveBranding" class="button primary">Branding speichern</button>
-    </div>
-
-    <!-- PLAN -->
-    <div class="settings-panel" id="tab-plan">
-      <h3>Dein Plan</h3>
-      <p>Aktueller Plan: <strong id="currentPlan">Free</strong></p>
-      <p>Limits: 3 Live-Syncs/Tag</p>
-      <button id="upgradePlan" class="button primary">Upgrade auf PRO</button>
-    </div>
-
-    <!-- APP SETTINGS -->
-    <div class="settings-panel" id="tab-app">
-      <div class="form-group">
-        <label>Theme</label>
-        <select id="appTheme">
-          <option value="auto">Auto (System)</option>
-          <option value="light">Hell</option>
-          <option value="dark">Dunkel</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Animationen</label>
-        <select id="appMotion">
-          <option value="on">An</option>
-          <option value="off">Aus</option>
-        </select>
-      </div>
-
-      <button id="saveAppSettings" class="button primary">Speichern</button>
-    </div>
-
-  </div>
-</div>
-
-
-      <!-- WINNER/LOSER ANALYSIS - COLLAPSIBLE -->
-      <section class="section collapsible" data-section="comparison">
-        <div class="section-header-collapsible">
-          <button class="collapse-toggle">
-            <span class="collapse-icon">▼</span>
-          </button>
-          <div class="section-title-group">
-            <h2 class="section-title-main">Performance Comparison</h2>
-            <p class="section-description">Top & Bottom Performer im direkten Vergleich</p>
-          </div>
-        </div>
-        
-        <div class="section-content">
-          <div class="winner-loser-grid">
-            <div class="winner-card">
-              <div class="card-badge winner">🏆 Top Performer</div>
-              <div id="winnerContent"></div>
-            </div>
-            <div class="loser-card">
-              <div class="card-badge loser">⚠️ Verbesserungsbedarf</div>
-              <div id="loserContent"></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- AI RECOMMENDATIONS - COLLAPSIBLE -->
-      <section class="section collapsible" data-section="recommendations">
-        <div class="section-header-collapsible">
-          <button class="collapse-toggle">
-            <span class="collapse-icon">▼</span>
-          </button>
-          <div class="section-title-group">
-            <h2 class="section-title-main">Smart Recommendations</h2>
-            <p class="section-description">KI-gestützte Handlungsempfehlungen</p>
-          </div>
-          <button class="btn-text" id="refreshRecommendations">
-            <span>🔄</span> Aktualisieren
-          </button>
-        </div>
-        
-        <div class="section-content">
-          <div class="recommendations-grid" id="recommendationsGrid">
-            <div class="recommendation-card priority-high">
-              <div class="rec-icon">🎯</div>
-              <div class="rec-content">
-                <div class="rec-badge">Hohe Priorität</div>
-                <h4>Budget zu Top-Performern verschieben</h4>
-                <p>Creatives mit ROAS > 4.0 haben 67% mehr Conversions. Empfehlung: +40% Budget.</p>
-                <div class="rec-impact">Erwarteter ROAS-Lift: <strong>+18%</strong></div>
-              </div>
-              <button class="rec-action">Anwenden →</button>
-            </div>
-
-            <div class="recommendation-card priority-medium">
-              <div class="rec-icon">🎬</div>
-              <div class="rec-content">
-                <div class="rec-badge">Mittlere Priorität</div>
-                <h4>Video-Content verstärken</h4>
-                <p>Video-Ads haben 34% höhere Engagement-Rate. 2 Low-Performer pausieren.</p>
-                <div class="rec-impact">Erwartete CTR-Steigerung: <strong>+0.8%</strong></div>
-              </div>
-              <button class="rec-action">Details →</button>
-            </div>
-
-            <div class="recommendation-card priority-low">
-              <div class="rec-icon">⏰</div>
-              <div class="rec-content">
-                <div class="rec-badge">Niedrige Priorität</div>
-                <h4>Zeitplanung optimieren</h4>
-                <p>Peak-Performance zwischen 18-21 Uhr. Dayparting aktivieren.</p>
-                <div class="rec-impact">Potentielle Kostenersparnis: <strong>€180/Woche</strong></div>
-              </div>
-              <button class="rec-action">Planen →</button>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-  </div>
-<div id="toastContainer" class="toast-container"></div>
-
-  <!-- LOADING OVERLAY -->
-  <div class="loading" id="loading" style="display:none;">
-    <div class="spinner-container">
-      <div class="spinner-modern"></div>
-      <p>Lade Kampagnendaten...</p>
-    </div>
-  </div>
-
-  <script src="/app.js"></script>
-        <div id="stateInspector" class="state-inspector hidden">
-  <div class="inspector-header">
-    <strong>State Inspector</strong>
-    <div class="inspector-actions">
-      <button id="inspectorCopy">Copy</button>
-      <button id="inspectorClose">✕</button>
-    </div>
-  </div>
-  
-  <div class="inspector-tabs">
-    <button class="inspector-tab active" data-tab="state">State</button>
-    <button class="inspector-tab" data-tab="events">Events</button>
-  </div>
-
-  <pre id="inspectorState" class="inspector-panel active"></pre>
-  <pre id="inspectorEvents" class="inspector-panel"></pre>
-</div>
-
-<button id="inspectorToggle" class="inspector-toggle">🛠</button>
-
-</body>
-</html>
-
-
-
-
-
-
-
-
-
-
-
-
-
+ <!DOCTYPE html>
+ <html lang="de">
+ <head>
+   <meta charset="UTF-8" />
+   <title>SignalOne.cloud · Creative Intelligence Platform</title>
+   <meta name="viewport" content="width=device-width, initial-scale=1" />
+   <link rel="stylesheet" href="/styles.css" />
+   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+ </head>
+ <body>
+   <!-- SIDEBAR NAVIGATION -->
+-  <nav class="sidebar" id="sidebar">
+-    <div class="sidebar-header">
+-  <a href="#dashboard" class="sidebar-logo">
+-    <img src="/Logo_qu_tr.png" alt="SignalOne Logo" class="sidebar-logo-img">
+-  </a>
++  <nav class="sidebar" id="sidebar">
++    <div class="sidebar-header">
++  <a href="#dashboard" class="sidebar-logo">
++    <img src="/Logo_qu_tr.png" alt="SignalOne Logo" class="sidebar-logo-img">
++  </a>
+   <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+ </div>
+     <div class="sidebar-menu">
+       <div class="menu-section">
+         <div class="menu-section-title">Analytics</div>
+ <a href="#dashboard" class="menu-item active" data-view="dashboard" data-tooltip="Dashboard">
+   <span class="menu-icon">📊</span>
+   <span class="menu-label">Dashboard</span>
+ </a>
+ 
+ <a href="#creatives" class="menu-item" data-view="creatives" data-tooltip="Creatives">
+   <span class="menu-icon">🎨</span>
+   <span class="menu-label">Creatives</span>
+   <span class="menu-badge" id="creativeCount">12</span>
+ </a>
+ 
+ <a href="#campaigns" class="menu-item" data-view="campaigns" data-tooltip="Campaigns">
+   <span class="menu-icon">🎯</span>
+   <span class="menu-label">Campaigns</span>
+ </a>
+ 
+ <a href="#insights" class="menu-item" data-view="insights" data-tooltip="Insights">
+   <span class="menu-icon">💡</span>
+   <span class="menu-label">Insights</span>
+ </a>
+@@ -44,61 +44,63 @@
+   <span class="menu-icon">🧘</span>
+   <span class="menu-label">SignalSensei</span>
+   <span class="menu-badge premium">PRO</span>
+ </a>
+ 
+ <a href="#library" class="menu-item" data-view="library" data-tooltip="Creative Library">
+   <span class="menu-icon">📚</span>
+   <span class="menu-label">Creative Library</span>
+ </a>
+ 
+ <a href="#reports" class="menu-item" data-view="reports" data-tooltip="Reports">
+   <span class="menu-icon">📈</span>
+   <span class="menu-label">Reports</span>
+ </a>
+ 
+ <a href="#connections" class="menu-item" data-view="connections" data-tooltip="Connections">
+   <span class="menu-icon">🔗</span>
+   <span class="menu-label">Connections</span>
+ </a>
+ 
+ <a href="#profile" class="menu-item" data-view="profile" data-tooltip="Profile">
+   <span class="menu-icon">👤</span>
+   <span class="menu-label">Profile</span>
+ </a>
+ 
+-<div class="connection-status" id="connectionStatus">
+-  <div class="status-indicator meta" id="metaStatusDot"></div>
+-  <div class="status-text">
+-    <span class="status-label">Meta</span>
+-    <span class="status-sub" id="metaStatusText">Idle</span>
+-  </div>
+-</div>
+-
+-  <!-- MAIN CONTENT -->
+-  <div class="main-content" id="mainContent">
+-    <div class="wrapper">
++  <div class="connection-status" id="connectionStatus">
++    <div class="status-indicator meta" id="metaStatusDot"></div>
++    <div class="status-text">
++      <span class="status-label">Meta</span>
++      <span class="status-sub" id="metaStatusText">Idle</span>
++    </div>
++  </div>
++
++  </nav>
++
++  <!-- MAIN CONTENT -->
++  <div class="main-content" id="mainContent">
++    <div class="wrapper">
+       <!-- TOP BAR -->
+       <header class="topbar">
+         <div class="topbar-left">
+           <h1 class="page-title">Dashboard Overview</h1>
+           <div class="breadcrumb">
+             <span>Dashboard</span>
+             <span class="breadcrumb-sep">›</span>
+             <span class="breadcrumb-current">Overview</span>
+           </div>
+         </div>
+         <div class="topbar-right">
+           <button id="themeToggle" class="theme-toggle">🌓</button>
+           <div class="mode-toggle">
+             <button id="mode-live" class="mode-btn">🔡 Live</button>
+             <button id="mode-sim" class="mode-btn active">🎭 Demo</button>
+           </div>
+           <div class="date-display" id="currentDate"></div>
+           <div class="header-actions">
+             <button class="icon-btn" title="Notifications">
+               <span class="notification-dot"></span>
+               🔔
+             </button>
+             <button class="icon-btn" id="toggleSensei" title="SignalSensei Assistant">
+               🧘
+             </button>
+@@ -231,53 +233,53 @@
+                 <span class="platform-icon meta-icon">f</span>
+               </button>
+               <button class="platform-btn disabled" data-platform="tiktok" title="TikTok (Coming Soon)">
+                 <span class="platform-icon tiktok-icon">♪</span>
+               </button>
+               <button class="platform-btn disabled" data-platform="google" title="Google (Coming Soon)">
+                 <span class="platform-icon google-icon">G</span>
+               </button>
+             </div>
+             
+             <select class="sort-select" id="sortCreatives">
+               <option value="roas">Sort: ROAS ↓</option>
+               <option value="ctr">Sort: CTR ↓</option>
+               <option value="cpc">Sort: CPC ↑</option>
+               <option value="impressions">Sort: Reach ↓</option>
+               <option value="score">Sort: Score ↓</option>
+             </select>
+ 
+             <div class="view-switcher">
+               <button class="view-btn active" data-view="grid" title="Grid View">⊞</button>
+               <button class="view-btn" data-view="list" title="List View">☰</button>
+               <button class="view-btn" data-view="compare" title="Compare View">⊟</button>
+             </div>
+           </div>
+         </div>
+-
+-        <!-- CREATIVE GRID - ENHANCED -->
+-        <div id="creativeGrid" class="creative-grid-enhanced"></div>
++
++        <!-- CREATIVE GRID - ENHANCED -->
++        <div id="creativeGridHero" class="creative-grid-enhanced"></div>
+ 
+         <!-- CREATIVE INSIGHTS SUMMARY -->
+         <div class="creative-summary">
+           <div class="summary-card">
+             <div class="summary-icon">🎯</div>
+             <div class="summary-content">
+               <div class="summary-label">Avg. ROAS</div>
+               <div class="summary-value" id="avgROAS">3.2x</div>
+               <div class="summary-trend positive">+12% vs. last period</div>
+             </div>
+           </div>
+           <div class="summary-card">
+             <div class="summary-icon">⚡</div>
+             <div class="summary-content">
+               <div class="summary-label">Avg. CTR</div>
+               <div class="summary-value" id="avgCTR">2.4%</div>
+               <div class="summary-trend positive">+0.3%</div>
+             </div>
+           </div>
+           <div class="summary-card">
+             <div class="summary-icon">💰</div>
+             <div class="summary-content">
+               <div class="summary-label">Total Spend</div>
+               <div class="summary-value" id="totalSpend">€2,840</div>
+               <div class="summary-trend neutral">vs. €2,650</div>
+@@ -412,58 +414,59 @@
+   </thead>
+   <tbody id="campaignTableBody"></tbody>
+ </table>
+ </section>
+ 
+ <section class="view hidden" id="view-insights">
+   <h2 class="view-title">Insights</h2>
+   <p>Datengetriebene Optimierungsempfehlungen.</p>
+ </section>
+ 
+ <section class="view hidden" id="view-sensei">
+   <h2 class="view-title">SignalSensei</h2>
+   <p>Strategische Vorschläge & Analysen.</p>
+ </section>
+ 
+ <section class="view hidden" id="view-library">
+   <h2 class="view-title">Creative Library</h2>
+   <p>Alle Creatives zentral gespeichert.</p>
+ </section>
+ 
+ <section class="view hidden" id="view-reports">
+   <h2 class="view-title">Reports & Analytics</h2>
+   <p>Berichte, Analysen & KPI-Exports.</p>
+ </section>
+ 
+-<section class="view hidden" id="view-connections">
+-  <h2 class="view-title">Integrations</h2>
+-  <p>Meta, Google, Sheets & Tracking Setup.</p>
+-</section>
+-
+-<h2 class="view-title">Einstellungen</h2>
+-
+-<div class="settings-container">
++<section class="view hidden" id="view-connections">
++  <h2 class="view-title">Integrations</h2>
++  <p>Meta, Google, Sheets & Tracking Setup.</p>
++</section>
++
++<section class="view hidden" id="view-profile">
++<h2 class="view-title">Einstellungen</h2>
++
++<div class="settings-container">
+ 
+   <div class="settings-tabs">
+     <button class="settings-tab active" data-tab="account">Account</button>
+     <button class="settings-tab" data-tab="api">Integrationen</button>
+     <button class="settings-tab" data-tab="branding">Branding</button>
+     <button class="settings-tab" data-tab="plan">Abo & Limits</button>
+     <button class="settings-tab" data-tab="app">App</button>
+   </div>
+ 
+   <div class="settings-content">
+ 
+     <!-- ACCOUNT -->
+     <div class="settings-panel active" id="tab-account">
+       <div class="form-group">
+         <label>Name</label>
+         <input id="profileName" type="text" placeholder="Dein Name">
+       </div>
+ 
+       <div class="form-group">
+         <label>E-Mail</label>
+         <input id="profileEmail" type="email" placeholder="name@example.com">
+       </div>
+ 
+       <div class="form-group">
+         <label>Avatar URL</label>
+@@ -502,53 +505,54 @@
+       <p>Limits: 3 Live-Syncs/Tag</p>
+       <button id="upgradePlan" class="button primary">Upgrade auf PRO</button>
+     </div>
+ 
+     <!-- APP SETTINGS -->
+     <div class="settings-panel" id="tab-app">
+       <div class="form-group">
+         <label>Theme</label>
+         <select id="appTheme">
+           <option value="auto">Auto (System)</option>
+           <option value="light">Hell</option>
+           <option value="dark">Dunkel</option>
+         </select>
+       </div>
+ 
+       <div class="form-group">
+         <label>Animationen</label>
+         <select id="appMotion">
+           <option value="on">An</option>
+           <option value="off">Aus</option>
+         </select>
+       </div>
+ 
+       <button id="saveAppSettings" class="button primary">Speichern</button>
+     </div>
+-
+-  </div>
+-</div>
++
++  </div>
++</div>
++</section>
+ 
+ 
+       <!-- WINNER/LOSER ANALYSIS - COLLAPSIBLE -->
+       <section class="section collapsible" data-section="comparison">
+         <div class="section-header-collapsible">
+           <button class="collapse-toggle">
+             <span class="collapse-icon">▼</span>
+           </button>
+           <div class="section-title-group">
+             <h2 class="section-title-main">Performance Comparison</h2>
+             <p class="section-description">Top & Bottom Performer im direkten Vergleich</p>
+           </div>
+         </div>
+         
+         <div class="section-content">
+           <div class="winner-loser-grid">
+             <div class="winner-card">
+               <div class="card-badge winner">🏆 Top Performer</div>
+               <div id="winnerContent"></div>
+             </div>
+             <div class="loser-card">
+               <div class="card-badge loser">⚠️ Verbesserungsbedarf</div>
+               <div id="loserContent"></div>
+             </div>
+           </div>
+ 
+EOF
+)
