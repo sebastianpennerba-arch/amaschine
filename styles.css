@@ -90,22 +90,73 @@ body {
    SIDEBAR NAVIGATION
    ======================================================================== */
 
+/* SIDEBAR COLLAPSE BEHAVIOR */
 .sidebar {
-  position: fixed;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: var(--sidebar-width);
-  background: var(--bg);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  z-index: 100;
-  transition: width 0.3s ease;
+  transition: width 0.25s ease, transform 0.25s ease;
 }
 
 .sidebar.collapsed {
   width: var(--sidebar-collapsed);
+}
+
+/* wenn Sidebar collapsed ist, rückt der Content nach */
+.sidebar.collapsed + .main-content {
+  margin-left: var(--sidebar-collapsed);
+}
+/* LOGO / HEADER IM COLLAPSED MODE */
+.sidebar.collapsed .sidebar-logo-img {
+  width: 36px;
+  margin: 0 auto;
+}
+
+.sidebar.collapsed .sidebar-header {
+  justify-content: center;
+}
+
+.sidebar.collapsed .sidebar-toggle {
+  display: none; /* optional: Toggle nur oben in Mainbar nutzen */
+}
+/* MENU IM COLLAPSED MODE */
+.sidebar.collapsed .menu-label,
+.sidebar.collapsed .menu-badge {
+  display: none;
+}
+
+.sidebar.collapsed .menu-item {
+  justify-content: center;
+  padding: 10px 0;
+}
+
+.sidebar.collapsed .menu-icon {
+  margin: 0;
+  font-size: 18px;
+}
+
+.sidebar.collapsed .menu-item {
+  position: relative;
+}
+/* TOOLTIP BEI COLLAPSED SIDEBAR */
+.sidebar.collapsed .menu-item::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 60px;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  background: var(--gray-900);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  box-shadow: var(--shadow-md);
+}
+
+.sidebar.collapsed .menu-item:hover::after {
+  opacity: 1;
+  transform: translate(4px, -50%);
 }
 
 .sidebar-header {
@@ -2290,6 +2341,7 @@ body {
     display: none; /* versteckt: Impressions, CPC */
   }
 }
+
 
 
 
