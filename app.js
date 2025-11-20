@@ -1,176 +1,362 @@
 // ======================================================================
-// SIGNALONE.CLOUD - CREATIVE INTELLIGENCE PLATFORM
-// Clean Rebuild of app.js
+// SignalOne.cloud – Rebuild mit Option 1 (Mock-System)
 // ======================================================================
 
 "use strict";
 
-// ======================================================================
-// GLOBAL STATE
-// ======================================================================
+// ----------------------------------------------------------------------
+// MOCK-DATEN (Option 1 – stylisches Demo-System)
+// ----------------------------------------------------------------------
 
-const SignalState = {
-  token: null,
-  period: "24h",          // "24h" | "7d" | "30d"
-  accountId: null,
-  campaigns: [],
-  selectedCampaignId: null,
-  kpi: null,
-  creatives: [],
-  filter: "all",          // all | image | video | winner | attention
-  sortBy: "roas",
-  viewMode: "grid",       // grid | list
-  senseiActive: false,
-  senseiStrategy: null
+const MockData = {
+  creatives: [
+    {
+      id: "c1",
+      name: "UGC Hook – Unboxing Reel",
+      mediaType: "video",
+      url: "/mock/Creative10.mp4",
+      format: "9:16",
+      objective: "Sales",
+      roas: 3.8,
+      ctr: 2.7,
+      cpc: 0.78,
+      impressions: 28450,
+      spend: 222.3,
+      revenue: 845.6,
+      score: 89,
+      platform: "Meta"
+    },
+    {
+      id: "c2",
+      name: "Static – Hero Product Shot",
+      mediaType: "image",
+      url: "/mock/Creative1.png",
+      format: "1:1",
+      objective: "Sales",
+      roas: 3.2,
+      ctr: 2.1,
+      cpc: 0.71,
+      impressions: 19840,
+      spend: 141.9,
+      revenue: 454.2,
+      score: 84,
+      platform: "Meta"
+    },
+    {
+      id: "c3",
+      name: "Carousel – Before / After",
+      mediaType: "image",
+      url: "/mock/Creative2.png",
+      format: "1:1",
+      objective: "Sales",
+      roas: 2.4,
+      ctr: 1.9,
+      cpc: 0.84,
+      impressions: 16200,
+      spend: 136.1,
+      revenue: 326.4,
+      score: 73,
+      platform: "Meta"
+    },
+    {
+      id: "c4",
+      name: "Story – Rabatt Countdown",
+      mediaType: "image",
+      url: "/mock/Creative3.png",
+      format: "9:16",
+      objective: "Sales",
+      roas: 1.6,
+      ctr: 1.3,
+      cpc: 0.92,
+      impressions: 14890,
+      spend: 137.0,
+      revenue: 219.2,
+      score: 58,
+      platform: "Meta"
+    },
+    {
+      id: "c5",
+      name: "Feed Video – Testimonial",
+      mediaType: "video",
+      url: "/mock/Creative11.mp4",
+      format: "4:5",
+      objective: "Sales",
+      roas: 4.1,
+      ctr: 3.1,
+      cpc: 0.69,
+      impressions: 26210,
+      spend: 180.4,
+      revenue: 739.2,
+      score: 92,
+      platform: "Meta"
+    },
+    {
+      id: "c6",
+      name: "Static – Minimalist Brand Ad",
+      mediaType: "image",
+      url: "/mock/Creative4.png",
+      format: "1:1",
+      objective: "Awareness",
+      roas: 1.9,
+      ctr: 0.9,
+      cpc: 1.02,
+      impressions: 22110,
+      spend: 225.3,
+      revenue: 285.4,
+      score: 52,
+      platform: "Meta"
+    },
+    {
+      id: "c7",
+      name: "Reel – POV Use Case",
+      mediaType: "video",
+      url: "/mock/Creative12.mp4",
+      format: "9:16",
+      objective: "Sales",
+      roas: 2.9,
+      ctr: 2.3,
+      cpc: 0.76,
+      impressions: 17890,
+      spend: 135.9,
+      revenue: 394.8,
+      score: 81,
+      platform: "Meta"
+    },
+    {
+      id: "c8",
+      name: "Static – Bold Offer 20% OFF",
+      mediaType: "image",
+      url: "/mock/Creative5.png",
+      format: "1:1",
+      objective: "Sales",
+      roas: 1.3,
+      ctr: 0.8,
+      cpc: 1.15,
+      impressions: 15430,
+      spend: 177.5,
+      revenue: 230.1,
+      score: 44,
+      platform: "Meta"
+    }
+  ],
+  campaigns: [
+    {
+      id: "cmp1",
+      name: "Prospecting – Broad DE",
+      spend: 640.3,
+      impressions: 118_400,
+      clicks: 2_436,
+      ctr: 2.06,
+      cpc: 0.26,
+      purchases: 212,
+      revenue: 13_420.0,
+      roas: 4.19
+    },
+    {
+      id: "cmp2",
+      name: "Retargeting – 7 Days",
+      spend: 280.4,
+      impressions: 34_820,
+      clicks: 1_512,
+      ctr: 4.34,
+      cpc: 0.19,
+      purchases: 164,
+      revenue: 9_780.0,
+      roas: 6.96
+    },
+    {
+      id: "cmp3",
+      name: "Lookalike 1% – AT / CH",
+      spend: 420.7,
+      impressions: 82_330,
+      clicks: 1_623,
+      ctr: 1.97,
+      cpc: 0.26,
+      purchases: 118,
+      revenue: 5_840.0,
+      roas: 3.88
+    },
+    {
+      id: "cmp4",
+      name: "Advantage+ Shopping Test",
+      spend: 310.2,
+      impressions: 71_940,
+      clicks: 1_284,
+      ctr: 1.79,
+      cpc: 0.24,
+      purchases: 101,
+      revenue: 4_560.0,
+      roas: 3.68
+    },
+    {
+      id: "cmp5",
+      name: "Remarketing – Abandoned Cart",
+      spend: 190.4,
+      impressions: 21_740,
+      clicks: 984,
+      ctr: 4.52,
+      cpc: 0.19,
+      purchases: 137,
+      revenue: 6_120.0,
+      roas: 8.08
+    }
+  ],
+  insights: [
+    {
+      id: "ins1",
+      type: "creative",
+      title: "UGC-Videos outperformen Static Ads um +38% ROAS",
+      body: "Deine UGC Reels (Unboxing & POV) liefern deutlich besseren ROAS als statische Produktbilder. Du solltest das Budget schrittweise von schwachen Statics zu diesen Formaten verschieben.",
+      impact: "hoch"
+    },
+    {
+      id: "ins2",
+      type: "funnel",
+      title: "Starker CTR, aber Conversion-Rate unter Benchmarks",
+      body: "Klicks sind solide, aber die CR nach Klick ist schwächer. Vermutlich brechen Nutzer auf der Produktseite ab – Landing-Page-Optimierung lohnt sich hier.",
+      impact: "mittel"
+    },
+    {
+      id: "ins3",
+      type: "audience",
+      title: "Retargeting 7 Tage ist dein heimlicher Champion",
+      body: "Retargeting-Kampagnen haben den besten ROAS. Prüfe, ob du hier mehr Budget allokieren und die Zielgruppen-Logik verfeinern kannst.",
+      impact: "hoch"
+    },
+    {
+      id: "ins4",
+      type: "offer",
+      title: "Offer-Ad mit starkem Rabatt zieht, aber ist ineffizient",
+      body: "Die 20%-Rabatt-Creatives holen viele Klicks, aber die Profitabilität ist niedrig. Rabatthöhe & Communication solltest du testen.",
+      impact: "mittel"
+    }
+  ]
 };
 
-let MOCK_MODE = true;
-let trendChart = null;
-let scoreChart = null;
+// Library = einfach alle Creatives als Start
+MockData.library = [...MockData.creatives];
 
-// ======================================================================
-// STATE BUS
-// ======================================================================
+// ----------------------------------------------------------------------
+// APP STATE + LOG
+// ----------------------------------------------------------------------
 
-const StateBus = {
-  listeners: {},  // key -> [fn]; "*" -> wildcard
-  log: [],
-
-  subscribe(keys, fn) {
-    const arr = Array.isArray(keys) ? keys : [keys];
-    arr.forEach(key => {
-      if (!this.listeners[key]) this.listeners[key] = [];
-      this.listeners[key].push(fn);
-    });
+const AppState = {
+  theme: "light",
+  mode: "demo", // "demo" | "live" (später einfach umschaltbar)
+  creativeSort: "roas", // roas | ctr | cpc | impressions | score
+  creativeView: "grid", // grid | list | compare
+  connections: {
+    meta: false,
+    tiktok: false,
+    google: false
   },
-
-  emit(patch, meta = {}) {
-    const keys = Object.keys(patch);
-    keys.forEach(key => {
-      const fns = (this.listeners[key] || []).concat(this.listeners["*"] || []);
-      fns.forEach(fn => fn({ key, value: patch[key], meta }));
-    });
-
-    this.log.push({
-      patch,
-      meta,
-      at: new Date().toISOString()
-    });
-    if (this.log.length > 100) this.log.shift();
-  }
+  kpi: null
 };
 
-function updateState(patch, meta = {}) {
-  Object.assign(SignalState, patch);
-  StateBus.emit(patch, meta);
+const EventLog = [];
+
+function logEvent(type, payload = {}) {
+  EventLog.push({
+    type,
+    payload,
+    ts: new Date().toISOString()
+  });
+  if (EventLog.length > 200) EventLog.shift();
+  if (document.getElementById("stateInspector")?.classList.contains("open")) {
+    renderInspector();
+  }
 }
 
-// ======================================================================
-// UTILITIES & HELPERS
-// ======================================================================
-
-function showSkeleton(id, show = true) {
-  const el = document.getElementById(id);
-  if (el) el.classList.toggle("hidden", !show);
-}
+// ----------------------------------------------------------------------
+// FORMATTER
+// ----------------------------------------------------------------------
 
 const fmt = {
-  num: (v, d = 0) =>
-    Number(v || 0).toLocaleString("de-DE", {
+  num(v, d = 1) {
+    const n = Number(v || 0);
+    return n.toLocaleString("de-DE", {
       minimumFractionDigits: d,
       maximumFractionDigits: d
-    }),
-  curr: (v) =>
-    Number(v || 0).toLocaleString("de-DE", {
+    });
+  },
+  int(v) {
+    return Number(v || 0).toLocaleString("de-DE");
+  },
+  pct(v, d = 2) {
+    const n = Number(v || 0);
+    return n.toLocaleString("de-DE", {
+      minimumFractionDigits: d,
+      maximumFractionDigits: d
+    }) + " %";
+  },
+  curr(v) {
+    const n = Number(v || 0);
+    return n.toLocaleString("de-DE", {
       style: "currency",
       currency: "EUR",
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
-    }),
-  pct: (v) => (Number(v || 0)).toFixed(2).replace(".", ",") + " %",
-  short: (v) => {
-    const num = Number(v || 0);
-    if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + "M";
-    if (num >= 1_000) return (num / 1_000).toFixed(1) + "K";
-    return num.toString();
+    });
+  },
+  short(v) {
+    const n = Number(v || 0);
+    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(".", ",") + "M";
+    if (n >= 1_000) return (n / 1_000).toFixed(1).replace(".", ",") + "K";
+    return n.toString();
   }
 };
 
-function animateNumber(el, to, duration = 900) {
-  if (!el) return;
-  const startTime = performance.now();
+// ----------------------------------------------------------------------
+// KPI BERECHNUNG (aus Mock-Creatives)
+// ----------------------------------------------------------------------
 
-  function update(now) {
-    const progress = Math.min((now - startTime) / duration, 1);
-    const value = Math.floor(progress * to);
-    el.textContent = value + (el.dataset.suffix || "");
-    if (progress < 1) requestAnimationFrame(update);
-  }
+function calculateGlobalKpi() {
+  const list = MockData.creatives;
+  if (!list.length) return null;
 
-  requestAnimationFrame(update);
-}
+  const acc = list.reduce(
+    (a, c) => {
+      a.impressions += c.impressions;
+      const clicks = Math.round(c.impressions * (c.ctr / 100));
+      a.clicks += clicks;
+      a.spend += c.spend;
+      a.revenue += c.revenue;
+      return a;
+    },
+    { impressions: 0, clicks: 0, spend: 0, revenue: 0 }
+  );
 
-function toast(message, options = {}) {
-  const {
-    type = "info", // success | error | info
-    duration = 3000,
-    icon
-  } = options;
+  const purchases = Math.round(acc.revenue / 60); // grob: 60€ AOV
+  const ctr = acc.impressions ? (acc.clicks / acc.impressions) * 100 : 0;
+  const cpc = acc.clicks ? acc.spend / acc.clicks : 0;
+  const roas = acc.spend ? acc.revenue / acc.spend : 0;
+  const cr = acc.clicks ? (purchases / acc.clicks) * 100 : 0;
+  const aov = purchases ? acc.revenue / purchases : 0;
 
-  const container = document.getElementById("toastContainer");
-  if (!container) return;
-
-  const div = document.createElement("div");
-  div.className = `toast toast-${type}`;
-
-  const iconChar =
-    icon ||
-    (type === "success" ? "✅" :
-     type === "error"   ? "⚠️" :
-                          "ℹ️");
-
-  div.innerHTML = `
-    <span class="toast-icon">${iconChar}</span>
-    <div class="toast-message">${message}</div>
-    <button class="toast-close">×</button>
-  `;
-
-  container.appendChild(div);
-
-  requestAnimationFrame(() => div.classList.add("show"));
-
-  const close = () => {
-    div.classList.remove("show");
-    setTimeout(() => div.remove(), 250);
+  return {
+    impressions: acc.impressions,
+    clicks: acc.clicks,
+    spend: acc.spend,
+    revenue: acc.revenue,
+    roas,
+    ctr,
+    cpc,
+    cr,
+    aov,
+    purchases
   };
-
-  div.querySelector(".toast-close").addEventListener("click", close);
-  setTimeout(close, duration);
 }
 
-// ======================================================================
-// THEME ENGINE
-// ======================================================================
-
-function applyTheme(theme) {
-  // theme: "light" | "dark"
-  if (theme === "dark") {
-    document.documentElement.classList.add("dark");
-  } else {
-    document.documentElement.classList.remove("dark");
-  }
-  localStorage.setItem("theme", theme);
-}
+// ----------------------------------------------------------------------
+// THEME
+// ----------------------------------------------------------------------
 
 function initTheme() {
-  const saved = localStorage.getItem("theme");
-
-  // ❗ Standard immer LIGHT, außer User hat explizit "dark" gespeichert
-  if (saved === "dark") {
-    applyTheme("dark");
-  } else {
-    applyTheme("light");
-  }
+  const saved = localStorage.getItem("sig_theme");
+  const theme = saved === "dark" ? "dark" : "light"; // Standard = light
+  AppState.theme = theme;
+  document.documentElement.classList.toggle("dark", theme === "dark");
+  logEvent("theme:init", { theme });
 }
 
 function setupThemeToggle() {
@@ -178,432 +364,74 @@ function setupThemeToggle() {
   if (!btn) return;
 
   btn.addEventListener("click", () => {
-    const current = document.documentElement.classList.contains("dark")
-      ? "dark"
-      : "light";
-    applyTheme(current === "dark" ? "light" : "dark");
+    const isDark = !document.documentElement.classList.contains("dark");
+    document.documentElement.classList.toggle("dark", isDark);
+    const theme = isDark ? "dark" : "light";
+    AppState.theme = theme;
+    localStorage.setItem("sig_theme", theme);
+    logEvent("theme:toggle", { theme });
   });
 }
 
-// ======================================================================
-// META STATUS
-// ======================================================================
+// ----------------------------------------------------------------------
+// DATUM + MODE (Demo/Live-Schalter rechts oben)
+// ----------------------------------------------------------------------
 
-function setMetaStatus(state, message) {
-  const dot = document.getElementById("metaStatusDot");
-  const text = document.getElementById("metaStatusText");
-  if (!dot || !text) return;
-
-  dot.classList.remove("meta-status-loading", "meta-status-ok", "meta-status-error");
-  if (state === "loading") dot.classList.add("meta-status-loading");
-  if (state === "ok") dot.classList.add("meta-status-ok");
-  if (state === "error") dot.classList.add("meta-status-error");
-
-  text.textContent = message;
+function initDate() {
+  const el = document.getElementById("currentDate");
+  if (!el) return;
+  const now = new Date();
+  el.textContent = new Intl.DateTimeFormat("de-DE", {
+    weekday: "short",
+    day: "2-digit",
+    month: "short"
+  }).format(now);
 }
 
-function clearDashboard() {
-  updateState({
-    kpi: null,
-    campaigns: [],
-    creatives: []
-  }, { source: "clearDashboard" });
-  renderAll();
-}
+function setupModeToggle() {
+  const liveBtn = document.getElementById("mode-live");
+  const simBtn = document.getElementById("mode-sim");
+  if (!liveBtn || !simBtn) return;
 
-// ======================================================================
-// META BACKEND INTEGRATION (via /api/*)
-// ======================================================================
-
-function setupMetaButton() {
-  const btn = document.getElementById("connectMeta");
-  if (!btn) return;
-
-  btn.addEventListener("click", () => {
-    if (MOCK_MODE) {
-      alert("Im Demo Mode ist Meta Login deaktiviert. Wechsle zu 'Live' Mode.");
-      return;
+  function updateButtons() {
+    if (AppState.mode === "demo") {
+      simBtn.classList.add("active");
+      liveBtn.classList.remove("active");
+    } else {
+      liveBtn.classList.add("active");
+      simBtn.classList.remove("active");
     }
-
-    const appId = "732040642590155";
-    const redirect = "https://amaschine.vercel.app/meta-popup.html";
-    const scopes = "ads_management,ads_read,business_management";
-
-    const authUrl =
-      `https://www.facebook.com/v19.0/dialog/oauth?client_id=${appId}` +
-      `&redirect_uri=${encodeURIComponent(redirect)}` +
-      `&scope=${encodeURIComponent(scopes)}`;
-
-    window.open(authUrl, "metaAuth", "width=900,height=900");
-  });
-}
-
-function setupMetaPostMessage() {
-  window.addEventListener("message", (event) => {
-    if (!event.data?.access_token) return;
-
-    SignalState.token = event.data.access_token;
-    localStorage.setItem("meta_access_token", SignalState.token);
-
-    toast("Meta erfolgreich verbunden", { type: "success" });
-    if (!MOCK_MODE) {
-      loadMetaData();
-    }
-  });
-}
-
-function restoreMetaSession() {
-  const token = localStorage.getItem("meta_access_token");
-  if (!token) {
-    setMetaStatus("error", "Nicht verbunden");
-    return;
-  }
-  SignalState.token = token;
-  if (!MOCK_MODE) {
-    loadMetaData();
-  } else {
-    setMetaStatus("ok", "Demo Mode");
-  }
-}
-
-function mapInsightsRow(row) {
-  const imp = +row.impressions || 0;
-  const clicks = +row.clicks || 0;
-  const spend = +row.spend || 0;
-  const ctr = parseFloat(row.ctr || 0);
-  const cpc = parseFloat(row.cpc || 0);
-
-  let purchases = 0;
-  let revenue = 0;
-
-  if (Array.isArray(row.actions)) {
-    const p = row.actions.find(a => a.action_type?.includes("purchase"));
-    if (p) purchases = +p.value || 0;
-  }
-  if (Array.isArray(row.action_values)) {
-    const v = row.action_values.find(a => a.action_type?.includes("purchase"));
-    if (v) revenue = +v.value || 0;
   }
 
-  return {
-    Impressions: imp,
-    Clicks: clicks,
-    AddToCart: 0,
-    Purchases: purchases,
-    Revenue: revenue,
-    Spend: spend,
-    ROAS: spend > 0 ? revenue / spend : 0,
-    CTR: ctr,
-    CPC: cpc,
-    AOV: purchases ? revenue / purchases : 0,
-    CR: clicks ? (purchases / clicks) * 100 : 0
-  };
-}
-
-async function loadCreativesForCampaign(campaignId) {
-  if (!campaignId || !SignalState.token) return;
-
-  try {
-    const res = await fetch("/api/meta-ads", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token: SignalState.token, campaignId })
-    });
-    const json = await res.json();
-    const ads = json.data || [];
-
-    const creatives = ads.map((ad) => {
-      const cr = ad.creative || {};
-      const thumb =
-        cr.thumbnail_url ||
-        cr.image_url ||
-        cr.video_url ||
-        (cr.object_story_spec && cr.object_story_spec.link_data && cr.object_story_spec.link_data.picture) ||
-        "";
-
-      const isVideo = thumb.toLowerCase().includes(".mp4");
-
-      return {
-        id: ad.id,
-        name: ad.name || "Creative",
-        URL: thumb,
-        mediaType: isVideo ? "video" : "image",
-        CTR: SignalState.kpi?.CTR || 0,
-        CPC: SignalState.kpi?.CPC || 0,
-        ROAS: SignalState.kpi?.ROAS || 0,
-        impressions: SignalState.kpi?.Impressions || 0,
-        spend: SignalState.kpi?.Spend || 0,
-        revenue: SignalState.kpi?.Revenue || 0,
-        score: 75,
-        platform: "meta"
-      };
-    });
-
-    updateState({ creatives }, { source: "loadCreativesForCampaign" });
-  } catch (err) {
-    console.error("Fehler beim Laden der Creatives:", err);
-  }
-}
-
-async function loadMetaData() {
-  if (MOCK_MODE || !SignalState.token) return;
-
-  try {
-    setMetaStatus("loading", "Syncing…");
-
-    // 1) Accounts
-    const accRes = await fetch("/api/meta-adaccounts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token: SignalState.token })
-    });
-    const accJson = await accRes.json();
-    const accounts = accJson.data || [];
-    if (!accounts.length) {
-      setMetaStatus("error", "Kein Werbekonto");
-      return;
-    }
-
-    SignalState.accountId = accounts[0].account_id;
-
-    // 2) Insights
-    const preset = SignalState.period === "7d"
-      ? "last_7d"
-      : SignalState.period === "30d"
-        ? "last_30d"
-        : "yesterday";
-
-    const insRes = await fetch("/api/meta-insights", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        token: SignalState.token,
-        accountId: SignalState.accountId,
-        preset
-      })
-    });
-    const insJson = await insRes.json();
-    const row = insJson.data?.[0] || null;
-
-    let kpi = null;
-    if (row) {
-      kpi = mapInsightsRow(row);
-    }
-
-    // 3) Campaigns
-    const campRes = await fetch("/api/meta-campaigns", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        token: SignalState.token,
-        accountId: SignalState.accountId
-      })
-    });
-    const campJson = await campRes.json();
-    const campaigns = (campJson.data || []).map(c => ({
-      id: c.id,
-      name: c.name,
-      spend: +c.spend || 0,
-      impressions: +c.impressions || 0,
-      CTR: +c.ctr || 0,
-      CPC: +c.cpc || 0,
-      purchases: +c.purchases || 0,
-      ROAS: +c.roas || 0
-    }));
-
-    let selectedCampaignId = SignalState.selectedCampaignId;
-    if (!selectedCampaignId && campaigns.length > 0) {
-      selectedCampaignId = campaigns[0].id;
-    }
-
-    updateState(
-      {
-        kpi,
-        campaigns,
-        selectedCampaignId
-      },
-      { source: "loadMetaData", type: "meta-sync" }
-    );
-
-    // 4) Creatives for selected campaign
-    if (selectedCampaignId) {
-      await loadCreativesForCampaign(selectedCampaignId);
-    }
-
-    // Cache
-    localStorage.setItem(
-      "signalone_meta_cache",
-      JSON.stringify({
-        kpi: SignalState.kpi,
-        campaigns: SignalState.campaigns,
-        accountId: SignalState.accountId,
-        cachedAt: new Date().toISOString()
-      })
-    );
-
-    setMetaStatus("ok", "Live");
-    renderAll();
-  } catch (err) {
-    console.error("Fehler beim Laden der Meta-Daten:", err);
-
-    // Fallback auf Cache
-    const cacheRaw = localStorage.getItem("signalone_meta_cache");
-    if (cacheRaw) {
-      try {
-        const cache = JSON.parse(cacheRaw);
-        updateState(
-          {
-            kpi: cache.kpi,
-            campaigns: cache.campaigns || [],
-            accountId: cache.accountId || SignalState.accountId
-          },
-          { source: "meta-cache" }
-        );
-        setMetaStatus("error", "Offline – Cache");
-        renderAll();
-        return;
-      } catch (e) {
-        console.warn("Cache defekt", e);
-      }
-    }
-
-    setMetaStatus("error", "API Fehler");
-  }
-}
-
-// ======================================================================
-// MOCK DATA
-// ======================================================================
-
-function generateMockInsights() {
-  const impressions = Math.floor(Math.random() * 80000 + 20000);
-  const clicks = Math.floor(impressions * (Math.random() * 0.04 + 0.01));
-  const purchases = Math.floor(clicks * (Math.random() * 0.05 + 0.02));
-  const spend = +(Math.random() * 800 + 200).toFixed(2);
-  const revenue = +(purchases * (Math.random() * 50 + 40)).toFixed(2);
-
-  return {
-    Impressions: impressions,
-    Clicks: clicks,
-    AddToCart: Math.floor(clicks * (Math.random() * 0.4 + 0.2)),
-    Purchases: purchases,
-    Revenue: revenue,
-    Spend: spend,
-    ROAS: spend ? revenue / spend : 0,
-    CTR: impressions ? (clicks / impressions) * 100 : 0,
-    CPC: clicks ? spend / clicks : 0,
-    AOV: purchases ? revenue / purchases : 0,
-    CR: clicks ? (purchases / clicks) * 100 : 0
-  };
-}
-
-function calculateCreativeScore(roas, ctr, cpc) {
-  const roasScore = Math.min((roas / 5) * 40, 40);
-  const ctrScore = Math.min((ctr / 5) * 35, 35);
-  const cpcScore = Math.max(25 - (cpc * 20), 0);
-  return Math.round(roasScore + ctrScore + cpcScore);
-}
-
-function loadMockCreatives() {
-  const mockFiles = [
-    "Creative1.png",
-    "Creative10.mp4",
-    "Creative11.mp4",
-    "Creative12.mp4",
-    "Creative2.png",
-    "Creative3.png",
-    "Creative4.png",
-    "Creative5.png",
-    "Creative6.png",
-    "Creative7.png",
-    "Creative8.png",
-    "Creative9.jpg"
-  ];
-
-  const creatives = mockFiles.map((file, i) => {
-    const lower = file.toLowerCase();
-    const isVideo = lower.endsWith(".mp4");
-    const roas = +(Math.random() * 4 + 1).toFixed(2);
-    const ctr = +(Math.random() * 3 + 0.5).toFixed(2);
-    const cpc = +(Math.random() * 0.5 + 0.2).toFixed(2);
-    const impressions = Math.floor(Math.random() * 10000 + 2000);
-
-    return {
-      id: "mock_" + i,
-      name: file.replace(/\.[^.]+$/, "").replace(/Creative(\d+)/, "Creative #$1"),
-      URL: "/mock/" + file,
-      mediaType: isVideo ? "video" : "image",
-      CTR: ctr,
-      CPC: cpc,
-      ROAS: roas,
-      impressions,
-      spend: +(impressions * cpc / 100).toFixed(2),
-      revenue: +(impressions * cpc / 100 * roas).toFixed(2),
-      score: calculateCreativeScore(roas, ctr, cpc),
-      platform: "meta"
-    };
+  liveBtn.addEventListener("click", () => {
+    AppState.mode = "live";
+    updateButtons();
+    alert("Live-Mode: Hier hängst du später einfach die echte Meta-API dran. Aktuell noch Demo-Daten.");
+    logEvent("mode:change", { mode: "live" });
   });
 
-  const kpi = generateMockInsights();
-
-  updateState(
-    {
-      creatives,
-      kpi
-    },
-    { source: "mock", type: "creatives-kpi" }
-  );
-}
-
-function loadMockCampaigns() {
-  const names = [
-    "Prospecting - Broad",
-    "Retargeting 7 Days",
-    "German Lookalike 1%",
-    "Interest Stack - Fitness",
-    "Advantage+ Shopping Test"
-  ];
-
-  const campaigns = names.map(name => {
-    const spend = +(Math.random() * 200 + 50).toFixed(2);
-    const impressions = Math.floor(Math.random() * 50000 + 5000);
-    const clicks = Math.floor(impressions * (Math.random() * 0.03 + 0.005));
-    const ctr = impressions ? (clicks / impressions) * 100 : 0;
-    const cpc = clicks ? spend / clicks : 0;
-    const purchases = Math.floor(clicks * (Math.random() * 0.05 + 0.01));
-    const revenue = purchases * (Math.random() * 50 + 30);
-    const roas = spend ? revenue / spend : 0;
-
-    return {
-      id: "mock_" + name.replace(/\s+/g, "_"),
-      name,
-      spend,
-      impressions,
-      CTR: ctr,
-      CPC: cpc,
-      purchases,
-      ROAS: roas
-    };
+  simBtn.addEventListener("click", () => {
+    AppState.mode = "demo";
+    updateButtons();
+    logEvent("mode:change", { mode: "demo" });
   });
 
-  updateState({ campaigns }, { source: "mock", type: "campaigns" });
+  updateButtons();
 }
 
-// ======================================================================
-// SIDEBAR & NAV
-// ======================================================================
+// ----------------------------------------------------------------------
+// SIDEBAR / NAVIGATION
+// ----------------------------------------------------------------------
 
 function setupSidebar() {
   const sidebar = document.getElementById("sidebar");
   const toggle = document.getElementById("sidebarToggle");
   if (!sidebar || !toggle) return;
 
-  /* Helper: mobile detection */
   function isMobile() {
     return window.innerWidth <= 1200;
   }
 
-  /* Toggle sidebar (mobile: open/close, desktop: collapse) */
   toggle.addEventListener("click", () => {
     if (isMobile()) {
       sidebar.classList.toggle("open");
@@ -612,7 +440,6 @@ function setupSidebar() {
     }
   });
 
-  /* Close sidebar on mobile when clicking outside */
   document.addEventListener("click", (e) => {
     if (!isMobile()) return;
     if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
@@ -620,259 +447,683 @@ function setupSidebar() {
     }
   });
 
-  /* Window resize: remove open-state when leaving mobile mode */
   window.addEventListener("resize", () => {
     if (!isMobile()) {
       sidebar.classList.remove("open");
     }
   });
 
-  /* MENU CLICK HANDLING — FIXED */
-  document.querySelectorAll(".menu-item").forEach(item => {
+  document.querySelectorAll(".menu-item").forEach((item) => {
     item.addEventListener("click", (e) => {
       e.preventDefault();
-
       const view = item.dataset.view;
       if (!view) return;
 
-      /* --- ACTIVE STATE FÜR MENÜ --- */
-      document.querySelectorAll(".menu-item")
-        .forEach(i => i.classList.remove("active"));
+      document.querySelectorAll(".menu-item").forEach((i) =>
+        i.classList.remove("active")
+      );
       item.classList.add("active");
 
-      /* --- ALLE VIEWS VERSTECKEN --- */
-      document.querySelectorAll(".view").forEach(v => {
+      document.querySelectorAll(".view").forEach((v) => {
         v.classList.add("hidden");
         v.classList.remove("active");
       });
 
-      /* --- ZIEL-VIEW ANZEIGEN --- */
       const target = document.getElementById("view-" + view);
-      if (target) {
-        target.classList.remove("hidden");
-        target.classList.add("active");
-      }
+      if (!target) return;
+      target.classList.remove("hidden");
+      target.classList.add("active");
 
-      /* --- TITEL AKTUALISIEREN --- */
       const pageTitle = document.querySelector(".page-title");
       if (pageTitle) {
         const labelEl = item.querySelector(".menu-label");
-        pageTitle.textContent =
-          labelEl?.textContent || item.dataset.tooltip || "Dashboard";
+        pageTitle.textContent = labelEl
+          ? labelEl.textContent
+          : item.dataset.tooltip || "Dashboard";
       }
 
-      /* --- MOBILE: Sidebar schließen --- */
       if (isMobile()) {
         sidebar.classList.remove("open");
       }
+
+      logEvent("nav:change", { view });
+      // Bei jedem View-Wechsel noch mal rendern, falls Daten/State geändert wurden
+      renderAll();
     });
   });
 }
 
-// ======================================================================
-// SIGNAL SENSEI
-// ======================================================================
+// ----------------------------------------------------------------------
+// DASHBOARD
+// ----------------------------------------------------------------------
 
-function determineStrategy(roas, ctr, cr) {
-  if (roas > 4 && ctr > 3 && cr > 4) {
-    return {
-      name: "Scale Master",
-      title: "Aggressive Scaling Strategy",
-      description: "Deine Performance ist exzellent. Jetzt ist der richtige Zeitpunkt für aggressives Scaling bei gleichzeitiger Qualitätskontrolle.",
-      icon: "🚀",
-      actions: [
-        "Budget um 30–50% erhöhen",
-        "Neue Audiences testen",
-        "Weitere Placements erschließen"
-      ]
-    };
-  } else if (roas > 3 && roas <= 4 && ctr > 2) {
-    return {
-      name: "Optimizer",
-      title: "Continuous Optimization Strategy",
-      description: "Gute Performance mit Verbesserungspotential. Fokus auf kontinuierliche Optimierung und Testing.",
-      icon: "⚡",
-      actions: [
-        "A/B-Tests für Creatives",
-        "Ausspielungszeiten optimieren",
-        "Targeting verfeinern"
-      ]
-    };
-  } else if (roas > 2 && roas <= 3) {
-    return {
-      name: "Creative Tester",
-      title: "Creative Testing Strategy",
-      description: "Solide Basis, aber Creative-Performance kann verbessert werden. Mehr Testing nötig.",
-      icon: "🎨",
-      actions: [
-        "Neue Creative-Varianten launchen",
-        "Top-Performer analysieren",
-        "Low Performer pausieren"
-      ]
-    };
-  } else if (roas > 1.5 && roas <= 2) {
-    return {
-      name: "Efficiency Hunter",
-      title: "Cost Efficiency Strategy",
-      description: "Profitabel aber ineffizient. Fokus auf Cost-Reduktion und Conversion-Optimierung.",
-      icon: "💰",
-      actions: [
-        "Wasted Spend reduzieren",
-        "Landing Page optimieren",
-        "Targeting enger fassen"
-      ]
-    };
-  } else if (ctr < 1.5 && roas < 2) {
-    return {
-      name: "Attention Seeker",
-      title: "Engagement Boost Strategy",
-      description: "Niedrige Engagement-Rates. Kreative Elemente müssen überarbeitet werden.",
-      icon: "👁️",
-      actions: [
-        "Creatives neu designen",
-        "Neue Hooks testen",
-        "Ad Copy verbessern"
-      ]
-    };
+function renderDashboard() {
+  const kpi = AppState.kpi;
+  // Hero Grid
+  const hero = document.getElementById("creativeGridHero");
+  if (hero) {
+    const topCreatives = [...MockData.creatives]
+      .sort((a, b) => b.roas - a.roas)
+      .slice(0, 4);
+
+    hero.innerHTML = topCreatives
+      .map((c) => {
+        const isVideo = c.mediaType === "video";
+        const media = isVideo
+          ? `<video class="creative-thumb" src="${c.url}" muted loop onmouseover="this.play()" onmouseout="this.pause()"></video>`
+          : `<img class="creative-thumb" src="${c.url}" alt="${c.name}" onerror="this.src='https://via.placeholder.com/400x400?text=Creative'"/>`;
+
+        return `
+        <div class="creative-card-enhanced">
+          <div class="creative-media-container">
+            ${media}
+            <div class="creative-platform-badge">
+              <span class="platform-icon meta-icon">f</span> ${c.platform}
+            </div>
+            <div class="creative-score-badge">${c.score}/100</div>
+          </div>
+          <div class="creative-card-body">
+            <div class="creative-title">${c.name}</div>
+            <div class="creative-metrics-grid">
+              <div class="metric-item">
+                <div class="metric-label-sm">ROAS</div>
+                <div class="metric-value-sm">${fmt.num(c.roas, 2)}x</div>
+              </div>
+              <div class="metric-item">
+                <div class="metric-label-sm">CTR</div>
+                <div class="metric-value-sm">${fmt.num(c.ctr, 2)}%</div>
+              </div>
+              <div class="metric-item">
+                <div class="metric-label-sm">CPC</div>
+                <div class="metric-value-sm">${fmt.curr(c.cpc)}</div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      })
+      .join("");
+  }
+
+  // Summary Cards
+  if (kpi) {
+    const avgROAS = document.getElementById("avgROAS");
+    const avgCTR = document.getElementById("avgCTR");
+    const totalSpend = document.getElementById("totalSpend");
+    const totalRevenue = document.getElementById("totalRevenue");
+
+    if (avgROAS) avgROAS.textContent = fmt.num(kpi.roas, 1) + "x";
+    if (avgCTR) avgCTR.textContent = fmt.num(kpi.ctr, 1) + " %";
+    if (totalSpend) totalSpend.textContent = fmt.curr(kpi.spend);
+    if (totalRevenue) totalRevenue.textContent = fmt.curr(kpi.revenue);
+
+    // einfache fiktive Trends
+    setTrend("avgROASTrend", kpi.roas, 3.0);
+    setTrend("avgCTRTrend", kpi.ctr, 2.0);
+    setTrend("totalSpendTrend", kpi.spend, kpi.spend * 0.9, true);
+    setTrend("totalRevenueTrend", kpi.revenue, kpi.revenue * 0.9);
+  }
+
+  // KPI Deep Dive
+  if (kpi) {
+    const deepROAS = document.getElementById("deepROAS");
+    const deepCTR = document.getElementById("deepCTR");
+    const deepCPC = document.getElementById("deepCPC");
+    const deepCR = document.getElementById("deepCR");
+    const deepAOV = document.getElementById("deepAOV");
+    const deepRevenue = document.getElementById("deepRevenue");
+
+    if (deepROAS) deepROAS.textContent = fmt.num(kpi.roas, 2) + "x";
+    if (deepCTR) deepCTR.textContent = fmt.pct(kpi.ctr, 2);
+    if (deepCPC) deepCPC.textContent = fmt.curr(kpi.cpc);
+    if (deepCR) deepCR.textContent = fmt.pct(kpi.cr, 2);
+    if (deepAOV) deepAOV.textContent = fmt.curr(kpi.aov);
+    if (deepRevenue) deepRevenue.textContent = fmt.curr(kpi.revenue);
+  }
+
+  // Winner / Loser
+  renderWinnerLoser();
+
+  // Insights Kurzfassung im Dashboard
+  const insightsShort = document.getElementById("insightsContent");
+  if (insightsShort) {
+    const topInsights = MockData.insights.slice(0, 3);
+    insightsShort.innerHTML = topInsights
+      .map(
+        (i) => `
+      <div class="insight-card" style="margin-bottom:12px;">
+        <div style="font-size:11px; text-transform:uppercase; color:var(--text-light); margin-bottom:4px;">
+          ${i.type.toUpperCase()} · Impact: ${i.impact.toUpperCase()}
+        </div>
+        <div style="font-weight:600; font-size:13px; margin-bottom:4px;">${i.title}</div>
+        <div style="font-size:12px; color:var(--text-secondary); line-height:1.5;">${i.body}</div>
+      </div>
+    `
+      )
+      .join("");
+  }
+}
+
+function setTrend(id, value, baseline, invert = false) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const diff = baseline ? ((value - baseline) / baseline) * 100 : 0;
+  const rounded = Math.round(diff);
+  el.textContent = (diff >= 0 ? "+" : "") + rounded + " %";
+
+  el.classList.remove("positive", "negative", "neutral");
+  if (Math.abs(diff) < 2) {
+    el.classList.add("neutral");
+  } else if ((diff >= 0 && !invert) || (diff < 0 && invert)) {
+    el.classList.add("positive");
   } else {
-    return {
-      name: "Foundation Builder",
-      title: "Rebuild & Test Strategy",
-      description: "Performance unter Erwartungen. Zurück zu den Grundlagen und systematisches Testing.",
-      icon: "🏗️",
-      actions: [
-        "Fundamentale Strategie prüfen",
-        "Neue Teststruktur aufsetzen",
-        "Wettbewerb analysieren"
-      ]
-    };
+    el.classList.add("negative");
   }
 }
 
-function generateSenseiInsights(strategy) {
-  const insights = [
-    `<div class="sensei-insight">
-      <div class="insight-icon">${strategy.icon}</div>
-      <div class="insight-content">
-        <strong>Empfohlene Strategie:</strong> ${strategy.name}
+function renderWinnerLoser() {
+  if (!MockData.creatives.length) return;
+  const sorted = [...MockData.creatives].sort((a, b) => b.roas - a.roas);
+  const winner = sorted[0];
+  const loser = sorted[sorted.length - 1];
+
+  const winnerEl = document.getElementById("winnerContent");
+  const loserEl = document.getElementById("loserContent");
+
+  function cardHtml(c, isWinner) {
+    const isVideo = c.mediaType === "video";
+    const media = isVideo
+      ? `<video style="width:100%; border-radius:8px; margin-bottom:12px;" controls src="${c.url}"></video>`
+      : `<img style="width:100%; border-radius:8px; margin-bottom:12px;" src="${c.url}" alt="${c.name}" />`;
+
+    const hint = isWinner
+      ? "🚀 Skalierungskandidat – Budget sanft nach oben schieben und ähnliche Creatives testen."
+      : "⚠️ Unterperformer – pausieren oder komplett neues Creative testen (anderer Hook, anderes Visual).";
+
+    return `
+      ${media}
+      <h3 style="font-size:15px; margin-bottom:10px; font-weight:700;">${c.name}</h3>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+        <div style="background:${isWinner ? "var(--success-light)" : "var(--danger-light)"}; padding:10px; border-radius:8px;">
+          <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">ROAS</div>
+          <div style="font-size:20px; font-weight:800;">${fmt.num(c.roas, 2)}x</div>
+        </div>
+        <div style="background:var(--bg-alt); padding:10px; border-radius:8px; border:1px solid var(--border);">
+          <div style="font-size:10px; color:var(--text-light); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">CTR</div>
+          <div style="font-size:20px; font-weight:800;">${fmt.num(c.ctr, 2)}%</div>
+        </div>
       </div>
-    </div>`,
-    ...strategy.actions.map(action => `
-      <div class="sensei-insight">
-        <div class="insight-icon">✓</div>
-        <div class="insight-content">${action}</div>
-      </div>
-    `)
-  ];
-  return insights.join("");
-}
-
-function analyzeSenseiStrategy() {
-  const strategyEl = document.getElementById("senseiStrategy");
-  const insightsEl = document.getElementById("senseiInsights");
-
-  if (!SignalState.kpi || !strategyEl) return;
-
-  const roas = SignalState.kpi.ROAS || 0;
-  const ctr = SignalState.kpi.CTR || 0;
-  const cr = SignalState.kpi.CR || 0;
-
-  const strategy = determineStrategy(roas, ctr, cr);
-  SignalState.senseiStrategy = strategy;
-
-  strategyEl.innerHTML = `
-    <div class="strategy-badge">${strategy.name}</div>
-    <h4 style="font-size:14px; font-weight:700; margin-bottom:6px;">${strategy.title}</h4>
-    <p style="font-size:12px; color:var(--text-secondary); line-height:1.6;">${strategy.description}</p>
-  `;
-
-  if (insightsEl) {
-    insightsEl.innerHTML = generateSenseiInsights(strategy);
+      <div style="font-size:12px; color:var(--text-secondary); line-height:1.6;">${hint}</div>
+    `;
   }
+
+  if (winnerEl && winner) winnerEl.innerHTML = cardHtml(winner, true);
+  if (loserEl && loser) loserEl.innerHTML = cardHtml(loser, false);
 }
 
-function executeSenseiAction(action) {
-  console.log("Sensei action:", action);
-  const insightsEl = document.getElementById("senseiInsights");
-  if (!insightsEl) return;
+// ----------------------------------------------------------------------
+// CREATIVES VIEW
+// ----------------------------------------------------------------------
 
-  insightsEl.innerHTML += `
-    <div class="sensei-insight" style="background:var(--success-light); border:1px solid var(--success); margin-top:12px; padding:12px; border-radius:8px;">
-      <div class="insight-content">
-        <strong style="color:var(--success);">Aktion gestartet!</strong><br>
-        <span style="font-size:12px;">Die Analyse läuft im Hintergrund...</span>
+function setupCreativesControls() {
+  const sort = document.getElementById("sortCreatives");
+  if (sort) {
+    sort.addEventListener("change", (e) => {
+      AppState.creativeSort = e.target.value;
+      logEvent("creatives:sort", { sort: AppState.creativeSort });
+      renderCreativesView();
+    });
+  }
+
+  const viewBtns = document.querySelectorAll("#view-creatives .view-btn[data-view]");
+  viewBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      viewBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      AppState.creativeView = btn.dataset.view || "grid";
+      logEvent("creatives:view", { view: AppState.creativeView });
+      renderCreativesView();
+    });
+  });
+}
+
+function renderCreativesView() {
+  const grid = document.getElementById("creativeGrid");
+  if (!grid) return;
+
+  let items = [...MockData.creatives];
+
+  // Sortierung
+  items.sort((a, b) => {
+    switch (AppState.creativeSort) {
+      case "roas":
+        return b.roas - a.roas;
+      case "ctr":
+        return b.ctr - a.ctr;
+      case "cpc":
+        return a.cpc - b.cpc;
+      case "impressions":
+        return b.impressions - a.impressions;
+      case "score":
+        return b.score - a.score;
+      default:
+        return 0;
+    }
+  });
+
+  // Anzahl in Sidebar
+  const creativeCount = document.getElementById("creativeCount");
+  if (creativeCount) creativeCount.textContent = items.length.toString();
+
+  const isList = AppState.creativeView === "list";
+  grid.className = isList ? "creative-grid creative-grid-list" : "creative-grid";
+
+  grid.innerHTML = items
+    .map((c) => {
+      const isVideo = c.mediaType === "video";
+      const media = isVideo
+        ? `<video class="creative-thumb" src="${c.url}" muted loop onmouseover="this.play()" onmouseout="this.pause()"></video>`
+        : `<img class="creative-thumb" src="${c.url}" alt="${c.name}" onerror="this.src='https://via.placeholder.com/400x400?text=Creative'"/>`;
+
+      const layoutClass = isList ? "creative-card list" : "creative-card";
+
+      return `
+      <article class="${layoutClass}" data-creative-id="${c.id}">
+        <div style="position:relative;">
+          ${media}
+          <span class="creative-badge">${c.score}/100</span>
+        </div>
+        <div class="creative-info">
+          <div>
+            <div style="font-weight:600; margin-bottom:4px;">${c.name}</div>
+            <div style="font-size:11px; color:var(--text-secondary);">
+              ${c.format} · ${c.objective} · ${c.platform}
+            </div>
+          </div>
+          <div style="text-align:right; font-size:12px;">
+            <div>ROAS: <strong>${fmt.num(c.roas, 2)}x</strong></div>
+            <div>CTR: <strong>${fmt.num(c.ctr, 2)}%</strong></div>
+            <div>CPC: <strong>${fmt.curr(c.cpc)}</strong></div>
+          </div>
+        </div>
+      </article>
+    `;
+    })
+    .join("");
+
+  // Klickhandling (Details)
+  grid.querySelectorAll("[data-creative-id]").forEach((el) => {
+    el.addEventListener("click", () => {
+      const id = el.getAttribute("data-creative-id");
+      showCreativeDetails(id);
+    });
+  });
+}
+
+function showCreativeDetails(id) {
+  const c = MockData.creatives.find((x) => x.id === id);
+  if (!c) return;
+
+  const impressionClicks = Math.round(c.impressions * (c.ctr / 100));
+  const text =
+    `Creative: ${c.name}\n\n` +
+    `Platform: ${c.platform}\n` +
+    `Format: ${c.format}\n` +
+    `Objective: ${c.objective}\n\n` +
+    `Impressions: ${fmt.int(c.impressions)}\n` +
+    `Klicks (approx.): ${fmt.int(impressionClicks)}\n` +
+    `Spend: ${fmt.curr(c.spend)}\n` +
+    `Revenue: ${fmt.curr(c.revenue)}\n\n` +
+    `ROAS: ${fmt.num(c.roas, 2)}x\n` +
+    `CTR: ${fmt.num(c.ctr, 2)}%\n` +
+    `CPC: ${fmt.curr(c.cpc)}\n` +
+    `Performance-Score: ${c.score}/100\n`;
+
+  alert(text);
+  logEvent("creative:details", { id });
+}
+
+// ----------------------------------------------------------------------
+// CAMPAIGNS
+// ----------------------------------------------------------------------
+
+function renderCampaignsView() {
+  const body = document.getElementById("campaignTableBody");
+  if (!body) return;
+
+  body.innerHTML = "";
+
+  MockData.campaigns.forEach((c) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${c.name}</td>
+      <td>${fmt.curr(c.spend)}</td>
+      <td>${fmt.int(c.impressions)}</td>
+      <td>${fmt.int(c.clicks)}</td>
+      <td>${fmt.num(c.ctr, 2)}%</td>
+      <td>${fmt.int(c.purchases)}</td>
+      <td>${fmt.num(c.roas, 2)}x</td>
+    `;
+    tr.addEventListener("click", () => {
+      alert(
+        `Kampagne: ${c.name}\n\n` +
+          `Spend: ${fmt.curr(c.spend)}\nRevenue: ${fmt.curr(c.revenue)}\nROAS: ${fmt.num(
+            c.roas,
+            2
+          )}x\nCTR: ${fmt.num(c.ctr, 2)}%\nPurchases: ${fmt.int(c.purchases)}`
+      );
+      logEvent("campaign:details", { id: c.id });
+    });
+    body.appendChild(tr);
+  });
+}
+
+// ----------------------------------------------------------------------
+// INSIGHTS VIEW
+// ----------------------------------------------------------------------
+
+function renderInsightsView() {
+  const container = document.getElementById("insightsDetail");
+  if (!container) return;
+  const kpi = AppState.kpi;
+
+  let header = "";
+  if (kpi) {
+    header =
+      `<p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">` +
+      `Aktueller Gesamt-ROAS: <strong>${fmt.num(kpi.roas, 2)}x</strong>, ` +
+      `CTR: <strong>${fmt.num(kpi.ctr, 2)}%</strong>, ` +
+      `CR: <strong>${fmt.num(kpi.cr, 2)}%</strong></p>`;
+  }
+
+  const list = MockData.insights
+    .map(
+      (i) => `
+    <article style="border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:12px; background:var(--bg-card);">
+      <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-light); margin-bottom:4px;">
+        ${i.type.toUpperCase()} · Impact: ${i.impact.toUpperCase()}
       </div>
+      <h3 style="font-size:13px; font-weight:700; margin-bottom:6px;">${i.title}</h3>
+      <p style="font-size:12px; color:var(--text-secondary); line-height:1.6;">${i.body}</p>
+    </article>
+  `
+    )
+    .join("");
+
+  container.innerHTML = header + list;
+}
+
+// ----------------------------------------------------------------------
+// SIGNAL SENSEI VIEW
+// ----------------------------------------------------------------------
+
+function renderSenseiView() {
+  const out = document.getElementById("senseiOutput");
+  if (!out) return;
+  const kpi = AppState.kpi;
+  if (!kpi) {
+    out.textContent = "Noch keine Daten geladen.";
+    return;
+  }
+
+  const strategy = determineSenseiStrategy(kpi.roas, kpi.ctr, kpi.cr);
+
+  out.innerHTML = `
+    <div style="border-radius:12px; border:1px solid var(--border); padding:16px; background:var(--bg-card); margin-bottom:16px;">
+      <div style="font-size:26px; margin-bottom:6px;">${strategy.icon}</div>
+      <div style="font-size:12px; text-transform:uppercase; color:var(--text-light); letter-spacing:0.8px; margin-bottom:4px;">
+        Empfohlene Strategie
+      </div>
+      <h3 style="font-size:15px; font-weight:700; margin-bottom:8px;">${strategy.title}</h3>
+      <p style="font-size:13px; color:var(--text-secondary); line-height:1.6; margin-bottom:12px;">
+        ${strategy.description}
+      </p>
+      <ul style="font-size:13px; padding-left:18px; color:var(--text); margin-bottom:8px;">
+        ${strategy.actions.map((a) => `<li>${a}</li>`).join("")}
+      </ul>
     </div>
   `;
 }
 
-function setupSensei() {
-  const panel = document.getElementById("senseiPanel");
-  const toggle = document.getElementById("toggleSensei");
-  const close = document.getElementById("closeSensei");
-  const overlay = document.getElementById("senseiOverlay");
+function determineSenseiStrategy(roas, ctr, cr) {
+  if (roas >= 4 && ctr >= 2.5 && cr >= 3) {
+    return {
+      icon: "🚀",
+      title: "Aggressives Scaling mit UGC-Fokus",
+      description:
+        "Performance ist sehr stark. Du solltest behutsam skalieren und die Top-Creatives duplizieren, ohne die Lernphase zu zerstören.",
+      actions: [
+        "Budget bei Top-Kampagnen um 20–30% erhöhen.",
+        "Lookalike-Audiences testen (1–3%).",
+        "Zusätzliche UGC-Varianten mit ähnlichem Hook launchen."
+      ]
+    };
+  }
+  if (roas >= 2.5 && ctr >= 2) {
+    return {
+      icon: "⚡",
+      title: "Optimierungs- und Teststrategie",
+      description:
+        "Solide Basis, aber es steckt noch Luft nach oben drin. Fokus auf Creative-Tests und Landing-Page-Optimierung.",
+      actions: [
+        "2–3 neue Hooks pro Woche testen.",
+        "Landing-Page mit A/B Tests für Hero-Section und Trust-Elemente verbessern.",
+        "Budget auf Kampagnen mit stabiler Performance leichter hochfahren."
+      ]
+    };
+  }
+  if (roas < 2) {
+    return {
+      icon: "🧱",
+      title: "Rebuild & Struktur-Neustart",
+      description:
+        "Aktuell ist die Performance nicht nachhaltig profitabel. Du solltest zurück auf ein klares Test-Setup und saubere Struktur.",
+      actions: [
+        "Neue Testkampagnen mit klarer Trennung Prospecting / Retargeting.",
+        "Mindestens 3–5 frische Creatives pro Woche testen.",
+        "Angebot, Preispositionierung und Value Proposition überprüfen."
+      ]
+    };
+  }
+  return {
+    icon: "🎯",
+    title: "Effizienz-Feintuning",
+    description:
+      "Die Ergebnisse sind in Ordnung, aber du kannst CPM, CPC und CR noch genauer optimieren.",
+    actions: [
+      "Placements und Ausspielzeiten analysieren und bereinigen.",
+      "CPM-Treiber identifizieren (z. B. Creatives mit schlechter Relevanz).",
+      "Fokus auf Creatives mit hoher CR und stabilem ROAS."
+    ]
+  };
+}
 
-  if (!panel || !toggle || !overlay) return;
+// ----------------------------------------------------------------------
+// CREATIVE LIBRARY
+// ----------------------------------------------------------------------
 
-  function openPanel() {
-    panel.classList.add("open");
-    overlay.classList.add("active");
-    document.body.style.overflow = "hidden";
-    SignalState.senseiActive = true;
-    analyzeSenseiStrategy();
+function renderLibraryView() {
+  const grid = document.getElementById("libraryGrid");
+  if (!grid) return;
+
+  if (!MockData.library.length) {
+    grid.innerHTML =
+      '<div style="grid-column:1/-1; color:var(--text-secondary);">Noch keine Creatives in der Library.</div>';
+    return;
   }
 
-  function closePanel() {
-    panel.classList.remove("open");
-    overlay.classList.remove("active");
-    document.body.style.overflow = "";
-    SignalState.senseiActive = false;
-  }
+  grid.innerHTML = MockData.library
+    .map(
+      (c) => `
+    <article class="creative-card" data-library-id="${c.id}">
+      <div style="position:relative;">
+        ${
+          c.mediaType === "video"
+            ? `<video class="creative-thumb" src="${c.url}" muted loop onmouseover="this.play()" onmouseout="this.pause()"></video>`
+            : `<img class="creative-thumb" src="${c.url}" alt="${c.name}" onerror="this.src='https://via.placeholder.com/400x400?text=Creative'"/>`
+        }
+        <span class="creative-badge">${c.score}/100</span>
+      </div>
+      <div class="creative-info">
+        <div>
+          <div style="font-weight:600; margin-bottom:4px;">${c.name}</div>
+          <div style="font-size:11px; color:var(--text-secondary);">${c.platform} · ${c.format}</div>
+        </div>
+      </div>
+    </article>
+  `
+    )
+    .join("");
 
-  toggle.addEventListener("click", openPanel);
-  if (close) close.addEventListener("click", closePanel);
-  overlay.addEventListener("click", closePanel);
-
-  window.addEventListener("resize", () => {
-    if (window.innerWidth <= 768 && panel.classList.contains("open")) {
-      closePanel();
-    }
+  grid.querySelectorAll("[data-library-id]").forEach((el) => {
+    el.addEventListener("click", () => {
+      const id = el.getAttribute("data-library-id");
+      showCreativeDetails(id);
+      logEvent("library:openCreative", { id });
+    });
   });
+}
 
-  document.querySelectorAll(".sensei-action-btn").forEach(btn => {
+// ----------------------------------------------------------------------
+// REPORTS VIEW (einfacher Report + Export)
+// ----------------------------------------------------------------------
+
+function renderReportsView() {
+  const container = document.getElementById("reportsContainer");
+  if (!container) return;
+
+  const kpi = AppState.kpi;
+  if (!kpi) {
+    container.innerHTML = "Noch keine Daten für Reports.";
+    return;
+  }
+
+  const jsonExport = {
+    generatedAt: new Date().toISOString(),
+    mode: AppState.mode,
+    kpi,
+    campaigns: MockData.campaigns,
+    creatives: MockData.creatives
+  };
+
+  container.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <div>
+        <h3 style="font-size:15px; font-weight:700; margin-bottom:4px;">Performance Snapshot</h3>
+        <p style="font-size:12px; color:var(--text-secondary);">
+          Zusammenfassung deiner aktuellen Demo-Performance. Diese Struktur kannst du 1:1 verwenden, wenn später echte Meta-Daten reinfließen.
+        </p>
+      </div>
+      <button id="exportJsonBtn" class="button primary" style="padding:8px 12px; font-size:12px;">
+        JSON-Export
+      </button>
+    </div>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin-bottom:16px;">
+      <div class="summary-card">
+        <div class="summary-icon">👁️</div>
+        <div class="summary-content">
+          <div class="summary-label">Impressions</div>
+          <div class="summary-value">${fmt.short(kpi.impressions)}</div>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-icon">🖱️</div>
+        <div class="summary-content">
+          <div class="summary-label">Clicks</div>
+          <div class="summary-value">${fmt.short(kpi.clicks)}</div>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-icon">💸</div>
+        <div class="summary-content">
+          <div class="summary-label">Spend</div>
+          <div class="summary-value">${fmt.curr(kpi.spend)}</div>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-icon">💰</div>
+        <div class="summary-content">
+          <div class="summary-label">Revenue</div>
+          <div class="summary-value">${fmt.curr(kpi.revenue)}</div>
+        </div>
+      </div>
+    </div>
+
+    <pre style="font-size:11px; background:var(--bg); padding:10px; border-radius:8px; max-height:220px; overflow:auto; border:1px solid var(--border);">
+${JSON.stringify(jsonExport, null, 2)}
+    </pre>
+  `;
+
+  const btn = document.getElementById("exportJsonBtn");
+  if (btn) {
     btn.addEventListener("click", () => {
-      const action = btn.dataset.action;
-      executeSenseiAction(action);
+      const blob = new Blob([JSON.stringify(jsonExport, null, 2)], {
+        type: "application/json"
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "signalone-demo-export.json";
+      a.click();
+      URL.revokeObjectURL(url);
+      logEvent("reports:exportJson", {});
     });
-  });
+  }
 }
 
-// ======================================================================
-// SETTINGS
-// ======================================================================
+// ----------------------------------------------------------------------
+// CONNECTIONS
+// ----------------------------------------------------------------------
 
-function setupSettingsTabs() {
-  const tabs = document.querySelectorAll(".settings-tab");
-  const panels = document.querySelectorAll(".settings-panel");
+function setupConnections() {
+  const connectMeta = document.getElementById("connectMeta");
+  const connectMetaSettings = document.getElementById("connectMetaSettings");
 
-  tabs.forEach(tab => {
-    tab.addEventListener("click", () => {
-      tabs.forEach(t => t.classList.remove("active"));
-      tab.classList.add("active");
-
-      const id = tab.dataset.tab;
-      panels.forEach(p => p.classList.remove("active"));
-
-      const target = document.getElementById("tab-" + id);
-      if (target) target.classList.add("active");
+  function toggleMeta() {
+    AppState.connections.meta = !AppState.connections.meta;
+    renderConnectionsView();
+    logEvent("connections:metaToggle", {
+      connected: AppState.connections.meta
     });
-  });
+  }
+
+  if (connectMeta) connectMeta.addEventListener("click", toggleMeta);
+  if (connectMetaSettings) connectMetaSettings.addEventListener("click", toggleMeta);
+
+  renderConnectionsView();
 }
 
-function loadSettings() {
-  const profile = JSON.parse(localStorage.getItem("profile") || "{}");
-  const branding = JSON.parse(localStorage.getItem("branding") || "{}");
-  const app = JSON.parse(localStorage.getItem("appSettings") || "{}");
+function renderConnectionsView() {
+  const statusText = document.getElementById("metaConnectionStatus");
+  const apiStatus = document.getElementById("metaApiStatus");
+  const dot = document.getElementById("metaStatusDot");
+  const text = document.getElementById("metaStatusText");
+
+  const connected = AppState.connections.meta;
+
+  if (statusText) statusText.textContent = connected ? "Connected (Demo)" : "Not connected";
+  if (apiStatus) apiStatus.textContent = connected ? "Verbunden (Demo)" : "Nicht verbunden";
+
+  if (dot && text) {
+    dot.classList.remove("meta-status-ok", "meta-status-error");
+    if (connected) {
+      dot.classList.add("meta-status-ok");
+      text.textContent = "Demo Mode";
+    } else {
+      dot.classList.add("meta-status-error");
+      text.textContent = "Nicht verbunden";
+    }
+  }
+}
+
+// ----------------------------------------------------------------------
+// PROFILE & SETTINGS (lokales Speichern/Laden)
+// ----------------------------------------------------------------------
+
+function loadProfileSettings() {
+  const profile = JSON.parse(localStorage.getItem("sig_profile") || "{}");
+  const branding = JSON.parse(localStorage.getItem("sig_branding") || "{}");
+  const app = JSON.parse(localStorage.getItem("sig_appSettings") || "{}");
 
   const profileName = document.getElementById("profileName");
   const profileEmail = document.getElementById("profileEmail");
@@ -895,959 +1146,151 @@ function loadSettings() {
   if (appMotion) appMotion.value = app.motion || "on";
 }
 
-function saveAccountSettings() {
-  const data = {
-    name: document.getElementById("profileName")?.value || "",
-    email: document.getElementById("profileEmail")?.value || "",
-    avatar: document.getElementById("profileAvatar")?.value || ""
-  };
-  localStorage.setItem("profile", JSON.stringify(data));
-  toast("Account gespeichert", { type: "success" });
-}
+function setupProfileButtons() {
+  const saveAccountBtn = document.getElementById("saveAccount");
+  const saveBrandingBtn = document.getElementById("saveBranding");
+  const saveAppBtn = document.getElementById("saveAppSettings");
 
-function saveBranding() {
-  const data = {
-    name: document.getElementById("brandName")?.value || "",
-    color: document.getElementById("brandColor")?.value || "#6366f1"
-  };
-  localStorage.setItem("branding", JSON.stringify(data));
-  toast("Branding gespeichert");
-}
-
-function saveAppSettings() {
-  const data = {
-    theme: document.getElementById("appTheme")?.value || "auto",
-    motion: document.getElementById("appMotion")?.value || "on"
-  };
-  localStorage.setItem("appSettings", JSON.stringify(data));
-  toast("Einstellungen gespeichert");
-}
-
-// ======================================================================
-// FILTERS, SORT, VIEW, PERIOD, EXPORT, MOCK
-// ======================================================================
-
-function setupFilterButtons() {
-  const btns = document.querySelectorAll(".filter-chip[data-filter]");
-  btns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      btns.forEach(x => x.classList.remove("active"));
-      btn.classList.add("active");
-      SignalState.filter = btn.dataset.filter || "all";
-      renderCreatives();
+  if (saveAccountBtn) {
+    saveAccountBtn.addEventListener("click", () => {
+      const data = {
+        name: document.getElementById("profileName")?.value || "",
+        email: document.getElementById("profileEmail")?.value || "",
+        avatar: document.getElementById("profileAvatar")?.value || ""
+      };
+      localStorage.setItem("sig_profile", JSON.stringify(data));
+      alert("Account-Einstellungen gespeichert (lokal).");
+      logEvent("settings:accountSave", data);
     });
-  });
-}
-
-function setupSortSelect() {
-  const select = document.getElementById("sortCreatives");
-  if (!select) return;
-  select.addEventListener("change", (e) => {
-    SignalState.sortBy = e.target.value;
-    renderCreatives();
-  });
-}
-
-function setupViewSwitcher() {
-  const btns = document.querySelectorAll(".view-btn[data-view]");
-  btns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      btns.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      SignalState.viewMode = btn.dataset.view || "grid";
-      renderCreatives();
-    });
-  });
-}
-
-function setupPeriodToggles() {
-  const btns = document.querySelectorAll(".toggle-btn[data-period]");
-  btns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      btns.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-
-      const period = btn.dataset.period;
-      if (period === "30") SignalState.period = "30d";
-      else if (period === "7") SignalState.period = "7d";
-      else SignalState.period = "24h";
-
-      if (MOCK_MODE) {
-        loadMockCreatives();
-        loadMockCampaigns();
-        renderAll();
-      } else if (SignalState.token) {
-        loadMetaData();
-      }
-    });
-  });
-}
-
-function setupCollapsible() {
-  document.querySelectorAll(".section.collapsible .collapse-toggle")
-    .forEach(toggle => {
-      toggle.addEventListener("click", () => {
-        const section = toggle.closest(".section.collapsible");
-        if (section) section.classList.toggle("collapsed");
-      });
-    });
-}
-
-function setupCampaignSorting() {
-  const table = document.getElementById("campaignTable");
-  if (!table) return;
-
-  table.querySelectorAll("th[data-sort]").forEach(th => {
-    th.addEventListener("click", () => {
-      const key = th.dataset.sort;
-      const currentDir = th.dataset.dir || "asc";
-      const dir = currentDir === "asc" ? "desc" : "asc";
-      th.dataset.dir = dir;
-
-      SignalState.campaigns.sort((a, b) => {
-        const av = a[key];
-        const bv = b[key];
-        if (dir === "asc") return av > bv ? 1 : -1;
-        return av < bv ? 1 : -1;
-      });
-
-      renderCampaigns();
-    });
-  });
-}
-
-function setupExportButton() {
-  const btn = document.getElementById("exportCreatives");
-  if (!btn) return;
-
-  btn.addEventListener("click", () => {
-    const data = {
-      timestamp: new Date().toISOString(),
-      period: SignalState.period,
-      kpi: SignalState.kpi,
-      creatives: SignalState.creatives,
-      strategy: SignalState.senseiStrategy
-    };
-
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `signalone-export-${new Date().toISOString().split("T")[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  });
-}
-
-function setupRecommendationRefresh() {
-  const btn = document.getElementById("refreshRecommendations");
-  if (!btn) return;
-
-  btn.addEventListener("click", () => {
-    btn.innerHTML = "<span>⏳</span> Lade...";
-    btn.disabled = true;
-
-    setTimeout(() => {
-      btn.innerHTML = "<span>🔄</span> Aktualisieren";
-      btn.disabled = false;
-      alert("Neue Empfehlungen werden basierend auf aktuellen Daten generiert...");
-    }, 1500);
-  });
-}
-
-function setupMockToggle() {
-  const toggle = document.getElementById("mockToggle");
-  if (!toggle) return;
-
-  toggle.addEventListener("click", () => {
-    MOCK_MODE = !MOCK_MODE;
-    const label = document.getElementById("mockModeLabel");
-    if (label) {
-      label.textContent = MOCK_MODE ? "Demo" : "Live";
-    }
-    toast(`Mode: ${MOCK_MODE ? "Demo (Mock)" : "Live (Meta)"}`, {
-      type: "info"
-    });
-
-    if (MOCK_MODE) {
-      loadMockCreatives();
-      loadMockCampaigns();
-      setMetaStatus("ok", "Demo Mode");
-      renderAll();
-    } else if (SignalState.token) {
-      loadMetaData();
-    } else {
-      clearDashboard();
-      setMetaStatus("error", "Nicht verbunden");
-    }
-  });
-}
-
-// ======================================================================
-// RENDERING
-// ======================================================================
-
-function renderPerformanceScore() {
-  const KPI = SignalState.kpi;
-  const canvas = document.getElementById("scoreChart");
-  if (!KPI || !canvas) return;
-
-  const roasScore = Math.min((KPI.ROAS / 5) * 100, 100);
-  const ctrScore = Math.min((KPI.CTR / 5) * 100, 100);
-  const crScore = Math.min((KPI.CR / 8) * 100, 100);
-  const avgScore = Math.round((roasScore + ctrScore + crScore) / 3);
-
-  const scoreEl = document.getElementById("performanceScore");
-  const heroScore = document.getElementById("scoreValue");
-  if (scoreEl) scoreEl.textContent = avgScore;
-  if (heroScore) heroScore.textContent = avgScore;
-
-  if (scoreChart) scoreChart.destroy();
-
-  const ctx = canvas.getContext("2d");
-  scoreChart = new Chart(ctx, {
-    type: "doughnut",
-    data: {
-      datasets: [{
-        data: [avgScore, 100 - avgScore],
-        backgroundColor: ["#2563eb", "#E5E7EB"],
-        borderWidth: 0
-      }]
-    },
-    options: {
-      responsive: true,
-      cutout: "75%",
-      plugins: {
-        legend: { display: false },
-        tooltip: { enabled: false }
-      }
-    }
-  });
-}
-
-function updateQuickMetrics() {
-  const KPI = SignalState.kpi;
-  if (!KPI) return;
-
-  const updates = [
-    { id: "quickCR", value: fmt.pct(KPI.CR) },
-    { id: "quickROAS", value: fmt.num(KPI.ROAS, 1) + "x" },
-    { id: "quickCTR", value: fmt.pct(KPI.CTR) },
-    { id: "quickRevenue", value: fmt.curr(KPI.Revenue) }
-  ];
-
-  updates.forEach(({ id, value }) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = value;
-  });
-}
-
-function renderOverview() {
-  const grid = document.getElementById("overviewGrid");
-  const KPI = SignalState.kpi;
-  if (!grid) return;
-
-  if (!KPI) {
-    grid.innerHTML = '<div style="grid-column:1/-1; color:var(--text-light);">Keine Daten verfügbar</div>';
-    return;
   }
 
-  const cards = [
-    { label: "Impressions", val: fmt.short(KPI.Impressions), icon: "👁️" },
-    { label: "Clicks", val: fmt.short(KPI.Clicks), icon: "🖱️" },
-    { label: "Add to Cart", val: fmt.num(KPI.AddToCart), icon: "🛒" },
-    { label: "Purchases", val: fmt.num(KPI.Purchases), icon: "✅" },
-    { label: "Revenue", val: fmt.curr(KPI.Revenue), icon: "💰" },
-    { label: "Spend", val: fmt.curr(KPI.Spend), icon: "💸" },
-    { label: "ROAS", val: fmt.num(KPI.ROAS, 2), icon: "📈" }
-  ];
-
-  grid.innerHTML = cards.map(c => `
-    <div class="overview-card">
-      <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:6px;">
-        <div class="metric-label">${c.label}</div>
-        <span style="font-size:16px;">${c.icon}</span>
-      </div>
-      <div class="metric-value">${c.val}</div>
-    </div>
-  `).join("");
-}
-
-function renderFunnel() {
-  const el = document.getElementById("funnelSteps");
-  const KPI = SignalState.kpi;
-  if (!el) return;
-
-  if (!KPI) {
-    el.innerHTML = '<div style="color:var(--text-light);">Keine Daten verfügbar</div>';
-    return;
+  if (saveBrandingBtn) {
+    saveBrandingBtn.addEventListener("click", () => {
+      const data = {
+        name: document.getElementById("brandName")?.value || "",
+        color: document.getElementById("brandColor")?.value || "#6366f1"
+      };
+      localStorage.setItem("sig_branding", JSON.stringify(data));
+      alert("Branding gespeichert (lokal).");
+      logEvent("settings:brandingSave", data);
+    });
   }
 
-  const crEl = document.getElementById("totalCR");
-  if (crEl) crEl.textContent = fmt.pct(KPI.CR);
-
-  const steps = [
-    { label: "Impressions", value: KPI.Impressions, pct: 100 },
-    {
-      label: "Clicks",
-      value: KPI.Clicks,
-      pct: KPI.Impressions ? (KPI.Clicks / KPI.Impressions * 100).toFixed(1) : 0
-    },
-    {
-      label: "Add to Cart",
-      value: KPI.AddToCart,
-      pct: KPI.Clicks ? (KPI.AddToCart / KPI.Clicks * 100).toFixed(1) : 0
-    },
-    {
-      label: "Purchases",
-      value: KPI.Purchases,
-      pct: KPI.Clicks ? (KPI.Purchases / KPI.Clicks * 100).toFixed(1) : 0
-    }
-  ];
-
-  el.innerHTML = steps.map(s => `
-    <div class="funnel-step">
-      <div class="metric-label">${s.label}</div>
-      <div class="funnel-step-value">${fmt.short(s.value)}</div>
-      <div style="font-size:11px; opacity:0.85; margin-top:4px;">${s.pct}%</div>
-    </div>
-  `).join("");
-}
-
-function renderTrendChart() {
-  const canvas = document.getElementById("trendChart");
-  if (!canvas) return;
-
-  const labels = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
-  const data = Array.from({ length: 7 }, () => +(Math.random() * 3 + 2).toFixed(2));
-
-  if (trendChart) trendChart.destroy();
-
-  const ctx = canvas.getContext("2d");
-  trendChart = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels,
-      datasets: [{
-        label: "ROAS",
-        data,
-        borderColor: "#2563eb",
-        backgroundColor: "transparent",
-        tension: 0.4,
-        fill: false,
-        pointRadius: 3,
-        pointHoverRadius: 5,
-        pointBackgroundColor: "#2563eb",
-        pointBorderWidth: 0,
-        borderWidth: 2
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: "#111827",
-          padding: 10,
-          cornerRadius: 8,
-          titleFont: { size: 12, weight: "600" },
-          bodyFont: { size: 12 }
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          grid: { color: "#E5E7EB" },
-          ticks: { font: { size: 11 } }
-        },
-        x: {
-          grid: { display: false },
-          ticks: { font: { size: 11 } }
-        }
-      }
-    }
-  });
-
-  const btns = document.querySelectorAll(".chart-filter");
-  btns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      btns.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      // Hier könntest du später nach Metric umschalten (ROAS, CTR, etc.)
+  if (saveAppBtn) {
+    saveAppBtn.addEventListener("click", () => {
+      const data = {
+        theme: document.getElementById("appTheme")?.value || "auto",
+        motion: document.getElementById("appMotion")?.value || "on"
+      };
+      localStorage.setItem("sig_appSettings", JSON.stringify(data));
+      alert("App-Einstellungen gespeichert (lokal).");
+      logEvent("settings:appSave", data);
     });
-  });
-}
-
-function renderKPIs() {
-  const el = document.getElementById("kpiGrid");
-  const KPI = SignalState.kpi;
-  if (!el) return;
-
-  if (!KPI) {
-    el.innerHTML = '<div style="grid-column:1/-1; color:var(--text-light);">Keine Daten verfügbar</div>';
-    return;
-  }
-
-  const benchmarks = {
-    CTR: 2.5,
-    CPC: 0.80,
-    ROAS: 3.0,
-    AOV: 65,
-    CR: 3.5
-  };
-
-  const cards = [
-    { label: "CTR", val: fmt.pct(KPI.CTR), bench: benchmarks.CTR },
-    { label: "CPC", val: fmt.curr(KPI.CPC), bench: benchmarks.CPC },
-    { label: "ROAS", val: fmt.num(KPI.ROAS, 2), bench: benchmarks.ROAS },
-    { label: "AOV", val: fmt.curr(KPI.AOV), bench: benchmarks.AOV },
-    { label: "CR", val: fmt.pct(KPI.CR), bench: benchmarks.CR }
-  ];
-
-  el.className = "kpi-grid-enhanced";
-  el.innerHTML = cards.map(c => {
-    const numericVal = parseFloat(c.val.replace(/[^0-9,.-]/g, "").replace(",", "."));
-    const diff = c.bench ? ((numericVal - c.bench) / c.bench * 100).toFixed(1) : 0;
-    const isPositive = diff > 0;
-    const barWidth = c.bench ? Math.min((numericVal / c.bench) * 100, 100) : 0;
-
-    const benchText =
-      c.label === "CPC" || c.label === "AOV"
-        ? fmt.curr(c.bench)
-        : fmt.num(c.bench, 2) + (c.label === "ROAS" ? "" : "%");
-
-    return `
-      <div class="kpi-card-enhanced">
-        <div class="kpi-header">
-          <div class="kpi-label">${c.label}</div>
-          <div class="kpi-trend ${isPositive ? "positive" : "negative"}">
-            ${isPositive ? "↗" : "↘"} ${Math.abs(diff)}%
-          </div>
-        </div>
-        <div class="kpi-value">${c.val}</div>
-        <div class="kpi-comparison">Benchmark: ${benchText}</div>
-        <div class="kpi-bar">
-          <div class="kpi-bar-fill" style="width:${barWidth}%"></div>
-        </div>
-      </div>
-    `;
-  }).join("");
-}
-
-function renderHeatmap() {
-  const container = document.getElementById("heatmapContainer");
-  if (!container) return;
-
-  const days = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
-  const hours = ["0-6", "6-12", "12-18", "18-24"];
-
-  const data = hours.map(() => days.map(() => Math.random()));
-
-  let html = '<div class="heatmap-label"></div>';
-  days.forEach(day => {
-    html += `<div class="heatmap-label">${day}</div>`;
-  });
-
-  hours.forEach((hour, i) => {
-    html += `<div class="heatmap-label">${hour}h</div>`;
-    days.forEach((_, j) => {
-      const value = data[i][j];
-      const intensity = value;
-      const color = `rgba(37, 99, 235, ${0.15 + intensity * 0.75})`;
-      const textColor = intensity > 0.5 ? "#fff" : "#111827";
-
-      html += `
-        <div class="heatmap-cell"
-             style="background:${color}; color:${textColor};"
-             title="${hour}h ${days[j]}: ${(value * 100).toFixed(0)}%">
-          ${(value * 100).toFixed(0)}
-        </div>
-      `;
-    });
-  });
-
-  container.innerHTML = html;
-}
-
-function showCreativeDetails(creativeId) {
-  const creative = SignalState.creatives.find(c => c.id === creativeId);
-  if (!creative) return;
-
-  alert(
-    `Creative Details:\n\n${creative.name}\n` +
-    `ROAS: ${creative.ROAS.toFixed(2)}x\n` +
-    `CTR: ${creative.CTR.toFixed(2)}%\n` +
-    `Score: ${creative.score}/100`
-  );
-}
-
-function analyzeCreative(creativeId) {
-  const creative = SignalState.creatives.find(c => c.id === creativeId);
-  if (!creative) return;
-
-  const panel = document.getElementById("senseiPanel");
-  if (panel) {
-    panel.classList.add("open");
-    SignalState.senseiActive = true;
-  }
-
-  const insightsEl = document.getElementById("senseiInsights");
-  if (!insightsEl) return;
-
-  insightsEl.innerHTML = `
-    <div class="sensei-insight" style="background:var(--primary)15; border:1px solid var(--primary); padding:14px; border-radius:10px;">
-      <div class="insight-content">
-        <strong style="color:var(--primary);">Creative Analyse: ${creative.name}</strong><br><br>
-        <strong>Performance-Score:</strong> ${creative.score}/100<br>
-        <strong>ROAS:</strong> ${creative.ROAS.toFixed(2)}x ${creative.ROAS >= 3 ? "✅ Exzellent" : creative.ROAS >= 2 ? "⚠️ Gut" : "❌ Verbesserung nötig"}<br>
-        <strong>CTR:</strong> ${creative.CTR.toFixed(2)}% ${creative.CTR >= 2.5 ? "✅ Stark" : "⚠️ Schwach"}<br><br>
-        <strong style="color:var(--success);">Empfehlung:</strong><br>
-        ${
-          creative.ROAS >= 3
-            ? "🚀 Scaling-Kandidat! Budget um 30–50% erhöhen."
-            : creative.ROAS >= 2
-              ? "⚡ Optimieren und weiter testen."
-              : "⚠️ Pausieren oder komplett überarbeiten."
-        }
-      </div>
-    </div>
-  `;
-}
-
-function renderCreatives() {
-  const grid = document.getElementById("creativeGrid");
-  if (!grid) return;
-
-  showSkeleton("creativeSkeleton", true);
-  grid.innerHTML = "";
-
-  setTimeout(() => {
-    showSkeleton("creativeSkeleton", false);
-
-    let items = [...SignalState.creatives];
-
-    // Filter
-    if (SignalState.filter === "image") items = items.filter(c => c.mediaType === "image");
-    if (SignalState.filter === "video") items = items.filter(c => c.mediaType === "video");
-    if (SignalState.filter === "winner") items = items.filter(c => c.ROAS >= 3.5);
-    if (SignalState.filter === "attention") items = items.filter(c => c.ROAS < 2);
-
-    // Sort
-    items.sort((a, b) => {
-      switch (SignalState.sortBy) {
-        case "roas": return b.ROAS - a.ROAS;
-        case "ctr": return b.CTR - a.CTR;
-        case "cpc": return a.CPC - b.CPC;
-        case "impressions": return b.impressions - a.impressions;
-        case "score": return b.score - a.score;
-        default: return 0;
-      }
-    });
-
-    if (!items.length) {
-      grid.className = "creative-grid-enhanced";
-      grid.innerHTML = '<div style="grid-column:1/-1; color:var(--text-light); text-align:center; padding:40px;">Keine Creatives gefunden.</div>';
-      return;
-    }
-
-    if (SignalState.viewMode === "list") {
-      grid.className = "creative-list-view";
-    } else {
-      grid.className = "creative-grid-enhanced";
-    }
-
-    grid.innerHTML = items.map(c => {
-      const isVideo = c.mediaType === "video";
-      const roasClass = c.ROAS >= 3.5 ? "success" : c.ROAS >= 2 ? "warning" : "danger";
-      const ctrClass = c.CTR >= 2.5 ? "success" : c.CTR >= 1.5 ? "warning" : "danger";
-
-      return `
-        <div class="creative-card-enhanced" data-creative-id="${c.id}">
-          <div class="creative-media-container">
-            ${
-              isVideo
-                ? `<video class="creative-thumb" src="${c.URL}" muted loop onmouseover="this.play()" onmouseout="this.pause()"></video>`
-                : `<img class="creative-thumb" src="${c.URL}" alt="${c.name}" onerror="this.src='https://via.placeholder.com/400x400?text=Creative'" />`
-            }
-            <div class="creative-platform-badge">
-              <span class="platform-icon meta-icon" style="color:#0084ff;">f</span>
-            </div>
-            <div class="creative-score-badge">${c.score}/100</div>
-          </div>
-
-          <div class="creative-card-body">
-            <div class="creative-title">${c.name}</div>
-
-            <div class="creative-metrics-grid">
-              <div class="metric-item ${roasClass}">
-                <div class="metric-label-sm">ROAS</div>
-                <div class="metric-value-sm">${fmt.num(c.ROAS, 2)}x</div>
-              </div>
-              <div class="metric-item ${ctrClass}">
-                <div class="metric-label-sm">CTR</div>
-                <div class="metric-value-sm">${fmt.num(c.CTR, 2)}%</div>
-              </div>
-              <div class="metric-item">
-                <div class="metric-label-sm">CPC</div>
-                <div class="metric-value-sm">${fmt.curr(c.CPC)}</div>
-              </div>
-              <div class="metric-item">
-                <div class="metric-label-sm">Spend</div>
-                <div class="metric-value-sm">${fmt.curr(c.spend || 0)}</div>
-              </div>
-            </div>
-
-            <div class="creative-footer">
-              <div class="creative-impressions">
-                <span>👁️</span>
-                <span>${fmt.short(c.impressions)}</span>
-              </div>
-              <div class="creative-actions">
-                <button class="action-btn-sm" title="Details" onclick="showCreativeDetails('${c.id}')">ℹ️</button>
-                <button class="action-btn-sm" title="Analyze" onclick="analyzeCreative('${c.id}')">🔍</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-    }).join("");
-
-    updateCreativeCounts();
-  }, 700);
-}
-
-function renderCampaigns() {
-  const body = document.getElementById("campaignTableBody");
-  const loading = document.getElementById("campaignLoading");
-  if (!body) return;
-
-  if (loading) loading.classList.remove("hidden");
-  body.innerHTML = "";
-
-  setTimeout(() => {
-    if (loading) loading.classList.add("hidden");
-
-    SignalState.campaigns.forEach(c => {
-      const tr = document.createElement("tr");
-
-      const roasClass = c.ROAS >= 2 ? "kpi-good" : c.ROAS >= 1 ? "kpi-warn" : "kpi-bad";
-      const ctrClass = c.CTR >= 2 ? "kpi-good" : c.CTR >= 1 ? "kpi-warn" : "kpi-bad";
-
-      tr.innerHTML = `
-        <td>${c.name}</td>
-        <td>${fmt.curr(c.spend)}</td>
-        <td>${fmt.num(c.impressions)}</td>
-        <td class="${ctrClass}">${c.CTR.toFixed(2)}%</td>
-        <td>${fmt.curr(c.CPC)}</td>
-        <td>${c.purchases}</td>
-        <td class="${roasClass}">${c.ROAS.toFixed(2)}x</td>
-      `;
-
-      body.appendChild(tr);
-    });
-  }, 200);
-}
-
-function updateCreativeCounts() {
-  const all = SignalState.creatives.length;
-  const images = SignalState.creatives.filter(c => c.mediaType === "image").length;
-  const videos = SignalState.creatives.filter(c => c.mediaType === "video").length;
-
-  const updates = [
-    { id: "countAll", value: all },
-    { id: "countImages", value: images },
-    { id: "countVideos", value: videos },
-    { id: "creativeCount", value: all }
-  ];
-
-  updates.forEach(({ id, value }) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = value;
-  });
-
-  if (all > 0) {
-    const avgROAS = SignalState.creatives.reduce((sum, c) => sum + c.ROAS, 0) / all;
-    const avgCTR = SignalState.creatives.reduce((sum, c) => sum + c.CTR, 0) / all;
-    const totalSpend = SignalState.creatives.reduce((sum, c) => sum + (c.spend || 0), 0);
-    const topCreative = [...SignalState.creatives].sort((a, b) => b.ROAS - a.ROAS)[0];
-
-    const avgROASEl = document.getElementById("avgROAS");
-    const avgCTREl = document.getElementById("avgCTR");
-    const totalSpendEl = document.getElementById("totalSpend");
-    const topCreativeEl = document.getElementById("topCreative");
-
-    if (avgROASEl) avgROASEl.textContent = fmt.num(avgROAS, 1) + "x";
-    if (avgCTREl) avgCTREl.textContent = fmt.num(avgCTR, 1) + "%";
-    if (totalSpendEl) totalSpendEl.textContent = fmt.curr(totalSpend);
-    if (topCreativeEl && topCreative) topCreativeEl.textContent = topCreative.name;
   }
 }
 
-function renderWinnerLoser() {
-  if (!SignalState.creatives.length) return;
-
-  const sorted = [...SignalState.creatives].sort((a, b) => b.ROAS - a.ROAS);
-  const winner = sorted[0];
-  const loser = sorted[sorted.length - 1];
-
-  const winnerEl = document.getElementById("winnerContent");
-  const loserEl = document.getElementById("loserContent");
-
-  if (winnerEl && winner) {
-    const isVideo = winner.mediaType === "video";
-    const media = isVideo
-      ? `<video style="width:100%; border-radius:8px; margin-bottom:12px;" controls src="${winner.URL}"></video>`
-      : `<img style="width:100%; border-radius:8px; margin-bottom:12px;" src="${winner.URL}" alt="${winner.name}" />`;
-
-    winnerEl.innerHTML = `
-      ${media}
-      <h3 style="font-size:15px; margin-bottom:10px; font-weight:700;">${winner.name}</h3>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
-        <div style="background:var(--success-light); padding:10px; border-radius:8px;">
-          <div style="font-size:10px; color:var(--success); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">ROAS</div>
-          <div style="font-size:20px; font-weight:800; color:var(--success);">${fmt.num(winner.ROAS, 2)}</div>
-        </div>
-        <div style="background:var(--bg-alt); padding:10px; border-radius:8px; border:1px solid var(--border);">
-          <div style="font-size:10px; color:var(--text-light); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">CTR</div>
-          <div style="font-size:20px; font-weight:800;">${fmt.num(winner.CTR, 2)}%</div>
-        </div>
-      </div>
-      <div style="font-size:12px; color:var(--text-secondary); line-height:1.6;">
-        🚀 Starker ROAS & CTR. Empfehlung: Budget schrittweise um <strong>+30–50%</strong> erhöhen und ähnliche Creatives testen.
-      </div>
-    `;
-  }
-
-  if (loserEl && loser) {
-    const isVideo = loser.mediaType === "video";
-    const media = isVideo
-      ? `<video style="width:100%; border-radius:8px; margin-bottom:12px;" controls src="${loser.URL}"></video>`
-      : `<img style="width:100%; border-radius:8px; margin-bottom:12px;" src="${loser.URL}" alt="${loser.name}" />`;
-
-    loserEl.innerHTML = `
-      ${media}
-      <h3 style="font-size:15px; margin-bottom:10px; font-weight:700;">${loser.name}</h3>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
-        <div style="background:var(--danger-light); padding:10px; border-radius:8px;">
-          <div style="font-size:10px; color:var(--danger); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">ROAS</div>
-          <div style="font-size:20px; font-weight:800; color:var(--danger);">${fmt.num(loser.ROAS, 2)}</div>
-        </div>
-        <div style="background:var(--bg-alt); padding:10px; border-radius:8px; border:1px solid var(--border);">
-          <div style="font-size:10px; color:var(--text-light); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">CPC</div>
-          <div style="font-size:20px; font-weight:800;">${fmt.curr(loser.CPC)}</div>
-        </div>
-      </div>
-      <div style="font-size:12px; color:var(--text-secondary); line-height:1.6;">
-        ⚠️ Schwacher ROAS. Empfehlung: Creative pausieren oder komplett neuen Ansatz mit anderem Hook/Visual testen.
-      </div>
-    `;
-  }
-}
-
-function initDate() {
-  const el = document.getElementById("currentDate");
-  if (!el) return;
-  const now = new Date();
-  el.textContent = new Intl.DateTimeFormat("de-DE", {
-    weekday: "short",
-    day: "2-digit",
-    month: "short"
-  }).format(now);
-}
-
-function updateLastUpdate() {
-  const el = document.getElementById("lastUpdate");
-  if (!el) return;
-
-  const now = new Date();
-  const minutes = now.getMinutes();
-  const timeAgo = minutes % 10;
-
-  el.textContent = `● vor ${timeAgo === 0 ? "wenigen Sek." : timeAgo + " Min."}`;
-}
-
-function renderAll() {
-  showSkeleton("dashboardSkeleton", true);
-  showSkeleton("dashboardReal", false);
-
-  renderOverview();
-  renderFunnel();
-  renderKPIs();
-  renderHeatmap();
-  renderTrendChart();
-  renderPerformanceScore();
-  renderCreatives();
-  renderCampaigns();
-  renderWinnerLoser();
-  updateQuickMetrics();
-  updateCreativeCounts();
-
-  setTimeout(() => {
-    showSkeleton("dashboardSkeleton", false);
-    showSkeleton("dashboardReal", true);
-
-    if (SignalState.senseiActive) {
-      analyzeSenseiStrategy();
-    }
-
-    // Hero KPIs
-    if (SignalState.kpi) {
-      const elROAS = document.getElementById("dashROAS");
-      const elCTR = document.getElementById("dashCTR");
-      const elCR = document.getElementById("dashCR");
-      const elRev = document.getElementById("dashRevenue");
-
-      if (elROAS) {
-        elROAS.dataset.suffix = "x";
-        animateNumber(elROAS, SignalState.kpi.ROAS);
-      }
-      if (elCTR) elCTR.textContent = SignalState.kpi.CTR.toFixed(2) + "%";
-      if (elCR) elCR.textContent = SignalState.kpi.CR.toFixed(2) + "%";
-      if (elRev) elRev.textContent = fmt.curr(SignalState.kpi.Revenue);
-    }
-  }, 800);
-}
-
-// ======================================================================
-// STATE INSPECTOR
-// ======================================================================
+// ----------------------------------------------------------------------
+// STATE INSPECTOR (dein System-Menü – jetzt funktionierend)
+// ----------------------------------------------------------------------
 
 function setupStateInspector() {
   const panel = document.getElementById("stateInspector");
   const toggle = document.getElementById("inspectorToggle");
-  const closeBtn = document.getElementById("inspectorClose");
-  const copyBtn = document.getElementById("inspectorCopy");
-
+  const close = document.getElementById("inspectorClose");
+  const copy = document.getElementById("inspectorCopy");
   const tabButtons = document.querySelectorAll(".inspector-tab");
   const panels = document.querySelectorAll(".inspector-panel");
 
-  const stateEl = document.getElementById("inspectorState");
-  const eventsEl = document.getElementById("inspectorEvents");
+  if (!panel || !toggle) return;
 
-  if (!panel || !toggle || !stateEl || !eventsEl) return;
-
-  function renderInspector() {
-    stateEl.textContent = JSON.stringify(SignalState, null, 2);
-    eventsEl.textContent = JSON.stringify(StateBus.log.slice(-30), null, 2);
+  function openPanel() {
+    panel.classList.add("open");
+    renderInspector();
   }
 
-  toggle.addEventListener("click", () => {
-    panel.classList.toggle("open");
-    if (panel.classList.contains("open")) {
-      renderInspector();
-    }
-  });
+  function closePanel() {
+    panel.classList.remove("open");
+  }
 
-  if (closeBtn) {
-    closeBtn.addEventListener("click", () => {
-      panel.classList.remove("open");
+  toggle.addEventListener("click", openPanel);
+  if (close) close.addEventListener("click", closePanel);
+
+  if (copy) {
+    copy.addEventListener("click", () => {
+      const payload = {
+        state: AppState,
+        kpi: AppState.kpi,
+        events: EventLog
+      };
+      navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+      alert("State & Events in die Zwischenablage kopiert.");
+      logEvent("inspector:copy", {});
     });
   }
 
-  tabButtons.forEach(btn => {
+  tabButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
-      tabButtons.forEach(b => b.classList.remove("active"));
+      tabButtons.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
 
-      const id = btn.dataset.tab;
-      panels.forEach(p => p.classList.remove("active"));
-      const target = document.getElementById("inspector" + id.charAt(0).toUpperCase() + id.slice(1));
+      const tab = btn.dataset.tab;
+      panels.forEach((p) => p.classList.remove("active"));
+      const target =
+        tab === "state"
+          ? document.getElementById("inspectorState")
+          : document.getElementById("inspectorEvents");
       if (target) target.classList.add("active");
     });
   });
-
-  if (copyBtn) {
-    copyBtn.addEventListener("click", () => {
-      navigator.clipboard.writeText(
-        JSON.stringify({ state: SignalState, events: StateBus.log }, null, 2)
-      );
-      toast("State kopiert!", { type: "success" });
-    });
-  }
-
-  StateBus.subscribe("*", () => {
-    if (panel.classList.contains("open")) {
-      renderInspector();
-    }
-  });
 }
 
-// ======================================================================
+function renderInspector() {
+  const stateEl = document.getElementById("inspectorState");
+  const eventsEl = document.getElementById("inspectorEvents");
+  if (stateEl) {
+    stateEl.textContent = JSON.stringify(
+      {
+        mode: AppState.mode,
+        theme: AppState.theme,
+        connections: AppState.connections,
+        kpi: AppState.kpi
+      },
+      null,
+      2
+    );
+  }
+  if (eventsEl) {
+    eventsEl.textContent = JSON.stringify(EventLog.slice(-40), null, 2);
+  }
+}
+
+// ----------------------------------------------------------------------
 // INIT
-// ======================================================================
+// ----------------------------------------------------------------------
+
+function renderAll() {
+  AppState.kpi = calculateGlobalKpi();
+  renderDashboard();
+  renderCreativesView();
+  renderCampaignsView();
+  renderInsightsView();
+  renderSenseiView();
+  renderLibraryView();
+  renderReportsView();
+  renderConnectionsView();
+}
 
 window.addEventListener("DOMContentLoaded", () => {
-  // Core UI
-  setupSidebar();
-  setupSensei();
-  setupMockToggle();
-  setupPeriodToggles();
-  setupFilterButtons();
-  setupViewSwitcher();
-  setupSortSelect();
-  setupCollapsible();
-  setupMetaButton();
-  setupSettingsTabs();
-  setupExportButton();
-  setupCampaignSorting();
-  setupRecommendationRefresh();
-  setupStateInspector();
-
-  loadSettings();
-
-  // Save buttons
-  const saveAccountBtn = document.getElementById("saveAccount");
-  const saveBrandingBtn = document.getElementById("saveBranding");
-  const saveAppSettingsBtn = document.getElementById("saveAppSettings");
-
-  if (saveAccountBtn) saveAccountBtn.addEventListener("click", saveAccountSettings);
-  if (saveBrandingBtn) saveBrandingBtn.addEventListener("click", saveBranding);
-  if (saveAppSettingsBtn) saveAppSettingsBtn.addEventListener("click", saveAppSettings);
-
-  // State reactions
-  StateBus.subscribe(["kpi"], renderAll);
-  StateBus.subscribe(["campaigns"], renderCampaigns);
-  StateBus.subscribe(["creatives"], renderCreatives);
-
-  // Meta integration
-  setupMetaPostMessage();
-  restoreMetaSession();
-
-  // Date & Theme
-  initDate();
   initTheme();
   setupThemeToggle();
-  updateLastUpdate();
-  setInterval(updateLastUpdate, 60_000);
-
-  // Initial data
-  if (MOCK_MODE) {
-    loadMockCreatives();
-    loadMockCampaigns();
-    setMetaStatus("ok", "Demo Mode");
-  } else if (SignalState.token) {
-    loadMetaData();
-  }
+  initDate();
+  setupModeToggle();
+  setupSidebar();
+  setupCreativesControls();
+  setupConnections();
+  loadProfileSettings();
+  setupProfileButtons();
+  setupStateInspector();
 
   renderAll();
 });
-
-// ======================================================================
-// GLOBAL EXPORT
-// ======================================================================
-
-window.SignalOne = {
-  state: SignalState,
-  refresh: renderAll,
-  loadMock: () => {
-    MOCK_MODE = true;
-    loadMockCreatives();
-    loadMockCampaigns();
-    renderAll();
-  },
-  analyze: analyzeSenseiStrategy
-};
-
-
-
