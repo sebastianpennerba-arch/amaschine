@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>SignalOne.cloud · Creative Intelligence Platform</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -18,7 +18,7 @@
           <div class="logo-subtitle">.cloud</div>
         </div>
       </div>
-      <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+      <button class="sidebar-toggle" id="sidebarToggle" title="Systemmenü">☰</button>
     </div>
 
     <div class="sidebar-menu">
@@ -70,13 +70,17 @@
           <span class="menu-icon">👤</span>
           <span class="menu-label">Profile</span>
         </a>
+        <a href="#pricing" class="menu-item" data-view="pricing">
+          <span class="menu-icon">💎</span>
+          <span class="menu-label">Pricing</span>
+        </a>
       </div>
     </div>
 
     <div class="sidebar-footer">
       <div class="connection-status" id="connectionStatus">
         <div class="status-indicator meta" title="Meta connected"></div>
-        <span class="status-label">Meta</span>
+        <span class="status-label">Meta verbunden</span>
       </div>
     </div>
   </nav>
@@ -118,14 +122,14 @@
           <div class="sensei-avatar">🧘</div>
           <div>
             <h3>SignalSensei</h3>
-            <p class="sensei-subtitle">Your Creative Intelligence Guide</p>
+            <p class="sensei-subtitle">Dein Creative Intelligence Guide</p>
           </div>
           <button class="close-btn" id="closeSensei">×</button>
         </div>
         
         <div class="sensei-content">
           <div class="sensei-strategy" id="senseiStrategy">
-            <div class="strategy-badge">Analyzing your data...</div>
+            <div class="strategy-badge">Analysiere deine Daten...</div>
             <p>Ich analysiere deine Kampagnen-Performance um die beste Strategie zu empfehlen.</p>
           </div>
 
@@ -460,6 +464,6 @@
     </div>
   </div>
 
-  <script src="/app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
