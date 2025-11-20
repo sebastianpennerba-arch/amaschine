@@ -295,8 +295,16 @@ function setupSidebar() {
         .forEach(i => i.classList.remove("active"));
       item.classList.add("active");
 
-      document.querySelectorAll(".view")
-        .forEach(v => v.classList.add("hidden"));
+document.querySelectorAll(".view").forEach(v => {
+  v.classList.remove("active");
+  v.classList.add("hidden");
+});
+
+const target = document.getElementById("view-" + view);
+if (target) {
+  target.classList.remove("hidden");
+  requestAnimationFrame(() => target.classList.add("active"));
+}
 
       const target = document.getElementById("view-" + view);
       if (target) target.classList.remove("hidden");
@@ -312,6 +320,19 @@ function setupSidebar() {
       }
     });
   });
+}
+function animateNumber(el, to, duration = 900) {
+  const start = 0;
+  const startTime = performance.now();
+
+  function update(now) {
+    const progress = Math.min((now - startTime) / duration, 1);
+    const value = Math.floor(progress * to);
+    el.textContent = value + (el.dataset.suffix || "");
+    if (progress < 1) requestAnimationFrame(update);
+  }
+
+  requestAnimationFrame(update);
 }
 
 // ===== PAGE NAVIGATION FIX =====
@@ -1023,7 +1044,9 @@ setTimeout(() => {
     analyzeSenseiStrategy();
   }
   if (SignalState.kpi) {
-    document.getElementById("dashROAS").textContent = SignalState.kpi.ROAS.toFixed(2) + "x";
+    const elROAS = document.getElementById("dashROAS");
+elROAS.dataset.suffix = "x";
+animateNumber(elROAS, SignalState.kpi.ROAS);
     document.getElementById("dashCTR").textContent = SignalState.kpi.CTR.toFixed(2) + "%";
     document.getElementById("dashCR").textContent = SignalState.kpi.CR.toFixed(2) + "%";
     document.getElementById("dashRevenue").textContent = fmt.curr(SignalState.kpi.Revenue);
@@ -1792,6 +1815,7 @@ window.SignalOne = {
   loadMock: loadMockCreatives,
   analyze: analyzeSenseiStrategy
 };
+
 
 
 
