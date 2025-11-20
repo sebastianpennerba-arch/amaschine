@@ -1296,6 +1296,159 @@ td {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+/* ===========================================
+   FEINJUSTIERUNG: KPI-Trends, Cards, Tables, Skeleton
+   =========================================== */
+
+/* 9. KPI-Trends (▲12% etc.) */
+.kpi-change {
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px; /* Abstand zwischen Wert und Label */
+}
+/* KPI Micro-Label (z.B. "vs. Last Period") */
+.kpi-change .micro-label {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    opacity: 0.7;
+    margin-left: 4px;
+}
+/* Farben beibehalten, aber sicherstellen, dass sie kräftig sind */
+.kpi-change.success {
+    color: var(--success);
+}
+.kpi-change.warning {
+    color: var(--warning);
+}
+
+
+/* 11. Campaign Table: Mehr Luft & Style */
+
+.table-card {
+    padding: 0;
+    border-radius: 16px; /* Ecken-Radius von global .card übernehmen */
+    overflow: hidden; /* Wichtig für die abgerundeten Ecken bei der Tabelle */
+}
+th {
+    padding: 16px 24px; /* Mehr Luft im Header */
+    background-color: var(--bg-alt); /* Leichter Kontrast im Header */
+    border-bottom: 2px solid var(--border); /* Kräftigere Trennlinie unten */
+}
+td {
+    padding: 14px 24px; /* Mehr Luft in den Zellen */
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text-secondary);
+}
+.campaign-row:hover {
+    background-color: var(--border); /* Subtiler Hover */
+}
+.campaign-row:last-child td {
+    border-bottom: none;
+}
+
+/* Status Icon Styling (für Tabellen und Listen) */
+.status-icon {
+    font-size: 16px;
+    margin-right: 8px;
+}
+.status-icon.active {
+    color: var(--success); /* Grün */
+}
+.status-icon.paused {
+    color: var(--warning); /* Orange */
+}
+.status-icon.draft {
+    color: var(--text-light); /* Grau */
+}
+
+
+/* 10. Creative Cards (Grid/List View) */
+
+/* Grid Cards (nur Feintuning) */
+.creative-card {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border: 1px solid var(--border);
+}
+.creative-kpis {
+    padding-top: 12px; /* Mehr Abstand */
+    font-weight: 600; 
+}
+.creative-kpis div {
+    color: var(--text); /* Wichtigste Werte hervorheben */
+    font-weight: 700;
+}
+
+
+/* List Rows */
+.creatives-list {
+    gap: 8px;
+}
+.creative-row {
+    padding: 14px 24px; 
+    border-radius: 10px; 
+    transition: background-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
+}
+.creative-row:hover {
+    background-color: var(--border); 
+}
+
+.creative-row-kpis {
+    gap: 30px; 
+}
+.creative-row-kpis span {
+    display: flex;
+    flex-direction: column;
+    text-align: right;
+    font-size: 13px;
+}
+.creative-row-kpis .kpi-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 400;
+    white-space: nowrap;
+}
+.creative-row-kpis .kpi-value {
+    font-size: 16px;
+    color: var(--text);
+    font-weight: 700;
+    margin-top: 2px;
+}
+
+
+/* 12. Skeleton Loading schöner machen */
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  /* Hellerer Hintergrund für den Platzhalter */
+  background: var(--border); 
+  border-radius: 6px;
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  height: 100%;
+  width: 100%;
+  /* Subtilerer, langsamerer Schimmer */
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.3) 50%, /* Weniger starke Opazität */
+    rgba(255,255,255,0) 100%
+  );
+  animation: shimmer 1.6s linear infinite; /* Etwas langsamer */
+}
+
+.skeleton-box {
+  height: 16px; 
+  margin-bottom: 8px;
+}
 
 
 
