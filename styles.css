@@ -2529,6 +2529,81 @@ body {
 .sensei-overlay {
   transition: opacity var(--motion-slow) var(--ease-soft);
 }
+/* SETTINGS UI */
+.settings-container {
+  display: flex;
+  gap: 30px;
+  margin-top: 20px;
+}
+
+.settings-tabs {
+  width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-tab {
+  padding: 10px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--motion-fast) var(--ease-soft);
+  color: var(--text);
+}
+
+.settings-tab.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.settings-content {
+  flex: 1;
+  background: var(--bg-card);
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.settings-panel {
+  display: none;
+}
+
+.settings-panel.active {
+  display: block;
+}
+
+.form-group {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group input,
+.form-group select {
+  padding: 10px 12px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+@media (max-width: 900px) {
+  .settings-container {
+    flex-direction: column;
+  }
+  .settings-tabs {
+    flex-direction: row;
+    gap: 10px;
+    width: 100%;
+    overflow-x: auto;
+  }
+}
+
 
 
 
