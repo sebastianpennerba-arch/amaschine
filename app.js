@@ -686,6 +686,159 @@ function setupCreativesControls() {
   });
 }
 
+function renderHeroCreatives() {
+  const container = document.getElementById("creativeGridHero");
+  if (!container) return;
+
+  const items = [...SignalState.creatives];
+  if (!items.length) {
+    container.innerHTML = `
+      <div style="grid-column:1/-1; padding:16px; font-size:12px; color:var(--text-secondary);">
+        Noch keine Creatives geladen – im Demo Mode werden automatisch Mock-Creatives generiert.
+      </div>
+    `;
+    return;
+  }
+
+  // Nach ROAS sortieren, Top 4
+  items.sort((a, b) => b.ROAS - a.ROAS);
+  const top = items.slice(0, 4);
+
+  container.innerHTML = top.map(c => {
+    const isVideo = c.mediaType === "video";
+    const roasClass = c.ROAS >= 3.5 ? "success" : c.ROAS >= 2 ? "warning" : "danger";
+    const ctrClass = c.CTR >= 2.5 ? "success" : c.CTR >= 1.5 ? "warning" : "danger";
+
+    return `
+      <div class="creative-card-enhanced creative-hero-card" data-creative-id="${c.id}">
+        <div class="creative-media-container">
+          ${
+            isVideo
+              ? `<video class="creative-thumb" src="${c.URL}" muted loop onmouseover="this.play()" onmouseout="this.pause()"></video>`
+              : `<img class="creative-thumb" src="${c.URL}" alt="${c.name}" onerror="this.src='https://via.placeholder.com/400x400?text=Creative'" />`
+          }
+          <div class="creative-platform-badge">
+            <span class="platform-icon meta-icon" style="color:#0084ff;">f</span>
+          </div>
+          <div class="creative-score-badge">${c.score}/100</div>
+        </div>
+        <div class="creative-card-body">
+          <div class="creative-title">${c.name}</div>
+          <div class="creative-metrics-grid">
+            <div class="metric-item ${roasClass}">
+              <div class="metric-label-sm">ROAS</div>
+              <div class="metric-value-sm">${fmt.num(c.ROAS, 2)}x</div>
+            </div>
+            <div class="metric-item ${ctrClass}">
+              <div class="metric-label-sm">CTR</div>
+              <div class="metric-value-sm">${fmt.num(c.CTR, 2)}%</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-label-sm">CPC</div>
+              <div class="metric-value-sm">${fmt.curr(c.CPC)}</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-label-sm">Spend</div>
+              <div class="metric-value-sm">${fmt.curr(c.spend || 0)}</div>
+            </div>
+          </div>
+          <div class="creative-footer">
+            <div class="creative-impressions">
+              <span>👁️</span>
+              <span>${fmt.short(c.impressions)}</span>
+            </div>
+            <div class="creative-actions">
+              <button class="action-btn-sm" title="Details" onclick="showCreativeDetails('${c.id}')">ℹ️</button>
+              <button class="action-btn-sm" title="Analyze" onclick="analyzeCreative('${c.id}')">🔍</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function renderInsightsSummary() {
+  const summary = document.getElementById("insightsContent");
+  const detail = document.getElementById("insightsDetail"); // im eigenen View
+
+  const noDataHtml = `
+    <div style="padding:12px; font-size:12px; color:var(--text-secondary);">
+      Noch keine Echtzeit-Daten. Im Demo Mode werden Mock-Daten verwendet.
+    </div>
+  `;
+
+  if (!SignalState.kpi) {
+    if (summary) summary.innerHTML = noDataHtml;
+    if (detail) detail.innerHTML = noDataHtml;
+    return;
+  }
+
+  const k = SignalState.kpi;
+  const hasStrongROAS = k.ROAS >= 3;
+  const hasWeakCTR = k.CTR < 2;
+  const hasWeakCR = k.CR < 3;
+
+  const cards = [];
+
+  if (hasStrongROAS) {
+    cards.push(`
+      <div class="sensei-insight">
+        <div class="insight-icon">🚀</div>
+        <div class="insight-content">
+          <strong>Scaling-Potenzial erkannt</strong><br/>
+          ROAS liegt bei <strong>${fmt.num(k.ROAS, 2)}x</strong>. Empfehlung:
+          Budget schrittweise um <strong>+30–50%</strong> erhöhen und Top-Creatives duplizieren.
+        </div>
+      </div>
+    `);
+  }
+
+  if (hasWeakCTR) {
+    cards.push(`
+      <div class="sensei-insight">
+        <div class="insight-icon">👁️</div>
+        <div class="insight-content">
+          <strong>CTR unter Benchmark</strong><br/>
+          Aktuelle CTR: <strong>${fmt.pct(k.CTR)}</strong>. Teste neue Hooks, Thumbnails
+          und stärkere Kontraste im Creative.
+        </div>
+      </div>
+    `);
+  }
+
+  if (hasWeakCR) {
+    cards.push(`
+      <div class="sensei-insight">
+        <div class="insight-icon">🛒</div>
+        <div class="insight-content">
+          <strong>Conversion-Rate ausbaufähig</strong><br/>
+          CR liegt bei <strong>${fmt.pct(k.CR)}</strong>. Prüfe Landing Page,
+          Checkout und Ladezeiten – nicht nur die Anzeigen.
+        </div>
+      </div>
+    `);
+  }
+
+  if (!cards.length) {
+    cards.push(`
+      <div class="sensei-insight">
+        <div class="insight-icon">✅</div>
+        <div class="insight-content">
+          <strong>Solide Performance</strong><br/>
+          Alle Kern-KPIs bewegen sich in einem gesunden Bereich.
+          Fokus: kontrolliertes Scaling & strukturiertes Creative-Testing.
+        </div>
+      </div>
+    `);
+  }
+
+  const html = cards.join("");
+
+  if (summary) summary.innerHTML = html;
+  if (detail) detail.innerHTML = html;
+}
+
 function renderCreativesView() {
   const grid = document.getElementById("creativeGrid");
   if (!grid) return;
@@ -755,6 +908,42 @@ function renderCreativesView() {
     el.addEventListener("click", () => {
       const id = el.getAttribute("data-creative-id");
       showCreativeDetails(id);
+    });
+  });
+}
+
+function updatePeriodLabel() {
+  const el = document.getElementById("dashPeriodLabel");
+  if (!el) return;
+
+  let label = "Letzte 24 Stunden (Demo)";
+  if (SignalState.period === "7d") label = "Letzte 7 Tage (Demo)";
+  else if (SignalState.period === "30d") label = "Letzte 30 Tage (Demo)";
+
+  el.textContent = label;
+}
+
+function setupPeriodToggles() {
+  const btns = document.querySelectorAll(".toggle-btn[data-period]");
+  btns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      btns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      const period = btn.dataset.period;
+      if (period === "30") SignalState.period = "30d";
+      else if (period === "7") SignalState.period = "7d";
+      else SignalState.period = "24h";
+
+      updatePeriodLabel(); // <-- HIER NEU
+
+      if (MOCK_MODE) {
+        loadMockCreatives();
+        loadMockCampaigns();
+        renderAll();
+      } else if (SignalState.token) {
+        loadMetaData();
+      }
     });
   });
 }
@@ -1269,28 +1458,54 @@ function renderInspector() {
 // ----------------------------------------------------------------------
 
 function renderAll() {
-  AppState.kpi = calculateGlobalKpi();
-  renderDashboard();
-  renderCreativesView();
-  renderCampaignsView();
-  renderInsightsView();
-  renderSenseiView();
-  renderLibraryView();
-  renderReportsView();
-  renderConnectionsView();
+  document.querySelectorAll(".view").forEach(v => v.classList.add("fade-in"));
+
+  showSkeleton("dashboardSkeleton", true);
+  showSkeleton("dashboardReal", false);
+
+  // Dashboard-Bereiche
+  renderOverview();
+  renderFunnel();
+  renderKPIs();
+  renderHeatmap();
+  renderTrendChart();
+  renderPerformanceScore();
+  renderHeroCreatives();
+
+  // Rest
+  renderCreatives();
+  renderCampaigns();
+  renderWinnerLoser();
+  updateQuickMetrics();
+  updateCreativeCounts();
+  renderInsightsSummary();
+  updatePeriodLabel();
+
+  setTimeout(() => {
+    showSkeleton("dashboardSkeleton", false);
+    showSkeleton("dashboardReal", true);
+
+    if (SignalState.senseiActive) {
+      analyzeSenseiStrategy();
+    }
+
+    // Hero KPIs
+    if (SignalState.kpi) {
+      const elROAS = document.getElementById("dashROAS");
+      const elCTR = document.getElementById("dashCTR");
+      const elCR = document.getElementById("dashCR");
+      const elRev = document.getElementById("dashRevenue");
+
+      // Falls diese IDs nicht existieren, einfach nichts tun
+      if (elROAS) {
+        elROAS.dataset.suffix = "x";
+        animateNumber(elROAS, SignalState.kpi.ROAS);
+      }
+      if (elCTR) elCTR.textContent = SignalState.kpi.CTR.toFixed(2) + "%";
+      if (elCR) elCR.textContent = SignalState.kpi.CR.toFixed(2) + "%";
+      if (elRev) elRev.textContent = fmt.curr(SignalState.kpi.Revenue);
+    }
+  }, 800);
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-  initTheme();
-  setupThemeToggle();
-  initDate();
-  setupModeToggle();
-  setupSidebar();
-  setupCreativesControls();
-  setupConnections();
-  loadProfileSettings();
-  setupProfileButtons();
-  setupStateInspector();
 
-  renderAll();
-});
