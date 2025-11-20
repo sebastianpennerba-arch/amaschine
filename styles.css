@@ -123,15 +123,29 @@ a {
   margin-left: 80px;
 }
 
-/* ✅ FIX: Einheitliches Spacing für alle Views */
-.view {
-    padding: 32px; /* Einheitlicher Innenabstand (Luft) */
-    min-height: calc(100vh - 68px); 
+/* ===========================================
+   CREATIVES VIEW - TOOLBAR & FILTER (V3 - Polished)
+   =========================================== */
+
+/* View Header für Title und Haupt-Buttons */
+.view-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-light);
 }
-.view h2 {
+.view-header h2 {
     font-size: 28px;
-    margin-top: 0; /* Wichtig */
-    margin-bottom: 32px;
+    margin: 0;
+}
+.view-header-actions {
+    display: flex;
+    gap: 12px;
+}
+.view-header-actions .button {
+    font-size: 14px;
 }
 
 /* ===========================================
@@ -568,13 +582,94 @@ a {
    DASHBOARD / KPI
    =========================================== */
 
-.dashboard-controls {
+/* Haupt-Toolbar (ersetzt alte Dashboard-Controls) */
+.creative-toolbar {
+    /* Nutzen Sie die .card Klasse, um den Hintergrund zu bekommen */
+    padding: 12px 20px; /* Weniger Padding als Standard-Card, kompakter */
+    margin-bottom: 32px; /* Abstand zum Grid */
+    
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 32px; /* Mehr Platz zum Gitter */
     flex-wrap: wrap;
     gap: 16px;
+    
+    /* Leichter Border-Radius, kompakter als normale Card */
+    border-radius: 12px; 
+}
+
+.toolbar-left, .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* Filter Button */
+.creative-toolbar .button.secondary {
+    font-size: 14px;
+    padding: 8px 16px;
+    font-weight: 600;
+}
+.creative-toolbar .button.secondary .icon {
+    margin-right: 6px;
+    font-size: 16px;
+}
+
+/* Sortier-Kontrolle */
+.toolbar-sort {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.sort-label {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+/* Select-Feld im Toolbar-Kontext */
+.creative-toolbar .form-select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    min-width: 180px;
+    background-color: var(--bg-alt);
+}
+
+/* Search Input (Im DatAds-Stil: integriert, groß) */
+.search-input {
+    min-width: 250px;
+    padding: 8px 14px;
+    font-size: 15px;
+    border-radius: 8px;
+}
+
+/* View Toggle Icons (Grid/List) */
+.view-toggle {
+    display: flex;
+    background-color: var(--border-light);
+    padding: 4px;
+    border-radius: 8px;
+}
+.view-toggle .icon-button {
+    width: 34px;
+    height: 34px;
+    border-radius: 6px; /* Rechteckige Toggles */
+    padding: 0;
+    font-size: 18px;
+    color: var(--text-secondary);
+    transition: background-color var(--motion-fast) ease, color var(--motion-fast) ease;
+}
+.view-toggle .icon-button:hover {
+    background-color: var(--bg-alt);
+    color: var(--text);
+}
+.view-toggle .icon-button.active {
+    background-color: var(--primary);
+    color: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.view-toggle .icon-button.active:hover {
+    background-color: var(--primary-hover);
 }
 
 .period-toggles {
@@ -1464,6 +1559,7 @@ td {
   height: 16px; 
   margin-bottom: 8px;
 }
+
 
 
 
