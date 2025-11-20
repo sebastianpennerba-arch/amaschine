@@ -204,8 +204,8 @@ function determineStrategy(roas, ctr, cr) {
     return {
       name: "Scale Master",
       title: "Aggressive Scaling Strategy",
-      description: "Deine Performance ist exzellent. Jetzt ist der richtige Zeitpunkt fÃ¼r aggressives Scaling bei gleichzeitiger QualitÃ¤tskontrolle.",
-      icon: "ðŸš€",
+      description: "Deine Performance ist exzellent. Jetzt ist der richtige Zeitpunkt für aggressives Scaling bei gleichzeitiger Qualitätskontrolle.",
+      icon: "🚀",
       actions: ["Increase budget by 30-50%", "Test new audiences", "Expand to new placements"]
     };
   } else if (roas > 3 && roas <= 4 && ctr > 2) {
@@ -213,15 +213,15 @@ function determineStrategy(roas, ctr, cr) {
       name: "Optimizer",
       title: "Continuous Optimization Strategy",
       description: "Gute Performance mit Verbesserungspotential. Fokus auf kontinuierliche Optimierung und Testing.",
-      icon: "âš¡",
+      icon: "⚡",
       actions: ["A/B test creatives", "Optimize ad schedule", "Refine targeting"]
     };
   } else if (roas > 2 && roas <= 3) {
     return {
       name: "Creative Tester",
       title: "Creative Testing Strategy",
-      description: "Solide Basis, aber Creative-Performance kann verbessert werden. Mehr Testing nÃ¶tig.",
-      icon: "ðŸŽ¨",
+      description: "Solide Basis, aber Creative-Performance kann verbessert werden. Mehr Testing nötig.",
+      icon: "🎨",
       actions: ["Launch creative tests", "Analyze top performers", "Pause low performers"]
     };
   } else if (roas > 1.5 && roas <= 2) {
@@ -229,23 +229,23 @@ function determineStrategy(roas, ctr, cr) {
       name: "Efficiency Hunter",
       title: "Cost Efficiency Strategy",
       description: "Profitabel aber ineffizient. Fokus auf Cost-Reduktion und Conversion-Optimierung.",
-      icon: "ðŸ’°",
+      icon: "💰",
       actions: ["Reduce wasted spend", "Improve landing pages", "Tighten targeting"]
     };
   } else if (ctr < 1.5 && roas < 2) {
     return {
       name: "Attention Seeker",
       title: "Engagement Boost Strategy",
-      description: "Niedrige Engagement-Rates. Kreative Elemente mÃ¼ssen Ã¼berarbeitet werden.",
-      icon: "ðŸ‘ï¸",
+      description: "Niedrige Engagement-Rates. Kreative Elemente müssen überarbeitet werden.",
+      icon: "👁️",
       actions: ["Redesign creatives", "Test new hooks", "Improve ad copy"]
     };
   } else {
     return {
       name: "Foundation Builder",
       title: "Rebuild & Test Strategy",
-      description: "Performance unter Erwartungen. ZurÃ¼ck zu den Grundlagen und systematisches Testing.",
-      icon: "ðŸ—ï¸",
+      description: "Performance unter Erwartungen. Zurück zu den Grundlagen und systematisches Testing.",
+      icon: "🏗️",
       actions: ["Review fundamentals", "Start fresh tests", "Analyze competition"]
     };
   }
@@ -261,7 +261,7 @@ function generateSenseiInsights(strategy) {
     </div>`,
     ...strategy.actions.map(action => `
       <div class="sensei-insight">
-        <div class="insight-icon">âœ“</div>
+        <div class="insight-icon">✓</div>
         <div class="insight-content">${action}</div>
       </div>
     `)
@@ -281,7 +281,7 @@ function executeSenseiAction(action) {
     <div class="sensei-insight" style="background:var(--success-light); border:1px solid var(--success); margin-top:12px; padding:12px; border-radius:8px;">
       <div class="insight-content">
         <strong style="color:var(--success);">Aktion gestartet!</strong><br>
-        <span style="font-size:12px;">Die Analyse lÃ¤uft im Hintergrund...</span>
+        <span style="font-size:12px;">Die Analyse läuft im Hintergrund...</span>
       </div>
     </div>
   `;
@@ -745,18 +745,18 @@ function renderOverview() {
   if (!grid) return;
   
   if (!KPI) {
-    grid.innerHTML = '<div style="grid-column:1/-1; color:var(--text-light);">Keine Daten verfÃ¼gbar</div>';
+    grid.innerHTML = '<div style="grid-column:1/-1; color:var(--text-light);">Keine Daten verfügbar</div>';
     return;
   }
 
   const cards = [
-    { label: "Impressions", val: fmt.short(KPI.Impressions), icon: "ðŸ‘ï¸" },
-    { label: "Clicks", val: fmt.short(KPI.Clicks), icon: "ðŸ–±ï¸" },
-    { label: "Add to Cart", val: fmt.num(KPI.AddToCart), icon: "ðŸ›’" },
-    { label: "Purchases", val: fmt.num(KPI.Purchases), icon: "âœ…" },
-    { label: "Revenue", val: fmt.curr(KPI.Revenue), icon: "ðŸ’°" },
-    { label: "Spend", val: fmt.curr(KPI.Spend), icon: "ðŸ’¸" },
-    { label: "ROAS", val: fmt.num(KPI.ROAS, 2), icon: "ðŸ“ˆ" },
+    { label: "Impressions", val: fmt.short(KPI.Impressions), icon: "👁️" },
+    { label: "Clicks", val: fmt.short(KPI.Clicks), icon: "🖱️" },
+    { label: "Add to Cart", val: fmt.num(KPI.AddToCart), icon: "🛒" },
+    { label: "Purchases", val: fmt.num(KPI.Purchases), icon: "✅" },
+    { label: "Revenue", val: fmt.curr(KPI.Revenue), icon: "💰" },
+    { label: "Spend", val: fmt.curr(KPI.Spend), icon: "💸" },
+    { label: "ROAS", val: fmt.num(KPI.ROAS, 2), icon: "📈" },
   ];
 
   grid.innerHTML = cards
@@ -781,7 +781,7 @@ function renderFunnel() {
   if (!el) return;
   
   if (!KPI) {
-    el.innerHTML = '<div style="color:var(--text-light);">Keine Daten verfÃ¼gbar</div>';
+    el.innerHTML = '<div style="color:var(--text-light);">Keine Daten verfügbar</div>';
     return;
   }
 
@@ -886,7 +886,7 @@ function renderKPIs() {
   if (!el) return;
   
   if (!KPI) {
-    el.innerHTML = '<div style="grid-column:1/-1; color:var(--text-light);">Keine Daten verfÃ¼gbar</div>';
+    el.innerHTML = '<div style="grid-column:1/-1; color:var(--text-light);">Keine Daten verfügbar</div>';
     return;
   }
 
@@ -919,7 +919,7 @@ function renderKPIs() {
           <div class="kpi-header">
             <div class="kpi-label">${c.label}</div>
             <div class="kpi-trend ${isPositive ? 'positive' : 'negative'}">
-              ${isPositive ? 'â†—' : 'â†˜'} ${Math.abs(diff)}%
+              ${isPositive ? '↗' : '↘'} ${Math.abs(diff)}%
             </div>
           </div>
           <div class="kpi-value">${c.val}</div>
@@ -1061,15 +1061,15 @@ function renderCreatives() {
             
             <div class="creative-footer">
               <div class="creative-impressions">
-                <span>ðŸ‘ï¸</span>
+                <span>👁️</span>
                 <span>${fmt.short(c.impressions)}</span>
               </div>
               <div class="creative-actions">
                 <button class="action-btn-sm" title="Details" onclick="showCreativeDetails('${c.id}')">
-                  â„¹ï¸
+                  ℹ️
                 </button>
                 <button class="action-btn-sm" title="Analyze" onclick="analyzeCreative('${c.id}')">
-                  ðŸ”
+                  🔍
                 </button>
               </div>
             </div>
@@ -1104,14 +1104,14 @@ function analyzeCreative(creativeId) {
           <div class="insight-content">
             <strong style="color:var(--primary);">Creative Analyse: ${creative.name}</strong><br><br>
             <strong>Performance-Score:</strong> ${creative.score}/100<br>
-            <strong>ROAS:</strong> ${creative.ROAS.toFixed(2)}x ${creative.ROAS >= 3 ? 'âœ… Exzellent' : creative.ROAS >= 2 ? 'âš ï¸ Gut' : 'âŒ Verbesserung nÃ¶tig'}<br>
-            <strong>CTR:</strong> ${creative.CTR.toFixed(2)}% ${creative.CTR >= 2.5 ? 'âœ… Stark' : 'âš ï¸ Schwach'}<br><br>
+            <strong>ROAS:</strong> ${creative.ROAS.toFixed(2)}x ${creative.ROAS >= 3 ? '✅ Exzellent' : creative.ROAS >= 2 ? '⚠️ Gut' : '❌ Verbesserung nötig'}<br>
+            <strong>CTR:</strong> ${creative.CTR.toFixed(2)}% ${creative.CTR >= 2.5 ? '✅ Stark' : '⚠️ Schwach'}<br><br>
             <strong style="color:var(--success);">Empfehlung:</strong><br>
             ${creative.ROAS >= 3 
-              ? 'ðŸš€ Scaling-Kandidat! Budget um 30-50% erhÃ¶hen.' 
+              ? '🚀 Scaling-Kandidat! Budget um 30-50% erhöhen.' 
               : creative.ROAS >= 2 
-                ? 'âš¡ Optimieren und weiter testen.' 
-                : 'âš ï¸ Pausieren oder komplett Ã¼berarbeiten.'}
+                ? '⚡ Optimieren und weiter testen.' 
+                : '⚠️ Pausieren oder komplett überarbeiten.'}
           </div>
         </div>
       `;
@@ -1188,7 +1188,7 @@ function renderWinnerLoser() {
         </div>
       </div>
       <div style="font-size:12px; color:var(--text-secondary); line-height:1.6;">
-        ðŸš€ Starker ROAS & CTR. Empfehlung: Budget schrittweise um <strong>+30-50%</strong> erhÃ¶hen und Ã¤hnliche Creatives testen.
+        🚀 Starker ROAS & CTR. Empfehlung: Budget schrittweise um <strong>+30-50%</strong> erhöhen und ähnliche Creatives testen.
       </div>
     `;
   }
@@ -1213,7 +1213,7 @@ function renderWinnerLoser() {
         </div>
       </div>
       <div style="font-size:12px; color:var(--text-secondary); line-height:1.6;">
-        âš ï¸ Schwacher ROAS. Empfehlung: Creative pausieren oder komplett neuen Ansatz mit anderem Hook/Visual testen.
+        ⚠️ Schwacher ROAS. Empfehlung: Creative pausieren oder komplett neuen Ansatz mit anderem Hook/Visual testen.
       </div>
     `;
   }
@@ -1241,7 +1241,7 @@ function updateLastUpdate() {
   const minutes = now.getMinutes();
   const timeAgo = minutes % 10;
   
-  el.textContent = `â— vor ${timeAgo === 0 ? 'wenigen Sek.' : timeAgo + ' Min.'}`;
+  el.textContent = `● vor ${timeAgo === 0 ? 'wenigen Sek.' : timeAgo + ' Min.'}`;
 }
 
 // ======================================================================
@@ -1284,11 +1284,11 @@ function setupRecommendationRefresh() {
   
   btn.addEventListener("click", () => {
     // Simulate new recommendations
-    btn.innerHTML = '<span>â³</span> Lade...';
+    btn.innerHTML = '<span>⏳</span> Lade...';
     btn.disabled = true;
     
     setTimeout(() => {
-      btn.innerHTML = '<span>ðŸ”„</span> Aktualisieren';
+      btn.innerHTML = '<span>🔄</span> Aktualisieren';
       btn.disabled = false;
       
       // Could regenerate recommendations here
