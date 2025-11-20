@@ -5,6 +5,432 @@
   <title>SignalOne.cloud · Creative Intelligence Platform</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Zusätzliche Styles für erweiterte Features */
+    
+    /* System Menu Dropdown */
+    .system-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 220px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: var(--shadow-xl);
+      margin-top: 8px;
+      display: none;
+      z-index: 1000;
+      overflow: hidden;
+    }
+    
+    .system-menu-items {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .system-menu-item {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: transparent;
+      border: none;
+      text-align: left;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      transition: all 0.2s;
+    }
+    
+    .system-menu-item:hover {
+      background: var(--bg-alt);
+    }
+    
+    .system-menu-item .menu-icon {
+      font-size: 16px;
+      line-height: 1;
+    }
+    
+    /* Dynamic View Container */
+    #campaigns-view,
+    #insights-view,
+    #library-view,
+    #reports-view,
+    #connections-view,
+    #profile-view,
+    #pricing-view {
+      animation: fadeIn 0.3s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    /* Pricing Toggle */
+    .period-selector-compact {
+      display: flex;
+      gap: 0;
+      background: var(--bg-alt);
+      padding: 3px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    
+    /* Platform Cards für Connections */
+    .platform-card {
+      text-align: center;
+      padding: 24px;
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      transition: all 0.3s;
+    }
+    
+    .platform-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .platform-icon-large {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 16px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      font-weight: 700;
+    }
+    
+    /* Report History Cards */
+    .report-history-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px;
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .report-history-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--primary);
+    }
+    
+    /* Profile Avatar */
+    .profile-avatar {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      color: white;
+    }
+    
+    /* Pricing Cards */
+    .pricing-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      transition: all 0.3s;
+    }
+    
+    .pricing-card.popular {
+      border: 2px solid var(--primary);
+      box-shadow: var(--shadow-lg);
+      position: relative;
+    }
+    
+    .pricing-popular-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--primary);
+      color: white;
+      padding: 4px 16px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .pricing-amount {
+      font-size: 48px;
+      font-weight: 800;
+      line-height: 1;
+    }
+    
+    .pricing-features {
+      margin-top: 24px;
+      display: grid;
+      gap: 10px;
+    }
+    
+    .pricing-feature {
+      display: flex;
+      align-items: start;
+      gap: 10px;
+      font-size: 13px;
+    }
+    
+    .pricing-feature-icon {
+      font-size: 16px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    
+    /* Feature Comparison Table */
+    .feature-comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 32px;
+    }
+    
+    .feature-comparison-table thead {
+      background: var(--bg-alt);
+      border-bottom: 2px solid var(--border);
+    }
+    
+    .feature-comparison-table th {
+      padding: 12px;
+      text-align: left;
+      font-weight: 700;
+    }
+    
+    .feature-comparison-table td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    
+    .feature-comparison-table tbody tr:nth-child(even) {
+      background: var(--bg-alt);
+    }
+    
+    /* Notification Settings */
+    .notification-setting {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px;
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+    
+    .notification-toggle {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+    
+    /* Campaign Template Cards */
+    .campaign-template-card {
+      padding: 16px;
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .campaign-template-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--primary);
+    }
+    
+    /* Audience Insight Cards */
+    .audience-card {
+      padding: 16px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      transition: all 0.2s;
+    }
+    
+    .audience-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .audience-status {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    
+    .audience-status.hot {
+      background: var(--success-light);
+      color: var(--success);
+    }
+    
+    .audience-status.warm {
+      background: var(--warning-light);
+      color: var(--warning);
+    }
+    
+    .audience-status.cold {
+      background: var(--gray-200);
+      color: var(--gray-700);
+    }
+    
+    /* Library Grid */
+    .library-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+    }
+    
+    .library-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    
+    .library-item:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--primary);
+    }
+    
+    /* Connected Account Card */
+    .connected-account {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+    
+    .account-platform-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+    
+    /* Changelog Styles */
+    .changelog-item {
+      padding: 14px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    
+    .changelog-new {
+      background: var(--success-light);
+      border-left: 3px solid var(--success);
+    }
+    
+    .changelog-improved {
+      background: var(--primary)15;
+      border-left: 3px solid var(--primary);
+    }
+    
+    .changelog-fixed {
+      background: var(--warning-light);
+      border-left: 3px solid var(--warning);
+    }
+    
+    /* Template Suggestion Cards */
+    .template-suggestion {
+      padding: 12px;
+      background: var(--primary)10;
+      border: 1px solid var(--primary)30;
+      border-radius: 8px;
+      margin-top: 16px;
+    }
+    
+    .template-badge {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .library-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .feature-comparison-table {
+        font-size: 11px;
+      }
+      
+      .feature-comparison-table th,
+      .feature-comparison-table td {
+        padding: 8px;
+      }
+      
+      .pricing-card {
+        padding: 16px;
+      }
+      
+      .pricing-amount {
+        font-size: 36px;
+      }
+    }
+    
+    /* Mobile Menu Button */
+    @media (max-width: 1200px) {
+      .mobile-menu-btn {
+        position: fixed;
+        left: 16px;
+        top: 16px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        cursor: pointer;
+        z-index: 101;
+        box-shadow: var(--shadow-sm);
+      }
+    }
+  </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
