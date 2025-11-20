@@ -153,6 +153,7 @@ function toast(message, options = {}) {
 // ======================================================================
 
 function applyTheme(theme) {
+  // theme: "light" | "dark"
   if (theme === "dark") {
     document.documentElement.classList.add("dark");
   } else {
@@ -163,12 +164,13 @@ function applyTheme(theme) {
 
 function initTheme() {
   const saved = localStorage.getItem("theme");
-  if (saved) {
-    applyTheme(saved);
-    return;
+
+  // ❗ Standard immer LIGHT, außer User hat explizit "dark" gespeichert
+  if (saved === "dark") {
+    applyTheme("dark");
+  } else {
+    applyTheme("light");
   }
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  applyTheme(prefersDark ? "dark" : "light");
 }
 
 function setupThemeToggle() {
@@ -182,12 +184,6 @@ function setupThemeToggle() {
     applyTheme(current === "dark" ? "light" : "dark");
   });
 }
-
-window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", e => {
-  const autoMode = localStorage.getItem("theme") === null;
-  if (!autoMode) return;
-  applyTheme(e.matches ? "dark" : "light");
-});
 
 // ======================================================================
 // META STATUS
@@ -1837,4 +1833,5 @@ window.SignalOne = {
   },
   analyze: analyzeSenseiStrategy
 };
+
 
