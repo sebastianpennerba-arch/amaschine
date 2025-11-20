@@ -270,7 +270,7 @@ function determineStrategy(roas, ctr, cr) {
       name: "Optimizer",
       title: "Continuous Optimization Strategy",
       description: "Gute Performance mit Verbesserungspotential. Fokus auf kontinuierliche Optimierung und Testing.",
-      icon: "⚡",
+      icon: "⚡",DOMContentLoaded
       actions: ["A/B test creatives", "Optimize ad schedule", "Refine targeting"]
     };
   } else if (roas > 2 && roas <= 3) {
@@ -728,6 +728,7 @@ function renderAll() {
   renderHeatmap();
   renderWinnerLoser();
   renderCreatives();
+  renderCampaigns();
   updateCreativeCounts();
   updateQuickMetrics();
   
@@ -1433,6 +1434,8 @@ function setupExportButton() {
 // Setup export on load
 window.addEventListener("DOMContentLoaded", () => {
   setupExportButton();
+  setupCampaignSorting();
+loadMockCampaigns(); // falls MOCK_MODE true
 });
 
 // ======================================================================
@@ -1470,6 +1473,7 @@ window.SignalOne = {
   loadMock: loadMockCreatives,
   analyze: analyzeSenseiStrategy
 };
+
 
 
 
