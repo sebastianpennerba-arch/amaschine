@@ -230,6 +230,46 @@ SignalViewEngine.registry["pricing"] = function() {
 
     update();
 };
+/* ===========================================================
+   NAVIGATION / ROUTER INITIALISIEREN
+   =========================================================== */
+window.addEventListener("DOMContentLoaded", () => {
+
+    const items = document.querySelectorAll(".menu-item");
+
+    items.forEach(item => {
+        item.addEventListener("click", () => {
+            const view = item.getAttribute("data-view");
+
+            if (!view) return;
+
+            // URL-Hash setzen (für Back/Forward)
+            history.pushState({ view }, "", `#${view}`);
+
+            // View laden
+            SignalViewEngine.load(view);
+
+            // aktive Markierung
+            document.querySelectorAll(".menu-item").forEach(i => i.classList.remove("active"));
+            item.classList.add("active");
+        });
+    });
+
+    // On Page Load: Hash auslesen
+    const initialView = location.hash.replace("#", "") || "dashboard";
+    SignalViewEngine.load(initialView);
+
+    // Active Nav markieren
+    document.querySelector(`.menu-item[data-view="${initialView}"]`)?.classList.add("active");
+});
+
+/* ===========================================================
+   BACK/FORWARD Browser Support
+   =========================================================== */
+window.addEventListener("popstate", (e) => {
+    const v = e.state?.view || "dashboard";
+    SignalViewEngine.load(v);
+});
 
 /* ===========================================================
    END
