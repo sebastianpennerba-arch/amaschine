@@ -2438,6 +2438,32 @@ body {
 .theme-toggle:hover {
   color: var(--primary);
 }
+.status-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.status-sub {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.meta-status-loading {
+  background: #f59e0b;
+  box-shadow: 0 0 8px rgba(245,158,11,0.5);
+}
+
+.meta-status-ok {
+  background: #22c55e;
+  box-shadow: 0 0 8px rgba(34,197,94,0.6);
+}
+
+.meta-status-error {
+  background: #ef4444;
+  box-shadow: 0 0 8px rgba(239,68,68,0.6);
+}
+
 
 
 
