@@ -598,10 +598,12 @@ function setupSidebar() {
   const toggle = document.getElementById("sidebarToggle");
   if (!sidebar || !toggle) return;
 
+  /* Helper: mobile detection */
   function isMobile() {
     return window.innerWidth <= 1200;
   }
 
+  /* Toggle sidebar (mobile: open/close, desktop: collapse) */
   toggle.addEventListener("click", () => {
     if (isMobile()) {
       sidebar.classList.toggle("open");
@@ -610,6 +612,7 @@ function setupSidebar() {
     }
   });
 
+  /* Close sidebar on mobile when clicking outside */
   document.addEventListener("click", (e) => {
     if (!isMobile()) return;
     if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
@@ -617,36 +620,48 @@ function setupSidebar() {
     }
   });
 
+  /* Window resize: remove open-state when leaving mobile mode */
   window.addEventListener("resize", () => {
     if (!isMobile()) {
       sidebar.classList.remove("open");
     }
   });
 
+  /* MENU CLICK HANDLING — FIXED */
   document.querySelectorAll(".menu-item").forEach(item => {
     item.addEventListener("click", (e) => {
       e.preventDefault();
+
       const view = item.dataset.view;
       if (!view) return;
 
+      /* --- ACTIVE STATE FÜR MENÜ --- */
       document.querySelectorAll(".menu-item")
         .forEach(i => i.classList.remove("active"));
       item.classList.add("active");
 
-      document.querySelectorAll(".view")
-        .forEach(v => v.classList.add("hidden"));
+      /* --- ALLE VIEWS VERSTECKEN --- */
+      document.querySelectorAll(".view").forEach(v => {
+        v.classList.add("hidden");
+        v.classList.remove("active");
+      });
 
+      /* --- ZIEL-VIEW ANZEIGEN --- */
       const target = document.getElementById("view-" + view);
-      target.classList.remove("hidden");
+      if (target) {
+        target.classList.remove("hidden");
+        target.classList.add("active");
+      }
 
+      /* --- TITEL AKTUALISIEREN --- */
       const pageTitle = document.querySelector(".page-title");
       if (pageTitle) {
         const labelEl = item.querySelector(".menu-label");
-        pageTitle.textContent = labelEl
-          ? labelEl.textContent
-          : (item.dataset.tooltip || "Dashboard");
+        pageTitle.textContent =
+          labelEl?.textContent || item.dataset.tooltip || "Dashboard";
       }
 
+      /* --- MOBILE: Sidebar schließen --- */
       if (isMobile()) {
         sidebar.classList.remove("open");
       }
@@ -1833,5 +1848,6 @@ window.SignalOne = {
   },
   analyze: analyzeSenseiStrategy
 };
+
 
 
