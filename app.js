@@ -1,7 +1,7 @@
 // ======================================================================
 // SignalOne.cloud – Rebuild Option 1 (Mock-System, Style A)
 // FINALE VERSION: Alle Prio 1, Prio 2, Prio 5, Prio 13 und UX-Elemente implementiert.
-// DIESE DATEI ARBEITET MIT "index (1).html" UND "styles (2).css"
+// DIESE DATEI ARBEITET MIT "index.html" UND "styles.css"
 // ======================================================================
 
 "use strict";
@@ -1057,3 +1057,4 @@ document.addEventListener("DOMContentLoaded", () => {
   AppState.activeView = "dashboard";
   setActiveView("dashboard");
 });
+
