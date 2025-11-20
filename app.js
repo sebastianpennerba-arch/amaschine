@@ -1030,7 +1030,9 @@ function renderAll() {
   renderCampaigns();
   updateCreativeCounts();
   updateQuickMetrics();
-  
+  document.querySelectorAll(".view")
+  .forEach(v => v.classList.add("fade-in"));
+
 // Erst Skeleton zeigen
 showSkeleton("dashboardSkeleton", true);
 showSkeleton("dashboardReal", false);
@@ -1815,6 +1817,7 @@ window.SignalOne = {
   loadMock: loadMockCreatives,
   analyze: analyzeSenseiStrategy
 };
+
 
 
 
