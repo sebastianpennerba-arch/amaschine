@@ -2017,6 +2017,71 @@ window.SignalOne = {
   loadMock: loadMockCreatives,
   analyze: analyzeSenseiStrategy
 };
+// ======================================================
+// STATE INSPECTOR
+// ======================================================
+function setupStateInspector() {
+  const panel = document.getElementById("stateInspector");
+  const toggle = document.getElementById("inspectorToggle");
+  const closeBtn = document.getElementById("inspectorClose");
+  const copyBtn = document.getElementById("inspectorCopy");
+
+  const tabButtons = document.querySelectorAll(".inspector-tab");
+  const panels = document.querySelectorAll(".inspector-panel");
+
+  const stateEl = document.getElementById("inspectorState");
+  const eventsEl = document.getElementById("inspectorEvents");
+
+  function renderInspector() {
+    stateEl.textContent = JSON.stringify(SignalState, null, 2);
+    eventsEl.textContent = JSON.stringify(StateBus.log.slice(-30), null, 2);
+  }
+
+  // Open/Close
+  toggle.addEventListener("click", () => {
+    panel.classList.toggle("open");
+    renderInspector();
+  });
+
+  closeBtn.addEventListener("click", () => {
+    panel.classList.remove("open");
+  });
+
+  // Tab switching
+  tabButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      tabButtons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      const id = btn.dataset.tab;
+      panels.forEach(p => p.classList.remove("active"));
+      document.getElementById("inspector" + id.charAt(0).toUpperCase() + id.slice(1))
+        .classList.add("active");
+    });
+  });
+
+  // Copy to clipboard
+  copyBtn.addEventListener("click", () => {
+    navigator.clipboard.writeText(
+      JSON.stringify({
+        state: SignalState,
+        events: StateBus.log
+      }, null, 2)
+    );
+    toast("State kopiert!", { type: "success" });
+  });
+
+  // Auto-update on State changes
+  StateBus.subscribe("*", () => {
+    if (panel.classList.contains("open")) {
+      renderInspector();
+    }
+  });
+}
+
+// Init
+document.addEventListener("DOMContentLoaded", setupStateInspector);
+
 
 
 
