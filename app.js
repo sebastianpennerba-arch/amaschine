@@ -78,69 +78,42 @@ window.addEventListener("DOMContentLoaded", () => {
 function setupSidebar() {
   const sidebar = document.getElementById("sidebar");
   const toggle = document.getElementById("sidebarToggle");
-  
+
   if (!sidebar || !toggle) return;
-  
+
+  // Desktop toggle (collapse)
   toggle.addEventListener("click", () => {
-    sidebar.classList.toggle("collapsed");
+    if (window.innerWidth > 1200) {
+      sidebar.classList.toggle("collapsed");
+      return;
+    }
+
+    // Mobile open/close
+    sidebar.classList.toggle("open");
   });
-  
-  // Mobile overlay handling
-  if (window.innerWidth <= 1200) {
-    const overlay = document.createElement('div');
-    overlay.className = 'sidebar-overlay';
-    document.body.appendChild(overlay);
-    
-    overlay.addEventListener('click', () => {
-      sidebar.classList.remove('open');
-      overlay.classList.remove('active');
-    });
-    
-    toggle.addEventListener('click', () => {
-      if (window.innerWidth <= 1200) {
-        sidebar.classList.toggle('open');
-        overlay.classList.toggle('active');
-      }
-    });
-  }
-  
+
+  // Close mobile on click outside
+  document.addEventListener("click", (e) => {
+    if (window.innerWidth > 1200) return;
+    if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+      sidebar.classList.remove("open");
+    }
+  });
+
   // Menu navigation
   document.querySelectorAll(".menu-item").forEach(item => {
     item.addEventListener("click", (e) => {
       e.preventDefault();
       document.querySelectorAll(".menu-item").forEach(i => i.classList.remove("active"));
       item.classList.add("active");
-      
-      const view = item.dataset.view;
-      console.log("Switch to view:", view);
-      
-      // Update page title
-      const pageTitle = document.querySelector(".page-title");
-      if (pageTitle) {
-        const viewNames = {
-          dashboard: "Dashboard Overview",
-          creatives: "Creative Performance",
-          campaigns: "Campaign Analytics",
-          insights: "Performance Insights",
-          sensei: "SignalSensei Assistant",
-          library: "Creative Library",
-          reports: "Reports & Analytics",
-          connections: "Platform Connections",
-          profile: "Profile Settings"
-        };
-        pageTitle.textContent = viewNames[view] || "Dashboard";
-      }
-      
-      // Close mobile menu
+
+      // Mobile close after click
       if (window.innerWidth <= 1200) {
-        sidebar.classList.remove('open');
-        const overlay = document.querySelector('.sidebar-overlay');
-        if (overlay) overlay.classList.remove('active');
+        sidebar.classList.remove("open");
       }
     });
   });
 }
-
 // ======================================================================
 // SIGNALSENSEI ASSISTANT
 // ======================================================================
@@ -1310,3 +1283,4 @@ window.SignalOne = {
   loadMock: loadMockCreatives,
   analyze: analyzeSenseiStrategy
 };
+
