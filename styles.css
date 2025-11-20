@@ -2044,3 +2044,38 @@ body {
     border: 1px solid #000;
   }
 }
+/* LOGO FIX */
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  text-decoration: none;
+}
+
+.sidebar-logo-img {
+  width: 140px;
+  height: auto;
+  object-fit: contain;
+  margin-left: 4px;
+}
+
+/* MOBILE SIDEBAR FIX */
+.sidebar.open {
+  transform: translateX(0);
+}
+
+.sidebar {
+  transform: translateX(0);
+  transition: transform 0.25s ease;
+}
+
+@media (max-width: 1200px) {
+  .sidebar {
+    position: fixed;
+    transform: translateX(-100%);
+    width: var(--sidebar-width);
+    z-index: 9999;
+  }
+}
+
+
