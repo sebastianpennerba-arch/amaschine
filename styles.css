@@ -2665,6 +2665,103 @@ body {
 .toast-info {
   border-color: var(--primary);
 }
+/* ===============================
+   STATE INSPECTOR
+   =============================== */
+.state-inspector {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 420px;
+  height: 500px;
+  background: var(--bg-card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  z-index: 999999;
+  transform: translateY(20px);
+  opacity: 0;
+  transition: all .25s var(--ease-soft);
+}
+
+.state-inspector.open {
+  transform: translateY(0px);
+  opacity: 1;
+}
+
+.inspector-header {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.inspector-actions button {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.inspector-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+}
+
+.inspector-tab {
+  flex: 1;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: none;
+  cursor: pointer;
+  transition: background .2s;
+  color: var(--text);
+}
+
+.inspector-tab.active {
+  background: var(--primary);
+  color: white;
+}
+
+.inspector-panel {
+  display: none;
+  padding: 10px;
+  overflow-y: auto;
+  flex: 1;
+  font-size: 12px;
+}
+
+.inspector-panel.active {
+  display: block;
+}
+
+.inspector-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 460px;
+  width: 46px;
+  height: 46px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  font-size: 22px;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: transform .25s var(--ease-soft);
+  z-index: 999999;
+}
+
+.inspector-toggle:hover {
+  transform: scale(1.08);
+}
+
 
 
 
