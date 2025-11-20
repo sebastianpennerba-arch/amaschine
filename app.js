@@ -1190,7 +1190,26 @@ function renderCampaigns() {
     });
   }, 200);
 }
+function setupCampaignSorting() {
+  const table = document.getElementById("campaignTable");
+  if (!table) return;
 
+  table.querySelectorAll("th").forEach(th => {
+    th.addEventListener("click", () => {
+      const key = th.dataset.sort;
+      let dir = th.dataset.dir === "asc" ? "desc" : "asc";
+      th.dataset.dir = dir;
+
+      SignalState.campaigns.sort((a, b) =>
+        dir === "asc"
+          ? (a[key] > b[key] ? 1 : -1)
+          : (a[key] < b[key] ? 1 : -1)
+      );
+
+      renderCampaigns();
+    });
+  });
+}
 
 function showCreativeDetails(creativeId) {
   const creative = SignalState.creatives.find(c => c.id === creativeId);
@@ -1422,6 +1441,7 @@ window.SignalOne = {
   loadMock: loadMockCreatives,
   analyze: analyzeSenseiStrategy
 };
+
 
 
 
