@@ -23,6 +23,51 @@ let trendChart = null;
 let scoreChart = null;
 
 // ======================================================
+// GLOBAL STATE MACHINE (STATE BUS)
+// ======================================================
+
+const StateBus = {
+  listeners: {},   // { key: [fn, fn], "*": [fn] }
+  log: [],
+
+  subscribe(keys, fn) {
+    const arr = Array.isArray(keys) ? keys : [keys];
+    arr.forEach(key => {
+      if (!this.listeners[key]) this.listeners[key] = [];
+      this.listeners[key].push(fn);
+    });
+  },
+
+  emit(patch, meta = {}) {
+    const keys = Object.keys(patch);
+    keys.forEach(key => {
+      const fns = (this.listeners[key] || []).concat(this.listeners["*"] || []);
+      fns.forEach(fn => fn({ key, value: patch[key], meta }));
+    });
+
+    // Log State change (max 100 Einträge)
+    this.log.push({
+      patch,
+      meta,
+      at: new Date().toISOString()
+    });
+    if (this.log.length > 100) this.log.shift();
+  }
+};
+
+/**
+ * Vereinheitlichte State-Updates
+ * patch: { kpi: {...}, campaigns: [...] }
+ * meta:  { source: "loadMetaData", reason: "sync" }
+ */
+function updateState(patch, meta = {}) {
+  // SignalState muss global schon existieren
+  Object.assign(SignalState, patch);
+  StateBus.emit(patch, meta);
+}
+
+
+// ======================================================
 // META API WRAPPER + RETRY LOGIC
 // ======================================================
 
@@ -222,6 +267,26 @@ window.addEventListener("DOMContentLoaded", () => {
   setupMetaButton();
   setupSettingsTabs();
 loadSettings();
+  // Reaktionen auf State-Änderungen
+StateBus.subscribe(["kpi"], () => {
+  // Dashboard neu zeichnen
+  // (falls du schon eine renderDashboard() Funktion hast, sonst via renderAll)
+  renderAll();
+});
+
+StateBus.subscribe(["campaigns"], () => {
+  renderCampaigns();
+});
+
+StateBus.subscribe(["creatives"], () => {
+  renderCreatives();
+});
+
+// Debug: alles loggen
+// StateBus.subscribe("*", ({ key, value, meta }) => {
+//   console.log("[STATE]", key, value, meta);
+// });
+
 
 document.getElementById("saveAccount").addEventListener("click", saveAccountSettings);
 document.getElementById("saveBranding").addEventListener("click", saveBranding);
@@ -246,11 +311,28 @@ document.getElementById("saveAppSettings").addEventListener("click", saveAppSett
 }
 
 
-  SignalState.token = token;
-  localStorage.setItem("signalone_meta_token", token);
-  setMetaStatus("loading", "Syncing…");
-  loadMetaData();
-}
+updateState(
+  {
+    campaigns,
+    kpi: {
+      Impressions: totalImpressions,
+      Clicks: totalClicks,
+      Spend: totalSpend,
+      Revenue: totalRevenue,
+      Purchases: totalPurchases,
+      CTR,
+      CPC,
+      ROAS,
+      CR,
+      AOV
+    }
+  },
+  { source: "loadMetaData", type: "meta-sync" }
+);
+
+renderAll();
+setMetaStatus("ok", "Live");
+
   initDate();
   initTheme();
   setupThemeToggle();
@@ -766,6 +848,7 @@ function handleMetaError(err) {
 // MOCK DATA LOADER
 // ======================================================================
 async function loadMockCreatives() {
+  updateState({ creatives }, { source: "loadMockCreatives", type: "mock" });
   const mockFiles = [
     "Creative1.png",
     "Creative10.mp4",
@@ -1701,6 +1784,7 @@ function updateCreativeCounts() {
   ];
 
   SignalState.campaigns = names.map(name => {
+    updateState({ campaigns }, { source: "loadMockCampaigns", type: "mock" });
     const spend = +(Math.random() * 200 + 50).toFixed(2);
     const impressions = Math.floor(Math.random() * 50000 + 5000);
     const clicks = Math.floor(impressions * (Math.random() * 0.03 + 0.005));
@@ -1900,6 +1984,7 @@ window.SignalOne = {
   loadMock: loadMockCreatives,
   analyze: analyzeSenseiStrategy
 };
+
 
 
 
