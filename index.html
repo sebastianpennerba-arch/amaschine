@@ -439,10 +439,94 @@
   <p>Meta, Google, Sheets & Tracking Setup.</p>
 </section>
 
-<section class="view hidden" id="view-profile">
-  <h2 class="view-title">Profil Einstellungen</h2>
-  <p>Benutzerprofil, Abo, API Keys.</p>
-</section>
+<h2 class="view-title">Einstellungen</h2>
+
+<div class="settings-container">
+
+  <div class="settings-tabs">
+    <button class="settings-tab active" data-tab="account">Account</button>
+    <button class="settings-tab" data-tab="api">Integrationen</button>
+    <button class="settings-tab" data-tab="branding">Branding</button>
+    <button class="settings-tab" data-tab="plan">Abo & Limits</button>
+    <button class="settings-tab" data-tab="app">App</button>
+  </div>
+
+  <div class="settings-content">
+
+    <!-- ACCOUNT -->
+    <div class="settings-panel active" id="tab-account">
+      <div class="form-group">
+        <label>Name</label>
+        <input id="profileName" type="text" placeholder="Dein Name">
+      </div>
+
+      <div class="form-group">
+        <label>E-Mail</label>
+        <input id="profileEmail" type="email" placeholder="name@example.com">
+      </div>
+
+      <div class="form-group">
+        <label>Avatar URL</label>
+        <input id="profileAvatar" type="text" placeholder="https://...">
+      </div>
+
+      <button id="saveAccount" class="button primary">Speichern</button>
+    </div>
+
+    <!-- API -->
+    <div class="settings-panel" id="tab-api">
+      <h3>Meta Integration</h3>
+      <p>Status: <span id="metaApiStatus">Nicht verbunden</span></p>
+      <button id="connectMeta" class="button">Meta verbinden</button>
+    </div>
+
+    <!-- BRANDING -->
+    <div class="settings-panel" id="tab-branding">
+      <div class="form-group">
+        <label>Brand Name</label>
+        <input id="brandName" type="text" placeholder="Deine Marke">
+      </div>
+
+      <div class="form-group">
+        <label>Primärfarbe</label>
+        <input id="brandColor" type="color" value="#6366f1">
+      </div>
+
+      <button id="saveBranding" class="button primary">Branding speichern</button>
+    </div>
+
+    <!-- PLAN -->
+    <div class="settings-panel" id="tab-plan">
+      <h3>Dein Plan</h3>
+      <p>Aktueller Plan: <strong id="currentPlan">Free</strong></p>
+      <p>Limits: 3 Live-Syncs/Tag</p>
+      <button id="upgradePlan" class="button primary">Upgrade auf PRO</button>
+    </div>
+
+    <!-- APP SETTINGS -->
+    <div class="settings-panel" id="tab-app">
+      <div class="form-group">
+        <label>Theme</label>
+        <select id="appTheme">
+          <option value="auto">Auto (System)</option>
+          <option value="light">Hell</option>
+          <option value="dark">Dunkel</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Animationen</label>
+        <select id="appMotion">
+          <option value="on">An</option>
+          <option value="off">Aus</option>
+        </select>
+      </div>
+
+      <button id="saveAppSettings" class="button primary">Speichern</button>
+    </div>
+
+  </div>
+</div>
 
 
       <!-- WINNER/LOSER ANALYSIS - COLLAPSIBLE -->
@@ -537,6 +621,7 @@
   <script src="/app.js"></script>
 </body>
 </html>
+
 
 
 
