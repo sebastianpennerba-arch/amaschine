@@ -220,6 +220,13 @@ window.addEventListener("DOMContentLoaded", () => {
   setupSortSelect();
   setupCollapsible();
   setupMetaButton();
+  setupSettingsTabs();
+loadSettings();
+
+document.getElementById("saveAccount").addEventListener("click", saveAccountSettings);
+document.getElementById("saveBranding").addEventListener("click", saveBranding);
+document.getElementById("saveAppSettings").addEventListener("click", saveAppSettings);
+
   setupMetaPostMessage();
   function restoreMetaSession() {
   const token = localStorage.getItem("signalone_meta_token");
@@ -227,6 +234,17 @@ window.addEventListener("DOMContentLoaded", () => {
     setMetaStatus("error", "Nicht verbunden");
     return;
   }
+    function toast(msg) {
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.textContent = msg;
+  document.body.appendChild(t);
+
+  setTimeout(() => t.classList.add("show"), 50);
+  setTimeout(() => t.classList.remove("show"), 2500);
+  setTimeout(() => t.remove(), 3000);
+}
+
 
   SignalState.token = token;
   localStorage.setItem("signalone_meta_token", token);
@@ -244,6 +262,71 @@ window.addEventListener("DOMContentLoaded", () => {
   updateLastUpdate();
   setInterval(updateLastUpdate, 60000);
 });
+// ========================================================
+// SETTINGS ENGINE
+// ========================================================
+
+function setupSettingsTabs() {
+  const tabs = document.querySelectorAll(".settings-tab");
+  const panels = document.querySelectorAll(".settings-panel");
+
+  tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      tabs.forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+
+      const id = tab.dataset.tab;
+      panels.forEach(p => p.classList.remove("active"));
+
+      const target = document.getElementById("tab-" + id);
+      if (target) target.classList.add("active");
+    });
+  });
+}
+
+function loadSettings() {
+  const profile = JSON.parse(localStorage.getItem("profile") || "{}");
+  const branding = JSON.parse(localStorage.getItem("branding") || "{}");
+  const app = JSON.parse(localStorage.getItem("appSettings") || "{}");
+
+  document.getElementById("profileName").value = profile.name || "";
+  document.getElementById("profileEmail").value = profile.email || "";
+  document.getElementById("profileAvatar").value = profile.avatar || "";
+
+  document.getElementById("brandName").value = branding.name || "";
+  document.getElementById("brandColor").value = branding.color || "#6366f1";
+
+  document.getElementById("appTheme").value = app.theme || "auto";
+  document.getElementById("appMotion").value = app.motion || "on";
+}
+
+function saveAccountSettings() {
+  const data = {
+    name: document.getElementById("profileName").value,
+    email: document.getElementById("profileEmail").value,
+    avatar: document.getElementById("profileAvatar").value
+  };
+  localStorage.setItem("profile", JSON.stringify(data));
+  toast("Account gespeichert");
+}
+
+function saveBranding() {
+  const data = {
+    name: document.getElementById("brandName").value,
+    color: document.getElementById("brandColor").value
+  };
+  localStorage.setItem("branding", JSON.stringify(data));
+  toast("Branding gespeichert");
+}
+
+function saveAppSettings() {
+  const data = {
+    theme: document.getElementById("appTheme").value,
+    motion: document.getElementById("appMotion").value
+  };
+  localStorage.setItem("appSettings", JSON.stringify(data));
+  toast("Einstellungen gespeichert");
+}
 
 // ======================================================================
 // SIDEBAR
@@ -1817,6 +1900,7 @@ window.SignalOne = {
   loadMock: loadMockCreatives,
   analyze: analyzeSenseiStrategy
 };
+
 
 
 
