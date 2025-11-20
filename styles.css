@@ -15,7 +15,7 @@
   --bg-alt: #ffffff;
   --bg-card: #ffffff;
   --bg-elevated: #ffffff;
-  --bg-sidebar: #0b0b0f;  /* Sidebar im Dark Mode */
+  --bg-sidebar: #f3f4f6;  /* Sidebar im Dark Mode */
 
   --text: #1a1a1a;
   --text-secondary: #6b7280;
@@ -1024,3 +1024,4 @@ td {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
