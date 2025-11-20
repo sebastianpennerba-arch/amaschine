@@ -22,6 +22,58 @@ let MOCK_MODE = true;
 let trendChart = null;
 let scoreChart = null;
 
+function renderScoreChart(value = 70) {
+  const ctx = document.getElementById("scoreChart").getContext("2d");
+
+  if (window._scoreChart) {
+    window._scoreChart.data.datasets[0].data = [value, 100 - value];
+    window._scoreChart.update();
+    return;
+  }
+
+  window._scoreChart = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: ["Score", "Rest"],
+      datasets: [{
+        data: [value, 100 - value],
+        borderWidth: 0,
+        cutout: "70%"
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      responsive: true
+    }
+  });
+  function renderCreatives() {
+  const grid = document.getElementById("creativeGrid");
+  if (!grid) return;
+
+  grid.innerHTML = "";
+
+  SignalState.creatives.forEach(c => {
+    const card = document.createElement("div");
+    card.className = "creative-card";
+
+    const isVideo = c.mediaType === "video";
+
+    card.innerHTML = `
+      <div class="creative-badge">${c.ROAS.toFixed(1)}x ROAS</div>
+      ${isVideo ? 
+        `<video class="creative-thumb" src="${c.URL}" autoplay muted loop></video>` :
+        `<img class="creative-thumb" src="${c.URL}">`
+      }
+      <div class="creative-info">
+        <span>${c.name}</span>
+        <strong>${c.score}</strong>
+      </div>
+    `;
+
+    grid.appendChild(card);
+  });
+
+
 // ======================================================================
 // FORMATTERS
 // ======================================================================
@@ -675,12 +727,32 @@ function renderAll() {
   renderTrendChart();
   renderHeatmap();
   renderWinnerLoser();
+  renderCreatives();
   updateCreativeCounts();
   updateQuickMetrics();
   
   if (SignalState.senseiActive) {
     analyzeSenseiStrategy();
   }
+  if (SignalState.kpi) {
+  document.getElementById("dashROAS").textContent = SignalState.kpi.ROAS.toFixed(2) + "x";
+  document.getElementById("dashCTR").textContent = SignalState.kpi.CTR.toFixed(2) + "%";
+  document.getElementById("dashCR").textContent = SignalState.kpi.CR.toFixed(2) + "%";
+  document.getElementById("dashRevenue").textContent = fmt.curr(SignalState.kpi.Revenue);
+
+  const score = Math.min(
+    100,
+    Math.round(
+      SignalState.kpi.ROAS * 12 +
+      SignalState.kpi.CTR * 4 +
+      SignalState.kpi.CR * 6
+    )
+  );
+
+  document.getElementById("scoreValue").textContent = score;
+  renderScoreChart(score);
+}
+
 }
 
 // ======================================================================
@@ -1315,6 +1387,7 @@ window.SignalOne = {
   loadMock: loadMockCreatives,
   analyze: analyzeSenseiStrategy
 };
+
 
 
 
