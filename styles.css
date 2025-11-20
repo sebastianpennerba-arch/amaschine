@@ -2077,5 +2077,27 @@ body {
     z-index: 9999;
   }
 }
+/* VIEW SYSTEM */
+.view {
+  padding: 24px;
+  animation: fadeIn 0.25s ease;
+}
+
+.view.hidden {
+  display: none !important;
+}
+
+.view-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
 
 
