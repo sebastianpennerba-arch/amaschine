@@ -642,6 +642,190 @@ a {
 }
 
 /* ===========================================
+   NEUE ELEMENTE: Section Headings, Hero Cards, Insights (Style A)
+   =========================================== */
+
+/* 5. Section Headings (Trenner) */
+.section-heading {
+    margin-bottom: 24px;
+    padding-bottom: 8px; /* Etwas Platz zur Linie */
+    border-bottom: 1px solid var(--border);
+    margin-top: 24px;
+}
+.section-heading:first-of-type {
+    margin-top: 0; /* Kein zusätzlicher Top-Margin am Anfang der View */
+}
+.section-heading h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+    color: var(--text);
+}
+.section-subline {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+
+/* 1. Hero Creatives Grid */
+.hero-creatives-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.creative-hero-card {
+    padding: 0; /* Card-Padding entfernen, da der Inhalt selbst Padding bekommt */
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
+}
+.creative-hero-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1), 0 0 5px rgba(0,0,0,0.05);
+}
+
+.creative-hero-card .creative-media-container {
+    height: 140px;
+    position: relative;
+    background-color: var(--bg-alt);
+}
+
+.creative-hero-card .creative-media-preview {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.creative-hero-card .creative-platform-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background-color: var(--primary);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.creative-hero-card .creative-info {
+    padding: 16px;
+}
+.creative-hero-card .creative-name {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.creative-hero-card .creative-kpi-row {
+    display: flex;
+    gap: 8px;
+}
+.creative-kpi-badge {
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+}
+.creative-kpi-badge.success {
+    background-color: var(--success-light);
+    color: var(--success);
+}
+.creative-kpi-badge.warning {
+    background-color: var(--warning-light);
+    color: var(--warning);
+}
+.creative-kpi-badge.primary {
+    background-color: rgba(99, 102, 241, 0.1); /* Primary-Light */
+    color: var(--primary);
+}
+
+/* Placeholder Card (4. Karte) */
+.creative-hero-card.card-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background-color: var(--bg-alt);
+    border: 2px dashed var(--border);
+    transition: background-color var(--motion-fast) ease;
+}
+.creative-hero-card.card-placeholder:hover {
+    background-color: var(--border-light);
+    transform: none;
+    box-shadow: none;
+}
+.placeholder-content {
+    padding: 24px;
+}
+.placeholder-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+}
+.card-placeholder h4 {
+    margin: 0 0 4px 0;
+    font-weight: 700;
+    font-size: 18px;
+}
+.card-placeholder p {
+    margin: 0 0 16px 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* 6. Insights Cards Grid */
+.insights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.insight-card {
+    padding: 24px;
+}
+.insight-impact-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+.insight-impact-badge.warning {
+    background-color: var(--warning-light);
+    color: var(--warning);
+}
+.insight-impact-badge.success {
+    background-color: var(--success-light);
+    color: var(--success);
+}
+.insight-impact-badge.primary {
+    background-color: rgba(99, 102, 241, 0.1); 
+    color: var(--primary);
+}
+.insight-card h4 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+}
+.insight-card p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    line-height: 1.4;
+    min-height: 60px; /* Einheitliche Höhe erzwingen */
+}
+
+/* ===========================================
    CREATIVES VIEW (Prio 2.6 / 5. Search)
    =========================================== */
 
@@ -1112,6 +1296,7 @@ td {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
 
 
 
