@@ -138,24 +138,37 @@ document.querySelectorAll(".menu-item").forEach(item => {
 // ======================================================================
 function setupSensei() {
   const panel = document.getElementById("senseiPanel");
-  const toggleBtn = document.getElementById("toggleSensei");
-  const closeBtn = document.getElementById("closeSensei");
-  
-  if (!panel || !toggleBtn) return;
-  
-  toggleBtn.addEventListener("click", () => {
+  const toggle = document.getElementById("toggleSensei");
+  const close = document.getElementById("closeSensei");
+  const overlay = document.getElementById("senseiOverlay");
+
+  if (!panel || !toggle) return;
+
+  function openPanel() {
     panel.classList.add("open");
+    overlay.classList.add("active");
+    document.body.style.overflow = "hidden";
     SignalState.senseiActive = true;
     analyzeSenseiStrategy();
-  });
-  
-  if (closeBtn) {
-    closeBtn.addEventListener("click", () => {
-      panel.classList.remove("open");
-      SignalState.senseiActive = false;
-    });
   }
-  
+
+  function closePanel() {
+    panel.classList.remove("open");
+    overlay.classList.remove("active");
+    document.body.style.overflow = "";
+    SignalState.senseiActive = false;
+  }
+
+  toggle.addEventListener("click", openPanel);
+  close.addEventListener("click", closePanel);
+  overlay.addEventListener("click", closePanel);
+
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 768) return;
+    if (!panel.classList.contains("open")) return;
+    closePanel();
+  });
+}
   // Sensei actions
   document.querySelectorAll(".sensei-action-btn").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -1302,5 +1315,6 @@ window.SignalOne = {
   loadMock: loadMockCreatives,
   analyze: analyzeSenseiStrategy
 };
+
 
 
