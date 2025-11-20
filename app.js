@@ -1157,6 +1157,41 @@ function renderCreatives() {
     .join("");
 }
 
+function renderCampaigns() {
+  const body = document.getElementById("campaignTableBody");
+  const loading = document.getElementById("campaignLoading");
+
+  if (!body) return;
+
+  loading.classList.remove("hidden");
+  body.innerHTML = "";
+
+  setTimeout(() => {  // leichter Delay für UX
+    loading.classList.add("hidden");
+
+    SignalState.campaigns.forEach(c => {
+      const tr = document.createElement("tr");
+
+      // KPI Coloring
+      const roasClass = c.ROAS >= 2 ? "kpi-good" : c.ROAS >= 1 ? "kpi-warn" : "kpi-bad";
+      const ctrClass  = c.CTR  >= 2 ? "kpi-good" : c.CTR  >= 1 ? "kpi-warn" : "kpi-bad";
+
+      tr.innerHTML = `
+        <td>${c.name}</td>
+        <td>${fmt.curr(c.spend)}</td>
+        <td>${fmt.num(c.impressions)}</td>
+        <td class="${ctrClass}">${c.CTR.toFixed(2)}%</td>
+        <td>${fmt.curr(c.CPC)}</td>
+        <td>${c.purchases}</td>
+        <td class="${roasClass}">${c.ROAS.toFixed(2)}x</td>
+      `;
+
+      body.appendChild(tr);
+    });
+  }, 200);
+}
+
+
 function showCreativeDetails(creativeId) {
   const creative = SignalState.creatives.find(c => c.id === creativeId);
   if (!creative) return;
@@ -1387,6 +1422,7 @@ window.SignalOne = {
   loadMock: loadMockCreatives,
   analyze: analyzeSenseiStrategy
 };
+
 
 
 
