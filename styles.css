@@ -15,7 +15,10 @@
   --bg-alt: #ffffff;
   --bg-card: #ffffff;
   --bg-elevated: #ffffff;
-
+  --bg-sidebar: #050712;
+   --gray-900: #111827;
+  --gray-200: #e5e7eb;
+   
   --text: #1a1a1a;
   --text-secondary: #6b7280;
   --text-light: #9ca3af;
@@ -63,6 +66,39 @@
   --sidebar-collapsed: 76px;
   --topbar-height: 64px;
   --sensei-width: 360px;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+}
+
+/* Haupt-Layout: Sidebar links, Content rechts */
+.main-content {
+  margin-left: var(--sidebar-width);
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  transition:
+    margin-left var(--motion-base) var(--ease-soft),
+    background-color .25s ease,
+    color .25s ease;
+}
+
+/* Wenn Sidebar collapsed ist (Desktop) */
+.sidebar.collapsed ~ .main-content {
+  margin-left: var(--sidebar-collapsed);
+}
+
+/* Mobile: Sidebar off-canvas, Content volle Breite */
+@media (max-width: 1200px) {
+  .main-content {
+    margin-left: 0;
+  }
 }
 
 /* ===========================================
@@ -273,6 +309,45 @@ html, body, .sidebar, .main-content, .menu-item, .kpi-card, .creative-card {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+.status-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--border);
+}
+
+/* Meta Status Farben */
+.meta-status-loading {
+  background: var(--warning);
+  animation: meta-pulse 0.9s ease-in-out infinite alternate;
+}
+
+.meta-status-ok {
+  background: var(--success);
+}
+
+.meta-status-error {
+  background: var(--danger);
+}
+
+@keyframes meta-pulse {
+  from { transform: scale(1); opacity: 0.7; }
+  to   { transform: scale(1.2); opacity: 1; }
+}
+
+.status-text {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--font-size-xs);
+}
+
+.status-label {
+  font-weight: 600;
+}
+
+.status-sub {
+  color: var(--text-secondary);
 }
 
 /* ===========================================
@@ -840,6 +915,95 @@ html, body, .sidebar, .main-content, .menu-item, .kpi-card, .creative-card {
   border-color: var(--primary);
 }
 
+/* Enhanced Grid / List aus app.js */
+
+.creative-grid-enhanced {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.creative-list-view {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.creative-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.metric-item {
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+}
+
+.metric-item .metric-label-sm {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-bottom: 2px;
+}
+
+.metric-item .metric-value-sm {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.metric-item.success {
+  border-color: var(--success);
+}
+
+.metric-item.warning {
+  border-color: var(--warning);
+}
+
+.metric-item.danger {
+  border-color: var(--danger);
+}
+
+.creative-footer {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--font-size-xs);
+}
+
+.creative-impressions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-secondary);
+}
+
+.creative-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.action-btn-sm {
+  border: none;
+  background: var(--bg-card);
+  border-radius: 6px;
+  padding: 4px 6px;
+  cursor: pointer;
+  font-size: 14px;
+  border: 1px solid var(--border);
+  transition: background var(--motion-fast), border-color var(--motion-fast);
+}
+
+.action-btn-sm:hover {
+  background: var(--bg-alt);
+  border-color: var(--primary);
+}
+
 /* ------------------------ */
 /* VIEW SWITCHER            */
 /* ------------------------ */
@@ -1386,3 +1550,4 @@ html, body, .sidebar, .main-content, .menu-item, .kpi-card, .creative-card {
   from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
