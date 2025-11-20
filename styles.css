@@ -10,7 +10,10 @@
   --ease-soft: cubic-bezier(0.25, 0.1, 0.25, 1);
   --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
 
-  /* Colors — Light Mode */
+  /* Sidebar Background – Light Mode */
+  --bg-sidebar: #ffffff; /* oder #f7f7f9, gleiche Base wie dein main-bg */
+
+   /* Colors — Light Mode */
   --bg: #f7f7f9;
   --bg-alt: #ffffff;
   --bg-card: #ffffff;
@@ -109,6 +112,7 @@ html, body {
   --bg-alt: #141417;
   --bg-card: #18181c;
   --bg-elevated: #1f1f24;
+  --bg-sidebar: #0f0f12; /* oder #141417 wie deine Topbar */
 
   --text: #f5f5f6;
   --text-secondary: #9ca3af;
@@ -1550,4 +1554,5 @@ html, body, .sidebar, .main-content, .menu-item, .kpi-card, .creative-card {
   from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
 
