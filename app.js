@@ -1,9 +1,3 @@
- (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
-diff --git a/app.js b/app.js
-index 6b3a6a55d4408210c7dc5604bd5f52d35bf2e421..56f1f0af24eb08ba6927cc0ce1ed8b0fdc1753e1 100644
---- a/app.js
-+++ b/app.js
-@@ -1,2101 +1,2057 @@
 -// ======================================================================
 -// SIGNALONE.CLOUD - CREATIVE INTELLIGENCE PLATFORM
 -// ======================================================================
@@ -4165,3 +4159,4 @@ index 6b3a6a55d4408210c7dc5604bd5f52d35bf2e421..56f1f0af24eb08ba6927cc0ce1ed8b0f
  
 EOF
 )
+
