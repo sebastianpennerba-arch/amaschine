@@ -133,24 +133,65 @@ function setupSidebar() {
 
   if (!sidebar || !toggle) return;
 
-  // Desktop toggle (collapse)
-  toggle.addEventListener("click", () => {
-    if (window.innerWidth > 1200) {
-      sidebar.classList.toggle("collapsed");
-      return;
-    }
+  function isMobile() {
+    return window.innerWidth <= 1200;
+  }
 
-    // Mobile open/close
-    sidebar.classList.toggle("open");
+  toggle.addEventListener("click", () => {
+    if (isMobile()) {
+      // Mobile: off-canvas open/close
+      sidebar.classList.toggle("open");
+    } else {
+      // Desktop: collapse/expand
+      sidebar.classList.toggle("collapsed");
+    }
   });
 
-  // Close mobile on click outside
+  // Click outside schließt mobile Sidebar
   document.addEventListener("click", (e) => {
-    if (window.innerWidth > 1200) return;
+    if (!isMobile()) return;
     if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
       sidebar.classList.remove("open");
     }
   });
+
+  // Beim Resize: mobile open schließen, aber collapsed-Zustand behalten
+  window.addEventListener("resize", () => {
+    if (!isMobile()) {
+      sidebar.classList.remove("open");
+    }
+  });
+
+  // Menu navigation (View-Switch, hatten wir in Teil 2 gebaut)
+  document.querySelectorAll(".menu-item").forEach(item => {
+    item.addEventListener("click", (e) => {
+      e.preventDefault();
+
+      const view = item.dataset.view;
+      if (!view) return;
+
+      document.querySelectorAll(".menu-item")
+        .forEach(i => i.classList.remove("active"));
+      item.classList.add("active");
+
+      document.querySelectorAll(".view")
+        .forEach(v => v.classList.add("hidden"));
+
+      const target = document.getElementById("view-" + view);
+      if (target) target.classList.remove("hidden");
+
+      const pageTitle = document.querySelector(".page-title");
+      if (pageTitle) {
+        const labelEl = item.querySelector(".menu-label");
+        pageTitle.textContent = labelEl ? labelEl.textContent : (item.dataset.tooltip || "Dashboard");
+      }
+
+      if (isMobile()) {
+        sidebar.classList.remove("open");
+      }
+    });
+  });
+}
 
 // ===== PAGE NAVIGATION FIX =====
 document.querySelectorAll(".menu-item").forEach(item => {
@@ -1473,6 +1514,7 @@ window.SignalOne = {
   loadMock: loadMockCreatives,
   analyze: analyzeSenseiStrategy
 };
+
 
 
 
