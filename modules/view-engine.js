@@ -231,44 +231,41 @@ SignalViewEngine.registry["pricing"] = function() {
     update();
 };
 /* ===========================================================
-   NAVIGATION / ROUTER INITIALISIEREN
+   HASH ROUTER — FUNKTIONIERT MIT: https://seite/#viewname
    =========================================================== */
-window.addEventListener("DOMContentLoaded", () => {
 
-    const items = document.querySelectorAll(".menu-item");
+function loadByHash() {
+    let view = location.hash.replace("#", "").trim();
 
-    items.forEach(item => {
-        item.addEventListener("click", () => {
-            const view = item.getAttribute("data-view");
+    if (!view) view = "dashboard"; // default
 
-            if (!view) return;
+    // View laden
+    SignalViewEngine.load(view);
 
-            // URL-Hash setzen (für Back/Forward)
-            history.pushState({ view }, "", `#${view}`);
+    // Navigation hervorheben
+    document.querySelectorAll(".menu-item").forEach(i => i.classList.remove("active"));
+    document.querySelector(`.menu-item[data-view="${view}"]`)?.classList.add("active");
+}
 
-            // View laden
-            SignalViewEngine.load(view);
+// Falls Hash bereits gesetzt ist (z. B. #creatives)
+window.addEventListener("DOMContentLoaded", loadByHash);
 
-            // aktive Markierung
-            document.querySelectorAll(".menu-item").forEach(i => i.classList.remove("active"));
-            item.classList.add("active");
-        });
-    });
-
-    // On Page Load: Hash auslesen
-    const initialView = location.hash.replace("#", "") || "dashboard";
-    SignalViewEngine.load(initialView);
-
-    // Active Nav markieren
-    document.querySelector(`.menu-item[data-view="${initialView}"]`)?.classList.add("active");
-});
+// Wenn Hash sich ändert (Back/Forward/Klicks)
+window.addEventListener("hashchange", loadByHash);
 
 /* ===========================================================
-   BACK/FORWARD Browser Support
+   MENU CLICKS -> HASH SETZEN
    =========================================================== */
-window.addEventListener("popstate", (e) => {
-    const v = e.state?.view || "dashboard";
-    SignalViewEngine.load(v);
+window.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".menu-item").forEach(item => {
+        item.addEventListener("click", () => {
+            const view = item.getAttribute("data-view");
+            if (!view) return;
+
+            // Hash setzen -> triggert automatisch loadByHash()
+            location.hash = view;
+        });
+    });
 });
 
 /* ===========================================================
