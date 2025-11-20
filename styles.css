@@ -2518,6 +2518,18 @@ body {
   transform: translateY(0);
 }
 
+.sensei-panel {
+  transition: right var(--motion-slow) var(--ease-smooth),
+              box-shadow var(--motion-base) var(--ease-soft);
+}
+
+.sensei-panel.open {
+  box-shadow: -4px 0 18px rgba(0,0,0,0.25);
+}
+.sensei-overlay {
+  transition: opacity var(--motion-slow) var(--ease-soft);
+}
+
 
 
 
