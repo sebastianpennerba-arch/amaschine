@@ -1,4 +1,27 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+/* ===========================================
+   GLOBAL MOTION SYSTEM
+   =========================================== */
+:root {
+  --motion-fast: 120ms;
+  --motion-base: 180ms;
+  --motion-slow: 260ms;
+  --ease-soft: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.fade-in {
+  opacity: 0;
+  transform: translateY(8px);
+  animation: fadeIn var(--motion-slow) var(--ease-soft) forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 /* =========================================================
    LIGHT + DARK THEME VARIABLE SYSTEM
@@ -2463,6 +2486,38 @@ body {
   background: #ef4444;
   box-shadow: 0 0 8px rgba(239,68,68,0.6);
 }
+/* CARD MOTION */
+.motion-card {
+  transition: transform var(--motion-base) var(--ease-smooth),
+              box-shadow var(--motion-base) var(--ease-soft);
+  will-change: transform, box-shadow;
+}
+
+.motion-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+.button, .btn {
+  transition: transform var(--motion-fast) var(--ease-soft),
+              background var(--motion-fast) var(--ease-soft);
+}
+
+.button:active,
+.btn:active {
+  transform: scale(0.96);
+}
+.view {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity var(--motion-slow) var(--ease-soft),
+              transform var(--motion-slow) var(--ease-soft);
+}
+
+.view.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 
 
 
