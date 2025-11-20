@@ -299,15 +299,47 @@ document.getElementById("saveAppSettings").addEventListener("click", saveAppSett
     setMetaStatus("error", "Nicht verbunden");
     return;
   }
-    function toast(msg) {
-  const t = document.createElement("div");
-  t.className = "toast";
-  t.textContent = msg;
-  document.body.appendChild(t);
+ // ======================================================
+// TOAST / ALERT ENGINE
+// ======================================================
 
-  setTimeout(() => t.classList.add("show"), 50);
-  setTimeout(() => t.classList.remove("show"), 2500);
-  setTimeout(() => t.remove(), 3000);
+function toast(message, options = {}) {
+  const {
+    type = "info",      // "success" | "error" | "info"
+    duration = 3000,
+    icon
+  } = options;
+
+  const container = document.getElementById("toastContainer");
+  if (!container) return;
+
+  const div = document.createElement("div");
+  div.className = `toast toast-${type}`;
+
+  const iconChar =
+    icon ||
+    (type === "success" ? "✅" :
+     type === "error"   ? "⚠️" :
+                          "ℹ️");
+
+  div.innerHTML = `
+    <span class="toast-icon">${iconChar}</span>
+    <div class="toast-message">${message}</div>
+    <button class="toast-close">×</button>
+  `;
+
+  container.appendChild(div);
+
+  // show
+  requestAnimationFrame(() => div.classList.add("show"));
+
+  const close = () => {
+    div.classList.remove("show");
+    setTimeout(() => div.remove(), 250);
+  };
+
+  div.querySelector(".toast-close").addEventListener("click", close);
+  setTimeout(close, duration);
 }
 
 
@@ -389,7 +421,8 @@ function saveAccountSettings() {
     avatar: document.getElementById("profileAvatar").value
   };
   localStorage.setItem("profile", JSON.stringify(data));
-  toast("Account gespeichert");
+  toast("Account gespeichert", { type: "success" });
+
 }
 
 function saveBranding() {
@@ -1984,6 +2017,7 @@ window.SignalOne = {
   loadMock: loadMockCreatives,
   analyze: analyzeSenseiStrategy
 };
+
 
 
 
