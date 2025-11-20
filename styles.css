@@ -2143,6 +2143,55 @@ body {
   }
 }
 
+/* KPI GRID */
+.kpi-grid {
+  margin-top: 30px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 18px;
+}
+
+.kpi-card {
+  padding: 18px 20px;
+  background: white;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.kpi-card label {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.kpi-card strong {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/* SCORE RING */
+.score-ring {
+  position: relative;
+  width: 170px;
+  margin: 30px auto;
+}
+
+.score-ring canvas {
+  width: 170px !important;
+  height: 170px !important;
+}
+
+.score-value {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 34px;
+  font-weight: 800;
+}
+
 
 
 
