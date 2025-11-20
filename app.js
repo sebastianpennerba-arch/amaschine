@@ -18,7 +18,8 @@ const SignalState = {
   senseiActive: false,
   senseiStrategy: null,
   currentView: "dashboard",
-  viewModules: {}
+  viewModules: {} // Cache für geladene Module
+};
 
 // ======================================================================
 // SIDEBAR NAVIGATION
@@ -824,7 +825,6 @@ window.SignalOne = {
   analyze: analyzeSenseiStrategy,
   viewLoader: ViewLoader,
   templates: SenseiTemplates
-}; // Cache für geladene Module
 };
 
 let MOCK_MODE = true;
@@ -2287,3 +2287,4 @@ function showChangelog() {
     </div>
   `;
 }
+
