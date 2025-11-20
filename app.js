@@ -76,7 +76,48 @@ function showSkeleton(id, show = true) {
   const el = document.getElementById(id);
   if (el) el.classList.toggle("hidden", !show);
 }
+// =========================================
+// THEME ENGINE
+// =========================================
 
+function applyTheme(theme) {
+  if (theme === "dark") {
+    document.documentElement.classList.add("dark");
+  } else {
+    document.documentElement.classList.remove("dark");
+  }
+  localStorage.setItem("theme", theme);
+}
+
+function initTheme() {
+  const saved = localStorage.getItem("theme");
+  if (saved) {
+    applyTheme(saved);
+    return;
+  }
+
+  // System Detection (Auto)
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  applyTheme(prefersDark ? "dark" : "light");
+}
+
+function setupThemeToggle() {
+  const btn = document.getElementById("themeToggle");
+  if (!btn) return;
+
+  btn.addEventListener("click", () => {
+    const current = document.documentElement.classList.contains("dark")
+      ? "dark"
+      : "light";
+    applyTheme(current === "dark" ? "light" : "dark");
+  });
+}
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", e => {
+  const autoMode = localStorage.getItem("theme") === null; // nur wenn user nichts manuell gesetzt hat
+  if (!autoMode) return;
+
+  applyTheme(e.matches ? "dark" : "light");
+});
 
 // ======================================================================
 // FORMATTERS
@@ -119,6 +160,8 @@ window.addEventListener("DOMContentLoaded", () => {
   setupMetaPostMessage();
   restoreMetaSession();
   initDate();
+  initTheme();
+  setupThemeToggle();
   
   if (MOCK_MODE) {
     loadMockCreatives();
@@ -1559,6 +1602,7 @@ window.SignalOne = {
   loadMock: loadMockCreatives,
   analyze: analyzeSenseiStrategy
 };
+
 
 
 
