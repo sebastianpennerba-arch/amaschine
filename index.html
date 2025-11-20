@@ -106,7 +106,7 @@
       </header>
 
       <!-- SIGNALSENSEI ASSISTANT PANEL -->
-      <aside class="sensei-panel" id="senseiPanel">
+            <aside class="sensei-panel" id="senseiPanel">
         <div id="senseiOverlay" class="sensei-overlay"></div>
         <div class="sensei-header">
           <div class="sensei-avatar">🧘</div>
@@ -116,7 +116,12 @@
           </div>
           <button class="close-btn" id="closeSensei">×</button>
         </div>
-        
+        <div id="senseiSkeleton">
+  <div class="skeleton skeleton-box" style="width:90%;height:14px;"></div>
+  <div class="skeleton skeleton-box" style="width:80%;height:14px;"></div>
+  <div class="skeleton skeleton-box" style="width:60%;height:14px;"></div>
+</div>
+
         <div class="sensei-content">
           <div class="sensei-strategy" id="senseiStrategy">
             <div class="strategy-badge">Analyzing your data...</div>
@@ -143,30 +148,33 @@
       </aside>
 
 <section class="dashboard-section" id="dashboard-metrics">
+<div id="dashboardSkeleton" class="dashboard-skeleton">
   <div class="kpi-grid">
-    <div class="kpi-card">
-      <label>ROAS</label>
-      <strong id="dashROAS">–</strong>
-    </div>
-    <div class="kpi-card">
-      <label>CTR</label>
-      <strong id="dashCTR">–</strong>
-    </div>
-    <div class="kpi-card">
-      <label>CR</label>
-      <strong id="dashCR">–</strong>
-    </div>
-    <div class="kpi-card">
-      <label>Revenue</label>
-      <strong id="dashRevenue">–</strong>
-    </div>
+    <div class="kpi-card"><div class="skeleton skeleton-box"></div></div>
+    <div class="kpi-card"><div class="skeleton skeleton-box"></div></div>
+    <div class="kpi-card"><div class="skeleton skeleton-box"></div></div>
+    <div class="kpi-card"><div class="skeleton skeleton-box"></div></div>
+  </div>
+
+  <div class="score-ring" style="margin-top: 30px;">
+    <div class="skeleton skeleton-circle" style="width:170px;height:170px;margin:0 auto;"></div>
+  </div>
+</div>
+
+<div id="dashboardReal" class="hidden">
+  <!-- Hier bleibt dein echter KPI-Block + Score-Chart -->
+  <div class="kpi-grid">
+    <div class="kpi-card"><label>ROAS</label><strong id="dashROAS">–</strong></div>
+    <div class="kpi-card"><label>CTR</label><strong id="dashCTR">–</strong></div>
+    <div class="kpi-card"><label>CR</label><strong id="dashCR">–</strong></div>
+    <div class="kpi-card"><label>Revenue</label><strong id="dashRevenue">–</strong></div>
   </div>
 
   <div class="score-ring">
     <canvas id="scoreChart"></canvas>
     <div class="score-value" id="scoreValue">–</div>
   </div>
-</section>
+</div>
 
       <!-- CREATIVE PERFORMANCE - HERO SECTION -->
       <section class="section creative-hero">
@@ -365,6 +373,14 @@
 </section>
 
 <section class="view hidden" id="view-creatives">
+  <div id="creativeSkeleton" class="creative-grid">
+  <div class="skeleton skeleton-creative"></div>
+  <div class="skeleton skeleton-creative"></div>
+  <div class="skeleton skeleton-creative"></div>
+  <div class="skeleton skeleton-creative"></div>
+  <div class="skeleton skeleton-creative"></div>
+  <div class="skeleton skeleton-creative"></div>
+</div>
   <div class="creative-grid" id="creativeGrid"></div>
   <h2 class="view-title">Creatives</h2>
   <p>Deine Creatives, Scores, ROAS & CTR Auswertungen.</p>
@@ -372,6 +388,12 @@
 
 <section class="view hidden" id="view-campaigns">
   <h2 class="view-title">Campaign Analytics</h2>
+<div id="campaignSkeleton">
+  <div class="skeleton skeleton-row"></div>
+  <div class="skeleton skeleton-row"></div>
+  <div class="skeleton skeleton-row"></div>
+  <div class="skeleton skeleton-row"></div>
+</div>
 
 <div id="campaignLoading" class="campaign-loading hidden">Lade Daten…</div>
 
@@ -514,6 +536,7 @@
   <script src="/app.js"></script>
 </body>
 </html>
+
 
 
 
