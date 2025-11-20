@@ -22,6 +22,69 @@ let MOCK_MODE = true;
 let trendChart = null;
 let scoreChart = null;
 
+// ======================================================
+// META API WRAPPER + RETRY LOGIC
+// ======================================================
+
+function setMetaStatus(state, message) {
+  const dot = document.getElementById("metaStatusDot");
+  const text = document.getElementById("metaStatusText");
+  if (!dot || !text) return;
+
+  dot.classList.remove("meta-status-loading", "meta-status-ok", "meta-status-error");
+
+  if (state === "loading") dot.classList.add("meta-status-loading");
+  if (state === "ok")      dot.classList.add("meta-status-ok");
+  if (state === "error")   dot.classList.add("meta-status-error");
+
+  text.textContent = message;
+}
+
+async function fetchWithRetry(url, options = {}, retries = 3, backoff = 800) {
+  let lastError;
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(url, options);
+
+      if (!res.ok) {
+        const isRetriable = res.status >= 500 || res.status === 429;
+        const body = await res.json().catch(() => null);
+        lastError = { res, body };
+
+        if (!isRetriable || attempt === retries) {
+          throw lastError;
+        }
+      } else {
+        return res.json();
+      }
+    } catch (err) {
+      lastError = err;
+      const isNetwork = !err.res; // fetch-Error
+      if (!isNetwork && attempt === retries) break;
+
+      // Backoff
+      await new Promise(r => setTimeout(r, backoff * (attempt + 1)));
+    }
+  }
+
+  throw lastError;
+}
+
+async function metaRequest(path, params = {}) {
+  if (!SignalState.token) {
+    throw new Error("No Meta access token in SignalState.token");
+  }
+
+  const query = new URLSearchParams({
+    access_token: SignalState.token,
+    ...params
+  });
+
+  const url = `https://graph.facebook.com/v19.0${path}?${query.toString()}`;
+  return fetchWithRetry(url, { method: "GET" }, 3, 700);
+}
+
 function renderScoreChart(value = 70) {
   const ctx = document.getElementById("scoreChart").getContext("2d");
 
@@ -158,7 +221,18 @@ window.addEventListener("DOMContentLoaded", () => {
   setupCollapsible();
   setupMetaButton();
   setupMetaPostMessage();
-  restoreMetaSession();
+  function restoreMetaSession() {
+  const token = localStorage.getItem("signalone_meta_token");
+  if (!token) {
+    setMetaStatus("error", "Nicht verbunden");
+    return;
+  }
+
+  SignalState.token = token;
+  localStorage.setItem("signalone_meta_token", token);
+  setMetaStatus("loading", "Syncing…");
+  loadMetaData();
+}
   initDate();
   initTheme();
   setupThemeToggle();
@@ -432,40 +506,156 @@ function executeSenseiAction(action) {
   `;
 }
 
-// ======================================================================
-// MOCK MODE TOGGLE
-// ======================================================================
-function setupMockToggle() {
-  const liveBtn = document.getElementById("mode-live");
-  const mockBtn = document.getElementById("mode-sim");
+// ======================================================
+// META DATA LOADER (KPI + CAMPAIGNS) MIT FALLBACK
+// ======================================================
+async function loadMetaData() {
+  if (MOCK_MODE) return;
 
-  if (!liveBtn || !mockBtn) return;
+  try {
+    setMetaStatus("loading", "Syncing…");
 
-  liveBtn.addEventListener("click", () => {
-    MOCK_MODE = false;
-    liveBtn.classList.add("active");
-    mockBtn.classList.remove("active");
-    
-    if (SignalState.token) {
-      loadMetaData();
-    } else {
-      clearDashboard();
+    // 1) Ad Accounts holen (nur beim ersten Mal)
+    if (!SignalState.accountId) {
+      const accounts = await metaRequest("/me/adaccounts", {
+        fields: "account_id,name",
+        limit: 5
+      });
+
+      if (!accounts.data || !accounts.data.length) {
+        throw new Error("Kein Meta-Werbekonto gefunden.");
+      }
+
+      SignalState.accountId = accounts.data[0].account_id;
     }
-  });
 
-  mockBtn.addEventListener("click", () => {
-    MOCK_MODE = true;
-    mockBtn.classList.add("active");
-    liveBtn.classList.remove("active");
-    
-    loadMockCreatives();
-  });
+    const actId = SignalState.accountId;
+
+    // 2) Insights holen (letzte 7 Tage)
+    const insights = await metaRequest(`/act_${actId}/insights`, {
+      fields: "impressions,clicks,spend,purchases,actions,action_values",
+      time_range: JSON.stringify({ since: getDaysAgo(7), until: getDaysAgo(0) }),
+      level: "campaign",
+      limit: 50
+    });
+
+    // 3) Daten in KPI + Campaigns transformieren
+    const campaigns = [];
+    let totalImpressions = 0;
+    let totalClicks = 0;
+    let totalSpend = 0;
+    let totalRevenue = 0;
+    let totalPurchases = 0;
+
+    (insights.data || []).forEach(row => {
+      const impressions = Number(row.impressions || 0);
+      const clicks = Number(row.clicks || 0);
+      const spend = Number(row.spend || 0);
+      const purchases = Number(row.purchases || 0);
+
+      let revenue = 0;
+      if (Array.isArray(row.action_values)) {
+        const purchaseValue = row.action_values.find(a => a.action_type === "purchase");
+        if (purchaseValue) revenue = Number(purchaseValue.value || 0);
+      }
+
+      totalImpressions += impressions;
+      totalClicks += clicks;
+      totalSpend += spend;
+      totalRevenue += revenue;
+      totalPurchases += purchases;
+
+      const CTR = impressions ? (clicks / impressions) * 100 : 0;
+      const CPC = clicks ? spend / clicks : 0;
+      const ROAS = spend ? revenue / spend : 0;
+
+      campaigns.push({
+        name: row.campaign_name || "Campaign",
+        impressions,
+        clicks,
+        spend,
+        purchases,
+        CTR,
+        CPC,
+        ROAS
+      });
+    });
+
+    SignalState.campaigns = campaigns;
+
+    const CTR = totalImpressions ? (totalClicks / totalImpressions) * 100 : 0;
+    const CPC = totalClicks ? totalSpend / totalClicks : 0;
+    const ROAS = totalSpend ? totalRevenue / totalSpend : 0;
+    const CR = totalClicks ? (totalPurchases / totalClicks) * 100 : 0;
+    const AOV = totalPurchases ? totalRevenue / totalPurchases : 0;
+
+    SignalState.kpi = {
+      Impressions: totalImpressions,
+      Clicks: totalClicks,
+      Spend: totalSpend,
+      Revenue: totalRevenue,
+      Purchases: totalPurchases,
+      CTR,
+      CPC,
+      ROAS,
+      CR,
+      AOV
+    };
+
+    // 4) Cache in localStorage
+    localStorage.setItem("signalone_meta_cache", JSON.stringify({
+      kpi: SignalState.kpi,
+      campaigns: SignalState.campaigns,
+      accountId: SignalState.accountId,
+      cachedAt: new Date().toISOString()
+    }));
+
+    renderAll();
+    setMetaStatus("ok", "Live");
+  } catch (err) {
+    console.error("Meta load error", err);
+    handleMetaError(err);
+  }
 }
 
-function clearDashboard() {
-  SignalState.kpi = null;
-  SignalState.creatives = [];
-  renderAll();
+function getDaysAgo(days) {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return d.toISOString().slice(0,10);
+}
+
+function handleMetaError(err) {
+  // Token-spezifische Errors
+  const body = err && err.body;
+  const errorObj = body && body.error;
+
+  if (errorObj && errorObj.code === 190) {
+    // Token invalid
+    SignalState.token = null;
+    localStorage.removeItem("signalone_meta_token");
+    setMetaStatus("error", "Login abgelaufen");
+    alert("Dein Meta-Login ist abgelaufen. Bitte verbinde Meta erneut.");
+    clearDashboard();
+    return;
+  }
+
+  // Fallback auf Cache
+  const cacheRaw = localStorage.getItem("signalone_meta_cache");
+  if (cacheRaw) {
+    try {
+      const cache = JSON.parse(cacheRaw);
+      SignalState.kpi = cache.kpi;
+      SignalState.campaigns = cache.campaigns || [];
+      SignalState.accountId = cache.accountId || SignalState.accountId;
+      renderAll();
+      setMetaStatus("error", "Offline – Cache");
+      return;
+    } catch (e) {
+      console.warn("Cache konnte nicht gelesen werden", e);
+    }
+  }
+
+  setMetaStatus("error", "API Fehler");
 }
 
 // ======================================================================
@@ -1602,6 +1792,7 @@ window.SignalOne = {
   loadMock: loadMockCreatives,
   analyze: analyzeSenseiStrategy
 };
+
 
 
 
