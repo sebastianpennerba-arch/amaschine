@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>SignalOne.cloud · Creative Intelligence Dashboard</title>
+  <title>SignalOne.cloud | Elite Core</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="styles.css" /> 
 </head>
@@ -10,152 +10,34 @@
 <body>
 
 <nav class="sidebar" id="sidebar">
-
-  <div class="sidebar-header">
-    <a href="#dashboard" class="sidebar-logo">
-      <img src="/Logo_qu_tr.png" alt="SignalOne Logo" class="sidebar-logo-img">
-    </a>
-    <button class="sidebar-toggle" id="sidebarToggle" title="Menü einklappen">&lt;</button> </div>
-
+  <div class="sidebar-header">LOGO (FIX)</div>
   <div class="sidebar-menu">
-    <div class="menu-section-title">Analytics</div>
-
-    <a href="#dashboard" class="menu-item active" data-view="dashboard">
-      <span class="menu-icon">DS</span> <span class="menu-label">Dashboard</span>
-    </a>
-
-    <a href="#creatives" class="menu-item" data-view="creatives">
-      <span class="menu-icon">CR</span> <span class="menu-label">Creative Library</span>
-    </a>
-
-    <a href="#campaigns" class="menu-item" data-view="campaigns">
-      <span class="menu-icon">CA</span> <span class="menu-label">Campaigns</span>
-    </a>
-    
-    <div class="menu-section-title">Intelligence</div>
-    
-    <a href="#sensei" class="menu-item" data-view="sensei">
-      <span class="menu-icon">SI</span> <span class="menu-label">Sensei Strategy</span>
-    </a>
-    
-    <a href="#reports" class="menu-item" data-view="reports">
-      <span class="menu-icon">RE</span> <span class="menu-label">Reports & Export</span>
-    </a>
-  </div>
-  
-  <div class="sidebar-footer">
-    <a href="#settings" class="menu-item" data-view="settings">
-      <span class="menu-icon">SE</span> <span class="menu-label">Settings</span>
-    </a>
-  </div>
-
+    <a href="#dashboard" class="menu-item active">Dashboard</a>
+    <a href="#creatives" class="menu-item">Creatives</a>
+    </div>
 </nav>
 
 <header class="top-bar" id="topBar">
-  <div class="top-bar-console">
-    <h1 class="greetings">Guten Morgen, Sensei!</h1>
-    <div class="account-status-bar">
-      <span>Kanal: **Meta** |</span>
-      <span>Konto: **Acme Brand #1234** |</span>
-      <span id="currentDate">Datum: 21. November 2025 |</span>
-      <span id="currentTime">Zeit: 04:50:10</span>
-    </div>
+  <div class="account-control-area">
+    <span>[KANAL-WECHSEL-DROPDOWN]</span>
+    <span>[KONTO-WECHSEL-DROPDOWN]</span>
   </div>
-  
-  <div class="top-bar-actions">
-    <button class="icon-button" onclick="handleDeadButton('Hilfe & Support')" title="Hilfe">❓</button>
-    <button class="icon-button" onclick="handleDeadButton('Benachrichtigungen')" title="Benachrichtigungen">🔔</button>
-    <button class="icon-button user-profile-button" onclick="handleDeadButton('User Profile')" title="Profil">👤</button>
+  <div class="system-actions-area">
+    <button>Hilfe</button>
+    <button>Profil</button>
   </div>
 </header>
 
-
 <div class="main-content" id="mainContent">
-
   <section class="view" id="dashboardView">
-    <h2>Dashboard Overview</h2>
-    
-    <div class="dashboard-grid">
-        
-        <div class="card kpi-card">
-            <h3>Metriken</h3>
-            <div class="kpi-group">
-                <div class="kpi-item">
-                    <span class="kpi-value">123.456</span>
-                    <span class="kpi-label">Ausgaben (€)</span>
-                </div>
-                <div class="kpi-item">
-                    <span class="kpi-value">25,8%</span>
-                    <span class="kpi-label">CR%</span>
-                </div>
-                <div class="kpi-item">
-                    <span class="kpi-value">4.52</span>
-                    <span class="kpi-label">ROAS</span>
-                </div>
-                <div class="kpi-item placeholder">
-                    <span class="kpi-value">—</span>
-                    <span class="kpi-label">Platzhalter</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="card kpi-card">
-            <h3>Creative-Performance</h3>
-            <div class="kpi-group">
-                <div class="kpi-item">
-                    <span class="kpi-value">7.8s</span>
-                    <span class="kpi-label">Avg. View Time</span>
-                </div>
-                <div class="kpi-item">
-                    <span class="kpi-value">2,10€</span>
-                    <span class="kpi-label">CPV</span>
-                </div>
-                <div class="kpi-item placeholder">
-                    <span class="kpi-value">—</span>
-                    <span class="kpi-label">Placeholder</span>
-                </div>
-                <div class="kpi-item placeholder">
-                    <span class="kpi-value">—</span>
-                    <span class="kpi-label">Placeholder</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="card large-section full-width" style="height: 350px; margin-top: 30px;">
-            <p style="font-size: 16px; color: var(--text-secondary);">Hier kommt der Haupt-Performance-Chart hin (Volle Breite)</p>
-        </div>
-
+    <h2 class="elite-title">Dashboard Overview</h2>
+    <div class="test-grid">
+        <div class="test-card">KPI 1</div>
+        <div class="test-card">KPI 2</div>
     </div>
   </section>
-
-  <section class="view hidden" id="creativesView">
-    <h2>Creative Library</h2>
-    <div class="card" style="height: 300px;">Creative Content kommt hierhin.</div>
-  </section>
-
-  <section class="view hidden" id="campaignsView">
-    <h2>Campaigns Overview</h2>
-    <div class="card" style="height: 300px;">Campaign Content kommt hierhin.</div>
-  </section>
-  
-  <section class="view hidden" id="senseiView">
-    <h2>Sensei Strategy</h2>
-    <div class="card" style="height: 300px;">Sensei Content kommt hierhin.</div>
-  </section>
-
-  <section class="view hidden" id="reportsView">
-    <h2>Reports & Export</h2>
-    <div class="card" style="height: 300px;">Reports Content kommt hierhin.</div>
-  </section>
-  
-  <section class="view hidden" id="settingsView">
-    <h2>Settings & Profile</h2>
-    <div class="card" style="height: 300px;">Settings Content kommt hierhin.</div>
-  </section>
-
-
 </div> 
-<div id="toastContainer" class="toast-container"></div>
+
 <script src="app.js"></script> 
 </body>
 </html>
