@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>SignalOne.cloud | Creative Intelligence Elite Core V10.3 (FINAL SCHICK)</title>
+  <title>SignalOne.cloud | Creative Intelligence Elite Core V9.0 (Nullpunkt)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="styles.css" /> 
 </head>
@@ -20,56 +20,34 @@
     <div class="menu-section-title">ANALYTICS</div>
 
     <a href="#dashboard" class="menu-item active" data-view="dashboard">
-      <span class="menu-icon">\uD83D\uDCCA</span>
+      <span class="menu-icon">📊</span>
       <span class="menu-label">Dashboard</span>
     </a>
     <a href="#creatives" class="menu-item" data-view="creatives">
-      <span class="menu-icon">\uD83D\uDCF7</span>
+      <span class="menu-icon">🖼️</span>
       <span class="menu-label">Creative Library</span>
     </a>
     <a href="#campaigns" class="menu-item" data-view="campaigns">
-      <span class="menu-icon">\uD83D\uDE80</span>
+      <span class="menu-icon">🚀</span>
       <span class="menu-label">Campaigns</span>
     </a>
     
-    <div class="menu-section-title">INTELLIGENCE</div>
+    <div class="menu-section-title">TOOLS</div>
     
     <a href="#sensei" class="menu-item" data-view="sensei">
-      <span class="menu-icon">\uD83D\uDCA1</span>
+      <span class="menu-icon">💡</span>
       <span class="menu-label">Sensei Strategy</span>
-    </a>
-    
-    <a href="#reports" class="menu-item" data-view="reports">
-      <span class="menu-icon">\uD83D\uDCC4</span>
-      <span class="menu-label">Reports & Export</span>
-    </a>
-
-    <div class="menu-section-title">TOOLS</div> 
-    
-    <a href="#testing" class="menu-item" data-view="testing">
-        <span class="menu-icon">\u269B</span> 
-        <span class="menu-label">Testing Log</span>
-    </a>
-    <a href="#custom" class="menu-item" data-view="custom">
-        <span class="menu-icon">\u2692</span> 
-        <span class="menu-label">Custom Builder</span>
     </a>
   </div>
   
   <div class="sidebar-footer">
     <div class="account-status-block">
-        <div class="status-item">
-            <span class="status-indicator status-green"></span>
-            <span class="status-label">Meta Ads (Live)</span>
-        </div>
-        <div class="status-item">
-            <span class="status-indicator status-yellow"></span>
-            <span class="status-label">API Health (Delayed)</span>
-        </div>
+        Meta Connection Status: 
+        <span class="status-indicator status-green"></span> Live
     </div>
     
     <a href="#settings" class="menu-item" data-view="settings">
-      <span class="menu-icon">\u2699</span>
+      <span class="menu-icon">⚙️</span>
       <span class="menu-label">Settings</span>
     </a>
   </div>
@@ -78,100 +56,30 @@
 <header class="top-bar" id="topBar">
   
   <div class="welcome-and-status">
-    <h1 class="greetings">Guten Morgen, Sensei!<div class="health-badge health-yellow">Health: Warning</div></h1>
+    <h1 class="greetings">Guten Tag!</h1>
     <div class="status-bar">
-      <span>Angemeldet als **Max M.** |</span>
-      <span id="currentTime">Zeit: 06:17:00</span>
-    </div>
-  </div>
-
-  <div class="top-controls">
-    <div class="dropdown-group">
-        <label class="dropdown-label">PLATTFORM</label>
-        <select class="elite-select" onchange="handleDeadButton('Plattformwechsel')">
-            <option value="meta">Meta Ads (Aktuell)</option>
-            <option value="tiktok">TikTok (Vorbereitung)</option>
-        </select>
-    </div>
-    <div class="dropdown-group">
-        <label class="dropdown-label">WERBEKONTO</label>
-        <select class="elite-select" onchange="handleDeadButton('Kontowechsel')">
-            <option value="acme">Acme Brand #1234</option>
-            <option value="alpha">Alpha Agency #5678</option>
-        </select>
+      <span>Angemeldet als User |</span>
+      <span id="currentTime">Zeit: 00:00:00</span>
     </div>
   </div>
   
   <div class="system-actions-area">
-    <button class="icon-button" onclick="handleDeadButton('Benachrichtigungen & Alerts')">\uD83D\uDD14</button> 
-    <button class="icon-button" onclick="handleDeadButton('Hilfe & Support')">\u2753</button>
-    <button class="icon-button profile-button" onclick="handleDeadButton('User-Wechsel & Profil')">\uD83D\uDC64</button>
+    <button class="icon-button" onclick="handleDeadButton('Alerts')">🔔</button> 
+    <button class="icon-button profile-button" onclick="handleDeadButton('Profil')">👤</button>
   </div>
 </header>
 
 <div class="main-content" id="mainContent">
   <section class="view" id="dashboardView">
     <h2 class="elite-title">Dashboard Overview</h2>
-    
-    <div class="dashboard-grid">
-        
-        <div class="card kpi-card">
-            <h3 class="card-title">Primäre Metriken</h3>
-            <div class="kpi-group kpi-group-4">
-                <div class="kpi-item">
-                    <span class="kpi-value positive">+4.5%</span>
-                    <span class="kpi-label">Umsatz-Delta</span>
-                </div>
-                <div class="kpi-item">
-                    <span class="kpi-value neutral">3.8x</span>
-                    <span class="kpi-label">ROAS (Ziel 4.0)</span>
-                </div>
-                <div class="kpi-item">
-                    <span class="kpi-value negative">25%</span>
-                    <span class="kpi-label">CPM-Delta</span>
-                </div>
-                <div class="kpi-item placeholder">
-                    <span class="kpi-value">—</span>
-                    <span class="kpi-label">Platzhalter</span>
-                </div>
-            </div>
-        </div>
-        
-        <div class="card kpi-card">
-            <h3 class="card-title">Creative Health</h3>
-             <div class="kpi-group kpi-group-4">
-                <div class="kpi-item">
-                    <span class="kpi-value">120</span>
-                    <span class="kpi-label">Aktive Creatives</span>
-                </div>
-                <div class="kpi-item">
-                    <span class="kpi-value">2,8s</span>
-                    <span class="kpi-label">Avg. Watch Time</span>
-                </div>
-                 <div class="kpi-item placeholder">
-                    <span class="kpi-value">—</span>
-                    <span class="kpi-label">Placeholder</span>
-                </div>
-                 <div class="kpi-item placeholder">
-                    <span class="kpi-value">—</span>
-                    <span class="kpi-label">Placeholder</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="card chart-card">
-            <p>Haupt-Chart (Platz 3)</p>
-        </div>
-        
+    <div class="card" style="height: 300px; display: flex; align-items: center; justify-content: center;">
+        <p style="font-size: 18px; color: var(--text-secondary);">Nullpunkt erreicht. Hier startet die Entwicklung der Inhalte.</p>
     </div>
   </section>
 
   <section class="view hidden" id="creativesView"><h2>Creative Library</h2></section>
   <section class="view hidden" id="campaignsView"><h2>Campaigns Overview</h2></section>
   <section class="view hidden" id="senseiView"><h2>Sensei Strategy</h2></section>
-  <section class="view hidden" id="reportsView"><h2>Reports & Export</h2></section>
-  <section class="view hidden" id="testingView"><h2>Testing Log (Dummy)</h2></section>
-  <section class="view hidden" id="customView"><h2>Custom Builder (Dummy)</h2></section>
   <section class="view hidden" id="settingsView"><h2>Settings</h2></section>
 
 </div> 
