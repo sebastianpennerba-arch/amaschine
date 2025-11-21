@@ -1,331 +1,85 @@
 /* =======================================================================
-   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V9.8 (HEADER FINAL)
-   KORREKTUREN: 3-SEKTIONEN-HEADER (KONSOLE | DROPDOWNS | SYSTEM-ICONS)
+   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V10.0 (DASHBOARD: CHART-SECTION)
+   NEU: GROSSES CHART-LAYOUT & FLEXIBLE GRID-SEKTION
    ======================================================================= */
 
-/* ---------------------------------------------------
-   0. VARS & RESET (Unverändert)
-   --------------------------------------------------- */
-
-:root {
-  /* Elite Colors (Basis Hellmodus) */
-  --bg: #F3F4F6;             
-  --bg-card: #ffffff;        
-  --text: #111827;           
-  --text-secondary: #6B7280; 
-  --border: #E5E7EB;         
-
-  /* Brand (Deep Cerulean / Gold) */
-  --primary: #1F4068;        /* Dunkelblau */
-  --primary-hover: #2F80ED;  
-  --brand-accent-gold: #FFC300; 
-  --brand-gold-shadow: 0 0 10px rgba(255, 195, 0, 0.5); 
-  --bg-menu-item: #F9FAFB;   
-  
-  /* Größen-Verankerungen */
-  --sidebar-width: 250px; 
-  --topbar-height: 72px;
-  --main-padding: 30px;
-  --card-radius: 6px; 
-}
-
-/* Base Reset & Typography (Unverändert) */
-* { box-sizing: border-box; }
-
-body {
-  font-family: Montserrat, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: var(--bg); 
-  color: var(--text);
-  line-height: 1.5;
-}
+/* ... (Abschnitte 0, 1, 2, 3 bleiben unverändert) ... */
 
 /* ---------------------------------------------------
-   1. CORE LAYOUT
+   4. DASHBOARD & KPI COMPONENTS (ERWEITERT)
    --------------------------------------------------- */
 
-.sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: var(--sidebar-width); 
-  height: 100vh;
-  background-color: var(--bg-card);
-  border-right: 1px solid var(--border);
-  z-index: 30;
-  display: flex;
-  flex-direction: column;
+.dashboard-grid {
+    display: grid;
+    /* 4 Spalten Layout für KPIs */
+    grid-template-columns: repeat(4, 1fr); 
+    gap: var(--main-padding); 
+    margin-bottom: var(--main-padding);
+}
+/* Grid-Änderung für die Chart Card (nutzt volle Breite) */
+.chart-section {
+    grid-column: 1 / -1; /* Nimmt die volle Breite von 4 Spalten ein */
+    padding: 20px 25px;
+    height: 400px; /* Feste Höhe für ein großes, visuelles Chart-Erlebnis */
+    display: flex;
+    flex-direction: column;
 }
 
-.top-bar {
-  position: fixed;
-  top: 0;
-  left: var(--sidebar-width); 
-  right: 0;
-  height: var(--topbar-height); 
-  background-color: var(--bg-card);
-  border-bottom: 1px solid var(--border);
-  padding: 0 var(--main-padding);
-  
-  /* NEU: 3-SEKTIONEN LAYOUT */
-  display: flex;
-  justify-content: space-between;
-  align-items: center; /* Vertikal zentriert */
-  gap: 30px; /* Abstand zwischen den Sektionen */
-  z-index: 20;
+.chart-header-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
 }
 
-.main-content {
-  margin-left: var(--sidebar-width); 
-  padding-top: calc(var(--topbar-height) + 20px); 
-  padding-bottom: var(--main-padding);
-  padding-left: var(--main-padding);
-  padding-right: var(--main-padding);
-  min-height: 100vh;
-  background-color: var(--bg); 
-}
-
-/* ---------------------------------------------------
-   2. SIDEBAR MENÜ (Unverändert von V9.7)
-   --------------------------------------------------- */
-
-.sidebar-header { padding: 15px 15px 25px 15px; }
-.sidebar-logo-img { 
-    height: 130px; width: 100%; max-width: 220px; display: block; object-fit: contain; 
-}
-
-.menu-item {
+.chart-metric-selector {
     display: flex;
     align-items: center;
-    background-color: var(--bg-menu-item); 
-    margin: 0 0 4px 0; 
-    padding: 10px 15px; 
-    text-decoration: none;
-    color: var(--text);
-    border-radius: 4px;
-    font-weight: 500; 
-    transition: all 150ms ease-in-out; 
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
-    opacity: 0.95; 
+    gap: 15px;
 }
-.menu-item:hover { background-color: var(--border); }
-.menu-item.active {
-    background-color: var(--primary); 
+
+.chart-title-main {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 0;
+}
+
+/* Elite-Button-Group-Styling für Zeitraum-Umschalter */
+.time-range-group {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+}
+.time-range-button {
+    background-color: var(--bg-card);
+    color: var(--text-secondary);
+    border: none;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background-color 150ms, color 150ms;
+}
+.time-range-button:hover {
+    background-color: var(--bg);
+}
+.time-range-button.active {
+    background-color: var(--primary);
     color: white;
     font-weight: 600;
 }
 
-.menu-icon {
-    font-family: 'Arial', sans-serif; 
-    font-size: 20px; 
-    font-weight: 700; 
-    width: 28px; 
-    height: 28px; 
+/* Platzhalter für das eigentliche Chart */
+.chart-placeholder {
+    flex-grow: 1;
     display: flex;
-    justify-content: center;
     align-items: center;
-    margin-right: 12px;
-    flex-shrink: 0;
-    
-    /* BLAU/GOLD BASIS + INAKTIV-BLASS-KLEIN */
-    color: var(--brand-accent-gold);    
-    background-color: var(--primary);   
-    border: 1px solid var(--brand-accent-gold); 
-    box-shadow: var(--brand-gold-shadow); 
-    
-    border-radius: 8px; 
-    
-    opacity: 0.6;                       
-    transform: scale(0.95);             
-
-    transition: all 200ms ease-in-out; 
-}
-
-.menu-item.active .menu-icon {
-    opacity: 1; 
-    transform: scale(1.0); 
-}
-
-.menu-section-title {
-    font-size: 11px;
-    font-weight: 700;
+    justify-content: center;
+    font-size: 16px;
     color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 0 15px; 
-    margin: 15px 0 8px 0;
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
 }
 
-/* SIDEBAR FOOTER (Unverändert von V9.7) */
-.sidebar-footer {
-    margin-top: auto; 
-    padding-top: 1px; 
-    border-top: 1px solid var(--border); 
-}
-
-.account-status-block {
-    padding: 15px 15px 5px 15px; 
-    font-size: 13px;
-    background-color: var(--bg-card); 
-}
-.status-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 5px;
-}
-.status-indicator {
-    width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; flex-shrink: 0;
-}
-.status-green { background-color: #10B981; } 
-.status-yellow { background-color: #F59E0B; } 
-.status-red { background-color: #EF4444; } 
-.status-label { color: var(--text-secondary); }
-
-.sidebar-footer .menu-item {
-    margin-bottom: 0; 
-    border-radius: 0; 
-    box-shadow: none; 
-}
-
-/* ---------------------------------------------------
-   3. TOP BAR & BASIS KOMPONENTEN (NEU/ERWEITERT)
-   --------------------------------------------------- */
-
-/* Sektion 1: Konsole / Health Status */
-.top-bar-section-1 {
-    display: flex;
-    align-items: center;
-    gap: 30px;
-    flex-grow: 1; 
-}
-.welcome-console {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-.greetings { 
-    font-size: 18px; 
-    font-weight: 700; 
-    margin: 0; 
-    color: var(--primary); 
-}
-.status-bar { 
-    font-size: 11px; 
-    color: var(--text-secondary); 
-}
-
-/* Global Health Status (Optisch DEUTLICH abgesetzt von Meta Health) */
-.global-health-status {
-    padding: 6px 12px;
-    border-radius: 6px; /* Eher rechteckig */
-    font-size: 13px;
-    font-weight: 600;
-    color: white; /* Weißer Text auf Farbe */
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Tieferer Schatten für Prägnanz */
-    min-width: 130px;
-    text-align: center;
-    border: 1px solid rgba(255, 255, 255, 0.4); /* Leichter weißer Rand */
-}
-.health-green { background-color: #10B981; } 
-.health-yellow { background-color: #F59E0B; } 
-.health-red { background-color: #EF4444; }   
-
-
-/* Sektion 2: Dropdowns */
-.top-bar-section-2 {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    flex-shrink: 0;
-}
-.select-container {
-    position: relative;
-    font-size: 14px;
-    font-weight: 500;
-    min-width: 160px; /* Etwas breiter für Kontonamen */
-}
-.select-container select {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background-color: var(--bg-menu-item); /* Leichter Grauton */
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 8px 30px 8px 10px;
-    cursor: pointer;
-    width: 100%;
-    color: var(--text);
-    transition: border-color 150ms;
-}
-.select-container select:hover {
-    border-color: var(--primary);
-}
-.select-container::after {
-    content: '▾'; 
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    color: var(--text-secondary);
-    pointer-events: none;
-}
-
-
-/* Sektion 3: System Buttons */
-.top-bar-section-3 {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-}
-.header-action-button {
-    /* Unser Gold-Blau Styling (identisch zu Sidebar-Icon) */
-    width: 36px; 
-    height: 36px;
-    font-size: 18px; 
-    
-    color: var(--brand-accent-gold);    
-    background-color: var(--primary);   
-    border: 1px solid var(--brand-accent-gold); 
-    box-shadow: var(--brand-gold-shadow); 
-    
-    border-radius: 8px; 
-    
-    opacity: 0.9; 
-    transform: scale(1.0); 
-
-    cursor: pointer;
-    transition: all 150ms; 
-    line-height: 1; 
-    
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-}
-.header-action-button:hover {
-    opacity: 1.0; 
-    transform: scale(1.05); 
-    box-shadow: 0 0 12px rgba(255, 195, 0, 0.7); 
-}
-
-/* Basis Komponenten (unverändert) */
-.elite-title { font-size: 30px; font-weight: 800; margin: 0 0 25px 0; }
-.card {
-  background-color: var(--bg-card);
-  border-radius: var(--card-radius);
-  padding: 20px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
-  border: 1px solid var(--border);
-}
-/* Toast System (unverändert) */
-.toast-container { position: fixed; bottom: 15px; right: 15px; z-index: 1000; }
-.toast {
-    background-color: var(--primary); color: white; padding: 10px 15px;
-    border-radius: 4px; margin-top: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    opacity: 1; transition: opacity 300ms, transform 300ms;
-}
-.toast.fade-out { opacity: 0; transform: translateY(5px); }
-.view.hidden { display: none; }
+/* ... (Rest der styles.css bleibt unverändert) ... */
