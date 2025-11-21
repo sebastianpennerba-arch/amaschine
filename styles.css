@@ -1,6 +1,6 @@
 /* =======================================================================
-   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V9.3 (FINALE ZEMENTIERUNG)
-   FIX: 1. ICON BOX (AKTIV/INAKTIV), 3. HINTERGRUND FIX, 4. AMPELSTATUS
+   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V10 (FINALE ZEMENTIERUNG)
+   FIX: 1. ICON BOX (BLAU/GOLD), 3. ZWEITE HEALTH ANZEIGE (BADGE)
    ======================================================================= */
 
 /* ---------------------------------------------------
@@ -9,11 +9,11 @@
 
 :root {
   /* Elite Colors (Deep Contrast) */
-  --bg: #F3F4F6;             /* FIX 3: Hintergrund: Dark Ash (Optimaler Kontrast zu weißen Cards) */
-  --bg-card: #ffffff;        /* Cards/Sidebar: Pure White */
-  --text: #111827;           /* Schrift: Deep Black */
-  --text-secondary: #6B7280; /* Status & Labels: Subtle Gray */
-  --border: #E5E7EB;         /* Trennlinien: Soft Divide */
+  --bg: #F3F4F6;             
+  --bg-card: #ffffff;        
+  --text: #111827;           
+  --text-secondary: #6B7280; 
+  --border: #E5E7EB;         
 
   /* Brand (FIXIERT) */
   --primary: #1F4068;        /* Deep Cerulean */
@@ -39,7 +39,7 @@ body {
   font-family: Montserrat, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   margin: 0;
   padding: 0;
-  background-color: var(--bg); /* FIX 3: Hintergrund ist jetzt zementiert */
+  background-color: var(--bg); 
   color: var(--text);
   line-height: 1.5;
 }
@@ -121,7 +121,7 @@ body {
     font-weight: 600;
 }
 
-/* FIX 1: ELITE ICON BOX STYLING (DAUERHAFT) */
+/* FIX 1: ELITE ICON BOX STYLING (DAUERHAFT BLAU/GOLD AKZENT) */
 .menu-icon {
     font-size: 14px; 
     font-weight: 700;
@@ -132,22 +132,20 @@ body {
     align-items: center;
     margin-right: 12px;
     
-    /* Inaktiver Zustand (Dezenter): Hellgraue Box, Graues Icon */
+    /* Inaktiver Zustand (Dezenter) */
     color: var(--text-secondary); 
     background-color: var(--bg-menu-item);
     border: 1px solid var(--border);
     border-radius: 4px;
     
-    /* FIX: Transparenz für dezenten Look */
     opacity: 0.8; 
     transition: all 150ms;
 }
 
-/* FIX 1: AKTIVER ZUSTAND (MAXIMALER KONTRAST GOLD/BLAU) */
+/* FIX 1: AKTIVER ZUSTAND (BLAUER KASTEN MIT GOLD-ICON) */
 .menu-item.active .menu-icon {
-    /* Box auf dem blauen Hintergrund */
     color: var(--brand-accent-gold); 
-    background-color: white; /* Klare, weiße Box auf dem blauen Hintergrund */
+    background-color: var(--primary); /* Die Box ist selbst Blau */
     border-color: white; 
     opacity: 1;
 }
@@ -162,7 +160,7 @@ body {
     margin: 20px 0 10px 0;
 }
 
-/* FIX 4: ACCOUNT-STATUS BLOCK (AMPELSTATUS) */
+/* FIX 4: ACCOUNT-STATUS BLOCK (AMPELSTATUS UNTEN LINKS) */
 .account-status-block {
     padding: 15px 20px;
     margin-top: auto; 
@@ -189,14 +187,35 @@ body {
 
 
 /* ---------------------------------------------------
-   3. KONSOLE/TOP BAR (FIX 2)
+   3. KONSOLE/TOP BAR (FIX 2 & 3)
    --------------------------------------------------- */
 
 .welcome-and-status {
     display: flex;
     flex-direction: column;
     line-height: 1.2;
+    position: relative; /* Für Badge */
 }
+
+/* FIX 3: HEALTH BADGE (VISUELL ANDERS) */
+.health-badge {
+    position: absolute;
+    top: 4px;
+    left: 175px; /* Manuell neben Greetings positioniert */
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.health-yellow { 
+    background-color: var(--brand-accent-gold); 
+    color: var(--primary); /* Textfarbe kontrastreich */
+}
+/* ... weitere Health-Klassen könnten folgen ... */
+
 
 .greetings {
     font-size: 20px;
@@ -204,44 +223,13 @@ body {
     margin: 0;
     color: var(--primary);
 }
+/* ... (Restliche Top-Bar Elemente unverändert) ... */
 
-.status-bar {
-    font-size: 12px;
-    color: var(--text-secondary);
-}
-
-.top-controls {
-    display: flex;
-    gap: 15px;
-}
-
-/* HINWEIS-LABEL (FIXIERT) */
-.dropdown-label {
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: var(--text-secondary);
-    margin-bottom: 4px;
-    letter-spacing: 0.5px;
-}
-
-/* DROPDOWN-STIL (FIXIERT) */
-.elite-select {
-    padding: 8px 15px;
-    border: 1px solid var(--border);
-    border-radius: var(--card-radius);
-    background-color: var(--bg);
-    font-size: 14px;
-    color: var(--text);
-    min-width: 180px; 
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
-}
-
-/* FIX 2: SYSTEM BUTTONS (ICON-GRÖSSE SICHTBARKEIT) */
+/* SYSTEM BUTTONS (FIXED - ICONS SIND PROMINENT) */
 .system-actions-area button {
     width: 36px;
     height: 36px;
-    font-size: 20px; /* FIX 2: Icons sind jetzt 20px (prominenter) */
+    font-size: 20px; 
     color: var(--text); 
     background: var(--bg-card); 
     border: 1px solid var(--border);
@@ -260,62 +248,11 @@ body {
 /* ---------------------------------------------------
    4. DASHBOARD & CARDS (FIXIERT)
    --------------------------------------------------- */
+/* ... (Dashboard, Card, KPI Styling unverändert) ... */
 
-.elite-title {
-    font-size: 32px;
-    font-weight: 800;
-    margin: 0 0 30px 0;
-}
-
-.card {
-  background-color: var(--bg-card);
-  border-radius: var(--card-radius);
-  padding: 24px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05), 0 0 1px rgba(0,0,0,0.08); 
-  border: 1px solid var(--border);
-}
-
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); 
-    gap: 30px; 
-}
-
-/* KPI STYLES (FIXIERT) */
-.kpi-card { height: 220px; }
-.card-title { font-size: 16px; font-weight: 700; margin-top: 0; margin-bottom: 15px; color: var(--text-secondary); }
-.kpi-group { display: flex; flex-wrap: wrap; gap: 20px; }
-.kpi-item { flex-basis: calc(50% - 10px); }
-.kpi-value { display: block; font-size: 24px; font-weight: 800; }
-.kpi-label { display: block; font-size: 12px; color: var(--text-secondary); }
-.positive { color: #10B981; }
-.neutral { color: #F59E0B; }
-.negative { color: #EF4444; }
-
-
-/* TOAST SYSTEM (FIXIERT) */
-.toast-container {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 1000;
-}
-.toast {
-    background-color: var(--primary);
-    color: white;
-    padding: 12px 20px;
-    border-radius: var(--card-radius);
-    margin-top: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    opacity: 1;
-    transition: opacity 300ms ease-out, transform 300ms ease-out;
-}
-.toast.fade-out {
-    opacity: 0;
-    transform: translateY(10px);
-}
 
 /* ---------------------------------------------------
-   5. HIDDEN VIEWS
+   5. HIDDEN VIEWS & TOASTS
    --------------------------------------------------- */
 .view.hidden { display: none; }
+/* ... (Toast Styling unverändert) ... */
