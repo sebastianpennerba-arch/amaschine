@@ -147,7 +147,87 @@ a {
 .view-header-actions .button {
     font-size: 14px;
 }
+/* ===========================================
+   CAMPAIGN VIEW - TOOLBAR
+   =========================================== */
 
+.campaign-toolbar {
+    /* Nutzt die .card Klasse für Hintergrund & Schatten */
+    padding: 12px 20px; 
+    margin-bottom: 32px; 
+    
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    
+    border-radius: 12px; 
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.campaign-toolbar .toolbar-left, .campaign-toolbar .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* Period Toggles (Status Filter) */
+.campaign-toolbar .period-toggles {
+    display: flex;
+    background-color: var(--border-light); /* Leichter grauer Hintergrund */
+    padding: 4px;
+    border-radius: 8px;
+}
+.campaign-toolbar .period-toggle {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all var(--motion-fast) ease;
+    white-space: nowrap;
+}
+.campaign-toolbar .period-toggle:hover {
+    background-color: var(--bg-alt);
+    color: var(--text);
+}
+.campaign-toolbar .period-toggle.active {
+    background-color: var(--bg-card); /* Weißer Hintergrund */
+    color: var(--primary);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Search Input */
+.campaign-toolbar .search-input {
+    min-width: 200px;
+    padding: 8px 14px;
+    font-size: 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+.campaign-toolbar .search-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+/* Filter Icon Button (Rechts) */
+.campaign-toolbar .icon-button {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    font-size: 18px;
+    color: var(--text-secondary);
+    border-radius: 50%;
+    border: 1px solid var(--border);
+}
+.campaign-toolbar .icon-button:hover {
+    background-color: var(--border);
+    color: var(--text);
+}
 /* ===========================================
    SIDEBAR (Optimiert für Style A - Kontrast & Sauberkeit)
    =========================================== */
@@ -1571,6 +1651,7 @@ td {
   height: 16px; 
   margin-bottom: 8px;
 }
+
 
 
 
