@@ -1,6 +1,106 @@
 /* ===========================================
-   CLEAN ROOT + THEME SYSTEM (Repaired)
+   MASTER FIX V4: GLOBAL LAYOUT & ALIGNMENT
+   (Behebt Tightness, verschobenen Text, weiße Fläche oben)
    =========================================== */
+
+/* 1. Globales Layout & Whitespace Fix */
+
+/* Stellt sicher, dass die Top-Bar oben fest sitzt und das Layout nicht verschiebt */
+.top-bar {
+    position: fixed; 
+    top: 0;
+    /* Linker Startpunkt des Hauptinhalts */
+    left: 250px; 
+    right: 0;
+    height: 68px; /* Standardhöhe der Top-Bar */
+    z-index: 20;
+    /* ... restliche Top-Bar Styles beibehalten ... */
+}
+
+/* 2. Haupt-Content Startposition FIX (Behebt weißen Rand/Overlap) */
+.main-content {
+    margin-left: 250px; 
+    /* Korrekte Startposition: Top-Bar Höhe (68px) PLUS gewünschter Puffer (32px) */
+    padding-top: calc(68px + 32px); 
+    padding-bottom: 40px;
+    min-height: 100vh;
+    transition: margin-left var(--motion-base) var(--ease-soft);
+}
+.main-content.sidebar-collapsed {
+    margin-left: 80px;
+}
+
+/* 3. Allgemeine View-Padding FIX (Luft an den Seiten) */
+.view {
+    /* Einheitlicher horizontaler Außenabstand (40px) */
+    padding: 0 40px 40px 40px; 
+    /* Stellt sicher, dass die minimale Höhe stimmt */
+    min-height: calc(100vh - (68px + 32px + 40px)); 
+}
+
+/* 4. Dashboard Vertical Flow (Behebt Enge der Komponenten) */
+
+/* Stellt sicher, dass die Haupt-View-Titel nicht unnötig Platz verschwenden */
+.view-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px; /* Konsistenter Abstand zum ersten Element */
+    padding-top: 0; /* Vertikalen Abstand entfernen, da er schon in .main-content:padding-top ist */
+    border-bottom: none; 
+}
+.view-header h2 {
+    font-size: 32px; /* Titelgröße für Präsenz */
+    font-weight: 800;
+    margin: 0;
+}
+
+/* Abstand für alle großen Sektionen und Trenner */
+.section-heading {
+    margin-top: 40px; /* MEHR Abstand über den Headings (Wichtig für Luft) */
+    margin-bottom: 20px; 
+    padding-bottom: 8px; 
+    border-bottom: 1px solid var(--border);
+}
+.section-heading:first-of-type {
+    margin-top: 0; 
+}
+
+/* Abstand nach den Haupt-Grids */
+.hero-creatives-grid,
+.kpi-grid,
+.insights-grid {
+    margin-bottom: 40px; /* Abstand zur nächsten Sektion oder zum Trenner */
+}
+
+/* 5. Alignment Fixes (Sidebar & Top Bar Icons) */
+
+/* Sidebar Menu Items: Perfekte vertikale Zentrierung (Behebt "verschobener Text") */
+.menu-item {
+    display: flex;
+    align-items: center; /* Vertikale Zentrierung */
+    line-height: 1.2; 
+}
+.menu-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+/* Top Bar Icons: Perfekte vertikale Zentrierung */
+.top-bar-actions .icon-button,
+.platform-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+/* Feinjustierung der Card Shadows */
+.card {
+    box-shadow: 0 6px 16px rgba(0,0,0,0.06), 0 0 1px rgba(0,0,0,0.05); /* Tieferer, eleganterer Schatten */
+}
 
 :root {
   /* Motion */
@@ -1651,6 +1751,7 @@ td {
   height: 16px; 
   margin-bottom: 8px;
 }
+
 
 
 
