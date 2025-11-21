@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>SignalOne.cloud | Creative Intelligence Elite Core V10 (ZEMENTIERT)</title>
+  <title>SignalOne.cloud | Creative Intelligence Elite Core V10.2 (Sidebar Icon FIX)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="styles.css" /> 
 </head>
@@ -47,10 +47,12 @@
     <div class="menu-section-title">TOOLS</div> 
     
     <a href="#testing" class="menu-item" data-view="testing">
-        <span class="menu-icon">\u269B</span> <span class="menu-label">Testing Log</span>
+        <span class="menu-icon">\u269B</span> 
+        <span class="menu-label">Testing Log</span>
     </a>
     <a href="#custom" class="menu-item" data-view="custom">
-        <span class="menu-icon">\u2692</span> <span class="menu-label">Custom Builder</span>
+        <span class="menu-icon">\u2692</span> 
+        <span class="menu-label">Custom Builder</span>
     </a>
   </div>
   
@@ -76,13 +78,10 @@
 <header class="top-bar" id="topBar">
   
   <div class="welcome-and-status">
-    <h1 class="greetings">Guten Morgen, Sensei!</h1>
-    
-    <div class="health-badge health-yellow">Health: Warning</div>
-    
+    <h1 class="greetings">Guten Morgen, Sensei!<div class="health-badge health-yellow">Health: Warning</div></h1>
     <div class="status-bar">
       <span>Angemeldet als **Max M.** |</span>
-      <span id="currentTime">Zeit: 06:00:00</span>
+      <span id="currentTime">Zeit: 06:10:00</span>
     </div>
   </div>
 
@@ -104,9 +103,9 @@
   </div>
   
   <div class="system-actions-area">
-    <button class="icon-button" onclick="handleSystemAction('Benachrichtigungen & Alerts')">\uD83D\uDD14</button> 
-    <button class="icon-button" onclick="handleSystemAction('Hilfe & Support')">\u2753</button>
-    <button class="icon-button profile-button" onclick="handleSystemAction('User-Wechsel & Profil')">\uD83D\uDC64</button>
+    <button class="icon-button" onclick="handleDeadButton('Benachrichtigungen & Alerts')">\uD83D\uDD14</button> 
+    <button class="icon-button" onclick="handleDeadButton('Hilfe & Support')">\u2753</button>
+    <button class="icon-button profile-button" onclick="handleDeadButton('User-Wechsel & Profil')">\uD83D\uDC64</button>
   </div>
 </header>
 
