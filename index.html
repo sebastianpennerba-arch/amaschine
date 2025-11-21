@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>SignalOne.cloud | Creative Intelligence Elite Core V9.1 (Basis)</title>
+  <title>SignalOne.cloud | Creative Intelligence Elite Core V10.3 (FINAL SCHICK)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="styles.css" /> 
 </head>
@@ -20,23 +20,39 @@
     <div class="menu-section-title">ANALYTICS</div>
 
     <a href="#dashboard" class="menu-item active" data-view="dashboard">
-      <span class="menu-icon">\uD83D\uDCCA</span> <span class="menu-label">Dashboard</span>
+      <span class="menu-icon">\uD83D\uDCCA</span>
+      <span class="menu-label">Dashboard</span>
     </a>
     <a href="#creatives" class="menu-item" data-view="creatives">
-      <span class="menu-icon">\uD83D\uDCF7</span> <span class="menu-label">Creative Library</span>
+      <span class="menu-icon">\uD83D\uDCF7</span>
+      <span class="menu-label">Creative Library</span>
     </a>
     <a href="#campaigns" class="menu-item" data-view="campaigns">
-      <span class="menu-icon">\uD83D\uDE80</span> <span class="menu-label">Campaigns</span>
+      <span class="menu-icon">\uD83D\uDE80</span>
+      <span class="menu-label">Campaigns</span>
     </a>
     
     <div class="menu-section-title">INTELLIGENCE</div>
     
     <a href="#sensei" class="menu-item" data-view="sensei">
-      <span class="menu-icon">\uD83D\uDCA1</span> <span class="menu-label">Sensei Strategy</span>
+      <span class="menu-icon">\uD83D\uDCA1</span>
+      <span class="menu-label">Sensei Strategy</span>
     </a>
     
     <a href="#reports" class="menu-item" data-view="reports">
-      <span class="menu-icon">\uD83D\uDCC4</span> <span class="menu-label">Reports & Export</span>
+      <span class="menu-icon">\uD83D\uDCC4</span>
+      <span class="menu-label">Reports & Export</span>
+    </a>
+
+    <div class="menu-section-title">TOOLS</div> 
+    
+    <a href="#testing" class="menu-item" data-view="testing">
+        <span class="menu-icon">\u269B</span> 
+        <span class="menu-label">Testing Log</span>
+    </a>
+    <a href="#custom" class="menu-item" data-view="custom">
+        <span class="menu-icon">\u2692</span> 
+        <span class="menu-label">Custom Builder</span>
     </a>
   </div>
   
@@ -53,7 +69,8 @@
     </div>
     
     <a href="#settings" class="menu-item" data-view="settings">
-      <span class="menu-icon">\u2699</span> <span class="menu-label">Settings</span>
+      <span class="menu-icon">\u2699</span>
+      <span class="menu-label">Settings</span>
     </a>
   </div>
 </nav>
@@ -61,24 +78,24 @@
 <header class="top-bar" id="topBar">
   
   <div class="welcome-and-status">
-    <h1 class="greetings">Guten Morgen, Sensei!</h1>
+    <h1 class="greetings">Guten Morgen, Sensei!<div class="health-badge health-yellow">Health: Warning</div></h1>
     <div class="status-bar">
       <span>Angemeldet als **Max M.** |</span>
-      <span id="currentTime">Zeit: 06:00:00</span>
+      <span id="currentTime">Zeit: 06:17:00</span>
     </div>
   </div>
 
   <div class="top-controls">
     <div class="dropdown-group">
         <label class="dropdown-label">PLATTFORM</label>
-        <select class="elite-select" onchange="handlePlatformChange(this)">
+        <select class="elite-select" onchange="handleDeadButton('Plattformwechsel')">
             <option value="meta">Meta Ads (Aktuell)</option>
             <option value="tiktok">TikTok (Vorbereitung)</option>
         </select>
     </div>
     <div class="dropdown-group">
         <label class="dropdown-label">WERBEKONTO</label>
-        <select class="elite-select" onchange="handleAccountChange(this)">
+        <select class="elite-select" onchange="handleDeadButton('Kontowechsel')">
             <option value="acme">Acme Brand #1234</option>
             <option value="alpha">Alpha Agency #5678</option>
         </select>
@@ -153,6 +170,8 @@
   <section class="view hidden" id="campaignsView"><h2>Campaigns Overview</h2></section>
   <section class="view hidden" id="senseiView"><h2>Sensei Strategy</h2></section>
   <section class="view hidden" id="reportsView"><h2>Reports & Export</h2></section>
+  <section class="view hidden" id="testingView"><h2>Testing Log (Dummy)</h2></section>
+  <section class="view hidden" id="customView"><h2>Custom Builder (Dummy)</h2></section>
   <section class="view hidden" id="settingsView"><h2>Settings</h2></section>
 
 </div> 
