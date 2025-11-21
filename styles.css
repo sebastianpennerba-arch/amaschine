@@ -1,6 +1,6 @@
 /* =======================================================================
-   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V9.2 (GOLD ACCENT FIX)
-   FIX: ACTIVE ICONS SIND JETZT GOLD (Deep Cerulean & Gold Kontrast)
+   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V9.3 (FINALE ZEMENTIERUNG)
+   FIX: 1. ICON BOX (AKTIV/INAKTIV), 3. HINTERGRUND FIX, 4. AMPELSTATUS
    ======================================================================= */
 
 /* ---------------------------------------------------
@@ -9,18 +9,18 @@
 
 :root {
   /* Elite Colors (Deep Contrast) */
-  --bg: #F3F4F6;             
-  --bg-card: #ffffff;        
-  --text: #111827;           
-  --text-secondary: #6B7280; 
-  --border: #E5E7EB;         
+  --bg: #F3F4F6;             /* FIX 3: Hintergrund: Dark Ash (Optimaler Kontrast zu weißen Cards) */
+  --bg-card: #ffffff;        /* Cards/Sidebar: Pure White */
+  --text: #111827;           /* Schrift: Deep Black */
+  --text-secondary: #6B7280; /* Status & Labels: Subtle Gray */
+  --border: #E5E7EB;         /* Trennlinien: Soft Divide */
 
   /* Brand (FIXIERT) */
-  --primary: #1F4068;        /* FIX: Deep Cerulean (Edles, tiefes Blau) */
+  --primary: #1F4068;        /* Deep Cerulean */
   --primary-hover: #2F80ED;  
   
   /* NEUE BRAND AKZENTFARBE */
-  --brand-accent-gold: #FFC300; /* FIX: Starkes, edles Gold */
+  --brand-accent-gold: #FFC300; /* Starkes, edles Gold */
   
   /* Menü-Button-Hintergrund (FIXIERT) */
   --bg-menu-item: #F9FAFB;   
@@ -36,11 +36,10 @@
 * { box-sizing: border-box; }
 
 body {
-  /* FIX: Montserrat oder System-Fallbacks */
   font-family: Montserrat, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   margin: 0;
   padding: 0;
-  background-color: var(--bg);
+  background-color: var(--bg); /* FIX 3: Hintergrund ist jetzt zementiert */
   color: var(--text);
   line-height: 1.5;
 }
@@ -88,22 +87,17 @@ body {
 }
 
 /* ---------------------------------------------------
-   2. SIDEBAR LOGO & MENÜ-MATRIX (FIXIERT)
+   2. SIDEBAR LOGO & MENÜ-MATRIX (FIX 1 & 4)
    --------------------------------------------------- */
 
-.sidebar-header {
-    padding: 20px 20px 30px 20px; 
-}
-
-/* LOGO FIX: 250px Basisgröße = 147px Höhe */
-.sidebar-logo-img {
-    height: 147px; /* FIX: Proportionale Höhe für 250px Breite */
+.sidebar-header { padding: 20px 20px 30px 20px; }
+.sidebar-logo-img { 
+    height: 147px; 
     width: 100%; 
-    max-width: 210px; /* Max. verfügbare Breite im Container */
+    max-width: 210px; 
     display: block;
     object-fit: contain; 
 }
-
 
 /* MENÜ ITEM FIX: OPTIK, FORM UND FARBE VERANKERT */
 .menu-item {
@@ -127,44 +121,35 @@ body {
     font-weight: 600;
 }
 
+/* FIX 1: ELITE ICON BOX STYLING (DAUERHAFT) */
 .menu-icon {
-    /* EDLE ICONS (FIXIERT) */
-    font-size: 14px;
+    font-size: 14px; 
     font-weight: 700;
-    width: 24px; 
-    height: 24px;
+    width: 28px; 
+    height: 28px;
     display: flex;
     justify-content: center;
     align-items: center;
     margin-right: 12px;
-    color: var(--text-secondary);
+    
+    /* Inaktiver Zustand (Dezenter): Hellgraue Box, Graues Icon */
+    color: var(--text-secondary); 
+    background-color: var(--bg-menu-item);
     border: 1px solid var(--border);
     border-radius: 4px;
-}
-.menu-item.active {
-    background-color: var(--primary); 
-    /* ACHTUNG: Der Text bleibt weiß, die Icons werden gold */
-    color: white; 
-    font-weight: 600;
+    
+    /* FIX: Transparenz für dezenten Look */
+    opacity: 0.8; 
+    transition: all 150ms;
 }
 
-/* ELITE ICON STYLING */
-.menu-icon {
-    font-size: 20px; 
-    font-weight: 700;
-    width: 24px; 
-    height: 24px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-right: 12px;
-    color: var(--text-secondary); /* Inaktiv: Grau */
-    border-radius: 4px;
-}
-
-/* GOLD ACCENT FIX */
+/* FIX 1: AKTIVER ZUSTAND (MAXIMALER KONTRAST GOLD/BLAU) */
 .menu-item.active .menu-icon {
-    color: var(--brand-accent-gold); /* FIX: Aktive Icons sind nun Gold! */
+    /* Box auf dem blauen Hintergrund */
+    color: var(--brand-accent-gold); 
+    background-color: white; /* Klare, weiße Box auf dem blauen Hintergrund */
+    border-color: white; 
+    opacity: 1;
 }
 
 .menu-section-title {
@@ -177,9 +162,34 @@ body {
     margin: 20px 0 10px 0;
 }
 
+/* FIX 4: ACCOUNT-STATUS BLOCK (AMPELSTATUS) */
+.account-status-block {
+    padding: 15px 20px;
+    margin-top: auto; 
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    background-color: var(--bg-card); 
+}
+.status-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+.status-green { background-color: #10B981; }
+.status-yellow { background-color: #F59E0B; }
+.status-red { background-color: #EF4444; }
+.status-label { color: var(--text-secondary); }
+
 
 /* ---------------------------------------------------
-   3. KONSOLE/TOP BAR (FIXIERT)
+   3. KONSOLE/TOP BAR (FIX 2)
    --------------------------------------------------- */
 
 .welcome-and-status {
@@ -227,11 +237,11 @@ body {
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
 }
 
-/* SYSTEM BUTTONS (FIXIERT) */
+/* FIX 2: SYSTEM BUTTONS (ICON-GRÖSSE SICHTBARKEIT) */
 .system-actions-area button {
     width: 36px;
     height: 36px;
-    font-size: 18px; /* Größer für edle Icons */
+    font-size: 20px; /* FIX 2: Icons sind jetzt 20px (prominenter) */
     color: var(--text); 
     background: var(--bg-card); 
     border: 1px solid var(--border);
