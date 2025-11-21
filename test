@@ -1016,7 +1016,1261 @@
       
       <div class="metrics-grid">
         <div class="card metric-card">
-          <div class="metric-label">ROAS</div>
+          <div class="metric-label">Spend</div>
+          <div class="metric-value" id="metricSpend">€22.3K</div>
+          <div class="metric-change positive">↓ 2.1%</div>
+        </div>
+        <div class="card metric-card">
+          <div class="metric-label">CTR</div>
+          <div class="metric-value" id="metricCtr">2.7%</div>
+          <div class="metric-change positive">↑ 5.4%</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="mb-16">Performance Overview</h3>
+        <div class="chart-container">
+          <canvas id="performanceChart"></canvas>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 32px;">
+        <h3 class="mb-16">Top Performing Creatives</h3>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Creative</th>
+                <th>Platform</th>
+                <th>ROAS</th>
+                <th>CTR</th>
+                <th>Spend</th>
+                <th>Revenue</th>
+              </tr>
+            </thead>
+            <tbody id="topCreativesTable">
+              <tr onclick="showCreativeModal('UGC Hook – Unboxing Reel')">
+                <td><strong>UGC Hook – Unboxing Reel</strong></td>
+                <td>Meta</td>
+                <td class="text-success"><strong>3.8x</strong></td>
+                <td>2.7%</td>
+                <td>€222</td>
+                <td>€846</td>
+              </tr>
+              <tr onclick="showCreativeModal('Static – Hero Product Shot')">
+                <td><strong>Static – Hero Product Shot</strong></td>
+                <td>Meta</td>
+                <td class="text-success"><strong>3.2x</strong></td>
+                <td>2.1%</td>
+                <td>€142</td>
+                <td>€454</td>
+              </tr>
+              <tr onclick="showCreativeModal('Carousel – 5 Benefits')">
+                <td><strong>Carousel – 5 Benefits</strong></td>
+                <td>Google</td>
+                <td class="text-success"><strong>2.1x</strong></td>
+                <td>1.2%</td>
+                <td>€428</td>
+                <td>€900</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CREATIVES VIEW -->
+    <div class="view" id="creativesView">
+      
+      <div class="toolbar">
+        <div class="toolbar-group">
+          <input type="text" class="search-input" id="creativeSearch" placeholder="Search creatives...">
+          <select class="select" id="creativeSort">
+            <option value="roas_desc">ROAS: High to Low</option>
+            <option value="roas_asc">ROAS: Low to High</option>
+            <option value="ctr_desc">CTR: High to Low</option>
+            <option value="spend_desc">Spend: High to Low</option>
+          </select>
+        </div>
+        <div class="toolbar-group">
+          <div class="view-toggle">
+            <button class="view-toggle-btn active" data-view-type="grid">Grid</button>
+            <button class="view-toggle-btn" data-view-type="list">List</button>
+          </div>
+          <button class="btn-primary" onclick="showToast('Upload feature coming soon')">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor">
+              <path d="M8 2v12M2 8h12" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            Upload
+          </button>
+        </div>
+      </div>
+
+      <div class="creatives-grid" id="creativesGrid"></div>
+
+    </div>
+
+    <!-- CAMPAIGNS VIEW -->
+    <div class="view" id="campaignsView">
+      
+      <div class="toolbar">
+        <div class="toolbar-group">
+          <input type="text" class="search-input" id="campaignSearch" placeholder="Search campaigns...">
+        </div>
+        <button class="btn-primary" onclick="showToast('Create campaign feature coming soon')">Create Campaign</button>
+      </div>
+
+      <div class="card">
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>Campaign</th>
+                <th>Objective</th>
+                <th>Budget</th>
+                <th>ROAS</th>
+                <th>Spend</th>
+              </tr>
+            </thead>
+            <tbody id="campaignsTable">
+              <tr onclick="showCampaignModal('Summer Sales - Prospecting')">
+                <td><span class="status-badge active">Active</span></td>
+                <td><strong>Summer Sales - Prospecting</strong></td>
+                <td>Sales</td>
+                <td>€12,000</td>
+                <td class="text-success"><strong>3.5x</strong></td>
+                <td>€3,500</td>
+              </tr>
+              <tr onclick="showCampaignModal('Remarketing - Q4 Focus')">
+                <td><span class="status-badge paused">Paused</span></td>
+                <td><strong>Remarketing - Q4 Focus</strong></td>
+                <td>Conversions</td>
+                <td>€5,000</td>
+                <td class="text-success"><strong>5.1x</strong></td>
+                <td>€1,200</td>
+              </tr>
+              <tr onclick="showCampaignModal('TOFU - Brand Awareness')">
+                <td><span class="status-badge active">Active</span></td>
+                <td><strong>TOFU - Brand Awareness</strong></td>
+                <td>Impressions</td>
+                <td>€8,000</td>
+                <td class="text-secondary"><strong>1.1x</strong></td>
+                <td>€6,501</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- INSIGHTS VIEW -->
+    <div class="view" id="insightsView">
+      <div class="card">
+        <h3 class="mb-16">AI-Powered Insights</h3>
+        <p class="text-secondary mb-24">Advanced performance analysis and recommendations powered by machine learning.</p>
+        
+        <div style="display: grid; gap: 20px;">
+          <div class="card" style="background: var(--bg-alt); border: 1px solid var(--border);">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+              <h4>CTR Drop Detected</h4>
+              <span class="status-badge" style="background: rgba(255,149,0,0.1); color: var(--warning);">Medium Impact</span>
+            </div>
+            <p class="text-secondary" style="margin-bottom: 16px;">Creative "Static Product Shot" shows 1.1% CTR decline over 2 days. Consider pausing or refreshing.</p>
+            <button class="btn-secondary" onclick="showToast('Insights feature in development')">View Details</button>
+          </div>
+
+          <div class="card" style="background: var(--bg-alt); border: 1px solid var(--border);">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+              <h4>Scaling Opportunity</h4>
+              <span class="status-badge" style="background: rgba(0,200,83,0.1); color: var(--success);">High Impact</span>
+            </div>
+            <p class="text-secondary" style="margin-bottom: 16px;">UGC Hook shows 18% higher ROAS than average. Recommended budget increase of 25%.</p>
+            <button class="btn-secondary" onclick="showToast('Insights feature in development')">View Details</button>
+          </div>
+
+          <div class="card" style="background: var(--bg-alt); border: 1px solid var(--border);">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+              <h4>Asset Archive Analysis</h4>
+              <span class="status-badge" style="background: rgba(0,102,255,0.1); color: var(--primary);">Low Impact</span>
+            </div>
+            <p class="text-secondary" style="margin-bottom: 16px;">37 unused assets detected in library. AI can analyze and suggest new creative variations.</p>
+            <button class="btn-secondary" onclick="showToast('Insights feature in development')">Start Analysis</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIBRARY VIEW -->
+    <div class="view" id="libraryView">
+      <div class="card">
+        <h3 class="mb-16">Creative Library</h3>
+        <p class="text-secondary mb-24">Central repository for all your creative assets with advanced search and filtering.</p>
+        <button class="btn-primary" onclick="showToast('Library feature in development')">Upload Assets</button>
+      </div>
+    </div>
+
+    <!-- REPORTS VIEW -->
+    <div class="view" id="reportsView">
+      <div class="toolbar">
+        <h3>Performance Reports</h3>
+        <div class="toolbar-group">
+          <button class="btn-secondary" onclick="exportJSON()">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor">
+              <path d="M14 10v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-2M8 12V2M5 5l3-3 3 3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Export JSON
+          </button>
+          <button class="btn-primary" onclick="showToast('Report builder coming soon')">Create Report</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h4 class="mb-16">Available Reports</h4>
+        <div style="display: grid; gap: 16px;">
+          <div style="padding: 16px; background: var(--bg-alt); border-radius: var(--radius-md); cursor: pointer;" onclick="showToast('Report preview coming soon')">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong>Weekly Performance Summary</strong>
+                <div class="text-secondary" style="font-size: 13px; margin-top: 4px;">Last generated: Today</div>
+              </div>
+              <button class="btn-icon">→</button>
+            </div>
+          </div>
+          <div style="padding: 16px; background: var(--bg-alt); border-radius: var(--radius-md); cursor: pointer;" onclick="showToast('Report preview coming soon')">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong>Creative Performance Analysis</strong>
+                <div class="text-secondary" style="font-size: 13px; margin-top: 4px;">Last generated: 2 days ago</div>
+              </div>
+              <button class="btn-icon">→</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONNECTIONS VIEW -->
+    <div class="view" id="connectionsView">
+      <h3 class="mb-24">Platform Connections</h3>
+      
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+        
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+            <h4>Meta Ads</h4>
+            <span class="status-dot" id="metaStatus"></span>
+          </div>
+          <p class="text-secondary mb-16" style="font-size: 14px;">Facebook & Instagram advertising platform</p>
+          <button class="btn-primary" id="metaConnectBtn" onclick="connectPlatform('meta')">Connect</button>
+        </div>
+
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+            <h4>Google Ads</h4>
+            <span class="status-dot disconnected" id="googleStatus"></span>
+          </div>
+          <p class="text-secondary mb-16" style="font-size: 14px;">Google Search, Display & YouTube ads</p>
+          <button class="btn-primary" onclick="showToast('Google Ads integration coming soon')">Connect</button>
+        </div>
+
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+            <h4>TikTok Ads</h4>
+            <span class="status-dot disconnected" id="tiktokStatus"></span>
+          </div>
+          <p class="text-secondary mb-16" style="font-size: 14px;">TikTok advertising platform</p>
+          <button class="btn-primary" onclick="showToast('TikTok Ads integration coming soon')">Connect</button>
+        </div>
+
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+            <h4>LinkedIn Ads</h4>
+            <span class="status-dot disconnected"></span>
+          </div>
+          <p class="text-secondary mb-16" style="font-size: 14px;">LinkedIn B2B advertising</p>
+          <button class="btn-primary" onclick="showToast('LinkedIn Ads integration coming soon')">Connect</button>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modalTitle">Modal Title</h3>
+      <button class="btn-icon" onclick="closeModal()">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+          <path d="M15 5L5 15M5 5l10 10" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body" id="modalBody">
+      Modal content
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// =====================================================
+// SIGNALONE - ELITE JAVASCRIPT
+// =====================================================
+
+const AppState = {
+  theme: localStorage.getItem('signalOneTheme') || 'light',
+  sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true',
+  currentView: 'dashboard',
+  connections: {
+    meta: false,
+    google: false,
+    tiktok: false
+  },
+  mockData: {
+    creatives: [
+      {
+        id: 'c1',
+        name: 'UGC Hook – Unboxing Reel',
+        platform: 'Meta',
+        roas: 3.8,
+        ctr: 2.7,
+        spend: 222,
+        revenue: 846,
+        format: '9:16'
+      },
+      {
+        id: 'c2',
+        name: 'Static – Hero Product Shot',
+        platform: 'Meta',
+        roas: 3.2,
+        ctr: 2.1,
+        spend: 142,
+        revenue: 454,
+        format: '1:1'
+      },
+      {
+        id: 'c3',
+        name: 'Carousel – 5 Benefits',
+        platform: 'Google',
+        roas: 2.1,
+        ctr: 1.2,
+        spend: 428,
+        revenue: 900,
+        format: '1:1'
+      },
+      {
+        id: 'c4',
+        name: 'Video – Problem/Solution',
+        platform: 'Meta',
+        roas: 1.5,
+        ctr: 3.1,
+        spend: 414,
+        revenue: 621,
+        format: '16:9'
+      },
+      {
+        id: 'c5',
+        name: 'Static – Testimonial Card',
+        platform: 'Meta',
+        roas: 4.5,
+        ctr: 1.9,
+        spend: 287,
+        revenue: 1292,
+        format: '4:5'
+      }
+    ]
+  }
+};
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+  initSidebar();
+  initNavigation();
+  initMobileMenu();
+  initChart();
+  renderCreatives();
+  updateConnectionStatus();
+});
+
+// Theme Management
+function initTheme() {
+  document.documentElement.setAttribute('data-theme', AppState.theme);
+  
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    AppState.theme = AppState.theme === 'light' ? 'dark' : 'light';
+    localStorage.setItem('signalOneTheme', AppState.theme);
+    document.documentElement.setAttribute('data-theme', AppState.theme);
+    showToast(`Theme switched to ${AppState.theme} mode`);
+  });
+}
+
+// Sidebar Management
+function initSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const mainContainer = document.getElementById('mainContainer');
+  const toggle = document.getElementById('sidebarToggle');
+  
+  if (AppState.sidebarCollapsed) {
+    sidebar.classList.add('collapsed');
+    mainContainer.classList.add('sidebar-collapsed');
+  }
+  
+  toggle.addEventListener('click', () => {
+    AppState.sidebarCollapsed = !AppState.sidebarCollapsed;
+    localStorage.setItem('sidebarCollapsed', AppState.sidebarCollapsed);
+    sidebar.classList.toggle('collapsed');
+    mainContainer.classList.toggle('sidebar-collapsed');
+  });
+}
+
+// Navigation
+function initNavigation() {
+  const navItems = document.querySelectorAll('.nav-item');
+  
+  navItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      const viewName = item.getAttribute('data-view');
+      switchView(viewName);
+      
+      // Close mobile menu if open
+      if (window.innerWidth <= 1024) {
+        closeMobileMenu();
+      }
+    });
+  });
+}
+
+function switchView(viewName) {
+  // Update active nav item
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.toggle('active', item.getAttribute('data-view') === viewName);
+  });
+  
+  // Update views
+  document.querySelectorAll('.view').forEach(view => {
+    view.classList.remove('active');
+  });
+  document.getElementById(`${viewName}View`).classList.add('active');
+  
+  // Update page title
+  const titles = {
+    dashboard: 'Dashboard',
+    creatives: 'Creatives',
+    campaigns: 'Campaigns',
+    insights: 'Insights',
+    library: 'Library',
+    reports: 'Reports',
+    connections: 'Connections'
+  };
+  
+  const metas = {
+    dashboard: 'Real-time performance overview',
+    creatives: 'Manage and analyze your creative assets',
+    campaigns: 'Campaign performance and management',
+    insights: 'AI-powered performance insights',
+    library: 'Central asset repository',
+    reports: 'Custom performance reports',
+    connections: 'Platform integrations'
+  };
+  
+  document.getElementById('pageTitle').textContent = titles[viewName] || viewName;
+  document.getElementById('pageMeta').textContent = metas[viewName] || '';
+  
+  AppState.currentView = viewName;
+  
+  // Show loading effect
+  showLoading();
+  setTimeout(hideLoading, 300);
+}
+
+// Mobile Menu
+function initMobileMenu() {
+  const mobileToggle = document.getElementById('mobileMenuToggle');
+  const mobileOverlay = document.getElementById('mobileOverlay');
+  const sidebar = document.getElementById('sidebar');
+  
+  mobileToggle.addEventListener('click', () => {
+    sidebar.classList.add('mobile-open');
+    mobileOverlay.classList.add('active');
+  });
+  
+  mobileOverlay.addEventListener('click', closeMobileMenu);
+}
+
+function closeMobileMenu() {
+  document.getElementById('sidebar').classList.remove('mobile-open');
+  document.getElementById('mobileOverlay').classList.remove('active');
+}
+
+// Chart
+let performanceChart = null;
+
+function initChart() {
+  const ctx = document.getElementById('performanceChart');
+  if (!ctx) return;
+  
+  const data = {
+    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    datasets: [
+      {
+        label: 'Revenue',
+        data: [1020, 1150, 980, 1400, 1550, 1300, 1650],
+        borderColor: '#0066FF',
+        backgroundColor: 'rgba(0,102,255,0.1)',
+        fill: true,
+        tension: 0.4
+      },
+      {
+        label: 'Spend',
+        data: [280, 310, 270, 350, 380, 320, 400],
+        borderColor: '#6B6B6B',
+        backgroundColor: 'rgba(107,107,107,0.1)',
+        fill: true,
+        tension: 0.4
+      }
+    ]
+  };
+  
+  performanceChart = new Chart(ctx, {
+    type: 'line',
+    data: data,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+          align: 'end'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: 'rgba(0,0,0,0.05)'
+          }
+        },
+        x: {
+          grid: {
+            display: false
+          }
+        }
+      }
+    }
+  });
+}
+
+// Render Creatives
+function renderCreatives() {
+  const container = document.getElementById('creativesGrid');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  AppState.mockData.creatives.forEach(creative => {
+    const card = document.createElement('div');
+    card.className = 'card creative-card';
+    card.onclick = () => showCreativeModal(creative.name);
+    
+    card.innerHTML = `
+      <div class="creative-preview">
+        <div class="platform-badge">${creative.platform}</div>
+      </div>
+      <div class="creative-title">${creative.name}</div>
+      <div class="creative-metrics">
+        <div>
+          <div class="creative-metric-label">ROAS</div>
+          <div class="creative-metric-value success">${creative.roas.toFixed(1)}x</div>
+        </div>
+        <div>
+          <div class="creative-metric-label">CTR</div>
+          <div class="creative-metric-value">${creative.ctr.toFixed(1)}%</div>
+        </div>
+        <div>
+          <div class="creative-metric-label">Spend</div>
+          <div class="creative-metric-value">€${creative.spend}</div>
+        </div>
+        <div>
+          <div class="creative-metric-label">Revenue</div>
+          <div class="creative-metric-value">€${creative.revenue}</div>
+        </div>
+      </div>
+    `;
+    
+    container.appendChild(card);
+  });
+}
+
+// Search & Sort
+document.getElementById('creativeSearch')?.addEventListener('input', (e) => {
+  const search = e.target.value.toLowerCase();
+  document.querySelectorAll('.creative-card').forEach(card => {
+    const title = card.querySelector('.creative-title').textContent.toLowerCase();
+    card.style.display = title.includes(search) ? 'block' : 'none';
+  });
+});
+
+document.getElementById('creativeSort')?.addEventListener('change', (e) => {
+  showToast(`Sorting by: ${e.target.options[e.target.selectedIndex].text}`);
+});
+
+document.getElementById('campaignSearch')?.addEventListener('input', (e) => {
+  const search = e.target.value.toLowerCase();
+  document.querySelectorAll('#campaignsTable tr').forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(search) ? 'table-row' : 'none';
+  });
+});
+
+// View Toggle
+document.querySelectorAll('.view-toggle-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.view-toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    showToast(`View mode: ${btn.textContent}`);
+  });
+});
+
+// Connections
+function updateConnectionStatus() {
+  const metaStatus = document.getElementById('metaStatus');
+  const connectionStatus = document.getElementById('connectionStatus');
+  const connectionText = document.getElementById('connectionText');
+  
+  if (AppState.connections.meta) {
+    metaStatus?.classList.remove('disconnected');
+    connectionStatus?.classList.remove('disconnected');
+    connectionText.textContent = 'Connected';
+  } else {
+    metaStatus?.classList.add('disconnected');
+    connectionStatus?.classList.add('disconnected');
+    connectionText.textContent = 'Disconnected';
+  }
+}
+
+function connectPlatform(platform) {
+  const btn = document.getElementById(`${platform}ConnectBtn`);
+  if (!btn) return;
+  
+  btn.textContent = 'Connecting...';
+  btn.disabled = true;
+  
+  setTimeout(() => {
+    AppState.connections[platform] = true;
+    updateConnectionStatus();
+    btn.textContent = 'Connected';
+    showToast(`Successfully connected to ${platform.charAt(0).toUpperCase() + platform.slice(1)} Ads`);
+  }, 1500);
+}
+
+// Modal
+function showCreativeModal(name) {
+  const modal = document.getElementById('modal');
+  document.getElementById('modalTitle').textContent = name;
+  document.getElementById('modalBody').innerHTML = `
+    <div style="margin-bottom: 16px;">
+      <strong>Performance Metrics</strong>
+      <div style="margin-top: 12px; display: grid; gap: 12px;">
+        <div style="display: flex; justify-content: space-between;">
+          <span class="text-secondary">Format:</span>
+          <strong>9:16</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span class="text-secondary">Platform:</span>
+          <strong>Meta</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span class="text-secondary">Status:</span>
+          <span class="status-badge active">Active</span>
+        </div>
+      </div>
+    </div>
+    <div style="padding-top: 16px; border-top: 1px solid var(--border);">
+      <p class="text-secondary">This creative is performing excellently with a ROAS above target. Consider scaling budget allocation.</p>
+    </div>
+  `;
+  modal.classList.add('active');
+}
+
+function showCampaignModal(name) {
+  const modal = document.getElementById('modal');
+  document.getElementById('modalTitle').textContent = name;
+  document.getElementById('modalBody').innerHTML = `
+    <div style="margin-bottom: 16px;">
+      <strong>Campaign Details</strong>
+      <div style="margin-top: 12px; display: grid; gap: 12px;">
+        <div style="display: flex; justify-content: space-between;">
+          <span class="text-secondary">Objective:</span>
+          <strong>Sales</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span class="text-secondary">Daily Budget:</span>
+          <strong>€400</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span class="text-secondary">Ad Sets:</span>
+          <strong>3 Active</strong>
+        </div>
+      </div>
+    </div>
+    <div style="padding-top: 16px; border-top: 1px solid var(--border);">
+      <p class="text-secondary">Campaign is performing well and meeting ROAS targets. All ad sets are active and delivering results.</p>
+    </div>
+  `;
+  modal.classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('active');
+}
+
+// Toast Notifications
+function showToast(message) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = message;
+  
+  container.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.style.animation = 'slideIn 0.3s ease reverse';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+// Loading
+function showLoading() {
+  document.getElementById('loadingOverlay').classList.add('active');
+}
+
+function hideLoading() {
+  document.getElementById('loadingOverlay').classList.remove('active');
+}
+
+// Refresh Data
+document.getElementById('refreshData')?.addEventListener('click', () => {
+  showLoading();
+  setTimeout(() => {
+    hideLoading();
+    showToast('Data refreshed successfully');
+  }, 800);
+});
+
+// Profile Button
+document.getElementById('profileBtn')?.addEventListener('click', () => {
+  showToast('Profile settings coming soon');
+});
+
+// Export JSON
+function exportJSON() {
+  const data = {
+    timestamp: new Date().toISOString(),
+    metrics: {
+      roas: 3.8,
+      revenue: 84500,
+      spend: 22300,
+      ctr: 2.7
+    },
+    creatives: AppState.mockData.creatives,
+    campaigns: [
+      {
+        name: 'Summer Sales - Prospecting',
+        status: 'Active',
+        objective: 'Sales',
+        budget: 12000,
+        roas: 3.5,
+        spend: 3500
+      },
+      {
+        name: 'Remarketing - Q4 Focus',
+        status: 'Paused',
+        objective: 'Conversions',
+        budget: 5000,
+        roas: 5.1,
+        spend: 1200
+      }
+    ]
+  };
+  
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `signalone-export-${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  
+  showToast('Export successful');
+}
+
+// Handle window resize
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    if (performanceChart) {
+      performanceChart.resize();
+    }
+  }, 250);
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  // Cmd/Ctrl + K = Search
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    const searchInput = document.querySelector('.search-input:not([style*="display: none"])');
+    if (searchInput) {
+      searchInput.focus();
+    }
+  }
+  
+  // ESC = Close modal
+  if (e.key === 'Escape') {
+    closeModal();
+    closeMobileMenu();
+  }
+  
+  // Cmd/Ctrl + B = Toggle sidebar
+  if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
+    e.preventDefault();
+    document.getElementById('sidebarToggle').click();
+  }
+});
+
+// Click outside modal to close
+document.getElementById('modal')?.addEventListener('click', (e) => {
+  if (e.target.id === 'modal') {
+    closeModal();
+  }
+});
+
+// Smooth scroll behavior
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function (e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth' });
+    }
+  });
+});
+
+// Performance optimization: Debounce search
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+// Apply debounce to search inputs
+const debouncedSearch = debounce((e) => {
+  const search = e.target.value.toLowerCase();
+  document.querySelectorAll('.creative-card').forEach(card => {
+    const title = card.querySelector('.creative-title')?.textContent.toLowerCase() || '';
+    card.style.display = title.includes(search) ? 'block' : 'none';
+  });
+}, 300);
+
+document.getElementById('creativeSearch')?.addEventListener('input', debouncedSearch);
+
+// Intersection Observer for lazy loading (future enhancement)
+const observerOptions = {
+  root: null,
+  rootMargin: '50px',
+  threshold: 0.1
+};
+
+const cardObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.style.opacity = '1';
+      entry.target.style.transform = 'translateY(0)';
+    }
+  });
+}, observerOptions);
+
+// Apply fade-in animation to cards
+document.querySelectorAll('.card').forEach(card => {
+  card.style.opacity = '0';
+  card.style.transform = 'translateY(20px)';
+  card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+  cardObserver.observe(card);
+});
+
+// Service Worker registration for PWA (future enhancement)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    // navigator.serviceWorker.register('/sw.js').then(registration => {
+    //   console.log('SW registered:', registration);
+    // }).catch(err => {
+    //   console.log('SW registration failed:', err);
+    // });
+  });
+}
+
+// Analytics tracking (placeholder)
+function trackEvent(category, action, label) {
+  // Google Analytics or custom analytics
+  console.log('Event tracked:', { category, action, label });
+}
+
+// Track page views
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const viewName = item.getAttribute('data-view');
+    trackEvent('Navigation', 'View Change', viewName);
+  });
+});
+
+// Track button clicks
+document.querySelectorAll('.btn-primary').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    trackEvent('Button', 'Click', e.target.textContent);
+  });
+});
+
+// Error handling
+window.addEventListener('error', (e) => {
+  console.error('Global error:', e.error);
+  showToast('An error occurred. Please refresh the page.');
+});
+
+window.addEventListener('unhandledrejection', (e) => {
+  console.error('Unhandled promise rejection:', e.reason);
+  showToast('An error occurred. Please try again.');
+});
+
+// Local storage management
+function saveToLocalStorage(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch (e) {
+    console.error('LocalStorage error:', e);
+    return false;
+  }
+}
+
+function getFromLocalStorage(key, defaultValue = null) {
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : defaultValue;
+  } catch (e) {
+    console.error('LocalStorage error:', e);
+    return defaultValue;
+  }
+}
+
+// Auto-save user preferences
+function saveUserPreferences() {
+  const preferences = {
+    theme: AppState.theme,
+    sidebarCollapsed: AppState.sidebarCollapsed,
+    lastView: AppState.currentView
+  };
+  saveToLocalStorage('userPreferences', preferences);
+}
+
+// Load user preferences on startup
+function loadUserPreferences() {
+  const preferences = getFromLocalStorage('userPreferences');
+  if (preferences) {
+    if (preferences.lastView && preferences.lastView !== 'dashboard') {
+      // Optionally restore last view
+      // switchView(preferences.lastView);
+    }
+  }
+}
+
+// Call on page load
+setTimeout(loadUserPreferences, 500);
+
+// Periodic auto-save
+setInterval(saveUserPreferences, 30000); // Every 30 seconds
+
+// Network status monitoring
+window.addEventListener('online', () => {
+  showToast('Connection restored');
+  document.getElementById('connectionStatus')?.classList.remove('disconnected');
+});
+
+window.addEventListener('offline', () => {
+  showToast('Connection lost - working offline');
+  document.getElementById('connectionStatus')?.classList.add('disconnected');
+});
+
+// Browser tab visibility
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    console.log('Tab hidden');
+  } else {
+    console.log('Tab visible');
+    // Optionally refresh data when user returns
+  }
+});
+
+// Memory cleanup
+window.addEventListener('beforeunload', () => {
+  saveUserPreferences();
+  
+  // Cleanup chart
+  if (performanceChart) {
+    performanceChart.destroy();
+  }
+  
+  // Clear any intervals or timeouts
+  clearTimeout(resizeTimer);
+});
+
+// Console welcome message
+console.log('%cSignalOne Platform', 'font-size: 24px; font-weight: bold; color: #0066FF;');
+console.log('%cElite Creative Intelligence Dashboard', 'font-size: 14px; color: #6B6B6B;');
+console.log('%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'color: #E8E8E8;');
+console.log('%cVersion: 1.0.0', 'color: #6B6B6B;');
+console.log('%cEnvironment: Production', 'color: #00C853;');
+console.log('%cFor support: support@signalone.cloud', 'color: #6B6B6B;');
+
+// Initialize tooltips (if any custom tooltip library is added)
+function initTooltips() {
+  const tooltipElements = document.querySelectorAll('[title]');
+  tooltipElements.forEach(el => {
+    // Custom tooltip logic here
+  });
+}
+
+// Feature flags (for gradual rollout)
+const FeatureFlags = {
+  advancedFilters: false,
+  aiInsights: true,
+  realTimeSync: false,
+  multiAccountSupport: false,
+  customReports: true
+};
+
+function isFeatureEnabled(feature) {
+  return FeatureFlags[feature] === true;
+}
+
+// Usage example
+if (isFeatureEnabled('aiInsights')) {
+  console.log('AI Insights enabled');
+}
+
+// API integration (placeholder)
+class SignalOneAPI {
+  constructor() {
+    this.baseURL = 'https://api.signalone.cloud/v1';
+    this.token = localStorage.getItem('authToken');
+  }
+  
+  async request(endpoint, options = {}) {
+    const url = `${this.baseURL}${endpoint}`;
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${this.token}`,
+      ...options.headers
+    };
+    
+    try {
+      const response = await fetch(url, { ...options, headers });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error('API Error:', error);
+      throw error;
+    }
+  }
+  
+  async getCreatives() {
+    return this.request('/creatives');
+  }
+  
+  async getCampaigns() {
+    return this.request('/campaigns');
+  }
+  
+  async getMetrics() {
+    return this.request('/metrics');
+  }
+}
+
+// Initialize API client
+const api = new SignalOneAPI();
+
+// Data refresh function (for future real API integration)
+async function refreshAllData() {
+  showLoading();
+  try {
+    // Simulate API calls
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // In production, replace with:
+    // const [creatives, campaigns, metrics] = await Promise.all([
+    //   api.getCreatives(),
+    //   api.getCampaigns(),
+    //   api.getMetrics()
+    // ]);
+    
+    showToast('Data refreshed successfully');
+  } catch (error) {
+    showToast('Failed to refresh data');
+    console.error(error);
+  } finally {
+    hideLoading();
+  }
+}
+
+// Auto-refresh every 5 minutes (if feature enabled)
+if (isFeatureEnabled('realTimeSync')) {
+  setInterval(refreshAllData, 300000);
+}
+
+// Form validation utilities
+function validateEmail(email) {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(email);
+}
+
+function validateNumber(value, min, max) {
+  const num = parseFloat(value);
+  return !isNaN(num) && num >= min && num <= max;
+}
+
+// Currency formatter
+function formatCurrency(value, currency = 'EUR') {
+  return new Intl.NumberFormat('de-DE', {
+    style: 'currency',
+    currency: currency
+  }).format(value);
+}
+
+// Number formatter
+function formatNumber(value, decimals = 0) {
+  return new Intl.NumberFormat('de-DE', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  }).format(value);
+}
+
+// Date formatter
+function formatDate(date, format = 'short') {
+  const d = new Date(date);
+  const options = format === 'short' 
+    ? { day: '2-digit', month: '2-digit', year: 'numeric' }
+    : { day: '2-digit', month: 'long', year: 'numeric' };
+  return new Intl.DateTimeFormat('de-DE', options).format(d);
+}
+
+// Clipboard utilities
+async function copyToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('Copied to clipboard');
+    return true;
+  } catch (err) {
+    console.error('Copy failed:', err);
+    showToast('Failed to copy');
+    return false;
+  }
+}
+
+// Download utilities
+function downloadFile(content, filename, type = 'text/plain') {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// Screenshot utility (future enhancement)
+async function takeScreenshot() {
+  showToast('Screenshot feature coming soon');
+  // Implementation using html2canvas or similar
+}
+
+// Print utility
+function printPage() {
+  window.print();
+}
+
+// Export utilities
+function exportToCSV(data, filename) {
+  const csv = convertToCSV(data);
+  downloadFile(csv, filename, 'text/csv');
+}
+
+function convertToCSV(data) {
+  if (!data || data.length === 0) return '';
+  
+  const headers = Object.keys(data[0]);
+  const csvRows = [
+    headers.join(','),
+    ...data.map(row => 
+      headers.map(header => 
+        JSON.stringify(row[header] || '')
+      ).join(',')
+    )
+  ];
+  
+  return csvRows.join('\n');
+}
+
+// Performance monitoring
+const performanceMonitor = {
+  marks: {},
+  
+  start(label) {
+    this.marks[label] = performance.now();
+  },
+  
+  end(label) {
+    if (this.marks[label]) {
+      const duration = performance.now() - this.marks[label];
+      console.log(`${label}: ${duration.toFixed(2)}ms`);
+      delete this.marks[label];
+      return duration;
+    }
+  }
+};
+
+// Usage
+performanceMonitor.start('renderCreatives');
+// ... code ...
+performanceMonitor.end('renderCreatives');
+
+// Ready state
+console.log('%c✓ Application initialized', 'color: #00C853; font-weight: bold;');
+showToast('Welcome to SignalOne');
+
+">ROAS</div>
           <div class="metric-value" id="metricRoas">3.8x</div>
           <div class="metric-change positive">↑ 12%</div>
         </div>
