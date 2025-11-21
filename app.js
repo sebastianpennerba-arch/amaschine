@@ -8,11 +8,10 @@
 // Globale Zustandsvariable
 const AppState = {
   currentView: "dashboard",
-  // Da der Toggle-Button entfernt wurde, entfernen wir auch die collapsed-Logik
 };
 
 // ----------------------------------------------------------------------
-// HELPER: Dead Button Toast 
+// HELPER: System Button Toast (KEINE "OHNE FUNKTION"-MELDUNGEN MEHR)
 // ----------------------------------------------------------------------
 
 function showToast(message) {
@@ -33,7 +32,8 @@ function showToast(message) {
 }
 
 function handleDeadButton(featureName) {
-  showToast(`${featureName} ist in Vorbereitung (Demo-Modus).`);
+  // Verwendet den spezifischen Namen des System-Buttons (z.B. "User-Wechsel & Profil")
+  showToast(`${featureName} ist in Vorbereitung (Demo-Modus).`); 
 }
 
 // ----------------------------------------------------------------------
