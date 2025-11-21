@@ -1,280 +1,99 @@
-/* =======================================================================
-   SIGNALONE.CLOUD - ELITE V2 MASTER STYLESHEET
-   PHASE 2: GRUNDGERÜST & UNIFORMITÄT (FIXED)
-   ======================================================================= */
-
-/* ---------------------------------------------------
-   0. VARS & RESET
-   --------------------------------------------------- */
+/* SignalOne.cloud - RESET & FIXES (V2) */
 
 :root {
-  /* Motion */
-  --motion-fast: 120ms;
-  --motion-base: 180ms;
-  --ease-soft: cubic-bezier(0.25, 0.1, 0.25, 1);
-
-  /* Elite Colors (Light Mode) */
-  --bg: #f3f4f6;           /* S3 - Hintergrund */
-  --bg-card: #ffffff;      /* Weiß für Cards */
-  --bg-sidebar: #ffffff;   /* Saubere, helle Sidebar */
-  --bg-alt: #f9fafb;       /* Leichter Grauton für Header/Tabellen */
-
-  --text: #111827;         /* Dunkle, kräftige Hauptfarbe */
-  --text-secondary: #6b7280;
-  --text-light: #9ca3af;
-  --text-label: #374151;   /* Für KPI Labels: Etwas kräftiger als secondary */
-
-  --border: #e5e7eb;
-  --border-light: #f3f4f6;
-
-  /* Brand */
-  --primary: #6366f1;       /* Indigo: stark und vertrauenswürdig */
-  --primary-hover: #4f52d9;
-  
-  /* Status */
-  --success: #22c55e;
-  --warning: #f599e0b;
+  --primary: #6366f1;       /* Elite Indigo */
+  --bg: #f3f4f6;           
+  --text: #111827;         
 }
 
-/* Base Reset & Typography */
-* {
-  box-sizing: border-box;
-}
-
+* { box-sizing: border-box; }
 body {
-  /* Schriftart: Elite-Serifenlos (system-font) */
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: sans-serif;
   margin: 0;
-  padding: 0;
   background-color: var(--bg);
   color: var(--text);
-  transition: background-color var(--motion-base) ease, color var(--motion-base) ease;
 }
 
-/* ---------------------------------------------------
-   1. CORE LAYOUT (FIXED SHELL)
-   --------------------------------------------------- */
-
-/* Sidebar */
+/* 1. SIDEBAR: FIXE POSITION & BREITE */
 .sidebar {
   position: fixed;
   top: 0;
   left: 0;
   width: 250px; /* FIXE BREITE */
   height: 100vh;
-  background-color: var(--bg-sidebar);
-  border-right: 1px solid var(--border);
-  padding: 20px 0;
+  background-color: white;
+  border-right: 1px solid #e5e7eb;
+  padding: 20px;
   z-index: 30;
-  display: flex;
-  flex-direction: column;
-  transition: width var(--motion-base) var(--ease-soft);
+}
+.sidebar-header {
+    font-weight: bold;
+    color: var(--primary);
+    margin-bottom: 30px;
+}
+.menu-item {
+    display: block;
+    padding: 10px 15px;
+    margin-bottom: 5px;
+    text-decoration: none;
+    color: var(--text);
+    border-radius: 8px; /* Weiche Rundungen */
+}
+.menu-item.active {
+    background-color: var(--primary);
+    color: white;
 }
 
-.sidebar.collapsed {
-  width: 80px; /* FIXE EINGEKLAPPTE BREITE */
-}
-
-/* Top Bar (KONSOLE & SYSTEM BUTTONS) */
+/* 2. TOP BAR (KONSOLE): FIXE POSITION & HÖHE */
 .top-bar {
   position: fixed;
   top: 0;
-  left: 250px; 
+  left: 250px; /* STARTET NACH DER SIDEBAR */
   right: 0;
   height: 72px; /* FIXE HÖHE */
-  background-color: var(--bg-card);
-  border-bottom: 1px solid var(--border);
-  padding: 0 40px;
+  background-color: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0 30px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   z-index: 20;
-  transition: left var(--motion-base) var(--ease-soft);
 }
-
-.sidebar.collapsed ~ .top-bar {
-  left: 80px;
-}
-
-/* Main Content Area */
-.main-content {
-  margin-left: 250px; 
-  /* Top-Bar Höhe + 32px Puffer = 104px (72px + 32px) */
-  padding-top: calc(72px + 32px); 
-  padding-bottom: 40px;
-  min-height: 100vh;
-  transition: margin-left var(--motion-base) var(--ease-soft);
-}
-
-.sidebar.collapsed ~ .main-content {
-  margin-left: 80px;
-}
-
-.view {
-  padding: 0 40px;
-  max-width: 1600px; 
-  margin: 0 auto; 
-}
-
-
-/* ---------------------------------------------------
-   2. NAVIGATION & TOP BAR (KONSOLE)
-   --------------------------------------------------- */
-   
-.top-bar-console {
-    /* Konsole linksbündig */
+.account-control-area {
+    /* Platz für die Dropdowns */
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    line-height: 1.2;
-}
-.greetings {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--text);
-    margin: 0;
-}
-.account-status-bar {
-    font-size: 12px;
-    color: var(--text-secondary);
-    /* Einheitliche Trennzeichen und Abstände */
-}
-.account-status-bar span {
-    margin-right: 8px;
-}
-
-.top-bar-actions .icon-button {
-    /* Einheitliche Größe und Stil für System Buttons */
-    width: 36px;
-    height: 36px;
-    font-size: 18px;
-    background: var(--bg-alt);
-    border: 1px solid var(--border);
-    margin-left: 10px;
-}
-
-/* Anpassung für die Menü-Icons: NEUTRAL, EDEL */
-.menu-icon {
-  font-size: 14px; /* KLEINERE, EDLE SCHRIFT */
-  font-weight: 700;
-  width: 30px; 
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  margin-right: 12px;
-  color: var(--text-light); /* DEZENT */
-  line-height: 1.0; 
-  border: 1px solid var(--border); /* FEINER RAHMEN ALS PLATZHALTER */
-  border-radius: 4px;
-  height: 20px;
-}
-.menu-item.active .menu-icon {
-  color: white; 
-  border-color: transparent; /* KEIN RAHMEN IM AKTIVEN ZUSTAND */
-}
-
-/* ---------------------------------------------------
-   3. DASHBOARD UNIFORMITÄT (Sektionen & Grids)
-   --------------------------------------------------- */
-
-h2 {
-    font-size: 32px;
-    font-weight: 800;
-    margin: 0 0 30px 0; 
-}
-h3 {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text);
-    margin: 0 0 16px 0;
-}
-
-.card {
-  background-color: var(--bg-card);
-  border-radius: 16px;
-  padding: 24px;
-  /* Elite Shadow: Weich und hochwertig */
-  box-shadow: 0 4px 12px rgba(0,0,0,0.04), 0 0 1px rgba(0,0,0,0.08); 
-  border: 1px solid var(--border);
-}
-
-.dashboard-grid {
-    display: grid;
-    /* FIXE AUFTEILUNG: 2 gleich große Spalten */
-    grid-template-columns: repeat(2, 1fr);
-    gap: 30px; /* Einheitlicher Abstand */
-}
-
-.full-width {
-    grid-column: span 2; /* Volle Breite für große Charts */
-}
-
-/* KPI Sektionen (MUSS-GLEICH-HEIT) */
-.kpi-card {
-    height: 200px; /* FIXE HÖHE für Einheitlichkeit */
-}
-
-.kpi-group {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding-top: 10px;
-    /* FIX: Jedes KPI-Item bekommt den gleichen Platz */
-}
-
-.kpi-item {
-    display: flex;
-    flex-direction: column;
-    /* FIX: Gleiche Breite für jedes Item (4 Items * 25%) */
-    width: 25%; 
-    padding-right: 15px; 
-    border-right: 1px solid var(--border-light); /* Trennlinien */
-}
-.kpi-item:last-child {
-    border-right: none;
-}
-.kpi-item.placeholder .kpi-value {
-    color: var(--text-light); /* Grauer Strich für leere Plätze */
-}
-
-.kpi-value {
-    font-size: 36px; /* KPIs sehr groß und prominent */
-    font-weight: 800;
-    color: var(--text);
-    line-height: 1.1;
-    margin-bottom: 4px;
-}
-
-.kpi-label {
-    font-size: 13px;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: var(--text-label); 
-    letter-spacing: 0.5px;
-}
-
-/* TOAST MESSAGE STYLES (app.js Abhängigkeit) */
-.toast-container {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 1000;
-    display: flex;
-    flex-direction: column-reverse; /* Neue Toasts oben */
-}
-.toast {
-    background-color: var(--text);
-    color: var(--bg-card);
-    padding: 12px 20px;
-    border-radius: 8px;
-    margin-top: 10px;
+    gap: 20px;
     font-size: 14px;
-    font-weight: 600;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    opacity: 1;
-    transition: opacity 300ms ease, transform 300ms ease;
 }
-.toast.fade-out {
-    opacity: 0;
-    transform: translateY(10px);
+
+/* 3. MAIN CONTENT: RICHTIGER ABSTAND */
+.main-content {
+  margin-left: 250px; /* Startet nach der Sidebar */
+  padding-top: 72px; /* Startet unter der Top Bar */
+  padding-bottom: 40px;
+  padding-left: 30px;
+  padding-right: 30px;
+  min-height: 100vh;
+}
+.elite-title {
+    margin-top: 30px;
+}
+
+/* Einheitlichkeits-Test für Grids */
+.test-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* ZWEI GLEICHE SPALTEN */
+    gap: 20px;
+    margin-top: 20px;
+}
+.test-card {
+    background-color: white;
+    padding: 30px;
+    height: 150px; /* FIXE HÖHE */
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Minimaler, hochwertiger Schatten */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e5e7eb;
 }
