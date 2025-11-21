@@ -1,5 +1,5 @@
 // =====================================================================
-// SignalOne.cloud – V9.7: MINIMAL FUNCTIONAL CORE
+// SignalOne.cloud – V9.8: MINIMAL FUNCTIONAL CORE + HEADER LOGIC
 // =====================================================================
 
 "use strict";
@@ -7,10 +7,11 @@
 // Globale Zustandsvariable
 const AppState = {
   currentView: "dashboard",
+  // isSidebarCollapsed: localStorage.getItem('isSidebarCollapsed') === 'true', // Temporär entfernt
 };
 
 // ----------------------------------------------------------------------
-// HELPER: Dead Button Toast 
+// HELPER: Toast & Dead Button 
 // ----------------------------------------------------------------------
 
 function showToast(message) {
@@ -32,6 +33,32 @@ function showToast(message) {
 
 function handleDeadButton(featureName) {
   showToast(`${featureName} ist in Vorbereitung (Demo-Modus).`);
+}
+
+// ----------------------------------------------------------------------
+// TOP BAR FUNCTIONS (NEU)
+// ----------------------------------------------------------------------
+
+function updateDateTime() {
+  const now = new Date();
+  
+  // Datum
+  const dateElement = document.getElementById('currentDate');
+  if (dateElement) {
+    const options = { day: '2-digit', month: 'long', year: 'numeric' };
+    dateElement.textContent = `Datum: ${now.toLocaleDateString('de-DE', options)}`;
+  }
+
+  // Uhrzeit
+  const timeElement = document.getElementById('currentTime');
+  if (timeElement) {
+    timeElement.textContent = `Zeit: ${now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+  }
+}
+
+function handleDropdownChange(type, value) {
+    showToast(`${type} Filter wurde auf '${value}' gesetzt.`);
+    // Hier würde die Logik zur Datenfilterung folgen
 }
 
 
@@ -83,9 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Setzt die initial aktive View
   switchView(AppState.currentView); 
   
-  // Dummy-Zeit aktualisieren (Optional)
-  const timeElement = document.getElementById('currentTime');
-  if (timeElement) {
-    timeElement.textContent = `Zeit: ${new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
-  }
+  // Datum/Uhrzeit aktualisieren und Timer setzen
+  updateDateTime();
+  setInterval(updateDateTime, 1000); // Jede Sekunde aktualisieren
 });
