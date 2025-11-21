@@ -1,181 +1,318 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-  <meta charset="UTF-8" />
-  <title>SignalOne.cloud | Creative Intelligence Elite Core V10.2 (Sidebar Icon FIX)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="styles.css" /> 
-</head>
+/* =======================================================================
+   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V9.1 (STABILE BASIS)
+   ======================================================================= */
 
-<body>
+/* ---------------------------------------------------
+   0. VARS & RESET (Standard Elite Farben)
+   --------------------------------------------------- */
 
-<nav class="sidebar" id="sidebar">
-  <div class="sidebar-header">
-    <a href="#dashboard" class="sidebar-logo">
-      <img src="/Logo_qu_tr.png" alt="SignalOne Logo" class="sidebar-logo-img">
-    </a>
-  </div>
+:root {
+  /* Elite Colors (Deep Contrast) */
+  --bg: #F3F4F6;             /* Hintergrund: Dark Ash */
+  --bg-card: #ffffff;        /* Cards/Sidebar: Pure White */
+  --text: #111827;           /* Schrift: Deep Black */
+  --text-secondary: #6B7280; /* Status & Labels: Subtle Gray */
+  --border: #E5E7EB;         /* Trennlinien: Soft Divide */
 
-  <div class="sidebar-menu">
-    <div class="menu-section-title">ANALYTICS</div>
-
-    <a href="#dashboard" class="menu-item active" data-view="dashboard">
-      <span class="menu-icon">\uD83D\uDCCA</span>
-      <span class="menu-label">Dashboard</span>
-    </a>
-    <a href="#creatives" class="menu-item" data-view="creatives">
-      <span class="menu-icon">\uD83D\uDCF7</span>
-      <span class="menu-label">Creative Library</span>
-    </a>
-    <a href="#campaigns" class="menu-item" data-view="campaigns">
-      <span class="menu-icon">\uD83D\uDE80</span>
-      <span class="menu-label">Campaigns</span>
-    </a>
-    
-    <div class="menu-section-title">INTELLIGENCE</div>
-    
-    <a href="#sensei" class="menu-item" data-view="sensei">
-      <span class="menu-icon">\uD83D\uDCA1</span>
-      <span class="menu-label">Sensei Strategy</span>
-    </a>
-    
-    <a href="#reports" class="menu-item" data-view="reports">
-      <span class="menu-icon">\uD83D\uDCC4</span>
-      <span class="menu-label">Reports & Export</span>
-    </a>
-
-    <div class="menu-section-title">TOOLS</div> 
-    
-    <a href="#testing" class="menu-item" data-view="testing">
-        <span class="menu-icon">\u269B</span> 
-        <span class="menu-label">Testing Log</span>
-    </a>
-    <a href="#custom" class="menu-item" data-view="custom">
-        <span class="menu-icon">\u2692</span> 
-        <span class="menu-label">Custom Builder</span>
-    </a>
-  </div>
+  /* Brand */
+  --primary: #1F4068;        /* Deep Cerulean */
+  --primary-hover: #2F80ED;  
   
-  <div class="sidebar-footer">
-    <div class="account-status-block">
-        <div class="status-item">
-            <span class="status-indicator status-green"></span>
-            <span class="status-label">Meta Ads (Live)</span>
-        </div>
-        <div class="status-item">
-            <span class="status-indicator status-yellow"></span>
-            <span class="status-label">API Health (Delayed)</span>
-        </div>
-    </div>
-    
-    <a href="#settings" class="menu-item" data-view="settings">
-      <span class="menu-icon">\u2699</span>
-      <span class="menu-label">Settings</span>
-    </a>
-  </div>
-</nav>
-
-<header class="top-bar" id="topBar">
+  /* Basis Akzentfarbe */
+  --brand-accent-gold: #FFC300; 
   
-  <div class="welcome-and-status">
-    <h1 class="greetings">Guten Morgen, Sensei!<div class="health-badge health-yellow">Health: Warning</div></h1>
-    <div class="status-bar">
-      <span>Angemeldet als **Max M.** |</span>
-      <span id="currentTime">Zeit: 06:10:00</span>
-    </div>
-  </div>
+  /* Menü-Button-Hintergrund */
+  --bg-menu-item: #F9FAFB;   
 
-  <div class="top-controls">
-    <div class="dropdown-group">
-        <label class="dropdown-label">PLATTFORM</label>
-        <select class="elite-select" onchange="handlePlatformChange(this)">
-            <option value="meta">Meta Ads (Aktuell)</option>
-            <option value="tiktok">TikTok (Vorbereitung)</option>
-        </select>
-    </div>
-    <div class="dropdown-group">
-        <label class="dropdown-label">WERBEKONTO</label>
-        <select class="elite-select" onchange="handleAccountChange(this)">
-            <option value="acme">Acme Brand #1234</option>
-            <option value="alpha">Alpha Agency #5678</option>
-        </select>
-    </div>
-  </div>
-  
-  <div class="system-actions-area">
-    <button class="icon-button" onclick="handleDeadButton('Benachrichtigungen & Alerts')">\uD83D\uDD14</button> 
-    <button class="icon-button" onclick="handleDeadButton('Hilfe & Support')">\u2753</button>
-    <button class="icon-button profile-button" onclick="handleDeadButton('User-Wechsel & Profil')">\uD83D\uDC64</button>
-  </div>
-</header>
+  /* Größen-Verankerungen */
+  --sidebar-width: 250px;
+  --topbar-height: 72px;
+  --main-padding: 40px;
+  --card-radius: 8px; 
+}
 
-<div class="main-content" id="mainContent">
-  <section class="view" id="dashboardView">
-    <h2 class="elite-title">Dashboard Overview</h2>
+/* Base Reset & Typography */
+* { box-sizing: border-box; }
+
+body {
+  font-family: Montserrat, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg); 
+  color: var(--text);
+  line-height: 1.5;
+}
+
+/* ---------------------------------------------------
+   1. CORE LAYOUT (FIXE MAßE)
+   --------------------------------------------------- */
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--sidebar-width); 
+  height: 100vh;
+  background-color: var(--bg-card);
+  border-right: 1px solid var(--border);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+}
+
+.top-bar {
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-width); 
+  right: 0;
+  height: var(--topbar-height); 
+  background-color: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  padding: 0 var(--main-padding);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 20;
+}
+
+.main-content {
+  margin-left: var(--sidebar-width); 
+  padding-top: calc(var(--topbar-height) + 30px); 
+  padding-bottom: var(--main-padding);
+  padding-left: var(--main-padding);
+  padding-right: var(--main-padding);
+  min-height: 100vh;
+  background-color: var(--bg); 
+}
+
+/* ---------------------------------------------------
+   2. SIDEBAR LOGO & MENÜ-MATRIX 
+   --------------------------------------------------- */
+
+.sidebar-header { padding: 20px 20px 30px 20px; }
+.sidebar-logo-img { 
+    height: 147px; 
+    width: 100%; 
+    max-width: 210px; 
+    display: block;
+    object-fit: contain; 
+}
+
+/* MENÜ ITEM BASIS */
+.menu-item {
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-menu-item); 
+    margin: 0 0 5px 0; 
+    padding: 10px 20px; 
+    text-decoration: none;
+    color: var(--text);
+    border-radius: var(--card-radius);
+    transition: background-color 150ms ease-out;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02); 
+}
+.menu-item:hover {
+    background-color: var(--border); 
+}
+.menu-item.active {
+    background-color: var(--primary); 
+    color: white;
+    font-weight: 600;
+}
+
+/* ICON BASIS */
+.menu-icon {
+    font-size: 14px; 
+    font-weight: 700;
+    width: 28px; 
+    height: 28px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 12px;
     
-    <div class="dashboard-grid">
-        
-        <div class="card kpi-card">
-            <h3 class="card-title">Primäre Metriken</h3>
-            <div class="kpi-group kpi-group-4">
-                <div class="kpi-item">
-                    <span class="kpi-value positive">+4.5%</span>
-                    <span class="kpi-label">Umsatz-Delta</span>
-                </div>
-                <div class="kpi-item">
-                    <span class="kpi-value neutral">3.8x</span>
-                    <span class="kpi-label">ROAS (Ziel 4.0)</span>
-                </div>
-                <div class="kpi-item">
-                    <span class="kpi-value negative">25%</span>
-                    <span class="kpi-label">CPM-Delta</span>
-                </div>
-                <div class="kpi-item placeholder">
-                    <span class="kpi-value">—</span>
-                    <span class="kpi-label">Platzhalter</span>
-                </div>
-            </div>
-        </div>
-        
-        <div class="card kpi-card">
-            <h3 class="card-title">Creative Health</h3>
-             <div class="kpi-group kpi-group-4">
-                <div class="kpi-item">
-                    <span class="kpi-value">120</span>
-                    <span class="kpi-label">Aktive Creatives</span>
-                </div>
-                <div class="kpi-item">
-                    <span class="kpi-value">2,8s</span>
-                    <span class="kpi-label">Avg. Watch Time</span>
-                </div>
-                 <div class="kpi-item placeholder">
-                    <span class="kpi-value">—</span>
-                    <span class="kpi-label">Placeholder</span>
-                </div>
-                 <div class="kpi-item placeholder">
-                    <span class="kpi-value">—</span>
-                    <span class="kpi-label">Placeholder</span>
-                </div>
-            </div>
-        </div>
+    /* Inaktiver Zustand (einfache, dezente Box) */
+    color: var(--text-secondary); 
+    background-color: var(--bg-menu-item);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    
+    opacity: 0.8; 
+    transition: all 150ms;
+}
 
-        <div class="card chart-card">
-            <p>Haupt-Chart (Platz 3)</p>
-        </div>
-        
-    </div>
-  </section>
+/* AKTIVER ZUSTAND (Basisfix - Icon wird weiß auf Blau) */
+.menu-item.active .menu-icon {
+    color: white; 
+    background-color: transparent; 
+    border-color: white; 
+    opacity: 1;
+}
 
-  <section class="view hidden" id="creativesView"><h2>Creative Library</h2></section>
-  <section class="view hidden" id="campaignsView"><h2>Campaigns Overview</h2></section>
-  <section class="view hidden" id="senseiView"><h2>Sensei Strategy</h2></section>
-  <section class="view hidden" id="reportsView"><h2>Reports & Export</h2></section>
-  <section class="view hidden" id="testingView"><h2>Testing Log (Dummy)</h2></section>
-  <section class="view hidden" id="customView"><h2>Custom Builder (Dummy)</h2></section>
-  <section class="view hidden" id="settingsView"><h2>Settings</h2></section>
+.menu-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0 20px; 
+    margin: 20px 0 10px 0;
+}
 
-</div> 
-<div id="toastContainer" class="toast-container"></div>
-<script src="app.js"></script> 
-</body>
-</html>
+/* ACCOUNT-STATUS BLOCK (AMPELSTATUS UNTEN LINKS) */
+.account-status-block {
+    padding: 15px 20px;
+    margin-top: auto; 
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    background-color: var(--bg-card); 
+}
+.status-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+.status-green { background-color: #10B981; }
+.status-yellow { background-color: #F59E0B; }
+.status-red { background-color: #EF4444; }
+.status-label { color: var(--text-secondary); }
+
+
+/* ---------------------------------------------------
+   3. KONSOLE/TOP BAR 
+   --------------------------------------------------- */
+
+.welcome-and-status {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.greetings {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--primary);
+}
+
+.status-bar {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.top-controls {
+    display: flex;
+    gap: 15px;
+}
+
+/* HINWEIS-LABEL */
+.dropdown-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+}
+
+/* DROPDOWN-STIL */
+.elite-select {
+    padding: 8px 15px;
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    background-color: var(--bg);
+    font-size: 14px;
+    color: var(--text);
+    min-width: 180px; 
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* SYSTEM BUTTONS (BASIS-GRÖSSE) */
+.system-actions-area button {
+    width: 36px;
+    height: 36px;
+    font-size: 20px; 
+    color: var(--text); 
+    background: var(--bg-card); 
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    margin-left: 10px;
+    cursor: pointer;
+    transition: all 150ms;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    line-height: 1; 
+}
+.system-actions-area button:hover {
+    background-color: var(--border);
+    color: var(--primary); 
+}
+
+/* ---------------------------------------------------
+   4. DASHBOARD & CARDS 
+   --------------------------------------------------- */
+
+.elite-title {
+    font-size: 32px;
+    font-weight: 800;
+    margin: 0 0 30px 0;
+}
+
+.card {
+  background-color: var(--bg-card);
+  border-radius: var(--card-radius);
+  padding: 24px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05), 0 0 1px rgba(0,0,0,0.08); 
+  border: 1px solid var(--border);
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 30px; 
+}
+
+/* KPI STYLES */
+.kpi-card { height: 220px; }
+.card-title { font-size: 16px; font-weight: 700; margin-top: 0; margin-bottom: 15px; color: var(--text-secondary); }
+.kpi-group { display: flex; flex-wrap: wrap; gap: 20px; }
+.kpi-item { flex-basis: calc(50% - 10px); }
+.kpi-value { display: block; font-size: 24px; font-weight: 800; }
+.kpi-label { display: block; font-size: 12px; color: var(--text-secondary); }
+.positive { color: #10B981; }
+.neutral { color: #F59E0B; }
+.negative { color: #EF4444; }
+
+
+/* TOAST SYSTEM */
+.toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+.toast {
+    background-color: var(--primary);
+    color: white;
+    padding: 12px 20px;
+    border-radius: var(--card-radius);
+    margin-top: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    opacity: 1;
+    transition: opacity 300ms ease-out, transform 300ms ease-out;
+}
+.toast.fade-out {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+/* ---------------------------------------------------
+   5. HIDDEN VIEWS
+   --------------------------------------------------- */
+.view.hidden { display: none; }
