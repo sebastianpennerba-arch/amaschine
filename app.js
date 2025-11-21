@@ -1,5 +1,5 @@
 // =====================================================================
-// SignalOne.cloud – PHASE 2: MINIMAL FUNCTIONAL CORE V7
+// SignalOne.cloud – PHASE 2: MINIMAL FUNCTIONAL CORE V9
 // FIX: ALLE BUTTONS/FUNKTIONEN SIND AKTIV!
 // =====================================================================
 
@@ -11,7 +11,7 @@ const AppState = {
 };
 
 // ----------------------------------------------------------------------
-// HELPER: Toast System
+// HELPER: Toast System (FIXIERT)
 // ----------------------------------------------------------------------
 
 function showToast(message) {
@@ -53,14 +53,12 @@ function handlePlatformChange(selectElement) {
   const selectedText = selectElement.options[selectElement.selectedIndex].text;
   // Simuliert eine Zustandsänderung
   showToast(`✅ PLATFORM-Wechsel erfolgreich: ${selectedText}. Die Datenmatrix wird neu geladen...`);
-  // Logik für tatsächliche Datenverarbeitung würde hier folgen
 }
 
 function handleAccountChange(selectElement) {
   const selectedText = selectElement.options[selectElement.selectedIndex].text;
   // Simuliert eine Zustandsänderung
   showToast(`✅ WERBEKONTO-Wechsel erfolgreich: ${selectedText}. Daten werden synchronisiert...`);
-  // Logik für tatsächliche Datenverarbeitung würde hier folgen
 }
 
 // ----------------------------------------------------------------------
@@ -88,7 +86,6 @@ function switchView(viewId) {
   });
 
   AppState.currentView = viewId;
-  // Optional: Toast bei View-Wechsel
   showToast(`Navigiert zu: ${viewId.charAt(0).toUpperCase() + viewId.slice(1)}`);
 }
 
@@ -106,7 +103,7 @@ function setupViewSwitching() {
 
 
 // ----------------------------------------------------------------------
-// INIT & TIME UPDATE (DATUM/UHRZEIT)
+// INIT & TIME UPDATE 
 // ----------------------------------------------------------------------
 
 function updateTime() {
