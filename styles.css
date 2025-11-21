@@ -1,10 +1,10 @@
 /* =======================================================================
-   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V9.5 (SIDEBAR FINAL & KORRIGIERT)
-   KORREKTUREN: ICON FARBTAUSCH FIX (BASIS IST BLAU/GOLD + OPACITY), FOOTER POSITION FIX
+   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V9.7 (SIDEBAR FINAL)
+   KORREKTUREN: NEUE, EDLE SYMBOLE. GRÖSSE KLEINER (28PX). RUNDUNG HÖHER (8PX).
    ======================================================================= */
 
 /* ---------------------------------------------------
-   0. VARS & RESET (Basis Farben und Größen)
+   0. VARS & RESET
    --------------------------------------------------- */
 
 :root {
@@ -15,17 +15,14 @@
   --text-secondary: #6B7280; 
   --border: #E5E7EB;         
 
-  /* Brand (FIXIERT: Deep Cerulean / Gold) */
-  --primary: #1F4068;        /* Deep Cerulean (Dunkelblau) */
-  --primary-hover: #2F80ED;  
-
-  /* BRAND AKZENTFARBE FÜR ICONS */
+  /* Brand (Deep Cerulean / Gold) */
+  --primary: #1F4068;        /* Dunkelblau */
   --brand-accent-gold: #FFC300; /* Starkes, edles Gold */
-  --brand-gold-shadow: 0 0 10px rgba(255, 195, 0, 0.5); /* Leichter Gold-Schatten */
-  --bg-menu-item: #F9FAFB;   /* Heller Hintergrund für Sidebar-Elemente */
+  --brand-gold-shadow: 0 0 10px rgba(255, 195, 0, 0.5); 
+  --bg-menu-item: #F9FAFB;   
   
   /* Größen-Verankerungen */
-  --sidebar-width: 250px; /* FIXIERT */
+  --sidebar-width: 250px; 
   --topbar-height: 72px;
   --main-padding: 30px;
   --card-radius: 6px; 
@@ -104,7 +101,6 @@ body {
     color: var(--text);
     border-radius: 4px;
     
-    /* MENÜ-SCHRIFT */
     font-weight: 500; 
     
     transition: all 150ms ease-in-out; 
@@ -120,13 +116,13 @@ body {
     font-weight: 600;
 }
 
-/* SIDEBAR ICON STYLING (FINAL KORRIGIERT: KEIN FARBTAUSCH) */
+/* SIDEBAR ICON STYLING (FINAL: KLEINER, RUNDER, BLAU/GOLD BASIS + BLASS) */
 .menu-icon {
-    font-family: 'Montserrat', sans-serif; 
-    font-size: 13px; 
+    font-family: 'Arial', sans-serif; /* Für abstrakte Symbole */
+    font-size: 20px; /* NEU: Größere Symbole */
     font-weight: 700; 
-    width: 32px; 
-    height: 32px;
+    width: 28px; /* NEU: Kleiner */
+    height: 28px; /* NEU: Kleiner */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -139,6 +135,8 @@ body {
     border: 1px solid var(--brand-accent-gold); 
     box-shadow: var(--brand-gold-shadow); 
     
+    border-radius: 8px; /* NEU: Runder */
+    
     opacity: 0.6;                       /* Blasser (Transparenter) */
     transform: scale(0.95);             /* Kleiner */
 
@@ -149,7 +147,6 @@ body {
 .menu-item.active .menu-icon {
     opacity: 1; 
     transform: scale(1.0); 
-    /* Farben bleiben dank Basis-Style unverändert */
 }
 
 .menu-section-title {
@@ -162,16 +159,15 @@ body {
     margin: 15px 0 8px 0;
 }
 
-/* SIDEBAR FOOTER & POSITION FIX */
+/* SIDEBAR FOOTER & POSITION FIX (Meta Health + Settings fix unten) */
 .sidebar-footer {
-    margin-top: auto; /* Fixiert am unteren Ende */
-    padding-top: 1px; /* Für die Trennlinie */
-    border-top: 1px solid var(--border); /* Trennlinie zur oberen Navigation */
+    margin-top: auto; 
+    padding-top: 1px; 
+    border-top: 1px solid var(--border); 
 }
 
-/* Detaillierter Status Block (Meta Health FIX) */
 .account-status-block {
-    padding: 15px 15px 5px 15px; /* Etwas weniger padding unten */
+    padding: 15px 15px 5px 15px; 
     font-size: 13px;
     background-color: var(--bg-card); 
 }
@@ -190,14 +186,14 @@ body {
 
 /* Settings Link am Ende (Fixierung) */
 .sidebar-footer .menu-item {
-    margin-bottom: 0; /* Entfernt den Abstand zum Boden */
-    border-radius: 0; /* Entfernt Rundungen für eine saubere Kante unten */
-    box-shadow: none; /* Entfernt den Schatten für eine flache Optik am Boden */
+    margin-bottom: 0; 
+    border-radius: 0; 
+    box-shadow: none; 
 }
 
 
 /* ---------------------------------------------------
-   3. TOP BAR & BASIS KOMPONENTEN (Unverändert)
+   3. TOP BAR & BASIS KOMPONENTEN
    --------------------------------------------------- */
 .greetings { font-size: 18px; font-weight: 700; margin: 0; color: var(--primary); }
 .status-bar { font-size: 11px; color: var(--text-secondary); }
@@ -224,7 +220,6 @@ body {
   border: 1px solid var(--border);
 }
 
-/* TOAST SYSTEM (Basis) */
 .toast-container { position: fixed; bottom: 15px; right: 15px; z-index: 1000; }
 .toast {
     background-color: var(--primary); color: white; padding: 10px 15px;
@@ -233,5 +228,4 @@ body {
 }
 .toast.fade-out { opacity: 0; transform: translateY(5px); }
 
-/* Hidden View */
 .view.hidden { display: none; }
