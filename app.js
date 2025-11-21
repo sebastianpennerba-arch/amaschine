@@ -1,5 +1,6 @@
 // =====================================================================
-// SignalOne.cloud – PHASE 2: MINIMAL FUNCTIONAL CORE
+// SignalOne.cloud – V9.0: MINIMAL FUNCTIONAL CORE
+// Fokus: View-Wechsel und Toast-Meldungen
 // =====================================================================
 
 "use strict";
@@ -7,8 +8,6 @@
 // Globale Zustandsvariable
 const AppState = {
   currentView: "dashboard",
-  // Initialen Zustand aus LocalStorage laden (falls vorhanden)
-  isSidebarCollapsed: localStorage.getItem('isSidebarCollapsed') === 'true',
 };
 
 // ----------------------------------------------------------------------
@@ -42,7 +41,6 @@ function handleDeadButton(featureName) {
 // ----------------------------------------------------------------------
 
 function switchView(viewId) {
-  // Wenn schon aktiv, nichts tun
   if (AppState.currentView === viewId) return; 
 
   const newView = document.getElementById(viewId + "View");
