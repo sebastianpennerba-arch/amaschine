@@ -36,14 +36,6 @@ function handleDeadButton(featureName) {
   showToast(`${featureName} ist in Vorbereitung (Demo-Modus).`);
 }
 
-// Dummy Funktionen für Dropdowns
-function handlePlatformChange(selectElement) {
-    showToast(`Plattform auf "${selectElement.value.toUpperCase()}" umgestellt.`);
-}
-function handleAccountChange(selectElement) {
-    showToast(`Werbekonto auf "${selectElement.value}" gewechselt.`);
-}
-
 
 // ----------------------------------------------------------------------
 // VIEW SWITCHING 
@@ -53,7 +45,6 @@ function switchView(viewId) {
   // Wenn schon aktiv, nichts tun
   if (AppState.currentView === viewId) return; 
 
-  const mainContent = document.getElementById("mainContent");
   const newView = document.getElementById(viewId + "View");
   const oldView = document.getElementById(AppState.currentView + "View");
   
