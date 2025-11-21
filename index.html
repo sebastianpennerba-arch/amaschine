@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>SignalOne.cloud | Creative Intelligence Elite Core V9.0 (Nullpunkt)</title>
+  <title>SignalOne.cloud | Creative Intelligence Elite Core V9.2 (Sidebar Zementiert)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="styles.css" /> 
 </head>
@@ -32,18 +32,40 @@
       <span class="menu-label">Campaigns</span>
     </a>
     
-    <div class="menu-section-title">TOOLS</div>
+    <div class="menu-section-title">INTELLIGENCE</div>
     
     <a href="#sensei" class="menu-item" data-view="sensei">
       <span class="menu-icon">💡</span>
       <span class="menu-label">Sensei Strategy</span>
     </a>
+    
+    <a href="#reports" class="menu-item" data-view="reports">
+      <span class="menu-icon">📄</span>
+      <span class="menu-label">Reports & Export</span>
+    </a>
+
+    <div class="menu-section-title">TOOLS</div> 
+    
+    <a href="#testing" class="menu-item" data-view="testing">
+        <span class="menu-icon">🧪</span>
+        <span class="menu-label">Testing Log</span>
+    </a>
+    <a href="#custom" class="menu-item" data-view="custom">
+        <span class="menu-icon">🛠️</span>
+        <span class="menu-label">Custom Builder</span>
+    </a>
   </div>
   
   <div class="sidebar-footer">
     <div class="account-status-block">
-        Meta Connection Status: 
-        <span class="status-indicator status-green"></span> Live
+        <div class="status-item">
+            <span class="status-indicator status-green"></span>
+            <span class="status-label">Meta Ads (Live)</span>
+        </div>
+        <div class="status-item">
+            <span class="status-indicator status-yellow"></span>
+            <span class="status-label">API Health (Delayed)</span>
+        </div>
     </div>
     
     <a href="#settings" class="menu-item" data-view="settings">
@@ -80,6 +102,9 @@
   <section class="view hidden" id="creativesView"><h2>Creative Library</h2></section>
   <section class="view hidden" id="campaignsView"><h2>Campaigns Overview</h2></section>
   <section class="view hidden" id="senseiView"><h2>Sensei Strategy</h2></section>
+  <section class="view hidden" id="reportsView"><h2>Reports & Export</h2></section>
+  <section class="view hidden" id="testingView"><h2>Testing Log</h2></section>
+  <section class="view hidden" id="customView"><h2>Custom Builder</h2></section>
   <section class="view hidden" id="settingsView"><h2>Settings</h2></section>
 
 </div> 
