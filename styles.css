@@ -1,99 +1,277 @@
-/* SignalOne.cloud - RESET & FIXES (V2) */
+/* =======================================================================
+   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V3
+   FIXES: ICONS, KONSOLE FUNKTIONALITÄT, MATRIX-GRID
+   ======================================================================= */
+
+/* ---------------------------------------------------
+   0. VARS & RESET (FINALE FARBEN & TYPO)
+   --------------------------------------------------- */
 
 :root {
-  --primary: #6366f1;       /* Elite Indigo */
-  --bg: #f3f4f6;           
-  --text: #111827;         
+  /* Elite Colors */
+  --bg: #F9FAFB;            /* Hintergrund: Clean Gray */
+  --bg-card: #ffffff;       /* Cards/Header: Weiß */
+  --text: #111827;          /* Schrift: Deep Black */
+  --text-secondary: #6B7280;/* Status & Labels: Subtle Gray */
+  --border: #E5E7EB;        /* Trennlinien: Soft Divide */
+
+  /* Brand */
+  --primary: #6366F1;       /* Elite Indigo */
+  --primary-hover: #4F52D9;
+
+  /* KPI Ampel-System */
+  --kpi-positive: #10B981;  /* Elite Green */
+  --kpi-neutral: #F59E0B;   /* Warning Yellow */
+  --kpi-negative: #EF4444;  /* Error Red */
+  
+  /* Größen-Verankerungen (FIX!) */
+  --sidebar-width: 250px;
+  --topbar-height: 72px;
+  --main-padding: 40px;
+  --card-radius: 12px;
 }
 
+/* Base Reset & Typography */
 * { box-sizing: border-box; }
+
 body {
-  font-family: sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   margin: 0;
+  padding: 0;
   background-color: var(--bg);
   color: var(--text);
 }
 
-/* 1. SIDEBAR: FIXE POSITION & BREITE */
+/* ---------------------------------------------------
+   1. CORE LAYOUT (FIXE MAßE)
+   --------------------------------------------------- */
+
 .sidebar {
   position: fixed;
   top: 0;
   left: 0;
-  width: 250px; /* FIXE BREITE */
+  width: var(--sidebar-width); /* FIXE BREITE */
   height: 100vh;
-  background-color: white;
-  border-right: 1px solid #e5e7eb;
-  padding: 20px;
+  background-color: var(--bg-card);
+  border-right: 1px solid var(--border);
   z-index: 30;
-}
-.sidebar-header {
-    font-weight: bold;
-    color: var(--primary);
-    margin-bottom: 30px;
-}
-.menu-item {
-    display: block;
-    padding: 10px 15px;
-    margin-bottom: 5px;
-    text-decoration: none;
-    color: var(--text);
-    border-radius: 8px; /* Weiche Rundungen */
-}
-.menu-item.active {
-    background-color: var(--primary);
-    color: white;
+  padding: 20px 0;
 }
 
-/* 2. TOP BAR (KONSOLE): FIXE POSITION & HÖHE */
 .top-bar {
   position: fixed;
   top: 0;
-  left: 250px; /* STARTET NACH DER SIDEBAR */
+  left: var(--sidebar-width); 
   right: 0;
-  height: 72px; /* FIXE HÖHE */
-  background-color: white;
-  border-bottom: 1px solid #e5e7eb;
-  padding: 0 30px;
+  height: var(--topbar-height); /* FIXE HÖHE */
+  background-color: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  padding: 0 var(--main-padding);
   display: flex;
   justify-content: space-between;
   align-items: center;
   z-index: 20;
 }
-.account-control-area {
-    /* Platz für die Dropdowns */
-    display: flex;
-    gap: 20px;
-    font-size: 14px;
-}
 
-/* 3. MAIN CONTENT: RICHTIGER ABSTAND */
 .main-content {
-  margin-left: 250px; /* Startet nach der Sidebar */
-  padding-top: 72px; /* Startet unter der Top Bar */
-  padding-bottom: 40px;
-  padding-left: 30px;
-  padding-right: 30px;
+  margin-left: var(--sidebar-width); 
+  padding-top: calc(var(--topbar-height) + 30px); /* Platz UNTER der Top Bar */
+  padding-bottom: var(--main-padding);
+  padding-left: var(--main-padding);
+  padding-right: var(--main-padding);
   min-height: 100vh;
 }
-.elite-title {
-    margin-top: 30px;
+
+/* ---------------------------------------------------
+   2. SIDEBAR & EDLE ICONS (KEINE EMOJIS!)
+   --------------------------------------------------- */
+
+.sidebar-header {
+    margin: 0 0 30px 20px;
 }
 
-/* Einheitlichkeits-Test für Grids */
-.test-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* ZWEI GLEICHE SPALTEN */
-    gap: 20px;
-    margin-top: 20px;
-}
-.test-card {
-    background-color: white;
-    padding: 30px;
-    height: 150px; /* FIXE HÖHE */
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Minimaler, hochwertiger Schatten */
+.menu-item {
     display: flex;
     align-items: center;
-    justify-content: center;
-    border: 1px solid #e5e7eb;
+    padding: 10px 20px;
+    margin: 0 10px 5px 10px;
+    border-radius: var(--card-radius);
+    text-decoration: none;
+    color: var(--text);
 }
+
+/* EDLE ICON-PLATZHALTER */
+.menu-icon {
+    font-size: 14px;
+    font-weight: 700;
+    width: 24px; 
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 12px;
+    color: var(--text-secondary);
+    border: 1px solid var(--border); /* Feiner, edler Rahmen */
+    border-radius: 4px;
+}
+.menu-item.active {
+    background-color: var(--primary);
+    color: white;
+}
+.menu-item.active .menu-icon {
+    color: white;
+    border-color: white; /* Weißer Rahmen im aktiven Zustand */
+    background-color: transparent;
+}
+.menu-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 20px 20px 10px 20px;
+}
+
+/* ---------------------------------------------------
+   3. KONSOLE/TOP BAR (FUNKTIONAL)
+   --------------------------------------------------- */
+
+.welcome-and-status {
+    /* Platzierung der Pflichtzeilen */
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+.greetings {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0;
+}
+.status-bar {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.top-controls {
+    /* Platz für Dropdowns/Steuerung */
+    display: flex;
+    gap: 15px;
+}
+.elite-select {
+    /* EDLE DROPDOWN OPTIK */
+    padding: 8px 15px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background-color: var(--bg);
+    font-size: 14px;
+    color: var(--text);
+    /* Setzt eine feste Breite für Einheitlichkeit */
+    min-width: 180px; 
+}
+
+/* SYSTEM BUTTONS */
+.system-actions-area button {
+    /* Einheitliche, quadratische Größe für System-Icons (keine Emojis!) */
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-left: 10px;
+    cursor: pointer;
+    transition: all 150ms;
+}
+.system-actions-area button:hover {
+    background-color: var(--border);
+    color: var(--text);
+}
+
+
+/* ---------------------------------------------------
+   4. DASHBOARD (MATRIX & KPI-GLEICHHEIT)
+   --------------------------------------------------- */
+
+.elite-title {
+    font-size: 32px;
+    font-weight: 800;
+    margin: 0 0 30px 0;
+}
+
+.card {
+  background-color: var(--bg-card);
+  border-radius: var(--card-radius);
+  padding: 24px;
+  /* Elite Shadow: Minimalistisch und hochwertig */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05), 0 0 1px rgba(0,0,0,0.08); 
+  border: 1px solid var(--border);
+}
+
+.dashboard-grid {
+    display: grid;
+    /* MATRIX: 3 gleichmäßige Spalten (1fr) */
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 30px; /* Einheitlicher Abstand (Feste Abstände) */
+}
+
+/* KPI KARTE GLEICHHEIT */
+.kpi-card {
+    height: 220px; /* FIXE HÖHE für vertikale Gleichheit */
+}
+
+.card-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 20px 0;
+    color: var(--text);
+}
+
+.kpi-group-4 {
+    /* Ermöglicht 4 gleichmäßige Spalten innerhalb der KPI-Karte */
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 15px; 
+    margin-top: 10px;
+}
+
+.kpi-item {
+    display: flex;
+    flex-direction: column;
+    padding-right: 10px;
+    /* Trennlinie für optische Unterteilung */
+    border-right: 1px solid var(--border); 
+}
+.kpi-item:last-child {
+    border-right: none;
+}
+.kpi-item.placeholder {
+    opacity: 0.6; /* Leichte Transparenz für Platzhalter */
+}
+
+.kpi-value {
+    font-size: 36px; 
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 4px;
+    color: var(--text); /* Standardmäßig Dunkel */
+}
+
+/* KPI FARB-LOGIK (AMPEL-SYSTEM) */
+.kpi-value.positive { color: var(--kpi-positive); }
+.kpi-value.neutral { color: var(--kpi-neutral); }
+.kpi-value.negative { color: var(--kpi-negative); }
+
+.kpi-label {
+    font-size: 12px; /* FIXE GRÖSSE */
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-secondary); 
+    letter-spacing: 0.5px;
+}
+
+/* ---------------------------------------------------
+   5. HIDDEN VIEWS
+   --------------------------------------------------- */
+.view.hidden { display: none; }
