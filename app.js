@@ -1,5 +1,5 @@
 // =====================================================================
-// SignalOne.cloud – V9.0: MINIMAL FUNCTIONAL CORE
+// SignalOne.cloud – V9.2: MINIMAL FUNCTIONAL CORE
 // Fokus: View-Wechsel und Toast-Meldungen
 // =====================================================================
 
