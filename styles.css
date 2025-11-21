@@ -1,6 +1,6 @@
 /* =======================================================================
-   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V3
-   FIXES: ICONS, KONSOLE FUNKTIONALITÄT, MATRIX-GRID
+   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V4
+   FIX: LOGO GRÖSSE, SIDEBAR ALIGNMENT (DIE MATRIX IST STABIL!)
    ======================================================================= */
 
 /* ---------------------------------------------------
@@ -55,7 +55,9 @@ body {
   background-color: var(--bg-card);
   border-right: 1px solid var(--border);
   z-index: 30;
-  padding: 20px 0;
+  /* Flexbox für vertikale Anordnung (Header, Menü, Footer) */
+  display: flex;
+  flex-direction: column;
 }
 
 .top-bar {
@@ -83,24 +85,50 @@ body {
 }
 
 /* ---------------------------------------------------
-   2. SIDEBAR & EDLE ICONS (KEINE EMOJIS!)
+   2. SIDEBAR LOGO & MENÜ-MATRIX (KORRIGIERT!)
    --------------------------------------------------- */
 
 .sidebar-header {
-    margin: 0 0 30px 20px;
+    /* Padding muss mit den Menü-Items fluchten */
+    padding: 20px 20px 30px 20px; 
+}
+.sidebar-logo {
+    display: block; 
 }
 
+/* LOGO FIX: SETZT DIE GRÖSSE UND VERANKERT SIE MATHEMATISCH KORREKT */
+.sidebar-logo-img {
+    height: 147px; /* NEU: Proportionale Höhe zu 250px Breite */
+    width: 100%; /* Füllt die verfügbare Breite aus */
+    max-width: 210px; /* Max. Breite des Logos im Padding-Bereich (250px - 2*20px) */
+    display: block;
+    object-fit: contain; 
+}
+
+.sidebar-menu {
+    flex-grow: 1; /* Nimmt den gesamten vertikalen Raum ein */
+    overflow-y: auto;
+}
+.sidebar-footer {
+    padding: 10px 0;
+    border-top: 1px solid var(--border);
+}
+
+
+/* MENÜ ITEM FIX: ELIMINIERT MARGIN-KONFLIKTE */
 .menu-item {
     display: flex;
     align-items: center;
-    padding: 10px 20px;
-    margin: 0 10px 5px 10px;
-    border-radius: var(--card-radius);
+    /* Vertikaler Abstand, kein störender horizontaler Margin */
+    margin: 0 0 5px 0; 
+    /* Padding links/rechts für perfekte Ausrichtung zur Matrix (Header-Padding) */
+    padding: 10px 20px; 
     text-decoration: none;
     color: var(--text);
+    border-radius: var(--card-radius); 
 }
 
-/* EDLE ICON-PLATZHALTER */
+/* Restliche Sidebar-Stile */
 .menu-icon {
     font-size: 14px;
     font-weight: 700;
@@ -111,7 +139,7 @@ body {
     align-items: center;
     margin-right: 12px;
     color: var(--text-secondary);
-    border: 1px solid var(--border); /* Feiner, edler Rahmen */
+    border: 1px solid var(--border);
     border-radius: 4px;
 }
 .menu-item.active {
@@ -120,7 +148,7 @@ body {
 }
 .menu-item.active .menu-icon {
     color: white;
-    border-color: white; /* Weißer Rahmen im aktiven Zustand */
+    border-color: white;
     background-color: transparent;
 }
 .menu-section-title {
@@ -129,15 +157,16 @@ body {
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin: 20px 20px 10px 20px;
+    padding: 0 20px; /* Fluchtet mit Padding der Items */
+    margin: 20px 0 10px 0;
 }
+
 
 /* ---------------------------------------------------
    3. KONSOLE/TOP BAR (FUNKTIONAL)
    --------------------------------------------------- */
 
 .welcome-and-status {
-    /* Platzierung der Pflichtzeilen */
     display: flex;
     flex-direction: column;
     line-height: 1.2;
@@ -153,25 +182,21 @@ body {
 }
 
 .top-controls {
-    /* Platz für Dropdowns/Steuerung */
     display: flex;
     gap: 15px;
 }
 .elite-select {
-    /* EDLE DROPDOWN OPTIK */
     padding: 8px 15px;
     border: 1px solid var(--border);
     border-radius: 8px;
     background-color: var(--bg);
     font-size: 14px;
     color: var(--text);
-    /* Setzt eine feste Breite für Einheitlichkeit */
     min-width: 180px; 
 }
 
 /* SYSTEM BUTTONS */
 .system-actions-area button {
-    /* Einheitliche, quadratische Größe für System-Icons (keine Emojis!) */
     width: 36px;
     height: 36px;
     font-size: 16px;
@@ -204,21 +229,18 @@ body {
   background-color: var(--bg-card);
   border-radius: var(--card-radius);
   padding: 24px;
-  /* Elite Shadow: Minimalistisch und hochwertig */
   box-shadow: 0 4px 10px rgba(0,0,0,0.05), 0 0 1px rgba(0,0,0,0.08); 
   border: 1px solid var(--border);
 }
 
 .dashboard-grid {
     display: grid;
-    /* MATRIX: 3 gleichmäßige Spalten (1fr) */
     grid-template-columns: repeat(3, 1fr); 
-    gap: 30px; /* Einheitlicher Abstand (Feste Abstände) */
+    gap: 30px; 
 }
 
-/* KPI KARTE GLEICHHEIT */
 .kpi-card {
-    height: 220px; /* FIXE HÖHE für vertikale Gleichheit */
+    height: 220px; 
 }
 
 .card-title {
@@ -229,7 +251,6 @@ body {
 }
 
 .kpi-group-4 {
-    /* Ermöglicht 4 gleichmäßige Spalten innerhalb der KPI-Karte */
     display: grid;
     grid-template-columns: repeat(4, 1fr); 
     gap: 15px; 
@@ -240,14 +261,13 @@ body {
     display: flex;
     flex-direction: column;
     padding-right: 10px;
-    /* Trennlinie für optische Unterteilung */
     border-right: 1px solid var(--border); 
 }
 .kpi-item:last-child {
     border-right: none;
 }
 .kpi-item.placeholder {
-    opacity: 0.6; /* Leichte Transparenz für Platzhalter */
+    opacity: 0.6; 
 }
 
 .kpi-value {
@@ -255,7 +275,7 @@ body {
     font-weight: 800;
     line-height: 1.1;
     margin-bottom: 4px;
-    color: var(--text); /* Standardmäßig Dunkel */
+    color: var(--text); 
 }
 
 /* KPI FARB-LOGIK (AMPEL-SYSTEM) */
@@ -264,7 +284,7 @@ body {
 .kpi-value.negative { color: var(--kpi-negative); }
 
 .kpi-label {
-    font-size: 12px; /* FIXE GRÖSSE */
+    font-size: 12px; 
     font-weight: 600;
     text-transform: uppercase;
     color: var(--text-secondary); 
