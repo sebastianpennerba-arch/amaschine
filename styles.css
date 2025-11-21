@@ -1,28 +1,31 @@
 /* =======================================================================
-   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V4
-   FIX: LOGO GRÖSSE, SIDEBAR ALIGNMENT (DIE MATRIX IST STABIL!)
+   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V5 (FINALE MATRIX)
+   FIX: FARBEN, SCHRIFT, LOGO-GRÖSSE, EDLE ICONS
    ======================================================================= */
 
 /* ---------------------------------------------------
-   0. VARS & RESET (FINALE FARBEN & TYPO)
+   0. VARS & RESET (FINALE ELITE FARBEN & TYPO)
    --------------------------------------------------- */
 
 :root {
-  /* Elite Colors */
-  --bg: #F9FAFB;            /* Hintergrund: Clean Gray */
-  --bg-card: #ffffff;       /* Cards/Header: Weiß */
-  --text: #111827;          /* Schrift: Deep Black */
-  --text-secondary: #6B7280;/* Status & Labels: Subtle Gray */
-  --border: #E5E7EB;        /* Trennlinien: Soft Divide */
+  /* Elite Colors (Deep Contrast) */
+  --bg: #F3F4F6;             /* NEU: Hintergrund: Dark Ash (Matter Look) */
+  --bg-card: #ffffff;        /* Cards/Sidebar: Pure White */
+  --text: #111827;           /* Schrift: Deep Black */
+  --text-secondary: #6B7280; /* Status & Labels: Subtle Gray */
+  --border: #E5E7EB;         /* Trennlinien: Soft Divide */
 
   /* Brand */
-  --primary: #6366F1;       /* Elite Indigo */
-  --primary-hover: #4F52D9;
+  --primary: #1F4068;        /* NEU: Deep Cerulean (Edles, tiefes Blau) */
+  --primary-hover: #2F80ED;  /* NEU: Azure Light (Helle Akzentfarbe) */
+  
+  /* Menü-Button-Hintergrund */
+  --bg-menu-item: #F9FAFB;   /* NEU: Soft Blue Gray (Kein Piss-Mint!) */
 
   /* KPI Ampel-System */
-  --kpi-positive: #10B981;  /* Elite Green */
-  --kpi-neutral: #F59E0B;   /* Warning Yellow */
-  --kpi-negative: #EF4444;  /* Error Red */
+  --kpi-positive: #10B981;  
+  --kpi-neutral: #F59E0B;   
+  --kpi-negative: #EF4444;  
   
   /* Größen-Verankerungen (FIX!) */
   --sidebar-width: 250px;
@@ -35,7 +38,8 @@
 * { box-sizing: border-box; }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* NEUE SCHRIFTART: Montserrat (oder System-Fallbacks) */
+  font-family: Montserrat, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   margin: 0;
   padding: 0;
   background-color: var(--bg);
@@ -50,12 +54,11 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  width: var(--sidebar-width); /* FIXE BREITE */
+  width: var(--sidebar-width); 
   height: 100vh;
   background-color: var(--bg-card);
   border-right: 1px solid var(--border);
   z-index: 30;
-  /* Flexbox für vertikale Anordnung (Header, Menü, Footer) */
   display: flex;
   flex-direction: column;
 }
@@ -65,7 +68,7 @@ body {
   top: 0;
   left: var(--sidebar-width); 
   right: 0;
-  height: var(--topbar-height); /* FIXE HÖHE */
+  height: var(--topbar-height); 
   background-color: var(--bg-card);
   border-bottom: 1px solid var(--border);
   padding: 0 var(--main-padding);
@@ -77,36 +80,36 @@ body {
 
 .main-content {
   margin-left: var(--sidebar-width); 
-  padding-top: calc(var(--topbar-height) + 30px); /* Platz UNTER der Top Bar */
+  padding-top: calc(var(--topbar-height) + 30px); 
   padding-bottom: var(--main-padding);
   padding-left: var(--main-padding);
   padding-right: var(--main-padding);
   min-height: 100vh;
+  background-color: var(--bg); /* Wichtig: Korrigierte Hintergrundfarbe */
 }
 
 /* ---------------------------------------------------
-   2. SIDEBAR LOGO & MENÜ-MATRIX (KORRIGIERT!)
+   2. SIDEBAR LOGO & MENÜ-MATRIX (FINALE IMPLEMENTIERUNG)
    --------------------------------------------------- */
 
 .sidebar-header {
-    /* Padding muss mit den Menü-Items fluchten */
     padding: 20px 20px 30px 20px; 
 }
 .sidebar-logo {
     display: block; 
 }
 
-/* LOGO FIX: SETZT DIE GRÖSSE UND VERANKERT SIE MATHEMATISCH KORREKT */
+/* LOGO FIX: 200px Breite = 117px Höhe */
 .sidebar-logo-img {
-    height: 147px; /* NEU: Proportionale Höhe zu 250px Breite */
-    width: 100%; /* Füllt die verfügbare Breite aus */
-    max-width: 210px; /* Max. Breite des Logos im Padding-Bereich (250px - 2*20px) */
+    height: 117px; /* Proportionale Höhe */
+    width: 100%; 
+    max-width: 210px; /* Passt perfekt in 250px Container */
     display: block;
     object-fit: contain; 
 }
 
 .sidebar-menu {
-    flex-grow: 1; /* Nimmt den gesamten vertikalen Raum ein */
+    flex-grow: 1; 
     overflow-y: auto;
 }
 .sidebar-footer {
@@ -115,20 +118,31 @@ body {
 }
 
 
-/* MENÜ ITEM FIX: ELIMINIERT MARGIN-KONFLIKTE */
+/* MENÜ ITEM FIX: EDLE FARBE & FLUCHTUNG */
 .menu-item {
     display: flex;
     align-items: center;
-    /* Vertikaler Abstand, kein störender horizontaler Margin */
+    background-color: var(--bg-menu-item); /* HINTERGRUND DES INAKTIVEN BUTTONS (Soft Blue Gray) */
     margin: 0 0 5px 0; 
-    /* Padding links/rechts für perfekte Ausrichtung zur Matrix (Header-Padding) */
     padding: 10px 20px; 
     text-decoration: none;
     color: var(--text);
-    border-radius: var(--card-radius); 
+    border-radius: var(--card-radius);
+    transition: background-color 150ms ease-out;
+}
+.menu-item:hover {
+    background-color: var(--border); /* Dezentes Hover */
+}
+.menu-item.active {
+    background-color: var(--primary); /* TIEFE PRIMÄRFARBE (Deep Cerulean) */
+    color: white;
+    font-weight: 600;
+}
+.menu-item.active .menu-icon {
+    color: white;
+    border-color: white;
 }
 
-/* Restliche Sidebar-Stile */
 .menu-icon {
     font-size: 14px;
     font-weight: 700;
@@ -142,28 +156,20 @@ body {
     border: 1px solid var(--border);
     border-radius: 4px;
 }
-.menu-item.active {
-    background-color: var(--primary);
-    color: white;
-}
-.menu-item.active .menu-icon {
-    color: white;
-    border-color: white;
-    background-color: transparent;
-}
+
 .menu-section-title {
     font-size: 11px;
     font-weight: 700;
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    padding: 0 20px; /* Fluchtet mit Padding der Items */
+    padding: 0 20px; 
     margin: 20px 0 10px 0;
 }
 
 
 /* ---------------------------------------------------
-   3. KONSOLE/TOP BAR (FUNKTIONAL)
+   3. KONSOLE/TOP BAR (3-GETEILTER HEADER MIT LABELS)
    --------------------------------------------------- */
 
 .welcome-and-status {
@@ -185,6 +191,21 @@ body {
     display: flex;
     gap: 15px;
 }
+
+/* NEUE LABELS FÜR DROPDOWNS */
+.dropdown-group {
+    display: flex;
+    flex-direction: column;
+}
+.dropdown-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+}
+
 .elite-select {
     padding: 8px 15px;
     border: 1px solid var(--border);
@@ -195,14 +216,14 @@ body {
     min-width: 180px; 
 }
 
-/* SYSTEM BUTTONS */
+/* SYSTEM BUTTONS (KEIN "OHNE FUNKTION") */
 .system-actions-area button {
     width: 36px;
     height: 36px;
     font-size: 16px;
     font-weight: 700;
-    color: var(--text-secondary);
-    background: var(--bg);
+    color: var(--text); /* Icon Farbe */
+    background: var(--bg-card); /* Weißer Button Hintergrund */
     border: 1px solid var(--border);
     border-radius: 8px;
     margin-left: 10px;
@@ -211,7 +232,7 @@ body {
 }
 .system-actions-area button:hover {
     background-color: var(--border);
-    color: var(--text);
+    color: var(--primary); /* Akzentfarbe beim Hover */
 }
 
 
