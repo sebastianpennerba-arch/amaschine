@@ -57,7 +57,7 @@ body {
     flex-grow: 1;
     padding: calc(70px + var(--spacing-primary)) var(--spacing-primary) var(--spacing-primary) 0;
     margin-left: 250px; /* Offset für die Sidebar */
-    max-width: 1600px; /* Max-Width: 1600px */
+    max-width: 1600px; 
 }
 
 .top-bar {
@@ -91,10 +91,6 @@ body {
 }
 .system-optimal {
     background-color: var(--text-positive);
-    color: white;
-}
-.system-warning {
-    background-color: var(--text-negative);
     color: white;
 }
 
@@ -229,7 +225,10 @@ body {
    --------------------------------------------------- */
 .view {
     margin-bottom: var(--spacing-primary);
-    padding-right: var(--spacing-primary); /* Gleicht den Main Content Padding aus */
+    padding-right: var(--spacing-primary); 
+}
+.hidden {
+    display: none;
 }
 
 .elite-title {
@@ -317,6 +316,7 @@ body {
     border-radius: 6px;
     cursor: pointer;
     color: var(--text-secondary);
+    transition: background-color 0.15s, color 0.15s, border-color 0.15s;
 }
 
 .date-toggles .date-btn.active {
@@ -356,7 +356,7 @@ body {
 
 .creative-media-container {
     width: 100%;
-    height: 250px; /* Feste Höhe für die Hero Creatives */
+    height: 250px; 
     position: relative;
     overflow: hidden;
 }
@@ -364,7 +364,7 @@ body {
 .creative-media-container img, .creative-media-container video {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* ESSENTIELL: Füllt den Container ohne Verzerrung */
+    object-fit: cover; 
     display: block;
 }
 
@@ -492,6 +492,9 @@ body {
     font-size: 18px;
     color: var(--primary);
     text-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 3px 6px;
+    border-radius: 4px;
 }
 
 .creative-stats {
@@ -630,9 +633,46 @@ body {
     background-color: var(--bg-menu-item);
 }
 
+/* ---------------------------------------------------
+   9. TOAST NOTIFICATION SYSTEM
+   --------------------------------------------------- */
+#toastContainer {
+    position: fixed;
+    top: 90px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    background-color: var(--bg-card);
+    color: var(--text);
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    font-size: 14px;
+    font-weight: 600;
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+    border-left: 5px solid;
+    min-width: 300px;
+}
+
+.toast.toast-info { border-left-color: var(--primary); }
+.toast.toast-success { border-left-color: var(--text-positive); }
+.toast.toast-warning { border-left-color: orange; }
+
+.toast.fade-out {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
 
 /* ---------------------------------------------------
-   9. RESPONSIVENESS
+   10. RESPONSIVENESS
    --------------------------------------------------- */
 
 @media (max-width: 1400px) {
@@ -683,5 +723,12 @@ body {
     }
     .creative-library-grid {
         grid-template-columns: 1fr;
+    }
+    .greeting-status {
+        display: none; /* Platz sparen */
+    }
+    .account-selection {
+        width: 100%;
+        justify-content: space-between;
     }
 }
