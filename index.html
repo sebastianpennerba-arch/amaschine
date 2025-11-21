@@ -11,7 +11,7 @@
 
     <nav class="sidebar" id="sidebar">
         <div class="logo-container">
-            <img src="https://via.placeholder.com/150x50?text=SignalOne.cloud" alt="SignalOne Logo" class="logo">
+            <img src="/mock/SignalOne_Logo.svg" alt="SignalOne Logo" class="logo">
         </div>
         
         <div class="menu-category">ANALYTICS</div>
@@ -28,14 +28,11 @@
         <a href="#" class="menu-item" id="menuCustomBuilder" data-view="customBuilder" onclick="showView('customBuilderView', this)"><i class="fas fa-wrench"></i> Custom Builder</a>
         
         <div class="menu-footer">
-            <div class="menu-status">
-                <span id="currentDate">Datum: 21.11.2025</span>
-            </div>
-            <div class="menu-status">
-                <span id="currentTime">Zeit: 17:55:00</span>
-            </div>
-            <div class="menu-status" style="margin-top: 5px;">
+            <div class="menu-status" style="margin-bottom: 5px;">
                 <span class="status-indicator status-green"></span> Meta Ads (Live)
+            </div>
+            <div class="menu-status" style="margin-bottom: 15px;">
+                <span class="status-indicator status-yellow"></span> API Health (Delayed)
             </div>
             <a href="#" class="menu-item" id="menuSettings" data-view="settings" onclick="showView('settingsView', this)"><i class="fas fa-cog"></i> Settings</a>
         </div>
@@ -44,8 +41,10 @@
     <header class="top-bar">
         <div class="greeting-status">
             <h1>Guten Tag, [User Name]!</h1>
+            <span class="header-date-time">Datum: <span id="currentDate">21. November 2025</span> | Zeit: <span id="currentTime">09:53:30</span></span>
             <span class="system-health system-optimal">SYSTEM HEALTH: OPTIMAL</span>
         </div>
+        
         <div class="account-selection">
             <div class="select-container">
                 <select onchange="handleDropdownChange('Brand', this.value)">
@@ -59,8 +58,10 @@
                     <option>Scaling (3)</option>
                 </select>
             </div>
+            
             <button class="header-action-button" onclick="handleDeadButton('User Profile')"><i class="fas fa-user-circle"></i></button>
             <button class="header-action-button" onclick="handleDeadButton('Quick Actions')"><i class="fas fa-bell"></i></button>
+            <button class="header-action-button" onclick="handleDeadButton('Logout')"><i class="fas fa-sign-out-alt"></i></button>
         </div>
     </header>
 
@@ -427,84 +428,63 @@
                     <button class="action-button-secondary" onclick="handleDeadButton('Skalierung ausführen')">Automatisch Skalieren</button>
                 </div>
 
-                <div class="card strategy-card recommendation-card">
-                    <h3 class="strategy-title">🎯 Targeting Adjustment</h3>
-                    <p class="kpi-value-mini trend-negative" style="font-size: 28px; margin: 10px 0;">-8% Spend Waste</p>
-                    <p style="color: var(--text-secondary);">Empfehlung: **Pausiere** Adset 'Lookalike 1%' im Gebiet B. Senkt CPP um €2.10.</p>
-                    <button class="action-button-secondary" onclick="handleDeadButton('Adset pausieren')">Adset Pausieren</button>
+                <div class="card strategy-card alert-card">
+                    <h3 class="strategy-title">⚠️ Budget Pacing Alert</h3>
+                    <p class="kpi-value-mini trend-negative" style="font-size: 28px; margin: 10px 0;">-8% Unterausgaben</p>
+                    <p style="color: var(--text-secondary);">Warnung: Die Testing-Kampagne "UGC Hook Tests" gibt -8% unter dem geplanten Budget aus. **Erhöhe** Budget um 10%.</p>
+                    <button class="action-button-secondary" onclick="handleDeadButton('Budget anpassen')">Budget Anpassen</button>
                 </div>
 
-                <div class="card strategy-card recommendation-card">
-                    <h3 class="strategy-title">💰 Budget Recommendation</h3>
-                    <p class="kpi-value-mini trend-positive" style="font-size: 28px; margin: 10px 0;">+10% Impression Share</p>
-                    <p style="color: var(--text-secondary);">Empfehlung: **Erhöhe** Budget für 'Scaling Campaign Q4' um €500 pro Tag. Basierend auf aktuellen Sättigungsdaten.</p>
-                    <button class="action-button-secondary" onclick="handleDeadButton('Budget erhöhen')">Budget Anpassen</button>
+                <div class="card strategy-card warning-card">
+                    <h3 class="strategy-title">🚨 Creative Fatigue</h3>
+                    <p class="kpi-value-mini trend-negative" style="font-size: 28px; margin: 10px 0;">-0.5% CTR Drop</p>
+                    <p style="color: var(--text-secondary);">Warnung: Creative ID 18-02_UGC_Quality_Unboxing zeigt Ermüdung. **Ersetze** es in 3 Adsets durch neues Material.</p>
+                    <button class="action-button-secondary" onclick="handleDeadButton('Creative pausieren')">Creative Pausieren</button>
                 </div>
-            </div>
-            
-            <div class="card strategy-log-card" style="padding: 0;">
-                <h3 class="elite-title" style="padding: 20px 25px 0;">Historischer Strategie-Log</h3>
-                <table class="strategy-log-table">
-                    <thead>
-                        <tr>
-                            <th>Datum</th>
-                            <th>Strategie</th>
-                            <th>Detail</th>
-                            <th>Erwartete Auswirkung</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>2025-11-20</td>
-                            <td>Creative Scaling</td>
-                            <td>Skalierung von Creative 'Sunset Vibe'</td>
-                            <td>+12% ROAS</td>
-                            <td><span class="status-indicator status-green"></span> Abgeschlossen</td>
-                        </tr>
-                         <tr>
-                            <td>2025-11-19</td>
-                            <td>Budget Allocation</td>
-                            <td>Budget-Shift von Test zu Scaling</td>
-                            <td>+0.5% ROAS</td>
-                            <td><span class="status-indicator status-green"></span> Abgeschlossen</td>
-                        </tr>
-                         <tr>
-                            <td>2025-11-18</td>
-                            <td>Targeting Freeze</td>
-                            <td>Adset 'Old LAL' pausiert</td>
-                            <td>-5% Spend Waste</td>
-                            <td><span class="status-indicator status-green"></span> Abgeschlossen</td>
-                        </tr>
-                    </tbody>
-                </table>
+
+                <div class="card strategy-card generator-card" style="grid-column: span 3;">
+                    <h3 class="strategy-title">⚙️ Sensei AI Hook Generator (Mock)</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 15px;">Generiere datengestützte neue Hooks und Skripte basierend auf deinen Top-Performern.</p>
+                    <div style="display: flex; gap: 15px;">
+                        <input type="text" placeholder="Fokus-Produkt eingeben (z.B. Rasenmähermesser)" style="flex-grow: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px;">
+                        <button class="action-button" onclick="handleDeadButton('Hooks generieren')">Hooks Generieren</button>
+                        <button class="action-button-secondary" onclick="handleDeadButton('Scripts generieren')">Scripts Generieren</button>
+                    </div>
+                </div>
+
             </div>
         </section>
-
 
         <section class="view hidden" id="reportsExportView">
             <h2 class="elite-title">Reports & Export</h2>
-            <p>Hier wird der Report-Generator und Export-Bereich implementiert.</p>
+            <p>Platzhalter für Report-Generierung und Export-Funktionen.</p>
         </section>
-
         <section class="view hidden" id="testingLogView">
             <h2 class="elite-title">Testing Log</h2>
-            <p>Platzhalter für die detaillierte Ansicht der Creative-Tests.</p>
+            <p>Platzhalter für das A/B-Testing-Logbuch.</p>
         </section>
-
         <section class="view hidden" id="customBuilderView">
             <h2 class="elite-title">Custom Builder</h2>
             <p>Platzhalter für den Custom Builder.</p>
         </section>
-
         <section class="view hidden" id="settingsView">
             <h2 class="elite-title">Settings</h2>
-            <p>Platzhalter für die Kontoeinstellungen.</p>
+            <p>Platzhalter für die Einstellungen.</p>
         </section>
+
 
     </main>
 
-    <div id="toastContainer"></div>
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-content">
+            <h3 id="modalTitle">Modal Titel</h3>
+            <p id="modalBody">Dies ist der Inhalt des Modals.</p>
+            <button onclick="closeModal()">Schließen</button>
+        </div>
+    </div>
+
 
     <script src="app.js"></script>
 </body>
