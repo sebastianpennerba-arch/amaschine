@@ -1,6 +1,6 @@
 /* =======================================================================
-   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V9.2 (SIDEBAR 100% KOMPLETT)
-   FOKUS: GRUNDGERÜST & BLAU-GOLD SIDEBAR STYLING
+   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V9.4 (SIDEBAR FINAL & KORRIGIERT)
+   ÄNDERUNGEN: BLAU-GOLD TEXT-ICONS FIX, MENU-ITEM STYLING FIX
    ======================================================================= */
 
 /* ---------------------------------------------------
@@ -15,11 +15,11 @@
   --text-secondary: #6B7280; 
   --border: #E5E7EB;         
 
-  /* Brand (FIXIERT) */
+  /* Brand (FIXIERT: Deep Cerulean / Gold) */
   --primary: #1F4068;        /* Deep Cerulean (Dunkelblau) */
-  --primary-hover: #2F80ED;  
+  --primary-hover: #2F80ED;  /* Hellblau für inaktive Icon-Farbe */
 
-  /* NEUE BRAND AKZENTFARBE FÜR ICONS */
+  /* BRAND AKZENTFARBE FÜR ICONS */
   --brand-accent-gold: #FFC300; /* Starkes, edles Gold */
   --brand-gold-shadow: 0 0 10px rgba(255, 195, 0, 0.5); /* Leichter Gold-Schatten */
   --bg-menu-item: #F9FAFB;   /* Heller Hintergrund für Sidebar-Elemente */
@@ -86,7 +86,7 @@ body {
 }
 
 /* ---------------------------------------------------
-   2. SIDEBAR MENÜ (100% ZEMENTIERT mit BLAU-GOLD)
+   2. SIDEBAR MENÜ (FINAL KORRIGIERT)
    --------------------------------------------------- */
 
 .sidebar-header { padding: 15px 15px 25px 15px; }
@@ -103,8 +103,13 @@ body {
     text-decoration: none;
     color: var(--text);
     border-radius: 4px;
-    transition: background-color 150ms ease-out;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.02); 
+    
+    /* MENÜ-SCHRIFT WENIGER TROCKEN */
+    font-weight: 500; /* Leichte Erhöhung der Gewichtung */
+    
+    transition: all 150ms ease-in-out; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Präsenterer, edler Schatten */
+    opacity: 0.95; /* Etwas weniger transparent als 1.0, wirkt solider */
 }
 .menu-item:hover {
     background-color: var(--border); 
@@ -115,34 +120,36 @@ body {
     font-weight: 600;
 }
 
-/* SIDEBAR ICON STYLING (BLAU-GOLD FIX) */
+/* SIDEBAR ICON STYLING (TEXT ICON FIX: DAUERHAFT FARBE/TRANSPARENZ) */
 .menu-icon {
-    font-size: 14px; 
+    font-family: 'Montserrat', sans-serif; 
+    font-size: 13px; 
     font-weight: 700; 
-    width: 28px; 
-    height: 28px;
+    width: 32px; 
+    height: 32px;
     display: flex;
     justify-content: center;
     align-items: center;
     margin-right: 12px;
+    flex-shrink: 0;
     
-    /* Inaktiver Zustand (Transparenter, kleiner Kasten) */
-    color: var(--text-secondary); 
-    background-color: var(--bg-menu-item);
+    /* Inaktiver Zustand (Dauerhaft Box, helle Farbe, durch Opacity verblasst) */
+    color: var(--primary-hover); /* NEU: Helle Farbe (Hellblau) */
+    background-color: var(--bg-card); 
     border: 1px solid var(--border);
     border-radius: 4px;
     
-    opacity: 0.8; 
+    opacity: 0.6; /* Transparenz (macht den Icon-Kasten heller) */
     transition: all 150ms;
 }
 
-/* AKTIVER ZUSTAND (BLAUER KASTEN MIT GOLD-ICON) */
+/* AKTIVER ZUSTAND (BLAUER KASTEN MIT GOLD-TEXT) */
 .menu-item.active .menu-icon {
-    color: var(--brand-accent-gold); /* Icon wird GOLD */
-    background-color: var(--primary); /* Box wird BLAU */
-    border: 1px solid var(--brand-accent-gold); /* Goldener Rand */
-    box-shadow: var(--brand-gold-shadow); /* Goldener Glow */
-    opacity: 1;
+    color: var(--brand-accent-gold); /* Text MUSS GOLD sein */
+    background-color: var(--primary); /* Box MUSS BLAU sein */
+    border: 1px solid var(--brand-accent-gold); 
+    box-shadow: var(--brand-gold-shadow); 
+    opacity: 1; /* Volle Sichtbarkeit */
 }
 
 .menu-section-title {
@@ -155,10 +162,10 @@ body {
     margin: 15px 0 8px 0;
 }
 
-/* Detaillierter Status Block (Ampelsystem) */
+/* Detaillierter Status Block (Meta Health FIX) */
 .account-status-block {
     padding: 15px 15px;
-    margin-top: auto; 
+    margin-top: auto; /* Fixiert am unteren Ende */
     border-top: 1px solid var(--border);
     font-size: 13px;
     background-color: var(--bg-card); 
@@ -171,9 +178,9 @@ body {
 .status-indicator {
     width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; flex-shrink: 0;
 }
-.status-green { background-color: #10B981; } /* Ampel Grün */
-.status-yellow { background-color: #F59E0B; } /* Ampel Gelb */
-.status-red { background-color: #EF4444; } /* Ampel Rot (Vorbereitung) */
+.status-green { background-color: #10B981; } 
+.status-yellow { background-color: #F59E0B; } 
+.status-red { background-color: #EF4444; } 
 .status-label { color: var(--text-secondary); }
 
 
