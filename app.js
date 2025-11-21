@@ -1,5 +1,5 @@
 // =====================================================================
-// SignalOne.cloud – V9.5: MINIMAL FUNCTIONAL CORE
+// SignalOne.cloud – V9.7: MINIMAL FUNCTIONAL CORE
 // =====================================================================
 
 "use strict";
