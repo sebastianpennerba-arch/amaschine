@@ -1,6 +1,6 @@
 /* =======================================================================
-   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V10.0 (KONZERN-FINAL)
-   STAND: Sidebar, Header, KPI-Karten, Chart-Sektion.
+   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V10.6 (BUGFIX: ALL LAYOUT STABILITY)
+   KORREKTUR: Wiederherstellung des 4er KPI-Grid & Creative Media Fix.
    ======================================================================= */
 
 /* ---------------------------------------------------
@@ -16,7 +16,7 @@
   --border: #E5E7EB;         
 
   /* Brand (Deep Cerulean / Gold) */
-  --primary: #1F4068;        /* Dunkelblau */
+  --primary: #1F4068;        
   --primary-hover: #2F80ED;  
   --brand-accent-gold: #FFC300; 
   --brand-gold-shadow: 0 0 10px rgba(255, 195, 0, 0.5); 
@@ -78,7 +78,7 @@ body {
 
 .main-content {
   margin-left: var(--sidebar-width); 
-  padding-top: calc(var(--topbar-height) + 30px); /* Platz für Top-Bar + Abstand */
+  padding-top: calc(var(--topbar-height) + 30px); 
   padding-bottom: var(--main-padding);
   padding-left: var(--main-padding);
   padding-right: var(--main-padding);
@@ -87,7 +87,7 @@ body {
 }
 
 /* ---------------------------------------------------
-   2. SIDEBAR MENÜ (V9.7)
+   2. SIDEBAR MENÜ (V10.4 ICONS)
    --------------------------------------------------- */
 
 .sidebar-header { padding: 15px 15px 25px 15px; }
@@ -117,7 +117,7 @@ body {
 
 .menu-icon {
     font-family: 'Arial', sans-serif; 
-    font-size: 20px; 
+    font-size: 16px; 
     font-weight: 700; 
     width: 28px; 
     height: 28px; 
@@ -127,7 +127,6 @@ body {
     margin-right: 12px;
     flex-shrink: 0;
     
-    /* BLAU/GOLD STYLING */
     color: var(--brand-accent-gold);    
     background-color: var(--primary);   
     border: 1px solid var(--brand-accent-gold); 
@@ -169,11 +168,12 @@ body {
 .status-item { display: flex; align-items: center; margin-bottom: 5px; }
 .status-indicator { width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; flex-shrink: 0; }
 .status-green { background-color: #10B981; } 
+.status-yellow { background-color: #F59E0B; }
 .sidebar-footer .menu-item { margin-bottom: 0; border-radius: 0; box-shadow: none; }
 
 
 /* ---------------------------------------------------
-   3. TOP BAR & BASIS KOMPONENTEN (V9.8)
+   3. TOP BAR & BASIS KOMPONENTEN (V10.4)
    --------------------------------------------------- */
 
 /* Sektion 1: Konsole / Health Status */
@@ -314,22 +314,40 @@ body {
 
 
 /* ---------------------------------------------------
-   4. DASHBOARD & KPI COMPONENTS (V10.1 KORREKTUR)
+   4. DASHBOARD & KPI COMPONENTS (V10.6 KORREKTUR)
    --------------------------------------------------- */
 
-/* KPI HEADER: NEUES LAYOUT */
-.kpi-header {
-    /* Kein Space-Between mehr nötig, da Icon jetzt links neben Titel */
-    display: flex;
-    align-items: center; 
-    margin-bottom: 15px;
+.dashboard-grid {
+    display: grid;
+    /* FIX: Muss 4 Spalten haben, um die horizontale Ausrichtung zu gewährleisten */
+    grid-template-columns: repeat(4, 1fr); 
+    gap: var(--main-padding); 
+    margin-bottom: var(--main-padding);
 }
 
-/* KPI TITEL: NEUES LAYOUT */
+.kpi-card {
+    background-color: var(--bg-card);
+    border-radius: var(--card-radius);
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+    border: 1px solid var(--border);
+    
+    /* FIX: Sicherstellen, dass die Inhalte korrekt vertikal angeordnet sind */
+    display: flex; 
+    flex-direction: column; 
+    justify-content: space-between; 
+    min-height: 150px; 
+}
+
+.kpi-header {
+    display: block; 
+    margin-bottom: 0; 
+}
+
 .kpi-title-wrapper {
-    display: flex;
+    display: flex; 
     align-items: center;
-    /* Der eigentliche Titel-Text wird vom Icon getrennt */
+    margin-bottom: 5px; 
 }
 
 .kpi-title {
@@ -339,47 +357,51 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin: 0;
+    line-height: 1.2;
 }
 
-/* KPI ICON: NEUE GRÖSSE UND POSITION */
 .kpi-icon { 
-    font-size: 16px; /* Kleiner als 20px, aber direkt neben Text größer wirkend */
+    font-size: 16px; 
     color: var(--primary);
-    margin-right: 8px; /* Abstand zum Titel */
+    margin-right: 8px; 
     flex-shrink: 0;
 }
+
 .kpi-value {
     font-size: 40px; 
     font-weight: 800;
     color: var(--text);
-    line-height: 1;
-    margin: 0;
+    line-height: 1.1;
+    margin: 0 0 10px 0; 
+    flex-grow: 1; 
 }
+
 .kpi-footer {
     display: flex;
     align-items: center;
-    margin-top: 10px;
+    margin-top: auto; 
     font-size: 13px;
     font-weight: 600;
 }
 .kpi-trend { display: flex; align-items: center; margin-right: 15px; }
 .trend-indicator { margin-right: 5px; font-size: 16px; line-height: 1; }
-.trend-positive { color: #10B981; } /* Grün */
-.trend-negative { color: #EF4444; } /* Rot */
+.trend-positive { color: #10B981; } 
+.trend-negative { color: #EF4444; } 
 .trend-neutral { color: var(--text-secondary); } 
 .kpi-comparison {
     color: var(--text-secondary);
     font-weight: 500;
 }
 
-/* CHART SECTION STYLING (V10.0) */
+/* CHART SECTION STYLING */
 .chart-section {
-    grid-column: 1 / -1; /* Nimmt die volle Breite von 4 Spalten ein */
+    grid-column: 1 / -1; 
     padding: 20px 25px;
     height: 400px; 
     display: flex;
     flex-direction: column;
 }
+
 .chart-header-controls {
     display: flex;
     justify-content: space-between;
@@ -389,74 +411,70 @@ body {
 .chart-metric-selector {
     display: flex;
     align-items: center;
-    gap: 15px;
 }
 .chart-title-main {
     font-size: 20px;
     font-weight: 700;
-    color: var(--primary);
-    margin: 0;
+    margin: 0 15px 0 0;
 }
-
-/* Elite-Button-Group-Styling für Zeitraum-Umschalter */
 .time-range-group {
     display: flex;
-    border: 1px solid var(--border);
+    gap: 5px;
+    background-color: var(--bg);
+    padding: 3px;
     border-radius: 4px;
-    overflow: hidden;
 }
 .time-range-button {
-    background-color: var(--bg-card);
-    color: var(--text-secondary);
+    background: none;
     border: none;
     padding: 6px 12px;
+    border-radius: 4px;
     font-size: 13px;
     cursor: pointer;
+    font-weight: 600;
+    color: var(--text-secondary);
     transition: background-color 150ms, color 150ms;
 }
-.time-range-button:hover { background-color: var(--bg); }
 .time-range-button.active {
     background-color: var(--primary);
     color: white;
-    font-weight: 600;
 }
-
-/* Platzhalter für das eigentliche Chart */
 .chart-placeholder {
     flex-grow: 1;
     display: flex;
-    align-items: center;
     justify-content: center;
-    font-size: 16px;
+    align-items: center;
+    font-size: 18px;
     color: var(--text-secondary);
-    border-top: 1px solid var(--border);
-    padding-top: 20px;
+    border: 1px dashed var(--border);
+    border-radius: 4px;
 }
 
+
 /* ---------------------------------------------------
-   5. HERO CREATIVES SECTION (NEU)
+   5. HERO CREATIVES SECTION (V10.6 KORREKTUR)
    --------------------------------------------------- */
 
 .hero-creatives-card {
-    grid-column: 1 / -1; /* Nimmt die volle Breite ein */
+    grid-column: 1 / -1; 
     padding: var(--main-padding);
 }
 
 .hero-grid {
     display: grid;
-    /* 3 Spalten für die Top Creatives */
     grid-template-columns: repeat(3, 1fr);
     gap: var(--main-padding);
     margin-top: 20px;
 }
 
 .creative-hero-item {
-    background-color: var(--bg); /* Hintergrundfarbe leicht abgesetzt */
+    background-color: var(--bg); 
     border-radius: var(--card-radius);
     overflow: hidden;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     transition: transform 200ms ease;
     cursor: pointer;
+    border: 1px solid var(--border);
 }
 .creative-hero-item:hover {
     transform: translateY(-5px);
@@ -466,57 +484,78 @@ body {
 .creative-media-container {
     position: relative;
     width: 100%;
-    /* 1:1 Aspect Ratio für Thumbnails */
     padding-top: 100%; 
-    background-color: #000;
+    background-color: var(--text-secondary); 
+    display: flex; 
+    justify-content: center;
+    align-items: center;
 }
 
-.creative-media-container img {
+/* FIX: Sorgt dafür, dass Medien den Container füllen und sichtbar sind */
+.creative-media-container img,
+.creative-media-container video { 
     position: absolute;
     top: 0;
+    left: 0; 
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block; 
+    background-color: transparent; 
 }
 
 .creative-details {
     padding: 15px;
+    background-color: var(--bg-card);
 }
-
 .creative-name {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text);
+    font-size: 16px;
+    font-weight: 700;
     margin: 0 0 10px 0;
-    /* Einzeilige Kürzung */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    color: var(--primary);
 }
-
 .creative-kpi-bar {
     display: flex;
     justify-content: space-between;
-    align-items: center;
     font-size: 13px;
-    margin-bottom: 5px;
+    margin-bottom: 3px;
 }
-
 .kpi-label {
     color: var(--text-secondary);
     font-weight: 500;
 }
-
 .kpi-value-mini {
     font-weight: 700;
-    color: var(--text);
 }
+.kpi-value-mini.trend-positive { color: #10B981; }
 
-.creative-media-container img,
-.creative-media-container video { /* Hinzufügen von VIDEO hier! */
-    position: absolute;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+
+/* ---------------------------------------------------
+   6. RESPONSIVENESS (Basic)
+   --------------------------------------------------- */
+@media (max-width: 1200px) {
+    :root {
+        --main-padding: 20px;
+        --sidebar-width: 200px; 
+    }
+    .top-bar-section-2, .top-bar-section-3 {
+        gap: 10px;
+    }
+}
+@media (max-width: 900px) {
+    .dashboard-grid {
+        /* Stapelt KPI Karten 2-Reihig auf kleineren Bildschirmen */
+        grid-template-columns: repeat(2, 1fr); 
+    }
+    .hero-grid {
+        /* Stapelt Creatives 2-Reihig */
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .chart-header-controls {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .time-range-group {
+        margin-top: 15px;
+    }
 }
