@@ -317,33 +317,78 @@
     <div class="creatives-grid">
         </div>
 </section>
-  <section class="view hidden" id="campaignsView">
-    <h2>Kampagnen</h2>
+ <section class="view hidden" id="campaignsView">
+    <div class="view-header">
+        <h2>Kampagnen Übersicht</h2>
+        <div class="view-header-actions">
+            <button class="button primary" onclick="handleDeadButton('Neue Kampagne')">
+                <span class="icon">✨</span> Neue Kampagne
+            </button>
+        </div>
+    </div>
 
-    <div class="dashboard-controls">
-      <div class="period-toggles">
-        <button class="period-toggle active" data-period="current">Aktuell</button>
-        <button class="period-toggle" data-period="finished">Beendet</button>
-      </div>
-      <button class="button primary" onclick="handleDeadButton('Neue Kampagne')">Neue Kampagne</button>
+    <div class="campaign-toolbar card">
+        <div class="toolbar-left">
+            <div class="period-toggles">
+                <button class="period-toggle active" data-period="current">Aktuell (4)</button>
+                <button class="period-toggle" data-period="finished">Beendet (12)</button>
+                <button class="period-toggle" data-period="archived">Archiviert (3)</button>
+            </div>
+        </div>
+        <div class="toolbar-right">
+            <input type="text" class="form-input search-input" placeholder="Suche nach Name, ID..." />
+            
+            <button class="icon-button secondary" data-tooltip="Filter & Sortierung" onclick="handleDeadButton('Kampagnen Filter')">
+                <span class="icon">⚙️</span>
+            </button>
+        </div>
     </div>
 
     <div class="table-card card">
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Ziel</th>
-            <th>Budget</th>
-            <th>ROAS</th>
-            <th>Spend</th>
-          </tr>
-        </thead>
-        <tbody>
-          </tbody>
-      </table>
+        <table>
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Name / ID</th>
+                    <th>Ziel</th>
+                    <th>Budget</th>
+                    <th>ROAS</th>
+                    <th>Spend</th>
+                    <th>Start/Ende</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="campaign-row" onclick="handleDeadButton('Kampagnen Detail: High Performer')">
+                    <td><span class="status-badge active">Active</span></td>
+                    <td>Scale Master Q4/2025 - UGC Hook</td>
+                    <td>Sales</td>
+                    <td class="kpi-cell">450 €/Tag</td>
+                    <td class="kpi-cell primary">4.1x</td>
+                    <td class="kpi-cell">1.2K €</td>
+                    <td class="date-cell">20.11. - LÄUFT</td>
+                </tr>
+                <tr class="campaign-row" onclick="handleDeadButton('Kampagnen Detail: Paused Creative Test')">
+                    <td><span class="status-badge paused">Paused</span></td>
+                    <td>Creative Test 03 – Static Shots</td>
+                    <td>Leads</td>
+                    <td class="kpi-cell">100 €/Tag</td>
+                    <td class="kpi-cell">2.3x</td>
+                    <td class="kpi-cell">450 €</td>
+                    <td class="date-cell">10.11. - 17.11.</td>
+                </tr>
+                <tr class="campaign-row" onclick="handleDeadButton('Kampagnen Detail: New Draft')">
+                    <td><span class="status-badge draft">Draft</span></td>
+                    <td>Black Friday Launch 2025</td>
+                    <td>Sales</td>
+                    <td class="kpi-cell">1.0K €/Tag</td>
+                    <td class="kpi-cell">N/A</td>
+                    <td class="kpi-cell">0 €</td>
+                    <td class="date-cell">25.11. - 01.12.</td>
+                </tr>
+                </tbody>
+        </table>
     </div>
-  </section>
+</section>
   <section class="view hidden" id="insightsView">
     <h2>Insights</h2>
     <div class="card p-4">
@@ -551,6 +596,7 @@
 
 </body>
 </html>
+
 
 
 
