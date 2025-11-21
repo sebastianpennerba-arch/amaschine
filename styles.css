@@ -1,36 +1,29 @@
 /* =======================================================================
-   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V10.3 (FINAL SCHICK ZEMENTIERT)
-   ENTHÄLT: 1. Gold/Blau Sidebar Icons, 2. Edle Top-Bar Buttons, 3. Health Badge
+   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V9.0 (NULLPUNKT / PHASE 1)
+   FOKUS: GRUNDGERÜST & TYPOGRAPHIE
    ======================================================================= */
 
 /* ---------------------------------------------------
-   0. VARS & RESET 
+   0. VARS & RESET (Basis Farben und Größen)
    --------------------------------------------------- */
 
 :root {
-  /* Elite Colors (Deep Contrast) */
+  /* Elite Colors (Basis Hellmodus) */
   --bg: #F3F4F6;             
   --bg-card: #ffffff;        
   --text: #111827;           
   --text-secondary: #6B7280; 
   --border: #E5E7EB;         
 
-  /* Brand (FIXIERT) */
+  /* Brand (Basis Blau - Indigo) */
   --primary: #1F4068;        /* Deep Cerulean */
   --primary-hover: #2F80ED;  
   
-  /* NEUE BRAND AKZENTFARBE */
-  --brand-accent-gold: #FFC300; /* Starkes, edles Gold */
-  --brand-gold-shadow: 0 0 10px rgba(255, 195, 0, 0.5); /* Leichter Gold-Schatten */
-  
-  /* Menü-Button-Hintergrund (FIXIERT) */
-  --bg-menu-item: #F9FAFB;   
-
-  /* Größen-Verankerungen (FIXIERT) */
+  /* Größen-Verankerungen */
   --sidebar-width: 250px;
   --topbar-height: 72px;
-  --main-padding: 40px;
-  --card-radius: 8px; 
+  --main-padding: 30px;
+  --card-radius: 6px; 
 }
 
 /* Base Reset & Typography */
@@ -46,8 +39,9 @@ body {
 }
 
 /* ---------------------------------------------------
-   1. CORE LAYOUT 
+   1. CORE LAYOUT (Sidebar, Topbar, Main Content)
    --------------------------------------------------- */
+
 .sidebar {
   position: fixed;
   top: 0;
@@ -78,7 +72,7 @@ body {
 
 .main-content {
   margin-left: var(--sidebar-width); 
-  padding-top: calc(var(--topbar-height) + 30px); 
+  padding-top: calc(var(--topbar-height) + 20px); 
   padding-bottom: var(--main-padding);
   padding-left: var(--main-padding);
   padding-right: var(--main-padding);
@@ -87,14 +81,14 @@ body {
 }
 
 /* ---------------------------------------------------
-   2. SIDEBAR LOGO & MENÜ-MATRIX (GOLD/BLAU ICONS)
+   2. SIDEBAR MENÜ (Minimal)
    --------------------------------------------------- */
 
-.sidebar-header { padding: 20px 20px 30px 20px; }
+.sidebar-header { padding: 15px 15px 25px 15px; }
 .sidebar-logo-img { 
-    height: 147px; 
+    height: 130px; 
     width: 100%; 
-    max-width: 210px; 
+    max-width: 220px; 
     display: block;
     object-fit: contain; 
 }
@@ -102,14 +96,12 @@ body {
 .menu-item {
     display: flex;
     align-items: center;
-    background-color: var(--bg-menu-item); 
-    margin: 0 0 5px 0; 
-    padding: 10px 20px; 
+    margin: 0 0 4px 0; 
+    padding: 10px 15px; 
     text-decoration: none;
     color: var(--text);
-    border-radius: var(--card-radius);
+    border-radius: 4px;
     transition: background-color 150ms ease-out;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.02); 
 }
 .menu-item:hover {
     background-color: var(--border); 
@@ -120,34 +112,18 @@ body {
     font-weight: 600;
 }
 
-/* SIDEBAR ICON STYLING (SCHICK) */
 .menu-icon {
-    font-size: 14px; 
-    font-weight: 700;
-    width: 28px; 
-    height: 28px;
+    font-size: 18px; 
+    width: 30px; 
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-right: 12px;
-    
-    /* Inaktiver Zustand */
+    margin-right: 10px;
     color: var(--text-secondary); 
-    background-color: var(--bg-menu-item);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    
-    opacity: 0.8; 
-    transition: all 150ms;
 }
 
-/* AKTIVER ZUSTAND (BLAUER KASTEN MIT GOLD-ICON) */
 .menu-item.active .menu-icon {
-    color: var(--brand-accent-gold); /* Icon wird GOLD */
-    background-color: var(--primary); /* Box wird BLAU */
-    border: 1px solid var(--brand-accent-gold); /* Goldener Rand */
-    box-shadow: var(--brand-gold-shadow); /* Goldener Glow */
-    opacity: 1;
+    color: white; 
 }
 
 .menu-section-title {
@@ -156,166 +132,60 @@ body {
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    padding: 0 20px; 
-    margin: 20px 0 10px 0;
+    padding: 0 15px; 
+    margin: 15px 0 8px 0;
 }
 
 .account-status-block {
-    padding: 15px 20px;
+    padding: 10px 15px;
     margin-top: auto; 
     border-top: 1px solid var(--border);
-    font-size: 13px;
-    background-color: var(--bg-card); 
-}
-.status-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 5px;
+    font-size: 12px;
 }
 .status-indicator {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    margin-right: 8px;
-    flex-shrink: 0;
+    width: 6px; height: 6px; border-radius: 50%; margin-right: 6px;
 }
 .status-green { background-color: #10B981; }
 .status-yellow { background-color: #F59E0B; }
-.status-red { background-color: #EF4444; }
-.status-label { color: var(--text-secondary); }
-
 
 /* ---------------------------------------------------
-   3. KONSOLE/TOP BAR (SCHICK & EDEL)
+   3. TOP BAR & BASIS KOMPONENTEN
    --------------------------------------------------- */
-.welcome-and-status {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.2;
-}
+.greetings { font-size: 18px; font-weight: 700; margin: 0; color: var(--primary); }
+.status-bar { font-size: 11px; color: var(--text-secondary); }
 
-.greetings {
-    font-size: 20px;
-    font-weight: 700;
-    margin: 0;
-    color: var(--primary);
-    display: flex; /* Für Inline Badge */
-    align-items: center;
-}
-
-.status-bar {
-    font-size: 12px;
-    color: var(--text-secondary);
-}
-
-/* HEALTH BADGE (INLINE) */
-.health-badge {
-    font-size: 11px;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    margin-left: 15px; 
-}
-.health-yellow { 
-    background-color: var(--brand-accent-gold); 
-    color: var(--primary); 
-}
-
-/* DROPDOWN GRUPPEN */
-.top-controls { display: flex; gap: 15px; }
-.dropdown-label {
-    font-size: 10px; font-weight: 600; text-transform: uppercase;
-    color: var(--text-secondary); margin-bottom: 4px; letter-spacing: 0.5px;
-}
-.elite-select {
-    padding: 8px 15px; border: 1px solid var(--border); border-radius: var(--card-radius);
-    background-color: var(--bg); font-size: 14px; color: var(--text); min-width: 180px; 
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
-}
-
-/* SYSTEM BUTTONS (ULTIMATIVER LOOK) */
 .system-actions-area button {
-    width: 40px; 
-    height: 40px; 
-    font-size: 22px; 
-    color: var(--text-secondary); /* Inaktiv leicht grau */
-    background: var(--bg-card); 
-    border: 1px solid var(--border);
-    border-radius: var(--card-radius);
-    margin-left: 10px;
-    cursor: pointer;
-    transition: all 150ms;
-    /* Klarer, sichtbarer Schatten für "Edel-Gefühl" */
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
-    line-height: 1; 
+    width: 32px; height: 32px; font-size: 18px; color: var(--text-secondary); 
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 4px; margin-left: 8px; cursor: pointer;
+    transition: all 150ms; line-height: 1; 
 }
 .system-actions-area button:hover {
-    background-color: var(--border);
-    color: var(--primary); /* Prominenter Hover-Effekt */
+    background-color: var(--border); color: var(--primary); 
 }
 
-/* ---------------------------------------------------
-   4. DASHBOARD & CARDS 
-   --------------------------------------------------- */
-
 .elite-title {
-    font-size: 32px;
+    font-size: 30px;
     font-weight: 800;
-    margin: 0 0 30px 0;
+    margin: 0 0 25px 0;
 }
 
 .card {
   background-color: var(--bg-card);
   border-radius: var(--card-radius);
-  padding: 24px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05), 0 0 1px rgba(0,0,0,0.08); 
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
   border: 1px solid var(--border);
 }
 
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); 
-    gap: 30px; 
-}
-
-/* KPI STYLES */
-.kpi-card { height: 220px; }
-.card-title { font-size: 16px; font-weight: 700; margin-top: 0; margin-bottom: 15px; color: var(--text-secondary); }
-.kpi-group { display: flex; flex-wrap: wrap; gap: 20px; }
-.kpi-item { flex-basis: calc(50% - 10px); }
-.kpi-value { display: block; font-size: 24px; font-weight: 800; }
-.kpi-label { display: block; font-size: 12px; color: var(--text-secondary); }
-.positive { color: #10B981; }
-.neutral { color: #F59E0B; }
-.negative { color: #EF4444; }
-
-
-/* TOAST SYSTEM */
-.toast-container {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 1000;
-}
+/* TOAST SYSTEM (Basis) */
+.toast-container { position: fixed; bottom: 15px; right: 15px; z-index: 1000; }
 .toast {
-    background-color: var(--primary);
-    color: white;
-    padding: 12px 20px;
-    border-radius: var(--card-radius);
-    margin-top: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    opacity: 1;
-    transition: opacity 300ms ease-out, transform 300ms ease-out;
+    background-color: var(--primary); color: white; padding: 10px 15px;
+    border-radius: 4px; margin-top: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    opacity: 1; transition: opacity 300ms, transform 300ms;
 }
-.toast.fade-out {
-    opacity: 0;
-    transform: translateY(10px);
-}
+.toast.fade-out { opacity: 0; transform: translateY(5px); }
 
-/* ---------------------------------------------------
-   5. HIDDEN VIEWS 
-   --------------------------------------------------- */
+/* Hidden View */
 .view.hidden { display: none; }
