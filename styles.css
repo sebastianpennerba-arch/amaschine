@@ -1,10 +1,10 @@
 /* =======================================================================
-   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V10 (FINALE ZEMENTIERUNG)
-   FIX: 1. ICON BOX (BLAU/GOLD), 3. ZWEITE HEALTH ANZEIGE (BADGE)
+   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V10.2 (SIDEBAR ICON FIX)
+   FIX: 1. IKONEN BOXEN DESIGN (FINAL)
    ======================================================================= */
 
 /* ---------------------------------------------------
-   0. VARS & RESET (FINALE ELITE FARBEN & TYPO)
+   0. VARS & RESET 
    --------------------------------------------------- */
 
 :root {
@@ -21,6 +21,7 @@
   
   /* NEUE BRAND AKZENTFARBE */
   --brand-accent-gold: #FFC300; /* Starkes, edles Gold */
+  --brand-gold-shadow: 0 0 10px rgba(255, 195, 0, 0.5); /* Leichter Gold-Schatten */
   
   /* Menü-Button-Hintergrund (FIXIERT) */
   --bg-menu-item: #F9FAFB;   
@@ -32,7 +33,7 @@
   --card-radius: 8px; 
 }
 
-/* Base Reset & Typography (FIXIERT) */
+/* Base Reset & Typography */
 * { box-sizing: border-box; }
 
 body {
@@ -45,9 +46,8 @@ body {
 }
 
 /* ---------------------------------------------------
-   1. CORE LAYOUT (FIXE MAßE)
+   1. CORE LAYOUT
    --------------------------------------------------- */
-
 .sidebar {
   position: fixed;
   top: 0;
@@ -87,7 +87,7 @@ body {
 }
 
 /* ---------------------------------------------------
-   2. SIDEBAR LOGO & MENÜ-MATRIX (FIX 1 & 4)
+   2. SIDEBAR LOGO & MENÜ-MATRIX (FIXED)
    --------------------------------------------------- */
 
 .sidebar-header { padding: 20px 20px 30px 20px; }
@@ -99,7 +99,7 @@ body {
     object-fit: contain; 
 }
 
-/* MENÜ ITEM FIX: OPTIK, FORM UND FARBE VERANKERT */
+/* MENÜ ITEM FIXED */
 .menu-item {
     display: flex;
     align-items: center;
@@ -121,7 +121,7 @@ body {
     font-weight: 600;
 }
 
-/* FIX 1: ELITE ICON BOX STYLING (DAUERHAFT BLAU/GOLD AKZENT) */
+/* FIX 1: ULTIMATIVES ICON BOX STYLING (DAUERHAFT & DEZENT INAKTIV) */
 .menu-icon {
     font-size: 14px; 
     font-weight: 700;
@@ -132,7 +132,7 @@ body {
     align-items: center;
     margin-right: 12px;
     
-    /* Inaktiver Zustand (Dezenter) */
+    /* Inaktiver Zustand (Dezenter): Hellgraue Box, Grau Icon */
     color: var(--text-secondary); 
     background-color: var(--bg-menu-item);
     border: 1px solid var(--border);
@@ -145,8 +145,9 @@ body {
 /* FIX 1: AKTIVER ZUSTAND (BLAUER KASTEN MIT GOLD-ICON) */
 .menu-item.active .menu-icon {
     color: var(--brand-accent-gold); 
-    background-color: var(--primary); /* Die Box ist selbst Blau */
-    border-color: white; 
+    background-color: var(--primary); /* Box ist Primary */
+    border: 1px solid var(--brand-accent-gold); /* Goldener Rand */
+    box-shadow: var(--brand-gold-shadow); /* Leichter goldener Glow */
     opacity: 1;
 }
 
@@ -160,7 +161,7 @@ body {
     margin: 20px 0 10px 0;
 }
 
-/* FIX 4: ACCOUNT-STATUS BLOCK (AMPELSTATUS UNTEN LINKS) */
+/* ACCOUNT-STATUS BLOCK (AMPELSTATUS UNTEN LINKS) */
 .account-status-block {
     padding: 15px 20px;
     margin-top: auto; 
@@ -187,21 +188,26 @@ body {
 
 
 /* ---------------------------------------------------
-   3. KONSOLE/TOP BAR (FIX 2 & 3)
+   3. KONSOLE/TOP BAR (UNVERÄNDERT)
    --------------------------------------------------- */
 
 .welcome-and-status {
     display: flex;
     flex-direction: column;
     line-height: 1.2;
-    position: relative; /* Für Badge */
 }
 
-/* FIX 3: HEALTH BADGE (VISUELL ANDERS) */
+.greetings {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--primary);
+    display: flex; 
+    align-items: center;
+}
+
+/* HEALTH BADGE (INLINE) */
 .health-badge {
-    position: absolute;
-    top: 4px;
-    left: 175px; /* Manuell neben Greetings positioniert */
     font-size: 11px;
     font-weight: 700;
     padding: 2px 8px;
@@ -209,35 +215,26 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-left: 15px; 
 }
 .health-yellow { 
     background-color: var(--brand-accent-gold); 
-    color: var(--primary); /* Textfarbe kontrastreich */
+    color: var(--primary); 
 }
-/* ... weitere Health-Klassen könnten folgen ... */
 
-
-.greetings {
-    font-size: 20px;
-    font-weight: 700;
-    margin: 0;
-    color: var(--primary);
-}
-/* ... (Restliche Top-Bar Elemente unverändert) ... */
-
-/* SYSTEM BUTTONS (FIXED - ICONS SIND PROMINENT) */
+/* ... (Dropdowns, System Buttons unverändert) ... */
 .system-actions-area button {
-    width: 36px;
-    height: 36px;
-    font-size: 20px; 
-    color: var(--text); 
+    width: 40px; 
+    height: 40px; 
+    font-size: 22px; 
+    color: var(--text-secondary); 
     background: var(--bg-card); 
     border: 1px solid var(--border);
     border-radius: var(--card-radius);
     margin-left: 10px;
     cursor: pointer;
     transition: all 150ms;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
     line-height: 1; 
 }
 .system-actions-area button:hover {
@@ -245,14 +242,21 @@ body {
     color: var(--primary); 
 }
 
+
 /* ---------------------------------------------------
-   4. DASHBOARD & CARDS (FIXIERT)
+   4. DASHBOARD & CARDS (UNVERÄNDERT)
    --------------------------------------------------- */
-/* ... (Dashboard, Card, KPI Styling unverändert) ... */
+
+.elite-title {
+    font-size: 32px;
+    font-weight: 800;
+    margin: 0 0 30px 0;
+}
+/* ... (Card & KPI Styles unverändert) ... */
 
 
 /* ---------------------------------------------------
-   5. HIDDEN VIEWS & TOASTS
+   5. HIDDEN VIEWS & TOASTS (UNVERÄNDERT)
    --------------------------------------------------- */
 .view.hidden { display: none; }
-/* ... (Toast Styling unverändert) ... */
+/* ... (Toast Styles unverändert) ... */
