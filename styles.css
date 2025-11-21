@@ -1,494 +1,105 @@
-/* ===========================================
-   MASTER FIX V4: GLOBAL LAYOUT & ALIGNMENT
-   (Behebt Tightness, verschobenen Text, weiße Fläche oben)
-   =========================================== */
+/* =======================================================================
+   SIGNALONE.CLOUD - ELITE V1 MASTER STYLESHEET
+   PHASE 2: FUNDAMENT, ALIGNMENT & TYPOGRAPHY
+   ======================================================================= */
 
-/* 1. Globales Layout & Whitespace Fix */
-
-/* Stellt sicher, dass die Top-Bar oben fest sitzt und das Layout nicht verschiebt */
-.top-bar {
-    position: fixed; 
-    top: 0;
-    /* Linker Startpunkt des Hauptinhalts */
-    left: 250px; 
-    right: 0;
-    height: 68px; /* Standardhöhe der Top-Bar */
-    z-index: 20;
-    /* ... restliche Top-Bar Styles beibehalten ... */
-}
-
-/* 2. Haupt-Content Startposition FIX (Behebt weißen Rand/Overlap) */
-.main-content {
-    margin-left: 250px; 
-    /* Korrekte Startposition: Top-Bar Höhe (68px) PLUS gewünschter Puffer (32px) */
-    padding-top: calc(68px + 32px); 
-    padding-bottom: 40px;
-    min-height: 100vh;
-    transition: margin-left var(--motion-base) var(--ease-soft);
-}
-.main-content.sidebar-collapsed {
-    margin-left: 80px;
-}
-
-/* 3. Allgemeine View-Padding FIX (Luft an den Seiten) */
-.view {
-    /* Einheitlicher horizontaler Außenabstand (40px) */
-    padding: 0 40px 40px 40px; 
-    /* Stellt sicher, dass die minimale Höhe stimmt */
-    min-height: calc(100vh - (68px + 32px + 40px)); 
-}
-
-/* 4. Dashboard Vertical Flow (Behebt Enge der Komponenten) */
-
-/* Stellt sicher, dass die Haupt-View-Titel nicht unnötig Platz verschwenden */
-.view-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px; /* Konsistenter Abstand zum ersten Element */
-    padding-top: 0; /* Vertikalen Abstand entfernen, da er schon in .main-content:padding-top ist */
-    border-bottom: none; 
-}
-.view-header h2 {
-    font-size: 32px; /* Titelgröße für Präsenz */
-    font-weight: 800;
-    margin: 0;
-}
-
-/* Abstand für alle großen Sektionen und Trenner */
-.section-heading {
-    margin-top: 40px; /* MEHR Abstand über den Headings (Wichtig für Luft) */
-    margin-bottom: 20px; 
-    padding-bottom: 8px; 
-    border-bottom: 1px solid var(--border);
-}
-.section-heading:first-of-type {
-    margin-top: 0; 
-}
-
-/* Abstand nach den Haupt-Grids */
-.hero-creatives-grid,
-.kpi-grid,
-.insights-grid {
-    margin-bottom: 40px; /* Abstand zur nächsten Sektion oder zum Trenner */
-}
-
-/* 5. Alignment Fixes (Sidebar & Top Bar Icons) */
-
-/* Sidebar Menu Items: Perfekte vertikale Zentrierung (Behebt "verschobener Text") */
-.menu-item {
-    display: flex;
-    align-items: center; /* Vertikale Zentrierung */
-    line-height: 1.2; 
-}
-.menu-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-}
-
-/* Top Bar Icons: Perfekte vertikale Zentrierung */
-.top-bar-actions .icon-button,
-.platform-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-}
-
-/* Feinjustierung der Card Shadows */
-.card {
-    box-shadow: 0 6px 16px rgba(0,0,0,0.06), 0 0 1px rgba(0,0,0,0.05); /* Tieferer, eleganterer Schatten */
-}
+/* ---------------------------------------------------
+   0. VARS & RESET
+   --------------------------------------------------- */
 
 :root {
   /* Motion */
   --motion-fast: 120ms;
   --motion-base: 180ms;
-  --motion-slow: 260ms;
   --ease-soft: cubic-bezier(0.25, 0.1, 0.25, 1);
-  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
 
-  /* Colors — Light Mode */
-  --bg: #f3f4f6;           /* S3 – leicht bläulich */
-  --bg-alt: #ffffff;
-  --bg-card: #ffffff;
-  --bg-elevated: #ffffff;
-  --bg-sidebar: #ffffff;  /* Sidebar im Dark Mode */
+  /* Elite Colors (Light Mode) */
+  --bg: #f3f4f6;           /* S3 - Hintergrund */
+  --bg-card: #ffffff;      /* Weiß für Cards */
+  --bg-sidebar: #ffffff;   /* Saubere, helle Sidebar */
+  --bg-alt: #f9fafb;       /* Leichter Grauton für Header/Tabellen */
 
-  --text: #1a1a1a;
+  --text: #111827;         /* Dunkle, kräftige Hauptfarbe */
   --text-secondary: #6b7280;
   --text-light: #9ca3af;
-  --text-inverse: #ffffff;
 
   --border: #e5e7eb;
   --border-light: #f3f4f6;
-  --gray-200: #e5e7eb; /* For Skeleton */
 
   /* Brand */
-  --primary: #6366f1;
+  --primary: #6366f1;       /* Indigo: stark und vertrauenswürdig */
   --primary-hover: #4f52d9;
 
   /* Status */
   --success: #22c55e;
-  --success-light: rgba(34, 197, 94, 0.1);
+  --success-light: #e6ffed;
   --warning: #f59e0b;
-  --warning-light: rgba(245, 158, 11, 0.1);
-  --error: #ef4444;
-  --error-light: rgba(239, 68, 68, 0.1);
-
-  /* Spacing */
-  --space-s: 8px;
-  --space-m: 16px;
-  --space-l: 24px;
-  --space-xl: 32px;
+  --warning-light: #fff7e6;
 }
 
-/* ===========================================
-   DARK MODE
-   =========================================== */
-
-[data-theme="dark"] {
-  --bg: #111827;           /* Dunkelblau-Grau */
-  --bg-alt: #1f2937;
+/* Dark Mode Overlay (Minimal) */
+body.dark-mode {
+  --bg: #111827;
   --bg-card: #1f2937;
-  --bg-elevated: #374151;
-  --bg-sidebar: #ffffff;
+  --bg-sidebar: #1f2937;
+  --bg-alt: #374151;
 
-  --text: #000000;
+  --text: #f3f4f6;
   --text-secondary: #9ca3af;
   --text-light: #6b7280;
-  --text-inverse: #1a1a1a;
 
   --border: #374151;
   --border-light: #1f2937;
-  --gray-200: #374151;
 }
 
-/* ===========================================
-   BASE & LAYOUT
-   =========================================== */
-
+/* Base Reset & Typography */
 * {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 }
 
 body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  margin: 0;
+  padding: 0;
   background-color: var(--bg);
   color: var(--text);
-  transition: background-color var(--motion-base) var(--ease-soft);
-  min-height: 100vh;
+  transition: background-color var(--motion-base) ease, color var(--motion-base) ease;
 }
 
-h1, h2, h3, h4, h5 {
-  color: var(--text);
-  margin-bottom: var(--space-m);
-}
+/* ---------------------------------------------------
+   1. CORE LAYOUT (FIXED SHELL)
+   --------------------------------------------------- */
 
-a {
-  text-decoration: none;
-  color: var(--primary);
-}
-
-.hidden {
-    display: none !important;
-}
-
-.flex-group {
-    display: flex;
-    gap: 16px;
-    align-items: flex-end;
-}
-.search-input-group {
-    flex-grow: 1; /* Suchfeld nimmt den größten Platz ein */
-}
-
-/* ===========================================
-   GRID STRUCTURE
-   =========================================== */
-
-.main-content {
-  margin-left: 250px; /* Standardbreite Sidebar */
-  padding-top: 68px; /* ✅ FIX: Muss HÖHER sein als Top-Bar, um Platz zu lassen */
-  padding-bottom: 40px;
-  min-height: 100vh;
-  transition: margin-left var(--motion-base) var(--ease-soft);
-}
-
-.main-content.sidebar-collapsed {
-  margin-left: 80px;
-}
-
-/* ===========================================
-   CREATIVES VIEW - TOOLBAR & FILTER (V3 - Polished)
-   =========================================== */
-
-/* View Header für Title und Haupt-Buttons */
-.view-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border-light);
-}
-.view-header h2 {
-    font-size: 28px;
-    margin: 0;
-}
-.view-header-actions {
-    display: flex;
-    gap: 12px;
-}
-.view-header-actions .button {
-    font-size: 14px;
-}
-/* ===========================================
-   CAMPAIGN VIEW - TOOLBAR
-   =========================================== */
-
-.campaign-toolbar {
-    /* Nutzt die .card Klasse für Hintergrund & Schatten */
-    padding: 12px 20px; 
-    margin-bottom: 32px; 
-    
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 16px;
-    
-    border-radius: 12px; 
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-.campaign-toolbar .toolbar-left, .campaign-toolbar .toolbar-right {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-
-/* Period Toggles (Status Filter) */
-.campaign-toolbar .period-toggles {
-    display: flex;
-    background-color: var(--border-light); /* Leichter grauer Hintergrund */
-    padding: 4px;
-    border-radius: 8px;
-}
-.campaign-toolbar .period-toggle {
-    background: none;
-    border: none;
-    color: var(--text-secondary);
-    font-size: 14px;
-    font-weight: 600;
-    padding: 6px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all var(--motion-fast) ease;
-    white-space: nowrap;
-}
-.campaign-toolbar .period-toggle:hover {
-    background-color: var(--bg-alt);
-    color: var(--text);
-}
-.campaign-toolbar .period-toggle.active {
-    background-color: var(--bg-card); /* Weißer Hintergrund */
-    color: var(--primary);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-/* Search Input */
-.campaign-toolbar .search-input {
-    min-width: 200px;
-    padding: 8px 14px;
-    font-size: 14px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-}
-.campaign-toolbar .search-input:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
-}
-
-/* Filter Icon Button (Rechts) */
-.campaign-toolbar .icon-button {
-    width: 38px;
-    height: 38px;
-    padding: 0;
-    font-size: 18px;
-    color: var(--text-secondary);
-    border-radius: 50%;
-    border: 1px solid var(--border);
-}
-.campaign-toolbar .icon-button:hover {
-    background-color: var(--border);
-    color: var(--text);
-}
-/* ===========================================
-   SIDEBAR (Optimiert für Style A - Kontrast & Sauberkeit)
-   =========================================== */
-
+/* Sidebar */
 .sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 250px;
-    height: 100vh;
-    background-color: var(--bg-sidebar); /* Nutzt die korrigierte Farbe: Weiß in Light Mode */
-    border-right: 1px solid var(--border);
-    padding: 20px 0; /* Vertikaler Abstand */
-    box-sizing: border-box;
-    z-index: 30;
-    transition: width var(--motion-base) var(--ease-soft);
-    display: flex;
-    flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 250px;
+  height: 100vh;
+  background-color: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  padding: 20px 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  transition: width var(--motion-base) var(--ease-soft);
 }
 
 .sidebar.collapsed {
-    width: 80px;
+  width: 80px;
 }
 
-.sidebar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px 24px 20px; /* Mehr Platz unter dem Header */
-    margin-bottom: 8px;
-    border-bottom: 1px solid var(--border-light); /* Subtile Trennlinie */
-}
-
-.sidebar-logo {
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-}
-.sidebar-logo-img {
-    height: 32px; /* Standardgröße */
-    transition: all var(--motion-base) var(--ease-soft);
-}
-.sidebar.collapsed .sidebar-logo-img {
-    height: 36px; /* Wird im collapsed state größer */
-}
-.sidebar-toggle {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 18px;
-    color: var(--text-secondary);
-    padding: 8px;
-    border-radius: 50%;
-    transition: background-color var(--motion-fast) ease, color var(--motion-fast) ease;
-}
-.sidebar-toggle:hover {
-    background-color: var(--border);
-    color: var(--text);
-}
-
-.sidebar-menu {
-    flex-grow: 1;
-    overflow-y: auto;
-    padding: 0 16px; /* Innenabstand für Menu-Items */
-}
-
-.menu-section-title {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: var(--text-secondary);
-    padding: 12px 4px 8px 4px;
-    letter-spacing: 0.5px;
-    white-space: nowrap;
-    opacity: 1;
-    transition: opacity var(--motion-fast) ease;
-}
-.sidebar.collapsed .menu-section-title {
-    opacity: 0;
-    height: 20px;
-    visibility: hidden;
-}
-
-.menu-item {
-    display: flex;
-    align-items: center;
-    padding: 10px 12px;
-    margin-bottom: 4px;
-    text-decoration: none;
-    color: var(--text);
-    border-radius: 10px; /* Abgerundete Ecken */
-    transition: background-color var(--motion-fast) ease, color var(--motion-fast) ease;
-    white-space: nowrap;
-    position: relative;
-}
-
-.menu-item:hover {
-    background-color: var(--border);
-    color: var(--text);
-}
-
-.menu-item.active {
-    background-color: var(--primary);
-    color: white;
-    font-weight: 600;
-    box-shadow: 0 4px 8px rgba(99, 102, 241, 0.2);
-}
-.menu-item.active:hover {
-    background-color: var(--primary-hover);
-    color: white;
-}
-
-.menu-icon {
-    font-size: 20px;
-    width: 30px; /* Fixierte Icon-Größe */
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    margin-right: 12px;
-    color: var(--text-secondary); /* Standardfarbe */
-    transition: color var(--motion-fast) ease;
-}
-.menu-item:hover .menu-icon {
-    color: var(--text); /* Hover-Farbe */
-}
-.menu-item.active .menu-icon {
-    color: white; /* Active-Farbe */
-}
-
-.menu-label {
-    opacity: 1;
-    transition: opacity var(--motion-fast) ease;
-    font-size: 15px;
-}
-.sidebar.collapsed .menu-label {
-    opacity: 0;
-    width: 0;
-    overflow: hidden;
-    margin-left: -12px; /* Verschiebt Label aus dem Sichtfeld */
-}
-
-/* Footer-Bereich der Sidebar (z.B. User/Settings) */
-.sidebar-footer {
-    padding: 16px 20px 0 20px;
-    border-top: 1px solid var(--border-light);
-    margin-top: auto;
-}
-
-/* ===========================================
-   TOP BAR (Optimiert)
-   =========================================== */
-
+/* Top Bar */
 .top-bar {
   position: fixed;
   top: 0;
+  left: 250px; /* START nach Sidebar */
   right: 0;
-  left: 250px; /* Entspricht sidebar width */
-  height: 68px; /* Etwas höher für mehr Luft */
+  height: 68px;
   background-color: var(--bg-card);
   border-bottom: 1px solid var(--border);
-  padding: 0 24px; /* Mehr horizontaler Abstand */
+  padding: 0 40px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -496,1267 +107,158 @@ a {
   transition: left var(--motion-base) var(--ease-soft);
 }
 
-.main-content.sidebar-collapsed .top-bar {
+.sidebar.collapsed ~ .top-bar {
   left: 80px;
 }
 
-.top-bar-info {
-  /* Keine Änderung, behält die vertikale Struktur */
+/* Main Content Area */
+.main-content {
+  margin-left: 250px; /* START nach Sidebar */
+  padding-top: calc(68px + 32px); /* Top-Bar Höhe + 32px Puffer = 100px */
+  padding-bottom: 40px;
+  min-height: 100vh;
+  transition: margin-left var(--motion-base) var(--ease-soft);
 }
 
-.top-bar-welcome {
-  font-weight: 700; /* Stärkerer Font-Weight */
-  font-size: 18px; /* Etwas größer */
+.sidebar.collapsed ~ .main-content {
+  margin-left: 80px;
 }
 
-.top-bar-subline {
-  font-size: 13px; /* Etwas größer */
+/* Maximalbreite für den Inhalt (zentriert den Haupt-Content) */
+.view {
+  padding: 0 40px;
+  max-width: 1600px; /* MAXIMALE BREITE FIX */
+  margin: 0 auto; 
+}
+
+
+/* ---------------------------------------------------
+   2. NAVIGATION & ALIGNMENT (FIXED)
+   --------------------------------------------------- */
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px 24px 20px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.sidebar-logo-img {
+  height: 36px; /* Logo FIX: Prominente Größe */
+  transition: all var(--motion-base) var(--ease-soft);
+}
+
+.sidebar-toggle {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 16px;
   color: var(--text-secondary);
-}
-
-.top-bar-actions {
-  display: flex;
-  align-items: center;
-  gap: 20px; /* Größerer Abstand zwischen den Hauptgruppen */
-}
-
-.top-bar-icons {
-  display: flex;
-  gap: 4px; 
-  align-items: center;
-}
-
-/* Status Dot: Stellen Sie sicher, dass es rund und mittig ist */
-.status-dot {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    margin-right: 8px;
-    box-shadow: 0 0 0 2px var(--bg-card); /* Leichter Ring um den Dot */
-}
-
-.status-dot.error { background-color: var(--error); }
-.status-dot.success { background-color: var(--success); }
-.status-dot.warning { background-color: var(--warning); }
-
-/* Für Quick-Links (f, G, ♫) - Siehe HTML für die Umsetzung */
-.platform-icon {
-  font-weight: 800; 
-  font-size: 14px;
-  width: 32px; 
-  height: 32px;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px; 
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  background-color: var(--bg-alt); /* Hell */
+  transition: all var(--motion-fast) ease;
+}
+.sidebar-toggle:hover {
+  background-color: var(--border);
+  color: var(--text);
+}
+
+.sidebar-menu {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 0 16px;
+}
+
+.menu-section-title {
+  font-size: 10px; 
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-light);
+  padding: 18px 4px 8px 4px;
+  letter-spacing: 0.8px;
+  white-space: nowrap;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center; /* ALIGNMENT FIX */
+  padding: 10px 12px;
+  margin-bottom: 4px;
+  text-decoration: none;
+  color: var(--text);
+  border-radius: 10px;
+  transition: all var(--motion-fast) var(--ease-soft);
+  white-space: nowrap;
+  font-size: 15px; 
+}
+
+.menu-item:hover {
+  background-color: var(--border);
+}
+
+.menu-item.active {
+  background-color: var(--primary);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 4px 8px rgba(99, 102, 241, 0.2);
+}
+
+.menu-icon {
+  font-size: 20px;
+  width: 30px; 
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 12px;
   color: var(--text-secondary);
-  border: 1px solid var(--border);
+  line-height: 1.0; /* TEXT-SHIFT FIX */
+}
+.menu-item.active .menu-icon {
+  color: white; 
 }
 
-/* Anpassung der Icon-Buttons für Top-Bar */
-.top-bar-actions .icon-button {
-    width: 38px;
-    height: 38px;
-    padding: 0;
-    font-size: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-secondary);
-    border-radius: 50%;
-    transition: background-color var(--motion-fast) ease, color var(--motion-fast) ease;
-}
 
-.top-bar-actions .icon-button:hover {
-    background-color: var(--border); /* Neutraler Hover-State */
-    color: var(--text);
-}
+/* ---------------------------------------------------
+   3. BASE COMPONENTS (Cards, Buttons, H-Tags)
+   --------------------------------------------------- */
 
-/* ===========================================
-   COMMON ELEMENTS (Optimiert)
-   =========================================== */
+h2 {
+    font-size: 32px;
+    font-weight: 800;
+    margin: 0 0 30px 0; /* Standard-Abstand nach dem Titel */
+}
 
 .card {
   background-color: var(--bg-card);
-  /* Border wird subtiler, Box-Shadow bekommt mehr Fokus */
-  border: 1px solid rgba(0, 0, 0, 0.05); 
-  border-radius: 16px; /* Größere, weichere Ecken */
-  padding: 24px; /* Mehr Innenabstand (Luft) */
-  margin-bottom: 24px; /* Mehr vertikaler Abstand */
-  
-  /* NEUER BOX-SHADOW: Weich, subtil und tief */
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04), 
-              0 0 2px rgba(0, 0, 0, 0.02);
-  transition: box-shadow var(--motion-base) ease;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.06), 0 0 1px rgba(0,0,0,0.05); /* Elite Shadow */
+  border: 1px solid var(--border);
 }
-.card:hover {
-     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06), 
-                 0 0 3px rgba(0, 0, 0, 0.03);
-}
-.p-4 { padding: var(--space-l); } /* Utility for padding in sections */
 
 .button {
-  padding: 8px 16px;
+  padding: 10px 18px;
   border-radius: 8px;
-  border: none;
+  font-size: 15px;
+  font-weight: 700;
   cursor: pointer;
-  font-weight: 600;
-  transition: background-color var(--motion-fast) ease, opacity var(--motion-fast) ease;
-}
-.button.small {
-    padding: 6px 12px;
-    font-size: 14px;
+  transition: background-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .button.primary {
   background-color: var(--primary);
   color: white;
+  border: none;
 }
 .button.primary:hover {
   background-color: var(--primary-hover);
 }
-
-.button.secondary {
-  background-color: var(--bg);
-  color: var(--text);
-  border: 1px solid var(--border);
-}
-[data-theme="dark"] .button.secondary {
-    background-color: var(--bg-alt);
-    color: var(--text);
-}
-.button.secondary:hover {
-  background-color: var(--border);
-}
-
-.button.disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.icon-button {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  font-size: 16px;
-  cursor: pointer;
-  padding: 8px;
- border-radius: 50%;
-  transition: background-color var(--motion-fast) ease, color var(--motion-fast) ease;
-}
-
-.icon-button:hover {
-  /* Hintergrund etwas dunkler/kräfiger bei Hover */
-  background-color: var(--border); 
-  color: var(--text);
-}
-
-.icon-button[data-tooltip]:hover::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: -35px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: var(--bg-elevated);
-    color: var(--text);
-    white-space: nowrap;
-    padding: 6px 10px;
-    border-radius: 4px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    z-index: 30;
-    font-size: 12px;
-}
-
-.badge {
-  display: inline-block;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  margin-right: 4px;
-}
-
-.badge.success {
-  background-color: var(--success-light);
-  color: var(--success);
-}
-.badge.warning {
-  background-color: var(--warning-light);
-  color: var(--warning);
-}
-.badge.error {
-  background-color: var(--error-light);
-  color: var(--error);
-}
-.badge.primary {
-    background-color: var(--primary);
-    color: white;
-}
-.badge.secondary {
-    background-color: var(--text-light);
-    color: var(--bg-card);
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-.form-input, .form-select {
-    padding: 10px 14px; /* Mehr Höhe für besseren Touch-Target */
-    border: 1px solid var(--border);
-    border-radius: 10px; /* Leicht größere Radien */
-    background-color: var(--bg-alt);
-    color: var(--text);
-    transition: border-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
-}
-.form-input:focus, .form-select:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); /* Ring um den Fokus */
-    outline: none;
-}
-.form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
-}
-
-/* ===========================================
-   DASHBOARD / KPI
-   =========================================== */
-
-/* Haupt-Toolbar (ersetzt alte Dashboard-Controls) */
-.creative-toolbar {
-    /* Nutzen Sie die .card Klasse, um den Hintergrund zu bekommen */
-    padding: 12px 20px; /* Weniger Padding als Standard-Card, kompakter */
-    margin-bottom: 32px; /* Abstand zum Grid */
-    
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 16px;
-    
-    /* Leichter Border-Radius, kompakter als normale Card */
-    border-radius: 12px; 
-}
-
-.toolbar-left, .toolbar-right {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-
-/* Filter Button */
-.creative-toolbar .button.secondary {
-    font-size: 14px;
-    padding: 8px 16px;
-    font-weight: 600;
-}
-.creative-toolbar .button.secondary .icon {
-    margin-right: 6px;
-    font-size: 16px;
-}
-
-/* Sortier-Kontrolle */
-.toolbar-sort {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-.sort-label {
-    font-size: 14px;
-    color: var(--text-secondary);
-    font-weight: 500;
-}
-/* Select-Feld im Toolbar-Kontext */
-.creative-toolbar .form-select {
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 14px;
-    min-width: 180px;
-    background-color: var(--bg-alt);
-}
-
-/* Search Input (Im DatAds-Stil: integriert, groß) */
-.search-input {
-    min-width: 250px;
-    padding: 8px 14px;
-    font-size: 15px;
-    border-radius: 8px;
-}
-
-/* View Toggle Icons (Grid/List) */
-.view-toggle {
-    display: flex;
-    background-color: var(--border-light);
-    padding: 4px;
-    border-radius: 8px;
-}
-.view-toggle .icon-button {
-    width: 34px;
-    height: 34px;
-    border-radius: 6px; /* Rechteckige Toggles */
-    padding: 0;
-    font-size: 18px;
-    color: var(--text-secondary);
-    transition: background-color var(--motion-fast) ease, color var(--motion-fast) ease;
-}
-.view-toggle .icon-button:hover {
-    background-color: var(--bg-alt);
-    color: var(--text);
-}
-.view-toggle .icon-button.active {
-    background-color: var(--primary);
-    color: white;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-.view-toggle .icon-button.active:hover {
-    background-color: var(--primary-hover);
-}
-
-.period-toggles {
-    display: flex;
-    gap: 8px;
-}
-.period-toggle {
-    background: none;
-    border: 1px solid var(--border);
-    color: var(--text-secondary);
-    padding: 6px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color var(--motion-fast) ease, color var(--motion-fast) ease;
-}
-.period-toggle.active {
-    background-color: var(--primary);
-    color: white;
-    border-color: var(--primary);
-}
-
-.kpi-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Responsiveres Grid */
-    gap: 24px; /* Mehr Abstand */
-    margin-bottom: 32px;
-}
-
-.kpi-card {
-    /* Alle Card Styles werden von .card übernommen, wir brauchen nur die Text-Styles */
-    /* Wir entfernen redundante Styles wie background-color, border-radius, box-shadow und border */
-    padding: 24px; /* Mehr vertikaler Padding als vorher */
-}
-
-.kpi-title {
-    font-size: 13px;
-    color: var(--text-secondary);
-    margin-bottom: 12px; /* Mehr Platz zum Wert */
-}
-
-.kpi-value {
-    font-size: 40px; /* Wichtige Werte größer */
-    font-weight: 800; /* Extra bold */
-    margin-bottom: 6px;
-    line-height: 1.1;
-}
-
-.kpi-value.primary {
-    color: var(--primary);
-}
-
-.kpi-change {
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.kpi-change.success {
-  color: var(--success);
-}
-.kpi-change.warning {
-  color: var(--warning);
-}
-
-.dashboard-chart-container {
-    height: 450px; /* Etwas höher für bessere Diagramm-Details */
-}
-
-/* ===========================================
-   NEUE ELEMENTE: Section Headings, Hero Cards, Insights (Style A)
-   =========================================== */
-
-/* 5. Section Headings (Trenner) */
-.section-heading {
-    margin-bottom: 24px;
-    padding-bottom: 8px; /* Etwas Platz zur Linie */
-    border-bottom: 1px solid var(--border);
-    margin-top: 24px;
-}
-.section-heading:first-of-type {
-    margin-top: 0; /* Kein zusätzlicher Top-Margin am Anfang der View */
-}
-.section-heading h3 {
-    font-size: 20px;
-    font-weight: 700;
-    margin: 0 0 4px 0;
-    color: var(--text);
-}
-.section-subline {
-    font-size: 14px;
-    color: var(--text-secondary);
-    margin: 0;
-}
-
-
-/* 1. Hero Creatives Grid */
-.hero-creatives-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 20px;
-    margin-bottom: 32px;
-}
-
-.creative-hero-card {
-    padding: 0; /* Card-Padding entfernen, da der Inhalt selbst Padding bekommt */
-    overflow: hidden;
-    cursor: pointer;
-    transition: transform var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
-}
-.creative-hero-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1), 0 0 5px rgba(0,0,0,0.05);
-}
-
-.creative-hero-card .creative-media-container {
-    height: 140px;
-    position: relative;
-    background-color: var(--bg-alt);
-}
-
-.creative-hero-card .creative-media-preview {
-    width: 100%;
-    height: 100%;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-}
-
-.creative-hero-card .creative-platform-badge {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background-color: var(--primary);
-    color: white;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.creative-hero-card .creative-info {
-    padding: 16px;
-}
-.creative-hero-card .creative-name {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 8px;
-    display: block;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.creative-hero-card .creative-kpi-row {
-    display: flex;
-    gap: 8px;
-}
-.creative-kpi-badge {
-    font-size: 12px;
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-weight: 600;
-}
-.creative-kpi-badge.success {
-    background-color: var(--success-light);
-    color: var(--success);
-}
-.creative-kpi-badge.warning {
-    background-color: var(--warning-light);
-    color: var(--warning);
-}
-.creative-kpi-badge.primary {
-    background-color: rgba(99, 102, 241, 0.1); /* Primary-Light */
-    color: var(--primary);
-}
-
-/* Placeholder Card (4. Karte) */
-.creative-hero-card.card-placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    background-color: var(--bg-alt);
-    border: 2px dashed var(--border);
-    transition: background-color var(--motion-fast) ease;
-}
-.creative-hero-card.card-placeholder:hover {
-    background-color: var(--border-light);
-    transform: none;
-    box-shadow: none;
-}
-.placeholder-content {
-    padding: 24px;
-}
-.placeholder-icon {
-    font-size: 32px;
-    margin-bottom: 12px;
-}
-.card-placeholder h4 {
-    margin: 0 0 4px 0;
-    font-weight: 700;
-    font-size: 18px;
-}
-.card-placeholder p {
-    margin: 0 0 16px 0;
-    color: var(--text-secondary);
-    font-size: 14px;
-}
-
-/* 6. Insights Cards Grid */
-.insights-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-    margin-bottom: 32px;
-}
-
-.insight-card {
-    padding: 24px;
-}
-.insight-impact-badge {
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 600;
-    margin-bottom: 12px;
-}
-.insight-impact-badge.warning {
-    background-color: var(--warning-light);
-    color: var(--warning);
-}
-.insight-impact-badge.success {
-    background-color: var(--success-light);
-    color: var(--success);
-}
-.insight-impact-badge.primary {
-    background-color: rgba(99, 102, 241, 0.1); 
-    color: var(--primary);
-}
-.insight-card h4 {
-    font-size: 18px;
-    font-weight: 700;
-    margin: 0 0 8px 0;
-}
-.insight-card p {
-    font-size: 14px;
-    color: var(--text-secondary);
-    margin-bottom: 16px;
-    line-height: 1.4;
-    min-height: 60px; /* Einheitliche Höhe erzwingen */
-}
-
-/* ===========================================
-   CREATIVES VIEW (V3 - DatAds Killer Style)
-   =========================================== */
-
-/* Creative Controls (beibehalten) */
-.view-toggle .icon-button.active {
-    background-color: var(--primary);
-    color: white;
-    pointer-events: none;
-}
-.view-toggle .icon-button.active:hover {
-    background-color: var(--primary);
-}
-
-/* Grid View */
-.creatives-grid {
-    display: grid;
-    /* Weniger breite Karten, mehr passen in eine Reihe */
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); 
-    gap: 24px; /* Mehr Abstand */
-}
-
-.creative-card {
-    background-color: var(--bg-card);
-    border-radius: 12px;
-    /* Tieferer Schatten als Standard-Cards für mehr Fokus */
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08), 0 0 1px rgba(0,0,0,0.05); 
-    overflow: hidden;
-    cursor: pointer;
-    border: 1px solid var(--border);
-    transition: all var(--motion-fast) var(--ease-soft);
-}
-.creative-card:hover {
-    transform: translateY(-4px); /* Stärkerer Hover-Effekt */
-    box-shadow: 0 12px 20px rgba(0,0,0,0.15); /* Kräftigerer Schatten */
-}
-
-.creative-media-container {
-    position: relative;
-    width: 100%;
-    /* Etwas höhere Vorschau */
-    height: 160px; 
-    background-color: var(--bg-elevated);
-    overflow: hidden;
-}
-.creative-media-preview {
-    width: 100%;
-    height: 100%;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-}
-.creative-media-platform {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background-color: var(--primary);
-    color: white;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.creative-info {
-    padding: 16px;
-}
-.creative-name {
-    font-size: 16px;
-    font-weight: 700; /* Stärker hervorheben */
-    margin-bottom: 4px; /* Weniger Abstand zur Subline */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.creative-subline {
-    font-size: 12px;
-    color: var(--text-secondary);
-    margin-bottom: 12px;
-    display: block;
-}
-
-/* Neuer Metriken-Container (dichter und prominenter) */
-.creative-kpis {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 2 Metriken pro Zeile */
-    gap: 8px 16px; 
-    
-    padding-top: 16px; /* Mehr Luft */
-    border-top: 1px solid var(--border);
-}
-
-.creative-kpi-item {
-    /* Container für Label und Wert */
-    display: flex;
-    flex-direction: column;
-}
-.creative-kpi-item .label {
-    font-size: 11px;
-    color: var(--text-secondary);
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 2px;
-}
-.creative-kpi-item .value {
-    font-size: 18px;
-    font-weight: 800; /* Sehr dominant */
-    color: var(--text);
-    line-height: 1.1;
-}
-.creative-kpi-item .value.success { color: var(--success); }
-.creative-kpi-item .value.warning { color: var(--warning); }
-
-
-/* List View (Feinjustierung) */
-.creatives-list {
-    gap: 10px;
-}
-.creative-row {
-    /* Alle card-Styles wurden bereits angepasst */
-    padding: 16px 24px; /* Mehr Padding */
-    border-radius: 12px;
-}
-.creative-row-details {
-    gap: 24px;
-    flex-grow: 1;
-}
-.creative-row-kpis {
-    /* Wird durch die globalen .creative-row-kpis styles (vorherige Antwort) definiert */
-    gap: 30px; 
-}
-
-/* ===========================================
-   CAMPAIGNS / TABLES (V3 - Polished)
-   =========================================== */
-
-.table-card {
-    padding: 0;
-    border-radius: 16px;
-    overflow: hidden; 
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04); /* Leichter Schatten auch hier */
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-th {
-    text-align: left;
-    padding: 16px 24px; /* Mehr Luft im Header */
-    color: var(--text-secondary);
-    font-size: 13px; /* Etwas kleiner für Dichte */
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 2px solid var(--border);
-    background-color: var(--bg-alt); /* Leichter Hintergrund im Header */
-}
-
-td {
-    padding: 16px 24px; /* Deutlich mehr vertikale Luft */
-    border-bottom: 1px solid var(--border-light);
-    color: var(--text);
-    font-size: 15px;
-}
-
-.campaign-row {
-    cursor: pointer;
-    transition: background-color var(--motion-fast) ease;
-}
-
-.campaign-row:hover {
-    background-color: var(--border-light); /* Sanfterer Hover-Effekt */
-}
-
-.campaign-row:last-child td {
-    border-bottom: none;
-}
-
-/* Spezielle Formatierungen in Zellen */
-.status-badge {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-}
-.status-badge.active {
-    background-color: var(--success-light);
-    color: var(--success);
-}
-.status-badge.paused {
-    background-color: var(--warning-light);
-    color: var(--warning);
-}
-.status-badge.draft {
-    background-color: var(--text-light);
-    color: var(--bg-card);
-}
-.kpi-cell {
-    font-weight: 700;
-    color: var(--text);
-}
-.kpi-cell.primary {
-    color: var(--primary);
-}
-.date-cell {
-    color: var(--text-secondary);
-    font-size: 14px;
-}
-
-/* ===========================================
-   CONNECTIONS / STATUS
-   =========================================== */
-
-.connections-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-}
-
-.connection-card {
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-}
-.connection-card button {
-    margin-top: auto; /* Buttons nach unten verschieben */
-}
-
-.connection-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-}
-.connection-header h4 {
-    margin: 0;
-}
-
-/* Prio 1.4 Status Dot */
-.status-dot {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-right: 4px;
-    transition: background-color var(--motion-base) ease;
-}
-.status-dot.success {
-    background-color: var(--success);
-}
-.status-dot.error {
-    background-color: var(--error);
-}
-
-/* ===========================================
-   SENSEI WORKFLOWS (Prio 13)
-   =========================================== */
-.workflows-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 20px;
-    margin-top: 20px;
-}
-
-.workflow-card {
-    cursor: pointer;
-    transition: transform var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
-    text-align: center;
-    min-height: 200px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    border-left: 5px solid var(--primary);
-}
-.workflow-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-}
-
-.workflow-icon {
-    font-size: 40px;
-    margin-bottom: 10px;
-}
-.workflow-card h4 {
-    margin-bottom: 5px;
-}
-.workflow-card p {
-    font-size: 14px;
-    color: var(--text-secondary);
-}
-
-
-/* ===========================================
-   STATE INSPECTOR
-   =========================================== */
-
-.state-inspector {
-  position: fixed;
-  bottom: 0;
-  right: 0;
-  width: 400px;
-  height: 400px;
-  background-color: var(--bg-card);
-  border-top: 1px solid var(--border);
-  border-left: 1px solid var(--border);
-  border-top-left-radius: 12px;
-  box-shadow: -4px 0 10px rgba(0, 0, 0, 0.1);
-  z-index: 100;
-  display: flex;
-  flex-direction: column;
-  font-family: monospace;
-}
-.state-inspector.hidden {
-    display: none;
-}
-.inspector-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--border);
-}
-.inspector-actions button {
-    margin-left: 8px;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-.inspector-tabs {
-    display: flex;
-    border-bottom: 1px solid var(--border);
-}
-.inspector-tab {
-    padding: 8px 16px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    border-right: 1px solid var(--border);
-    color: var(--text-secondary);
-}
-.inspector-tab.active {
-    background-color: var(--bg-elevated);
-    color: var(--text);
-}
-
-.inspector-panel {
-    flex-grow: 1;
-    padding: 10px;
-    margin: 0;
-    overflow: auto;
-    font-size: 12px;
-    background-color: var(--bg-elevated);
-    white-space: pre-wrap;
-}
-.inspector-panel.active {
-    display: block;
-}
-.inspector-toggle {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: var(--primary);
-    color: white;
-    border: none;
-    cursor: pointer;
-    font-size: 18px;
-    z-index: 101;
-}
-
-/* ===========================================
-   MODAL OVERLAY (Prio 1.1)
-   =========================================== */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  opacity: 1;
-  visibility: visible;
-  transition: opacity var(--motion-base) ease-soft;
-}
-
-.modal-overlay.hidden {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-
-.modal-content {
-  background-color: var(--bg-card);
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  width: 90%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 24px;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 12px;
-}
-
-.modal-close {
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  color: var(--text-secondary);
-  padding: 0;
-}
-
-.modal-body p {
-    margin-bottom: 8px;
-}
-.modal-body hr {
-    margin: 16px 0;
-    border: 0;
-    border-top: 1px solid var(--border);
-}
-
-.modal-footer {
-    padding-top: 16px;
-    border-top: 1px solid var(--border);
-    margin-top: 16px;
-    display: flex;
-    justify-content: flex-end;
-}
-.ai-output {
-    padding: 10px 0;
-}
-.ai-output p {
-    font-style: italic;
-    color: var(--primary);
-    background-color: var(--primary-hover);
-    padding: 8px;
-    border-radius: 4px;
-    margin: 8px 0;
-}
-
-
-/* ===========================================
-   TOAST NOTIFICATIONS (Prio 1.1)
-   =========================================== */
-.toast-container {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 999;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-width: 90%;
-  pointer-events: none; /* Allows clicks through the container */
-}
-
-.toast {
-  background-color: var(--text);
-  color: var(--bg-alt);
-  padding: 12px 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
-  pointer-events: auto; /* Re-enables clicks on the toast itself */
-  font-size: 14px;
-}
-
-.toast.show {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.toast.hide {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-/* ===========================================
-   LOADING SKELETON (UX Improvement)
-   =========================================== */
-.loading-overlay {
-    position: absolute;
-    top: 61px; /* Unter der Top Bar */
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--bg);
-    z-index: 50;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    color: var(--text-secondary);
-    font-size: 18px;
-    transition: opacity 0.3s ease;
-}
-
-.loading-spinner {
-    border: 4px solid var(--border);
-    border-top: 4px solid var(--primary);
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-    margin-bottom: 10px;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-/* ===========================================
-   FEINJUSTIERUNG: KPI-Trends, Cards, Tables, Skeleton
-   =========================================== */
-
-/* 9. KPI-Trends (▲12% etc.) */
-.kpi-change {
-    font-size: 13px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 4px; /* Abstand zwischen Wert und Label */
-}
-/* KPI Micro-Label (z.B. "vs. Last Period") */
-.kpi-change .micro-label {
-    font-size: 11px;
-    font-weight: 400;
-    color: var(--text-secondary);
-    opacity: 0.7;
-    margin-left: 4px;
-}
-/* Farben beibehalten, aber sicherstellen, dass sie kräftig sind */
-.kpi-change.success {
-    color: var(--success);
-}
-.kpi-change.warning {
-    color: var(--warning);
-}
-
-
-/* 11. Campaign Table: Mehr Luft & Style */
-
-.table-card {
-    padding: 0;
-    border-radius: 16px; /* Ecken-Radius von global .card übernehmen */
-    overflow: hidden; /* Wichtig für die abgerundeten Ecken bei der Tabelle */
-}
-th {
-    padding: 16px 24px; /* Mehr Luft im Header */
-    background-color: var(--bg-alt); /* Leichter Kontrast im Header */
-    border-bottom: 2px solid var(--border); /* Kräftigere Trennlinie unten */
-}
-td {
-    padding: 14px 24px; /* Mehr Luft in den Zellen */
-    border-bottom: 1px solid var(--border-light);
-    color: var(--text-secondary);
-}
-.campaign-row:hover {
-    background-color: var(--border); /* Subtiler Hover */
-}
-.campaign-row:last-child td {
-    border-bottom: none;
-}
-
-/* Status Icon Styling (für Tabellen und Listen) */
-.status-icon {
-    font-size: 16px;
-    margin-right: 8px;
-}
-.status-icon.active {
-    color: var(--success); /* Grün */
-}
-.status-icon.paused {
-    color: var(--warning); /* Orange */
-}
-.status-icon.draft {
-    color: var(--text-light); /* Grau */
-}
-
-
-/* 10. Creative Cards (Grid/List View) */
-
-/* Grid Cards (nur Feintuning) */
-.creative-card {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    border: 1px solid var(--border);
-}
-.creative-kpis {
-    padding-top: 12px; /* Mehr Abstand */
-    font-weight: 600; 
-}
-.creative-kpis div {
-    color: var(--text); /* Wichtigste Werte hervorheben */
-    font-weight: 700;
-}
-
-
-/* List Rows */
-.creatives-list {
-    gap: 8px;
-}
-.creative-row {
-    padding: 14px 24px; 
-    border-radius: 10px; 
-    transition: background-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
-}
-.creative-row:hover {
-    background-color: var(--border); 
-}
-
-.creative-row-kpis {
-    gap: 30px; 
-}
-.creative-row-kpis span {
-    display: flex;
-    flex-direction: column;
-    text-align: right;
-    font-size: 13px;
-}
-.creative-row-kpis .kpi-label {
-    font-size: 11px;
-    color: var(--text-secondary);
-    font-weight: 400;
-    white-space: nowrap;
-}
-.creative-row-kpis .kpi-value {
-    font-size: 16px;
-    color: var(--text);
-    font-weight: 700;
-    margin-top: 2px;
-}
-
-
-/* 12. Skeleton Loading schöner machen */
-
-.skeleton {
-  position: relative;
-  overflow: hidden;
-  /* Hellerer Hintergrund für den Platzhalter */
-  background: var(--border); 
-  border-radius: 6px;
-}
-
-.skeleton::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  height: 100%;
-  width: 100%;
-  /* Subtilerer, langsamerer Schimmer */
-  background: linear-gradient(
-    90deg,
-    rgba(255,255,255,0) 0%,
-    rgba(255,255,255,0.3) 50%, /* Weniger starke Opazität */
-    rgba(255,255,255,0) 100%
-  );
-  animation: shimmer 1.6s linear infinite; /* Etwas langsamer */
-}
-
-.skeleton-box {
-  height: 16px; 
-  margin-bottom: 8px;
-}
-
-
-
-
-
-
-
-
-
