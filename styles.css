@@ -1,6 +1,6 @@
 /* =======================================================================
-   SIGNALONE.CLOUD - ELITE V1 MASTER STYLESHEET
-   PHASE 2: FUNDAMENT, ALIGNMENT & TYPOGRAPHY
+   SIGNALONE.CLOUD - ELITE V2 MASTER STYLESHEET
+   PHASE 2: GRUNDGERÜST & UNIFORMITÄT (FIXED)
    ======================================================================= */
 
 /* ---------------------------------------------------
@@ -22,6 +22,7 @@
   --text: #111827;         /* Dunkle, kräftige Hauptfarbe */
   --text-secondary: #6b7280;
   --text-light: #9ca3af;
+  --text-label: #374151;   /* Für KPI Labels: Etwas kräftiger als secondary */
 
   --border: #e5e7eb;
   --border-light: #f3f4f6;
@@ -29,27 +30,10 @@
   /* Brand */
   --primary: #6366f1;       /* Indigo: stark und vertrauenswürdig */
   --primary-hover: #4f52d9;
-
+  
   /* Status */
   --success: #22c55e;
-  --success-light: #e6ffed;
-  --warning: #f59e0b;
-  --warning-light: #fff7e6;
-}
-
-/* Dark Mode Overlay (Minimal) */
-body.dark-mode {
-  --bg: #111827;
-  --bg-card: #1f2937;
-  --bg-sidebar: #1f2937;
-  --bg-alt: #374151;
-
-  --text: #f3f4f6;
-  --text-secondary: #9ca3af;
-  --text-light: #6b7280;
-
-  --border: #374151;
-  --border-light: #1f2937;
+  --warning: #f599e0b;
 }
 
 /* Base Reset & Typography */
@@ -58,6 +42,7 @@ body.dark-mode {
 }
 
 body {
+  /* Schriftart: Elite-Serifenlos (system-font) */
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   margin: 0;
   padding: 0;
@@ -75,7 +60,7 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  width: 250px;
+  width: 250px; /* FIXE BREITE */
   height: 100vh;
   background-color: var(--bg-sidebar);
   border-right: 1px solid var(--border);
@@ -87,16 +72,16 @@ body {
 }
 
 .sidebar.collapsed {
-  width: 80px;
+  width: 80px; /* FIXE EINGEKLAPPTE BREITE */
 }
 
-/* Top Bar */
+/* Top Bar (KONSOLE & SYSTEM BUTTONS) */
 .top-bar {
   position: fixed;
   top: 0;
-  left: 250px; /* START nach Sidebar */
+  left: 250px; 
   right: 0;
-  height: 68px;
+  height: 72px; /* FIXE HÖHE */
   background-color: var(--bg-card);
   border-bottom: 1px solid var(--border);
   padding: 0 40px;
@@ -113,8 +98,9 @@ body {
 
 /* Main Content Area */
 .main-content {
-  margin-left: 250px; /* START nach Sidebar */
-  padding-top: calc(68px + 32px); /* Top-Bar Höhe + 32px Puffer = 100px */
+  margin-left: 250px; 
+  /* Top-Bar Höhe + 32px Puffer = 104px (72px + 32px) */
+  padding-top: calc(72px + 32px); 
   padding-bottom: 40px;
   min-height: 100vh;
   transition: margin-left var(--motion-base) var(--ease-soft);
@@ -124,141 +110,171 @@ body {
   margin-left: 80px;
 }
 
-/* Maximalbreite für den Inhalt (zentriert den Haupt-Content) */
 .view {
   padding: 0 40px;
-  max-width: 1600px; /* MAXIMALE BREITE FIX */
+  max-width: 1600px; 
   margin: 0 auto; 
 }
 
 
 /* ---------------------------------------------------
-   2. NAVIGATION & ALIGNMENT (FIXED)
+   2. NAVIGATION & TOP BAR (KONSOLE)
    --------------------------------------------------- */
-
-.sidebar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 20px 24px 20px;
-  margin-bottom: 8px;
-  border-bottom: 1px solid var(--border-light);
+   
+.top-bar-console {
+    /* Konsole linksbündig */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1.2;
+}
+.greetings {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+}
+.account-status-bar {
+    font-size: 12px;
+    color: var(--text-secondary);
+    /* Einheitliche Trennzeichen und Abstände */
+}
+.account-status-bar span {
+    margin-right: 8px;
 }
 
-.sidebar-logo-img {
-  height: 36px; /* Logo FIX: Prominente Größe */
-  transition: all var(--motion-base) var(--ease-soft);
+.top-bar-actions .icon-button {
+    /* Einheitliche Größe und Stil für System Buttons */
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    margin-left: 10px;
 }
 
-.sidebar-toggle {
-  background: var(--bg-alt);
-  border: 1px solid var(--border);
-  cursor: pointer;
-  font-size: 16px;
-  color: var(--text-secondary);
-  width: 34px;
-  height: 34px;
-  border-radius: 8px; 
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--motion-fast) ease;
-}
-.sidebar-toggle:hover {
-  background-color: var(--border);
-  color: var(--text);
-}
-
-.sidebar-menu {
-  flex-grow: 1;
-  overflow-y: auto;
-  padding: 0 16px;
-}
-
-.menu-section-title {
-  font-size: 10px; 
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--text-light);
-  padding: 18px 4px 8px 4px;
-  letter-spacing: 0.8px;
-  white-space: nowrap;
-}
-
-.menu-item {
-  display: flex;
-  align-items: center; /* ALIGNMENT FIX */
-  padding: 10px 12px;
-  margin-bottom: 4px;
-  text-decoration: none;
-  color: var(--text);
-  border-radius: 10px;
-  transition: all var(--motion-fast) var(--ease-soft);
-  white-space: nowrap;
-  font-size: 15px; 
-}
-
-.menu-item:hover {
-  background-color: var(--border);
-}
-
-.menu-item.active {
-  background-color: var(--primary);
-  color: white;
-  font-weight: 600;
-  box-shadow: 0 4px 8px rgba(99, 102, 241, 0.2);
-}
-
+/* Anpassung für die Menü-Icons: NEUTRAL, EDEL */
 .menu-icon {
-  font-size: 20px;
+  font-size: 14px; /* KLEINERE, EDLE SCHRIFT */
+  font-weight: 700;
   width: 30px; 
   display: inline-flex;
   justify-content: center;
   align-items: center;
   margin-right: 12px;
-  color: var(--text-secondary);
-  line-height: 1.0; /* TEXT-SHIFT FIX */
+  color: var(--text-light); /* DEZENT */
+  line-height: 1.0; 
+  border: 1px solid var(--border); /* FEINER RAHMEN ALS PLATZHALTER */
+  border-radius: 4px;
+  height: 20px;
 }
 .menu-item.active .menu-icon {
   color: white; 
+  border-color: transparent; /* KEIN RAHMEN IM AKTIVEN ZUSTAND */
 }
 
-
 /* ---------------------------------------------------
-   3. BASE COMPONENTS (Cards, Buttons, H-Tags)
+   3. DASHBOARD UNIFORMITÄT (Sektionen & Grids)
    --------------------------------------------------- */
 
 h2 {
     font-size: 32px;
     font-weight: 800;
-    margin: 0 0 30px 0; /* Standard-Abstand nach dem Titel */
+    margin: 0 0 30px 0; 
+}
+h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 16px 0;
 }
 
 .card {
   background-color: var(--bg-card);
   border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.06), 0 0 1px rgba(0,0,0,0.05); /* Elite Shadow */
+  /* Elite Shadow: Weich und hochwertig */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04), 0 0 1px rgba(0,0,0,0.08); 
   border: 1px solid var(--border);
 }
 
-.button {
-  padding: 10px 18px;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+.dashboard-grid {
+    display: grid;
+    /* FIXE AUFTEILUNG: 2 gleich große Spalten */
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px; /* Einheitlicher Abstand */
 }
 
-.button.primary {
-  background-color: var(--primary);
-  color: white;
-  border: none;
+.full-width {
+    grid-column: span 2; /* Volle Breite für große Charts */
 }
-.button.primary:hover {
-  background-color: var(--primary-hover);
+
+/* KPI Sektionen (MUSS-GLEICH-HEIT) */
+.kpi-card {
+    height: 200px; /* FIXE HÖHE für Einheitlichkeit */
+}
+
+.kpi-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-top: 10px;
+    /* FIX: Jedes KPI-Item bekommt den gleichen Platz */
+}
+
+.kpi-item {
+    display: flex;
+    flex-direction: column;
+    /* FIX: Gleiche Breite für jedes Item (4 Items * 25%) */
+    width: 25%; 
+    padding-right: 15px; 
+    border-right: 1px solid var(--border-light); /* Trennlinien */
+}
+.kpi-item:last-child {
+    border-right: none;
+}
+.kpi-item.placeholder .kpi-value {
+    color: var(--text-light); /* Grauer Strich für leere Plätze */
+}
+
+.kpi-value {
+    font-size: 36px; /* KPIs sehr groß und prominent */
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.1;
+    margin-bottom: 4px;
+}
+
+.kpi-label {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-label); 
+    letter-spacing: 0.5px;
+}
+
+/* TOAST MESSAGE STYLES (app.js Abhängigkeit) */
+.toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column-reverse; /* Neue Toasts oben */
+}
+.toast {
+    background-color: var(--text);
+    color: var(--bg-card);
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-top: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    opacity: 1;
+    transition: opacity 300ms ease, transform 300ms ease;
+}
+.toast.fade-out {
+    opacity: 0;
+    transform: translateY(10px);
 }
