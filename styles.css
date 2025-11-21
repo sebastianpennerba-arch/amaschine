@@ -1,6 +1,6 @@
 /* =======================================================================
-   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V9 (REBOOT & GOLD-STANDARD)
-   ALLE GRUNDLAGEN (FARBE, FORM, GRÖSSE) SIND HIER FIXIERT!
+   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V9.2 (GOLD ACCENT FIX)
+   FIX: ACTIVE ICONS SIND JETZT GOLD (Deep Cerulean & Gold Kontrast)
    ======================================================================= */
 
 /* ---------------------------------------------------
@@ -9,24 +9,27 @@
 
 :root {
   /* Elite Colors (Deep Contrast) */
-  --bg: #F3F4F6;             /* Hintergrund: Dark Ash (Matter Look) */
-  --bg-card: #ffffff;        /* Cards/Sidebar: Pure White */
-  --text: #111827;           /* Schrift: Deep Black */
-  --text-secondary: #6B7280; /* Status & Labels: Subtle Gray */
-  --border: #E5E7EB;         /* Trennlinien: Soft Divide */
+  --bg: #F3F4F6;             
+  --bg-card: #ffffff;        
+  --text: #111827;           
+  --text-secondary: #6B7280; 
+  --border: #E5E7EB;         
 
   /* Brand (FIXIERT) */
   --primary: #1F4068;        /* FIX: Deep Cerulean (Edles, tiefes Blau) */
-  --primary-hover: #2F80ED;  /* FIX: Azure Light */
+  --primary-hover: #2F80ED;  
+  
+  /* NEUE BRAND AKZENTFARBE */
+  --brand-accent-gold: #FFC300; /* FIX: Starkes, edles Gold */
   
   /* Menü-Button-Hintergrund (FIXIERT) */
-  --bg-menu-item: #F9FAFB;   /* FIX: Soft Blue Gray */
+  --bg-menu-item: #F9FAFB;   
 
   /* Größen-Verankerungen (FIXIERT) */
   --sidebar-width: 250px;
   --topbar-height: 72px;
   --main-padding: 40px;
-  --card-radius: 8px; /* FIX: Weiche Rundung */
+  --card-radius: 8px; 
 }
 
 /* Base Reset & Typography (FIXIERT) */
@@ -138,9 +141,30 @@ body {
     border: 1px solid var(--border);
     border-radius: 4px;
 }
+.menu-item.active {
+    background-color: var(--primary); 
+    /* ACHTUNG: Der Text bleibt weiß, die Icons werden gold */
+    color: white; 
+    font-weight: 600;
+}
+
+/* ELITE ICON STYLING */
+.menu-icon {
+    font-size: 20px; 
+    font-weight: 700;
+    width: 24px; 
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 12px;
+    color: var(--text-secondary); /* Inaktiv: Grau */
+    border-radius: 4px;
+}
+
+/* GOLD ACCENT FIX */
 .menu-item.active .menu-icon {
-    color: white;
-    border-color: white;
+    color: var(--brand-accent-gold); /* FIX: Aktive Icons sind nun Gold! */
 }
 
 .menu-section-title {
