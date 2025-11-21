@@ -1,5 +1,5 @@
 // =====================================================================
-// SignalOne.cloud – V9.8: MINIMAL FUNCTIONAL CORE + HEADER LOGIC
+// SignalOne.cloud – V10.0: FINAL CORE LOGIC (Navigation, Header, Chart)
 // =====================================================================
 
 "use strict";
@@ -7,7 +7,9 @@
 // Globale Zustandsvariable
 const AppState = {
   currentView: "dashboard",
-  // isSidebarCollapsed: localStorage.getItem('isSidebarCollapsed') === 'true', // Temporär entfernt
+  // Chart State
+  currentMetric: "roas",
+  currentTimeRange: "7days", 
 };
 
 // ----------------------------------------------------------------------
@@ -36,7 +38,7 @@ function handleDeadButton(featureName) {
 }
 
 // ----------------------------------------------------------------------
-// TOP BAR FUNCTIONS (NEU)
+// TOP BAR FUNCTIONS (V9.8)
 // ----------------------------------------------------------------------
 
 function updateDateTime() {
@@ -58,12 +60,38 @@ function updateDateTime() {
 
 function handleDropdownChange(type, value) {
     showToast(`${type} Filter wurde auf '${value}' gesetzt.`);
-    // Hier würde die Logik zur Datenfilterung folgen
+    // Logik zur Datenfilterung hier
+}
+
+// ----------------------------------------------------------------------
+// CHART FUNCTIONS (V10.0)
+// ----------------------------------------------------------------------
+
+function handleChartChange(newMetric) {
+    AppState.currentMetric = newMetric;
+    showToast(`Chart-Metrik auf '${newMetric.toUpperCase()}' umgestellt.`);
+    // Logik zum Neuladen/Aktualisieren der Chart-Daten hier
+}
+
+function handleTimeRange(newRange) {
+    if (AppState.currentTimeRange === newRange) return;
+    
+    // UI-Buttons aktualisieren
+    document.querySelectorAll('.time-range-button').forEach(button => {
+        button.classList.remove('active');
+        if (button.getAttribute('onclick').includes(`'${newRange}'`)) {
+            button.classList.add('active');
+        }
+    });
+    
+    AppState.currentTimeRange = newRange;
+    showToast(`Zeitraum auf '${newRange}' umgestellt.`);
+    // Logik zum Neuladen/Aktualisieren der Chart-Daten hier
 }
 
 
 // ----------------------------------------------------------------------
-// VIEW SWITCHING 
+// VIEW SWITCHING (V9.9)
 // ----------------------------------------------------------------------
 
 function switchView(viewId) {
@@ -112,5 +140,8 @@ document.addEventListener("DOMContentLoaded", () => {
   
   // Datum/Uhrzeit aktualisieren und Timer setzen
   updateDateTime();
-  setInterval(updateDateTime, 1000); // Jede Sekunde aktualisieren
+  setInterval(updateDateTime, 1000); 
+
+  // Initiale UI für Zeitbereich setzen
+  handleTimeRange(AppState.currentTimeRange);
 });
