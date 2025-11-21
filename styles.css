@@ -1,6 +1,6 @@
 /* =======================================================================
-   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V9.0 (NULLPUNKT / PHASE 1)
-   FOKUS: GRUNDGERÜST & TYPOGRAPHIE
+   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V9.2 (SIDEBAR 100% KOMPLETT)
+   FOKUS: GRUNDGERÜST & BLAU-GOLD SIDEBAR STYLING
    ======================================================================= */
 
 /* ---------------------------------------------------
@@ -15,12 +15,17 @@
   --text-secondary: #6B7280; 
   --border: #E5E7EB;         
 
-  /* Brand (Basis Blau - Indigo) */
-  --primary: #1F4068;        /* Deep Cerulean */
+  /* Brand (FIXIERT) */
+  --primary: #1F4068;        /* Deep Cerulean (Dunkelblau) */
   --primary-hover: #2F80ED;  
+
+  /* NEUE BRAND AKZENTFARBE FÜR ICONS */
+  --brand-accent-gold: #FFC300; /* Starkes, edles Gold */
+  --brand-gold-shadow: 0 0 10px rgba(255, 195, 0, 0.5); /* Leichter Gold-Schatten */
+  --bg-menu-item: #F9FAFB;   /* Heller Hintergrund für Sidebar-Elemente */
   
   /* Größen-Verankerungen */
-  --sidebar-width: 250px;
+  --sidebar-width: 250px; /* FIXIERT */
   --topbar-height: 72px;
   --main-padding: 30px;
   --card-radius: 6px; 
@@ -39,7 +44,7 @@ body {
 }
 
 /* ---------------------------------------------------
-   1. CORE LAYOUT (Sidebar, Topbar, Main Content)
+   1. CORE LAYOUT
    --------------------------------------------------- */
 
 .sidebar {
@@ -81,27 +86,25 @@ body {
 }
 
 /* ---------------------------------------------------
-   2. SIDEBAR MENÜ (Minimal)
+   2. SIDEBAR MENÜ (100% ZEMENTIERT mit BLAU-GOLD)
    --------------------------------------------------- */
 
 .sidebar-header { padding: 15px 15px 25px 15px; }
 .sidebar-logo-img { 
-    height: 130px; 
-    width: 100%; 
-    max-width: 220px; 
-    display: block;
-    object-fit: contain; 
+    height: 130px; width: 100%; max-width: 220px; display: block; object-fit: contain; 
 }
 
 .menu-item {
     display: flex;
     align-items: center;
+    background-color: var(--bg-menu-item); 
     margin: 0 0 4px 0; 
     padding: 10px 15px; 
     text-decoration: none;
     color: var(--text);
     border-radius: 4px;
     transition: background-color 150ms ease-out;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02); 
 }
 .menu-item:hover {
     background-color: var(--border); 
@@ -112,18 +115,34 @@ body {
     font-weight: 600;
 }
 
+/* SIDEBAR ICON STYLING (BLAU-GOLD FIX) */
 .menu-icon {
-    font-size: 18px; 
-    width: 30px; 
+    font-size: 14px; 
+    font-weight: 700; 
+    width: 28px; 
+    height: 28px;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-right: 10px;
+    margin-right: 12px;
+    
+    /* Inaktiver Zustand (Transparenter, kleiner Kasten) */
     color: var(--text-secondary); 
+    background-color: var(--bg-menu-item);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    
+    opacity: 0.8; 
+    transition: all 150ms;
 }
 
+/* AKTIVER ZUSTAND (BLAUER KASTEN MIT GOLD-ICON) */
 .menu-item.active .menu-icon {
-    color: white; 
+    color: var(--brand-accent-gold); /* Icon wird GOLD */
+    background-color: var(--primary); /* Box wird BLAU */
+    border: 1px solid var(--brand-accent-gold); /* Goldener Rand */
+    box-shadow: var(--brand-gold-shadow); /* Goldener Glow */
+    opacity: 1;
 }
 
 .menu-section-title {
@@ -136,17 +155,27 @@ body {
     margin: 15px 0 8px 0;
 }
 
+/* Detaillierter Status Block (Ampelsystem) */
 .account-status-block {
-    padding: 10px 15px;
+    padding: 15px 15px;
     margin-top: auto; 
     border-top: 1px solid var(--border);
-    font-size: 12px;
+    font-size: 13px;
+    background-color: var(--bg-card); 
+}
+.status-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
 }
 .status-indicator {
-    width: 6px; height: 6px; border-radius: 50%; margin-right: 6px;
+    width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; flex-shrink: 0;
 }
-.status-green { background-color: #10B981; }
-.status-yellow { background-color: #F59E0B; }
+.status-green { background-color: #10B981; } /* Ampel Grün */
+.status-yellow { background-color: #F59E0B; } /* Ampel Gelb */
+.status-red { background-color: #EF4444; } /* Ampel Rot (Vorbereitung) */
+.status-label { color: var(--text-secondary); }
+
 
 /* ---------------------------------------------------
    3. TOP BAR & BASIS KOMPONENTEN
@@ -165,9 +194,7 @@ body {
 }
 
 .elite-title {
-    font-size: 30px;
-    font-weight: 800;
-    margin: 0 0 25px 0;
+    font-size: 30px; font-weight: 800; margin: 0 0 25px 0;
 }
 
 .card {
