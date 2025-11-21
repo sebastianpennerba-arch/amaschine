@@ -1,6 +1,6 @@
 /* =======================================================================
-   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V9.4 (SIDEBAR FINAL & KORRIGIERT)
-   ÄNDERUNGEN: BLAU-GOLD TEXT-ICONS FIX, MENU-ITEM STYLING FIX
+   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V9.5 (SIDEBAR FINAL & KORRIGIERT)
+   KORREKTUREN: ICON FARBTAUSCH FIX (BASIS IST BLAU/GOLD + OPACITY), FOOTER POSITION FIX
    ======================================================================= */
 
 /* ---------------------------------------------------
@@ -17,7 +17,7 @@
 
   /* Brand (FIXIERT: Deep Cerulean / Gold) */
   --primary: #1F4068;        /* Deep Cerulean (Dunkelblau) */
-  --primary-hover: #2F80ED;  /* Hellblau für inaktive Icon-Farbe */
+  --primary-hover: #2F80ED;  
 
   /* BRAND AKZENTFARBE FÜR ICONS */
   --brand-accent-gold: #FFC300; /* Starkes, edles Gold */
@@ -104,12 +104,12 @@ body {
     color: var(--text);
     border-radius: 4px;
     
-    /* MENÜ-SCHRIFT WENIGER TROCKEN */
-    font-weight: 500; /* Leichte Erhöhung der Gewichtung */
+    /* MENÜ-SCHRIFT */
+    font-weight: 500; 
     
     transition: all 150ms ease-in-out; 
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Präsenterer, edler Schatten */
-    opacity: 0.95; /* Etwas weniger transparent als 1.0, wirkt solider */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+    opacity: 0.95; 
 }
 .menu-item:hover {
     background-color: var(--border); 
@@ -120,7 +120,7 @@ body {
     font-weight: 600;
 }
 
-/* SIDEBAR ICON STYLING (TEXT ICON FIX: DAUERHAFT FARBE/TRANSPARENZ) */
+/* SIDEBAR ICON STYLING (FINAL KORRIGIERT: KEIN FARBTAUSCH) */
 .menu-icon {
     font-family: 'Montserrat', sans-serif; 
     font-size: 13px; 
@@ -133,23 +133,23 @@ body {
     margin-right: 12px;
     flex-shrink: 0;
     
-    /* Inaktiver Zustand (Dauerhaft Box, helle Farbe, durch Opacity verblasst) */
-    color: var(--primary-hover); /* NEU: Helle Farbe (Hellblau) */
-    background-color: var(--bg-card); 
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    
-    opacity: 0.6; /* Transparenz (macht den Icon-Kasten heller) */
-    transition: all 150ms;
-}
-
-/* AKTIVER ZUSTAND (BLAUER KASTEN MIT GOLD-TEXT) */
-.menu-item.active .menu-icon {
-    color: var(--brand-accent-gold); /* Text MUSS GOLD sein */
-    background-color: var(--primary); /* Box MUSS BLAU sein */
+    /* BASIS ZUSTAND (Aktive Farben, aber mit Opacity/Scale reduziert) */
+    color: var(--brand-accent-gold);    /* Text MUSS GOLD sein */
+    background-color: var(--primary);   /* Box MUSS BLAU sein */
     border: 1px solid var(--brand-accent-gold); 
     box-shadow: var(--brand-gold-shadow); 
-    opacity: 1; /* Volle Sichtbarkeit */
+    
+    opacity: 0.6;                       /* Blasser (Transparenter) */
+    transform: scale(0.95);             /* Kleiner */
+
+    transition: all 200ms ease-in-out; 
+}
+
+/* AKTIVER ZUSTAND (GEGENSTEUERUNG: Volle Sichtbarkeit, volle Größe) */
+.menu-item.active .menu-icon {
+    opacity: 1; 
+    transform: scale(1.0); 
+    /* Farben bleiben dank Basis-Style unverändert */
 }
 
 .menu-section-title {
@@ -162,11 +162,16 @@ body {
     margin: 15px 0 8px 0;
 }
 
+/* SIDEBAR FOOTER & POSITION FIX */
+.sidebar-footer {
+    margin-top: auto; /* Fixiert am unteren Ende */
+    padding-top: 1px; /* Für die Trennlinie */
+    border-top: 1px solid var(--border); /* Trennlinie zur oberen Navigation */
+}
+
 /* Detaillierter Status Block (Meta Health FIX) */
 .account-status-block {
-    padding: 15px 15px;
-    margin-top: auto; /* Fixiert am unteren Ende */
-    border-top: 1px solid var(--border);
+    padding: 15px 15px 5px 15px; /* Etwas weniger padding unten */
     font-size: 13px;
     background-color: var(--bg-card); 
 }
@@ -183,9 +188,16 @@ body {
 .status-red { background-color: #EF4444; } 
 .status-label { color: var(--text-secondary); }
 
+/* Settings Link am Ende (Fixierung) */
+.sidebar-footer .menu-item {
+    margin-bottom: 0; /* Entfernt den Abstand zum Boden */
+    border-radius: 0; /* Entfernt Rundungen für eine saubere Kante unten */
+    box-shadow: none; /* Entfernt den Schatten für eine flache Optik am Boden */
+}
+
 
 /* ---------------------------------------------------
-   3. TOP BAR & BASIS KOMPONENTEN
+   3. TOP BAR & BASIS KOMPONENTEN (Unverändert)
    --------------------------------------------------- */
 .greetings { font-size: 18px; font-weight: 700; margin: 0; color: var(--primary); }
 .status-bar { font-size: 11px; color: var(--text-secondary); }
