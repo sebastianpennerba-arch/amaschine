@@ -511,3 +511,12 @@ body {
     font-weight: 700;
     color: var(--text);
 }
+
+.creative-media-container img,
+.creative-media-container video { /* Hinzufügen von VIDEO hier! */
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
