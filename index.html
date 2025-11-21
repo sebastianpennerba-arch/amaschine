@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>SignalOne.cloud | Creative Intelligence Elite Core V9.8 (Header Final)</title>
+  <title>SignalOne.cloud | Creative Intelligence Elite Core V10.0 (Chart-Section)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="styles.css" /> 
 </head>
@@ -20,38 +20,38 @@
     <div class="menu-section-title">ANALYTICS</div>
 
     <a href="#dashboard" class="menu-item active" data-view="dashboard">
-      <span class="menu-icon">d</span> 
+      <span class="menu-icon">⬥</span> 
       <span class="menu-label">Dashboard</span>
     </a>
     <a href="#creatives" class="menu-item" data-view="creatives">
-      <span class="menu-icon">c</span> 
+      <span class="menu-icon">🗃️</span> 
       <span class="menu-label">Creative Library</span>
     </a>
     <a href="#campaigns" class="menu-item" data-view="campaigns">
-      <span class="menu-icon">k</span> 
+      <span class="menu-icon">▶️</span> 
       <span class="menu-label">Campaigns</span>
     </a>
     
     <div class="menu-section-title">INTELLIGENCE</div>
     
     <a href="#sensei" class="menu-item" data-view="sensei">
-      <span class="menu-icon">s</span> 
+      <span class="menu-icon">✶</span> 
       <span class="menu-label">Sensei Strategy</span>
     </a>
     
     <a href="#reports" class="menu-item" data-view="reports">
-      <span class="menu-icon">r</span> 
+      <span class="menu-icon">▤</span> 
       <span class="menu-label">Reports & Export</span>
     </a>
 
     <div class="menu-section-title">TOOLS</div> 
     
     <a href="#testing" class="menu-item" data-view="testing">
-        <span class="menu-icon">t</span> 
+        <span class="menu-icon">☷</span> 
         <span class="menu-label">Testing Log</span>
     </a>
     <a href="#custom" class="menu-item" data-view="custom">
-        <span class="menu-icon">c</span> 
+        <span class="menu-icon">◪</span> 
         <span class="menu-label">Custom Builder</span>
     </a>
   </div>
@@ -109,16 +109,112 @@
   <div class="top-bar-section-3">
     <button class="header-action-button" onclick="handleDeadButton('Hinweise & Informationen')">ⓘ</button>
     <button class="header-action-button" onclick="handleDeadButton('Benachrichtigungen')">🔔</button> 
-    <button class="header-action-button" onclick="handleDeadButton('Profil & Account')">❤</button>
+    <button class="header-action-button" onclick="handleDeadButton('Profil & Account')">👤</button>
   </div>
 </header>
 
 <div class="main-content" id="mainContent">
   <section class="view" id="dashboardView">
     <h2 class="elite-title">Dashboard Overview</h2>
-    <div class="card" style="height: 300px; display: flex; align-items: center; justify-content: center;">
-        <p style="font-size: 18px; color: var(--text-secondary);">Nullpunkt erreicht. Hier startet die Entwicklung der Inhalte.</p>
+    
+    <div class="dashboard-grid">
+        
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <h3 class="kpi-title">Return on Ad Spend (ROAS)</h3>
+                <span class="kpi-icon">💰</span>
+            </div>
+            <p class="kpi-value">4.12x</p>
+            <div class="kpi-footer">
+                <div class="kpi-trend trend-positive">
+                    <span class="trend-indicator">▲</span>
+                    +1.4%
+                </div>
+                <span class="kpi-comparison">vs. letzter Monat</span>
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <h3 class="kpi-title">Cost per Purchase (CPP)</h3>
+                <span class="kpi-icon">🛒</span>
+            </div>
+            <p class="kpi-value">€ 18.33</p>
+            <div class="kpi-footer">
+                <div class="kpi-trend trend-negative">
+                    <span class="trend-indicator">▼</span>
+                    -5.9%
+                </div>
+                <span class="kpi-comparison">vs. letzter Monat</span>
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <h3 class="kpi-title">Creative CTR (Gesamt)</h3>
+                <span class="kpi-icon">🖱️</span>
+            </div>
+            <p class="kpi-value">2.88%</p>
+            <div class="kpi-footer">
+                <div class="kpi-trend trend-positive">
+                    <span class="trend-indicator">▲</span>
+                    +0.3%
+                </div>
+                <span class="kpi-comparison">vs. Durchschnitt</span>
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <h3 class="kpi-title">Ad Spend (Heute)</h3>
+                <span class="kpi-icon">🔥</span>
+            </div>
+            <p class="kpi-value">€ 5,123.00</p>
+            <div class="kpi-footer">
+                <div class="kpi-trend trend-neutral">
+                    <span class="trend-indicator">▶</span>
+                    +0.0%
+                </div>
+                <span class="kpi-comparison">vs. Budgetiert</span>
+            </div>
+        </div>
+        
+        <div class="card chart-section">
+            <div class="chart-header-controls">
+                <div class="chart-metric-selector">
+                    <h3 class="chart-title-main">Performance Trend</h3>
+                    
+                    <div class="select-container" style="min-width: 150px;">
+                        <select id="chartMetricDropdown" onchange="handleChartChange(this.value)">
+                            <option value="roas">ROAS</option>
+                            <option value="revenue">Revenue</option>
+                            <option value="spend">Ad Spend</option>
+                            <option value="ctr">Creative CTR</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="time-range-group">
+                    <button class="time-range-button" onclick="handleTimeRange('today')">Heute</button>
+                    <button class="time-range-button active" onclick="handleTimeRange('7days')">Letzte 7 Tage</button>
+                    <button class="time-range-button" onclick="handleTimeRange('30days')">Letzte 30 Tage</button>
+                    <button class="time-range-button" onclick="handleTimeRange('custom')">Custom</button>
+                </div>
+            </div>
+            
+            <div class="chart-placeholder">
+                [📊 ELITE CHART PLATZHALTER: Hier rendert später die Live-Visualisierung]
+            </div>
+            
+        </div>
+        
+    </div> 
+    
+    <div class="card" style="height: 400px;">
+        <h3 class="kpi-title" style="margin-bottom: 20px;">Hero Creatives Platzhalter</h3>
+        <p style="color: var(--text-secondary);">Hier folgen die Top-Performing Creatives (Nächster Schritt).</p>
     </div>
+    
   </section>
 
   <section class="view hidden" id="creativesView"><h2>Creative Library</h2></section>
