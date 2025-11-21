@@ -1,6 +1,6 @@
 /* =======================================================================
-   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V7 (FINALE MATRIX)
-   FIX: LOGO GRÖSSE AUF 250PX BASIS ZURÜCKGESETZT
+   SIGNALONE.CLOUD - ELITE MASTER STYLESHEET V9 (REBOOT & GOLD-STANDARD)
+   ALLE GRUNDLAGEN (FARBE, FORM, GRÖSSE) SIND HIER FIXIERT!
    ======================================================================= */
 
 /* ---------------------------------------------------
@@ -15,35 +15,31 @@
   --text-secondary: #6B7280; /* Status & Labels: Subtle Gray */
   --border: #E5E7EB;         /* Trennlinien: Soft Divide */
 
-  /* Brand (Verankert) */
+  /* Brand (FIXIERT) */
   --primary: #1F4068;        /* FIX: Deep Cerulean (Edles, tiefes Blau) */
-  --primary-hover: #2F80ED;  /* FIX: Azure Light (Helle Akzentfarbe) */
+  --primary-hover: #2F80ED;  /* FIX: Azure Light */
   
-  /* Menü-Button-Hintergrund (Verankert) */
-  --bg-menu-item: #F9FAFB;   /* FIX: Soft Blue Gray (Neutral, edel) */
+  /* Menü-Button-Hintergrund (FIXIERT) */
+  --bg-menu-item: #F9FAFB;   /* FIX: Soft Blue Gray */
 
-  /* KPI Ampel-System */
-  --kpi-positive: #10B981;  
-  --kpi-neutral: #F59E0B;   
-  --kpi-negative: #EF4444;  
-  
-  /* Größen-Verankerungen (FIX!) */
+  /* Größen-Verankerungen (FIXIERT) */
   --sidebar-width: 250px;
   --topbar-height: 72px;
   --main-padding: 40px;
-  --card-radius: 12px;
+  --card-radius: 8px; /* FIX: Weiche Rundung */
 }
 
-/* Base Reset & Typography (Verankert) */
+/* Base Reset & Typography (FIXIERT) */
 * { box-sizing: border-box; }
 
 body {
-  /* FIX: Montserrat oder System-Fallbacks für edlen Look */
+  /* FIX: Montserrat oder System-Fallbacks */
   font-family: Montserrat, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   margin: 0;
   padding: 0;
   background-color: var(--bg);
   color: var(--text);
+  line-height: 1.5;
 }
 
 /* ---------------------------------------------------
@@ -89,7 +85,7 @@ body {
 }
 
 /* ---------------------------------------------------
-   2. SIDEBAR LOGO & MENÜ-MATRIX (VERANKERT)
+   2. SIDEBAR LOGO & MENÜ-MATRIX (FIXIERT)
    --------------------------------------------------- */
 
 .sidebar-header {
@@ -98,15 +94,15 @@ body {
 
 /* LOGO FIX: 250px Basisgröße = 147px Höhe */
 .sidebar-logo-img {
-    height: 147px; /* NEUER FIX: Proportionale Höhe zu 250px Breite */
+    height: 147px; /* FIX: Proportionale Höhe für 250px Breite */
     width: 100%; 
-    max-width: 210px; 
+    max-width: 210px; /* Max. verfügbare Breite im Container */
     display: block;
     object-fit: contain; 
 }
 
 
-/* MENÜ ITEM FIX: OPITK, FORM UND FARBE VERANKERT */
+/* MENÜ ITEM FIX: OPTIK, FORM UND FARBE VERANKERT */
 .menu-item {
     display: flex;
     align-items: center;
@@ -117,7 +113,6 @@ body {
     color: var(--text);
     border-radius: var(--card-radius);
     transition: background-color 150ms ease-out;
-    /* FORM UND FARBE VERANKERT */
     box-shadow: 0 1px 3px rgba(0,0,0,0.02); 
 }
 .menu-item:hover {
@@ -130,7 +125,7 @@ body {
 }
 
 .menu-icon {
-    /* EDLE ICONS (BUCHSTABEN-PISSE ENTFERNT) */
+    /* EDLE ICONS (FIXIERT) */
     font-size: 14px;
     font-weight: 700;
     width: 24px; 
@@ -160,7 +155,7 @@ body {
 
 
 /* ---------------------------------------------------
-   3. KONSOLE/TOP BAR (3-GETEILTER HEADER MIT VERANKERTEN BUTTONS)
+   3. KONSOLE/TOP BAR (FIXIERT)
    --------------------------------------------------- */
 
 .welcome-and-status {
@@ -169,12 +164,24 @@ body {
     line-height: 1.2;
 }
 
+.greetings {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--primary);
+}
+
+.status-bar {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
 .top-controls {
     display: flex;
     gap: 15px;
 }
 
-/* HINWEIS-LABEL (Verankert) */
+/* HINWEIS-LABEL (FIXIERT) */
 .dropdown-label {
     font-size: 10px;
     font-weight: 600;
@@ -184,43 +191,40 @@ body {
     letter-spacing: 0.5px;
 }
 
-/* DROPDOWN-STIL (Verankert) */
+/* DROPDOWN-STIL (FIXIERT) */
 .elite-select {
     padding: 8px 15px;
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: var(--card-radius);
     background-color: var(--bg);
     font-size: 14px;
     color: var(--text);
     min-width: 180px; 
-    /* FORM VERANKERT */
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
 }
 
-/* SYSTEM BUTTONS (Optik, Form und Farbe VERANKERT) */
+/* SYSTEM BUTTONS (FIXIERT) */
 .system-actions-area button {
     width: 36px;
     height: 36px;
-    font-size: 16px;
-    font-weight: 700;
+    font-size: 18px; /* Größer für edle Icons */
     color: var(--text); 
     background: var(--bg-card); 
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: var(--card-radius);
     margin-left: 10px;
     cursor: pointer;
     transition: all 150ms;
-    /* FORM VERANKERT */
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    line-height: 1; 
 }
 .system-actions-area button:hover {
     background-color: var(--border);
     color: var(--primary); 
 }
 
-
 /* ---------------------------------------------------
-   4. DASHBOARD (MATRIX & KPI-GLEICHHEIT)
+   4. DASHBOARD & CARDS (FIXIERT)
    --------------------------------------------------- */
 
 .elite-title {
@@ -233,7 +237,6 @@ body {
   background-color: var(--bg-card);
   border-radius: var(--card-radius);
   padding: 24px;
-  /* FIX: Minimaler, edler Schatten */
   box-shadow: 0 4px 10px rgba(0,0,0,0.05), 0 0 1px rgba(0,0,0,0.08); 
   border: 1px solid var(--border);
 }
@@ -244,11 +247,39 @@ body {
     gap: 30px; 
 }
 
-.kpi-card {
-    height: 220px; 
-}
+/* KPI STYLES (FIXIERT) */
+.kpi-card { height: 220px; }
+.card-title { font-size: 16px; font-weight: 700; margin-top: 0; margin-bottom: 15px; color: var(--text-secondary); }
+.kpi-group { display: flex; flex-wrap: wrap; gap: 20px; }
+.kpi-item { flex-basis: calc(50% - 10px); }
+.kpi-value { display: block; font-size: 24px; font-weight: 800; }
+.kpi-label { display: block; font-size: 12px; color: var(--text-secondary); }
+.positive { color: #10B981; }
+.neutral { color: #F59E0B; }
+.negative { color: #EF4444; }
 
-/* ... (Restliches CSS unverändert) ... */
+
+/* TOAST SYSTEM (FIXIERT) */
+.toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+.toast {
+    background-color: var(--primary);
+    color: white;
+    padding: 12px 20px;
+    border-radius: var(--card-radius);
+    margin-top: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    opacity: 1;
+    transition: opacity 300ms ease-out, transform 300ms ease-out;
+}
+.toast.fade-out {
+    opacity: 0;
+    transform: translateY(10px);
+}
 
 /* ---------------------------------------------------
    5. HIDDEN VIEWS
