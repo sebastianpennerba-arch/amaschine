@@ -9,32 +9,35 @@
 </head>
 <body>
 
-    <nav class="sidebar">
+    <nav class="sidebar" id="sidebar">
         <div class="logo-container">
             <img src="https://via.placeholder.com/150x50?text=SignalOne.cloud" alt="SignalOne Logo" class="logo">
         </div>
         
         <div class="menu-category">ANALYTICS</div>
-        <a href="#" class="menu-item active" id="menuDashboard" onclick="showView('dashboardView', this)"><i class="fas fa-chart-line"></i> Dashboard</a>
-        <a href="#" class="menu-item" id="menuCreativeLibrary" onclick="showView('creativesView', this)"><i class="fas fa-image"></i> Creative Library</a>
-        <a href="#" class="menu-item" id="menuCampaigns" onclick="showView('campaignsView', this)"><i class="fas fa-bullhorn"></i> Campaigns</a>
+        <a href="#" class="menu-item active" id="menuDashboard" data-view="dashboard" onclick="showView('dashboardView', this)"><i class="fas fa-chart-line"></i> Dashboard</a>
+        <a href="#" class="menu-item" id="menuCreativeLibrary" data-view="creatives" onclick="showView('creativesView', this)"><i class="fas fa-image"></i> Creative Library</a>
+        <a href="#" class="menu-item" id="menuCampaigns" data-view="campaigns" onclick="showView('campaignsView', this)"><i class="fas fa-bullhorn"></i> Campaigns</a>
         
         <div class="menu-category">INTELLIGENCE</div>
-        <a href="#" class="menu-item" id="menuSenseiStrategy" onclick="showView('senseiStrategyView', this)"><i class="fas fa-brain"></i> Sensei Strategy</a>
-        <a href="#" class="menu-item" id="menuReportsExport" onclick="showView('reportsExportView', this)"><i class="fas fa-file-export"></i> Reports & Export</a>
+        <a href="#" class="menu-item" id="menuSenseiStrategy" data-view="senseiStrategy" onclick="showView('senseiStrategyView', this)"><i class="fas fa-brain"></i> Sensei Strategy</a>
+        <a href="#" class="menu-item" id="menuReportsExport" data-view="reportsExport" onclick="showView('reportsExportView', this)"><i class="fas fa-file-export"></i> Reports & Export</a>
         
         <div class="menu-category">TOOLS</div>
-        <a href="#" class="menu-item" id="menuTestingLog" onclick="showView('testingLogView', this)"><i class="fas fa-flask"></i> Testing Log</a>
-        <a href="#" class="menu-item" id="menuCustomBuilder" onclick="showView('customBuilderView', this)"><i class="fas fa-wrench"></i> Custom Builder</a>
+        <a href="#" class="menu-item" id="menuTestingLog" data-view="testingLog" onclick="showView('testingLogView', this)"><i class="fas fa-flask"></i> Testing Log</a>
+        <a href="#" class="menu-item" id="menuCustomBuilder" data-view="customBuilder" onclick="showView('customBuilderView', this)"><i class="fas fa-wrench"></i> Custom Builder</a>
         
         <div class="menu-footer">
             <div class="menu-status">
-                <span class="status-indicator status-green"></span> Meta Ads (Live)
+                <span id="currentDate">Datum: 21.11.2025</span>
             </div>
             <div class="menu-status">
-                <span class="status-indicator status-yellow"></span> API Health (Delayed)
+                <span id="currentTime">Zeit: 17:55:00</span>
             </div>
-            <a href="#" class="menu-item" id="menuSettings" onclick="showView('settingsView', this)"><i class="fas fa-cog"></i> Settings</a>
+            <div class="menu-status" style="margin-top: 5px;">
+                <span class="status-indicator status-green"></span> Meta Ads (Live)
+            </div>
+            <a href="#" class="menu-item" id="menuSettings" data-view="settings" onclick="showView('settingsView', this)"><i class="fas fa-cog"></i> Settings</a>
         </div>
     </nav>
 
@@ -45,13 +48,13 @@
         </div>
         <div class="account-selection">
             <div class="select-container">
-                <select>
+                <select onchange="handleDropdownChange('Brand', this.value)">
                     <option>SignalOne Brand (Active)</option>
                     <option>Kunde Y</option>
                 </select>
             </div>
             <div class="select-container">
-                <select>
+                <select onchange="handleDropdownChange('Kampagnen Gruppe', this.value)">
                     <option>Alle Kampagnen (8)</option>
                     <option>Scaling (3)</option>
                 </select>
@@ -61,7 +64,7 @@
         </div>
     </header>
 
-    <main class="main-content">
+    <main class="main-content" id="mainContent">
         
         <section class="view" id="dashboardView">
             <h2 class="elite-title">Dashboard Overview</h2>
@@ -98,13 +101,16 @@
                     <h3 class="elite-title" style="font-size: 20px;">Performance Trend</h3>
                     <div class="controls">
                         <div class="select-container small-select">
-                            <select><option>ROAS</option><option>Spend</option></select>
+                            <select onchange="handleChartChange(this.value)">
+                                <option>ROAS</option>
+                                <option>Spend</option>
+                            </select>
                         </div>
-                        <div class="date-toggles">
-                            <button class="date-btn">Heute</button>
-                            <button class="date-btn active">Letzte 7 Tage</button>
-                            <button class="date-btn">Letzte 30 Tage</button>
-                            <button class="date-btn">Custom</button>
+                        <div class="date-toggles time-range-group">
+                            <button class="date-btn time-range-button" onclick="handleTimeRange('Heute', this)">Heute</button>
+                            <button class="date-btn time-range-button active" onclick="handleTimeRange('Letzte 7 Tage', this)">Letzte 7 Tage</button>
+                            <button class="date-btn time-range-button" onclick="handleTimeRange('Letzte 30 Tage', this)">Letzte 30 Tage</button>
+                            <button class="date-btn time-range-button" onclick="handleDeadButton('Custom Date Range')">Custom</button>
                         </div>
                     </div>
                 </div>
@@ -177,8 +183,20 @@
                 <div class="filter-bar" style="display: flex; gap: 15px; align-items: center;">
                     <input type="text" placeholder="Suche nach Namen, Hook oder KPI" style="flex-grow: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px;">
 
-                    <div class="select-container" style="min-width: 150px;"><select><option>Sortieren nach: ROAS (absteigend)</option><option>Sortieren nach: Spend (aufsteigend)</option></select></div>
-                    <div class="select-container" style="min-width: 150px;"><select><option>Typ: Alle</option><option>Typ: Video</option><option>Typ: Static</option><option>Typ: Carousel</option></select></div>
+                    <div class="select-container" style="min-width: 150px;">
+                        <select onchange="handleDropdownChange('Sortierung', this.value)">
+                            <option>Sortieren nach: ROAS (absteigend)</option>
+                            <option>Sortieren nach: Spend (aufsteigend)</option>
+                        </select>
+                    </div>
+                    <div class="select-container" style="min-width: 150px;">
+                        <select onchange="handleDropdownChange('Creative Typ', this.value)">
+                            <option>Typ: Alle</option>
+                            <option>Typ: Video</option>
+                            <option>Typ: Static</option>
+                            <option>Typ: Carousel</option>
+                        </select>
+                    </div>
                     <button class="header-action-button" onclick="handleDeadButton('Filter anwenden')">Filter ◩</button>
                     <button class="header-action-button" onclick="handleDeadButton('Neues Creative hochladen')">⬆️ Upload</button>
                 </div>
@@ -325,7 +343,7 @@
                     <input type="text" placeholder="Suche nach Kampagnen-Namen oder ID" style="flex-grow: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px;">
 
                     <div class="select-container" style="min-width: 150px;">
-                        <select>
+                        <select onchange="handleDropdownChange('Kampagnen Status', this.value)">
                             <option>Status: Alle</option>
                             <option>Status: Aktiv</option>
                             <option>Status: Pausiert</option>
@@ -333,7 +351,7 @@
                         </select>
                     </div>
                     <div class="select-container" style="min-width: 150px;">
-                        <select>
+                        <select onchange="handleDropdownChange('Kampagnen Ziel', this.value)">
                             <option>Ziel: Alle</option>
                             <option>Ziel: Scaling</option>
                             <option>Ziel: Testing</option>
@@ -485,6 +503,8 @@
         </section>
 
     </main>
+
+    <div id="toastContainer"></div>
 
     <script src="app.js"></script>
 </body>
