@@ -5,8 +5,6 @@
   <title>SignalOne.cloud · Creative Intelligence Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="styles.css" /> 
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 
 <body>
@@ -17,589 +15,96 @@
     <a href="#dashboard" class="sidebar-logo">
       <img src="/Logo_qu_tr.png" alt="SignalOne Logo" class="sidebar-logo-img">
     </a>
-    <button class="sidebar-toggle" id="sidebarToggle">☰</button>
-  </div>
+    <button class="sidebar-toggle" id="sidebarToggle">&lt;</button> </div>
 
   <div class="sidebar-menu">
     <div class="menu-section-title">Analytics</div>
 
-    <a href="#dashboard" class="menu-item active" data-view="dashboard" data-tooltip="Dashboard">
+    <a href="#dashboard" class="menu-item active" data-view="dashboard">
       <span class="menu-icon">📊</span>
       <span class="menu-label">Dashboard</span>
     </a>
 
-    <a href="#creatives" class="menu-item" data-view="creatives" data-tooltip="Creatives">
+    <a href="#creatives" class="menu-item" data-view="creatives">
       <span class="menu-icon">🖼️</span>
-      <span class="menu-label">Creatives</span>
-    </a>
-
-    <a href="#campaigns" class="menu-item" data-view="campaigns" data-tooltip="Kampagnen">
-      <span class="menu-icon">🎯</span>
-      <span class="menu-label">Kampagnen</span>
-    </a>
-
-    <a href="#insights" class="menu-item" data-view="insights" data-tooltip="Insights">
-      <span class="menu-icon">💡</span>
-      <span class="menu-label">Insights</span>
-    </a>
-
-    <div class="menu-section-title">Tools & Setup</div>
-
-    <a href="#sensei" class="menu-item" data-view="sensei" data-tooltip="Sensei (AI)">
-      <span class="menu-icon">🧠</span>
-      <span class="menu-label">Sensei (AI)</span>
-    </a>
-
-    <a href="#library" class="menu-item" data-view="library" data-tooltip="Creative Library">
-      <span class="menu-icon">📚</span>
       <span class="menu-label">Creative Library</span>
     </a>
 
-    <a href="#reports" class="menu-item" data-view="reports" data-tooltip="Reports">
-      <span class="menu-icon">📄</span>
-      <span class="menu-label">Reports</span>
+    <a href="#campaigns" class="menu-item" data-view="campaigns">
+      <span class="menu-icon">📈</span>
+      <span class="menu-label">Campaigns</span>
     </a>
-
-    <a href="#connections" class="menu-item" data-view="connections" data-tooltip="Connections">
-      <span class="menu-icon">🔗</span>
-      <span class="menu-label">Connections</span>
+    
+    <div class="menu-section-title">Intelligence</div>
+    
+    <a href="#sensei" class="menu-item" data-view="sensei">
+      <span class="menu-icon">🧠</span>
+      <span class="menu-label">Sensei Strategy</span>
+    </a>
+    
+    <a href="#reports" class="menu-item" data-view="reports">
+      <span class="menu-icon">📄</span>
+      <span class="menu-label">Reports & Export</span>
     </a>
   </div>
-
+  
   <div class="sidebar-footer">
-    <button class="icon-button" id="sidebarProfileBtn" data-view="profile" data-tooltip="Mein Profil">👤</button>
-    <button class="icon-button" id="themeToggle" data-tooltip="Theme wechseln">🌓</button>
+    <a href="#settings" class="menu-item" data-view="settings">
+      <span class="menu-icon">⚙️</span>
+      <span class="menu-label">Settings</span>
+    </a>
   </div>
 
 </nav>
+
+<header class="top-bar" id="topBar">
+  <div class="top-bar-user-info">
+    <h1 class="greetings">Guten Morgen, Sensei!</h1>
+    <span class="account-status">Eingeloggt als: **Acme Brand** (Meta Ad Account #1234)</span>
+  </div>
+  <div class="top-bar-actions">
+    <button class="icon-button" onclick="handleDeadButton('Benachrichtigungen')">🔔</button>
+    <button class="icon-button" onclick="handleDeadButton('User Profile')">👤</button>
+  </div>
+</header>
+
+
 <div class="main-content" id="mainContent">
-  
-  <div class="loading-overlay hidden" id="loadingOverlay">
-      <div class="loading-spinner"></div>
-      <p>Lade Ansicht...</p>
-  </div>
 
-  <header class="top-bar">
-    <div class="top-bar-info">
-      <div class="top-bar-user-info">
-        <div class="top-bar-welcome" id="topBarWelcome">Hallo, Schatz</div> 
-        <div class="top-bar-subline" id="topBarSubline">Eingeloggt als: Demo-Brand - Konto: 123456</div>
-      </div>
-      <div class="top-bar-date" id="currentDate"></div>
-    </div>
-
-    <div class="top-bar-actions">
-      <span class="status-dot error" id="topBarMetaDot" data-tooltip="Meta: Getrennt"></span>
-
-      <div class="top-bar-icons">
-        <button class="icon-button" id="notificationIcon" data-tooltip="Benachrichtigungen">🔔</button>
-        <button class="icon-button platform-icon" id="topBarMetaIcon" data-tooltip="Meta Quick-Link">f</button>
-        <button class="icon-button platform-icon" id="topBarGoogleIcon" data-tooltip="Google Quick-Link">G</button>
-        <button class="icon-button platform-icon" id="topBarSpotifyIcon" data-tooltip="Spotify Quick-Link">♫</button>
-      </div>
-
-      <button id="settingsIcon" class="icon-button" data-view="settings" data-tooltip="Einstellungen">⚙️</button>
-      
-      <button class="button small" id="modeToggle">Demo-Daten</button>
-    </div>
-  </header>
   <section class="view" id="dashboardView">
-    <h2>Dashboard</h2>
-    
-    <div class="section-heading">
-        <h3>Performance Heroes</h3>
-        <p class="section-subline">Ihre besten Creatives im gewählten Zeitraum.</p>
-    </div>
-
-    <div class="hero-creatives-grid">
-        <div class="creative-hero-card card" onclick="handleDeadButton('Creative c1 Details')">
-            <div class="creative-media-container">
-                <div class="creative-media-preview" style="background-image: url('mock/Creative1.png');"></div>
-                <span class="creative-platform-badge">Meta</span>
-            </div>
-            <div class="creative-info">
-                <span class="creative-name">UGC Hook – Unboxing Reel</span>
-                <div class="creative-info">
-    <span class="creative-name">UGC Hook – Unboxing Reel</span>
-    <span class="creative-subline">ID: c1 · Format: 9:16</span>
-    
-    <div class="creative-kpis">
-        
-        <div class="creative-kpi-item">
-            <span class="label">ROAS</span>
-            <span class="value success">3.8x</span>
-        </div>
-        
-        <div class="creative-kpi-item">
-            <span class="label">CTR</span>
-            <span class="value">2.7%</span>
-        </div>
-
-        <div class="creative-kpi-item">
-            <span class="label">SPEND</span>
-            <span class="value">222.3€</span>
-        </div>
-        
-        <div class="creative-kpi-item">
-            <span class="label">IMPRESSIONS</span>
-            <span class="value">28.4K</span>
-        </div>
-        
-    </div>
-</div>
-            </div>
-        </div>
-        
-        <div class="creative-hero-card card" onclick="handleDeadButton('Creative c2 Details')">
-            <div class="creative-media-container">
-                <div class="creative-media-preview" style="background-image: url('mock/Creative2.png');"></div>
-                <span class="creative-platform-badge">Google</span>
-            </div>
-            <div class="creative-info">
-                <span class="creative-name">Static – Hero Product Shot</span>
-                <div class="creative-kpi-row">
-                    <span class="creative-kpi-badge success">ROAS 3.2x</span>
-                    <span class="creative-kpi-badge">CPC 0.71€</span>
-                </div>
-            </div>
-        </div>
-        
-        <div class="creative-hero-card card" onclick="handleDeadButton('Creative c3 Details')">
-            <div class="creative-media-container">
-                <div class="creative-media-preview" style="background-image: url('mock/Creative3.png');"></div>
-                <span class="creative-platform-badge">TikTok</span>
-            </div>
-            <div class="creative-info">
-                <span class="creative-name">Video Ad – Problem/Solution</span>
-                <div class="creative-kpi-row">
-                    <span class="creative-kpi-badge warning">ROAS 2.1x</span>
-                    <span class="creative-kpi-badge">CTR 1.9%</span>
-                </div>
-            </div>
-        </div>
-        
-        <div class="creative-hero-card card card-placeholder" onclick="handleDeadButton('Zur Creative Library wechseln')">
-            <div class="placeholder-content">
-                <div class="placeholder-icon">📚</div>
-                <h4>Creative Library</h4>
-                <p>Alle 127 Creatives anzeigen</p>
-                <button class="button small primary">Zur Ansicht</button>
-            </div>
-        </div>
-    </div>
-    
-    <div class="dashboard-controls">
-        <div class="period-toggles">
-            <button class="period-toggle active" data-period="last7days">Letzte 7 Tage</button>
-            <button class="period-toggle" data-period="last30days">Letzte 30 Tage</button>
-            <button class="period-toggle" data-period="month">Dieser Monat</button>
-            <button class="period-toggle" data-period="year">Dieses Jahr</button>
-        </div>
-        <button class="button secondary" onclick="handleDeadButton('Dashboard Filter')">Filter</button> 
-    </div>
-
-    <div class="section-heading">
-        <h3>Globale Performance</h3>
-        <p class="section-subline">Aggregierte Daten über alle Plattformen.</p>
-    </div>
-
-    <div class="kpi-grid">
-        <div class="kpi-card">
-          <div class="kpi-title">ROAS (Avg)</div>
-          <div class="kpi-value primary" id="kpiRoas">3.8</div>
-          <div class="kpi-change success">
-          ▲ 12% 
-          <span class="micro-label">vs. Vormonat</span>
-        </div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-title">Umsatz (Revenue)</div>
-          <div class="kpi-value" id="kpiRevenue">845.6€</div>
-          <div class="kpi-change success">
-            ▲ 8%</div>
-          <span class="micro-label">vs. Vormonat</span>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-title">Ausgaben (Spend)</div>
-          <div class="kpi-value" id="kpiSpend">222.3€</div>
-          <div class="kpi-change warning">
-            ▼ 2%</div>
-          <span class="micro-label">vs. Vormonat</span>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-title">CTR (Avg)</div>
-          <div class="kpi-value" id="kpiCtr">2.7%</div>
-          <div class="kpi-change success">
-            ▲ 5%</div>
-          <span class="micro-label">vs. Vormonat</span>
-        </div>
-    </div>
-    
-    <div class="section-heading">
-        <h3>Sensei Insights Vorschau</h3>
-        <p class="section-subline">Die neuesten KI-Erkenntnisse und Handlungsempfehlungen.</p>
-    </div>
-    
-    <div class="insights-grid">
-        <div class="insight-card card">
-            <span class="insight-impact-badge warning">Medium Impact</span>
-            <h4>CTR-Drop erkannt</h4>
-            <p>Das Creative "Static Product Shot" hat einen CTR-Drop von 1.1% in den letzten 2 Tagen. Es sollte pausiert werden.</p>
-            <button class="button small primary" onclick="handleDeadButton('Creative pausieren')">Pausieren</button>
-        </div>
-        <div class="insight-card card">
-            <span class="insight-impact-badge success">High Impact</span>
-            <h4>Skalierungs-Chance</h4>
-            <p>UGC Hook (ID c2) zeigt einen 18% höheren ROAS als alle anderen in Q3. Budget erhöhen.</p>
-            <button class="button small secondary" onclick="handleDeadButton('Strategie anwenden')">Sensei Workflow starten</button>
-        </div>
-        <div class="insight-card card">
-            <span class="insight-impact-badge primary">Low Impact</span>
-            <h4>Asset-Archiv</h4>
-            <p>Du hast 37 ungenutzte Assets im Archiv. Sensei kann sie analysieren und neue Hooks erstellen.</p>
-            <button class="button small secondary" onclick="handleDeadButton('Analyse starten')">Analyse starten</button>
-        </div>
-    </div>
-    
-    <div class="section-heading">
-        <h3>Creative Performance Chart</h3>
-        <p class="section-subline">Visualisierung Ihrer Kennzahlen im Zeitverlauf.</p>
-    </div>
-
-    <div class="dashboard-chart-container card">
-        <canvas id="creativePerformanceChart"></canvas>
-    </div>
-</section>
- <section class="view" id="creativesView">
-    <div class="view-header">
-        <h2>Creative Library (127 Assets)</h2>
-        <div class="view-header-actions">
-            <button class="button small secondary" onclick="handleDeadButton('Neues Creative Hochladen')">
-                <span class="icon">🚀</span> Upload Creative
-            </button>
-            <button class="button small primary" onclick="handleDeadButton('Export der Creative Daten')">
-                <span class="icon">⬇️</span> Export
-            </button>
-        </div>
-    </div>
-
-    <div class="creative-toolbar card">
-        <div class="toolbar-left">
-            <button class="button secondary large-icon" onclick="handleDeadButton('Erweiterte Filter öffnen')">
-                <span class="icon">🔍</span> Filter (Active: 3)
-            </button>
-            
-            <div class="toolbar-sort">
-                <span class="sort-label">Sortieren nach:</span>
-                <select class="form-select small">
-                    <option>ROAS (High to Low)</option>
-                    <option>CTR (High to Low)</option>
-                    <option>Spend (High to Low)</option>
-                    <option>Creation Date (Newest)</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="toolbar-right">
-            <input type="text" class="form-input search-input" placeholder="Suche nach Name, ID, Tag..." />
-            
-            <div class="view-toggle">
-                <button class="icon-button active" data-tooltip="Grid View" onclick="handleViewToggle('grid')">
-                    <span class="icon">▦</span>
-                </button>
-                <button class="icon-button" data-tooltip="List View" onclick="handleViewToggle('list')">
-                    <span class="icon">☰</span>
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <div class="creatives-grid">
-        </div>
-</section>
- <section class="view hidden" id="campaignsView">
-    <div class="view-header">
-        <h2>Kampagnen Übersicht</h2>
-        <div class="view-header-actions">
-            <button class="button primary" onclick="handleDeadButton('Neue Kampagne')">
-                <span class="icon">✨</span> Neue Kampagne
-            </button>
-        </div>
-    </div>
-
-    <div class="campaign-toolbar card">
-        <div class="toolbar-left">
-            <div class="period-toggles">
-                <button class="period-toggle active" data-period="current">Aktuell (4)</button>
-                <button class="period-toggle" data-period="finished">Beendet (12)</button>
-                <button class="period-toggle" data-period="archived">Archiviert (3)</button>
-            </div>
-        </div>
-        <div class="toolbar-right">
-            <input type="text" class="form-input search-input" placeholder="Suche nach Name, ID..." />
-            
-            <button class="icon-button secondary" data-tooltip="Filter & Sortierung" onclick="handleDeadButton('Kampagnen Filter')">
-                <span class="icon">⚙️</span>
-            </button>
-        </div>
-    </div>
-
-    <div class="table-card card">
-        <table>
-            <thead>
-                <tr>
-                    <th>Status</th>
-                    <th>Name / ID</th>
-                    <th>Ziel</th>
-                    <th>Budget</th>
-                    <th>ROAS</th>
-                    <th>Spend</th>
-                    <th>Start/Ende</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr class="campaign-row" onclick="handleDeadButton('Kampagnen Detail: High Performer')">
-                    <td><span class="status-badge active">Active</span></td>
-                    <td>Scale Master Q4/2025 - UGC Hook</td>
-                    <td>Sales</td>
-                    <td class="kpi-cell">450 €/Tag</td>
-                    <td class="kpi-cell primary">4.1x</td>
-                    <td class="kpi-cell">1.2K €</td>
-                    <td class="date-cell">20.11. - LÄUFT</td>
-                </tr>
-                <tr class="campaign-row" onclick="handleDeadButton('Kampagnen Detail: Paused Creative Test')">
-                    <td><span class="status-badge paused">Paused</span></td>
-                    <td>Creative Test 03 – Static Shots</td>
-                    <td>Leads</td>
-                    <td class="kpi-cell">100 €/Tag</td>
-                    <td class="kpi-cell">2.3x</td>
-                    <td class="kpi-cell">450 €</td>
-                    <td class="date-cell">10.11. - 17.11.</td>
-                </tr>
-                <tr class="campaign-row" onclick="handleDeadButton('Kampagnen Detail: New Draft')">
-                    <td><span class="status-badge draft">Draft</span></td>
-                    <td>Black Friday Launch 2025</td>
-                    <td>Sales</td>
-                    <td class="kpi-cell">1.0K €/Tag</td>
-                    <td class="kpi-cell">N/A</td>
-                    <td class="kpi-cell">0 €</td>
-                    <td class="date-cell">25.11. - 01.12.</td>
-                </tr>
-                </tbody>
-        </table>
-    </div>
-</section>
-  <section class="view hidden" id="insightsView">
-    <h2>Insights</h2>
-    <div class="card p-4">
-      <h3>KI-gestützte Erkenntnisse</h3>
-      <p>Hier zeigt die Plattform KI-gestützte Insights und Empfehlungen an. Die Ergebnisse wären auf Basis des Sensei Workflows.</p>
-      <button class="button secondary" onclick="handleDeadButton('Insights laden')">Insights laden</button>
+    <h2>Dashboard Overview</h2>
+    <div class="card" style="height: 400px; display: flex; align-items: center; justify-content: center;">
+        <p style="font-size: 20px; color: var(--text-secondary);">🏗️ Hier startet das Elite-Dashboard in Phase 3. Layout ist fixiert.</p>
     </div>
   </section>
-  <section class="view hidden" id="senseiView">
-    <h2>Sensei (AI) Workflows</h2>
-    <p>Wähle einen Workflow, um deine Performance Creatives mit KI-Optimierung zu iterieren.</p>
-    
-    <div class="workflows-grid">
-      <div class="workflow-card card" data-workflow="Iterate Ads">
-        <span class="workflow-icon">🔄</span>
-        <h4>Iterate Ads</h4>
-        <p>Erstelle automatisch 5 Varianten deines Top-Performers (mit Copy/Hook-Änderungen).</p>
-      </div>
-      <div class="workflow-card card" data-workflow="Generate New Hooks">
-        <span class="workflow-icon">💡</span>
-        <h4>Generate New Hooks</h4>
-        <p>Erhalte sofort 10 neue, Performance-orientierte Hooks für ein bestimmtes Creative-Format.</p>
-      </div>
-      <div class="workflow-card card" data-workflow="Create new Script">
-        <span class="workflow-icon">📝</span>
-        <h4>Create new Script</h4>
-        <p>Generiere ein komplettes 9:16 Video-Script basierend auf einem Ziel und einer Zielgruppe.</p>
-      </div>
-      <div class="workflow-card card" data-workflow="Create new Copy">
-        <span class="workflow-icon">✍️</span>
-        <h4>Create new Copy</h4>
-        <p>Erstelle Anzeigen-Texte für Meta/Google mit AIDA-Struktur.</p>
-      </div>
-    </div>
-  </section>
-  <section class="view hidden" id="libraryView">
+
+  <section class="view hidden" id="creativesView">
     <h2>Creative Library</h2>
-    <div class="card p-4">
-      <h3>Dein Creative Asset Archiv</h3>
-      <p>Hier werden alle Creatives und deren Metadaten gespeichert.</p>
-      <button class="button primary" onclick="handleDeadButton('Creative hochladen')">Creative hochladen</button>
-    </div>
+    <div class="card" style="height: 300px;">Creative Content kommt hierhin.</div>
   </section>
+
+  <section class="view hidden" id="campaignsView">
+    <h2>Campaigns Overview</h2>
+    <div class="card" style="height: 300px;">Campaign Content kommt hierhin.</div>
+  </section>
+  
+  <section class="view hidden" id="senseiView">
+    <h2>Sensei Strategy</h2>
+    <div class="card" style="height: 300px;">Sensei Content kommt hierhin.</div>
+  </section>
+
   <section class="view hidden" id="reportsView">
-    <h2>Reports</h2>
-    <div class="dashboard-controls">
-      <button class="button primary" id="createReportBtn">Neuen Report erstellen</button>
-      <button class="button secondary" id="exportJsonBtn">JSON Export</button>
-    </div>
-
-    <div class="card p-4">
-      <h3>Export & Reporting</h3>
-      <p>Erstelle hier benutzerdefinierte Performance-Reports und exportiere Rohdaten.</p>
-    </div>
+    <h2>Reports & Export</h2>
+    <div class="card" style="height: 300px;">Reports Content kommt hierhin.</div>
   </section>
-  <section class="view hidden" id="connectionsView">
-    <h2>Connections</h2>
-
-    <div class="connections-grid">
-
-      <div class="connection-card card">
-        <div class="connection-header">
-          <h4>Meta Ads (Facebook/Instagram)</h4>
-          <span id="metaStatusDot" class="status-dot error"></span>
-        </div>
-        <p id="metaStatusText">Getrennt</p>
-        <button id="connectMetaBtn" class="button primary">Verbinden</button>
-      </div>
-
-      <div class="connection-card card">
-        <div class="connection-header">
-          <h4>Google Ads</h4>
-          <span id="googleStatusDot" class="status-dot error"></span>
-        </div>
-        <p id="googleStatusText">Getrennt</p>
-        <button id="connectGoogleBtn" class="button primary">Verbinden</button>
-      </div>
-      
-      <div class="connection-card card">
-        <div class="connection-header">
-          <h4>TikTok Ads</h4>
-          <span id="tiktokStatusDot" class="status-dot error"></span>
-        </div>
-        <p id="tiktokStatusText">Getrennt</p>
-        <button id="connectTikTokBtn" class="button primary">Verbinden</button>
-      </div>
-      
-      <div class="connection-card card">
-        <div class="connection-header">
-          <h4>Amazon Ads</h4>
-          <span id="amazonStatusDot" class="status-dot error"></span>
-        </div>
-        <p id="amazonStatusText">Getrennt</p>
-        <button id="connectAmazonBtn" class="button primary">Verbinden</button>
-      </div>
-
-      <div class="connection-card card connection-other">
-        <div class="connection-header">
-            <h4>Weitere Verbindungen</h4>
-        </div>
-        <p>Integrationen für Shop-Systeme und Analytik.</p>
-        <button id="connectOtherBtn" class="button secondary">Integrationen</button>
-    </div>
-    </div>
-  </section>
-  <section class="view hidden" id="profileView">
-    <h2>Mein Profil</h2>
-
-    <div class="card p-4">
-      <h3>Account-Einstellungen</h3>
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="accountName">Ihr Name</label>
-          <input type="text" id="accountName" class="form-input" value="Schatz" />
-        </div>
-        <div class="form-group">
-          <label for="accountBrand">Brand-Name</label>
-          <input type="text" id="accountBrand" class="form-input" value="SignalOne Demo Brand" />
-        </div>
-        <div class="form-group">
-          <label for="adAccountName">Haupt-Ad-Account</label>
-          <input type="text" id="adAccountName" class="form-input" value="Ad Account 123456" />
-        </div>
-      </div>
-      <button id="saveAccountSettings" class="button primary">Speichern</button> 
-    </div>
-  </section>
+  
   <section class="view hidden" id="settingsView">
-    <h2>Einstellungen</h2>
-
-    <div class="card p-4">
-      <h3>System-Einstellungen</h3>
-      <div class="form-grid">
-
-        <div class="form-group">
-          <label for="languageSelect">Sprache</label>
-          <select id="languageSelect" class="form-select">
-            <option value="de">Deutsch</option>
-            <option value="en">English (Coming Soon)</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label for="timezoneSelect">Zeitzone</label>
-          <select id="timezoneSelect" class="form-select">
-            <option value="cet">CET (Central European Time)</option>
-            <option value="utc">UTC (Coming Soon)</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="dataRetention">Datenaufbewahrung</label>
-          <select id="dataRetention" class="form-select">
-            <option>1 Jahr</option>
-            <option>2 Jahre</option>
-          </select>
-        </div>
-      </div>
-
-      <button id="saveAppSettings" class="button primary">Speichern</button>
-    </div>
-
+    <h2>Settings & Profile</h2>
+    <div class="card" style="height: 300px;">Settings Content kommt hierhin.</div>
   </section>
-  </div> <section id="simpleModal" class="modal-overlay hidden">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3 id="simpleModalTitle">Titel</h3>
-      <button id="simpleModalClose" class="modal-close">✕</button>
-    </div>
-    <div id="simpleModalContent" class="modal-body">
-      Inhalt des Modals.
-    </div>
-    <div class="modal-footer">
-        <button class="button secondary" onclick="closeModal()">Schließen</button> 
-    </div>
-  </div>
-</section>
 
 
-<div id="toastContainer" class="toast-container"></div>
-
-<div id="stateInspector" class="state-inspector hidden">
-
-  <div class="inspector-header">
-    <strong>State Inspector</strong>
-    <div class="inspector-actions">
-      <button id="inspectorCopy" onclick="handleDeadButton('State Copy')">Copy</button> 
-      <button id="inspectorClose">✕</button>
-    </div>
-  </div>
-
-  <div class="inspector-tabs">
-    <button class="inspector-tab active" data-tab="state">State</button>
-    <button class="inspector-tab" data-tab="events" onclick="handleDeadButton('Event Log')">Events</button>
-  </div>
-
-  <pre id="inspectorState" class="inspector-panel active"></pre>
-  <pre id="inspectorEvents" class="inspector-panel">Event Log (Noch leer)</pre>
-
-</div>
-
-<button id="inspectorToggle" class="inspector-toggle">🛠</button>
-
-<script src="app.js"></script>
-
+</div> <div id="toastContainer" class="toast-container"></div>
+<script src="app.js"></script> 
 </body>
 </html>
-
-
-
-
-
-
-
