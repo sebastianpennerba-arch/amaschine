@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>SignalOne.cloud | Creative Intelligence Elite Core V10.0 (Chart-Section)</title>
+  <title>SignalOne.cloud | Creative Intelligence Elite Core V10.1 (Hero Creatives)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="styles.css" /> 
 </head>
@@ -121,8 +121,10 @@
         
         <div class="kpi-card">
             <div class="kpi-header">
-                <h3 class="kpi-title">Return on Ad Spend (ROAS)</h3>
-                <span class="kpi-icon">💰</span>
+                <div class="kpi-title-wrapper">
+                    <span class="kpi-icon">💰</span>
+                    <h3 class="kpi-title">Return on Ad Spend (ROAS)</h3>
+                </div>
             </div>
             <p class="kpi-value">4.12x</p>
             <div class="kpi-footer">
@@ -136,8 +138,10 @@
 
         <div class="kpi-card">
             <div class="kpi-header">
-                <h3 class="kpi-title">Cost per Purchase (CPP)</h3>
-                <span class="kpi-icon">🛒</span>
+                 <div class="kpi-title-wrapper">
+                    <span class="kpi-icon">🛒</span>
+                    <h3 class="kpi-title">Cost per Purchase (CPP)</h3>
+                </div>
             </div>
             <p class="kpi-value">€ 18.33</p>
             <div class="kpi-footer">
@@ -151,8 +155,10 @@
 
         <div class="kpi-card">
             <div class="kpi-header">
-                <h3 class="kpi-title">Creative CTR (Gesamt)</h3>
-                <span class="kpi-icon">🖱️</span>
+                <div class="kpi-title-wrapper">
+                    <span class="kpi-icon">🖱️</span>
+                    <h3 class="kpi-title">Creative CTR (Gesamt)</h3>
+                </div>
             </div>
             <p class="kpi-value">2.88%</p>
             <div class="kpi-footer">
@@ -166,8 +172,10 @@
 
         <div class="kpi-card">
             <div class="kpi-header">
-                <h3 class="kpi-title">Ad Spend (Heute)</h3>
-                <span class="kpi-icon">🔥</span>
+                <div class="kpi-title-wrapper">
+                    <span class="kpi-icon">🔥</span>
+                    <h3 class="kpi-title">Ad Spend (Heute)</h3>
+                </div>
             </div>
             <p class="kpi-value">€ 5,123.00</p>
             <div class="kpi-footer">
@@ -207,12 +215,80 @@
             </div>
             
         </div>
-        
+
     </div> 
-    
-    <div class="card" style="height: 400px;">
-        <h3 class="kpi-title" style="margin-bottom: 20px;">Hero Creatives Platzhalter</h3>
-        <p style="color: var(--text-secondary);">Hier folgen die Top-Performing Creatives (Nächster Schritt).</p>
+
+    <div class="card hero-creatives-card">
+        <h3 class="elite-title" style="font-size: 24px; margin-bottom: 5px;">Hero Creatives (Top 3 Performer)</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 20px;">Die Creatives mit der höchsten Gesamt-Performance im aktuellen Zeitraum.</p>
+        
+        <div class="hero-grid">
+            
+            <div class="creative-hero-item" onclick="handleDeadButton('Creative Detailansicht')">
+                <div class="creative-media-container">
+                    <img src="placeholder-video.jpg" alt="Creative Thumbnail Video">
+                </div>
+                <div class="creative-details">
+                    <h4 class="creative-name">21-05_Video_Problem_Hook</h4>
+                    <div class="creative-kpi-bar">
+                        <span class="kpi-label">ROAS</span>
+                        <span class="kpi-value-mini trend-positive">4.88x</span>
+                    </div>
+                    <div class="creative-kpi-bar">
+                        <span class="kpi-label">Spend</span>
+                        <span class="kpi-value-mini">€ 1,200</span>
+                    </div>
+                    <div class="creative-kpi-bar">
+                        <span class="kpi-label">Purchases</span>
+                        <span class="kpi-value-mini">89</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="creative-hero-item" onclick="handleDeadButton('Creative Detailansicht')">
+                <div class="creative-media-container">
+                    <img src="placeholder-image.jpg" alt="Creative Thumbnail Image">
+                </div>
+                <div class="creative-details">
+                    <h4 class="creative-name">20-07_Static_Value_Rasenmäher</h4>
+                    <div class="creative-kpi-bar">
+                        <span class="kpi-label">ROAS</span>
+                        <span class="kpi-value-mini trend-positive">4.52x</span>
+                    </div>
+                    <div class="creative-kpi-bar">
+                        <span class="kpi-label">Spend</span>
+                        <span class="kpi-value-mini">€ 950</span>
+                    </div>
+                    <div class="creative-kpi-bar">
+                        <span class="kpi-label">Purchases</span>
+                        <span class="kpi-value-mini">65</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="creative-hero-item" onclick="handleDeadButton('Creative Detailansicht')">
+                <div class="creative-media-container">
+                    <img src="placeholder-carousel.jpg" alt="Creative Thumbnail Carousel">
+                </div>
+                <div class="creative-details">
+                    <h4 class="creative-name">18-02_UGC_Quality_Unboxing</h4>
+                    <div class="creative-kpi-bar">
+                        <span class="kpi-label">ROAS</span>
+                        <span class="kpi-value-mini trend-positive">3.98x</span>
+                    </div>
+                    <div class="creative-kpi-bar">
+                        <span class="kpi-label">Spend</span>
+                        <span class="kpi-value-mini">€ 1,500</span>
+                    </div>
+                    <div class="creative-kpi-bar">
+                        <span class="kpi-label">Purchases</span>
+                        <span class="kpi-value-mini">112</span>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+        
     </div>
     
   </section>
