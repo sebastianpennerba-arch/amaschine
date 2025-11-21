@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>SignalOne.cloud | Creative Intelligence Elite Core V10.1 (Hero Creatives)</title>
+  <title>SignalOne.cloud | Creative Intelligence Elite Core V10.4 (Clean Icons)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="styles.css" /> 
 </head>
@@ -191,7 +191,6 @@
             <div class="chart-header-controls">
                 <div class="chart-metric-selector">
                     <h3 class="chart-title-main">Performance Trend</h3>
-                    
                     <div class="select-container" style="min-width: 150px;">
                         <select id="chartMetricDropdown" onchange="handleChartChange(this.value)">
                             <option value="roas">ROAS</option>
@@ -201,7 +200,6 @@
                         </select>
                     </div>
                 </div>
-                
                 <div class="time-range-group">
                     <button class="time-range-button" onclick="handleTimeRange('today')">Heute</button>
                     <button class="time-range-button active" onclick="handleTimeRange('7days')">Letzte 7 Tage</button>
@@ -209,11 +207,9 @@
                     <button class="time-range-button" onclick="handleTimeRange('custom')">Custom</button>
                 </div>
             </div>
-            
             <div class="chart-placeholder">
                 [📊 ELITE CHART PLATZHALTER: Hier rendert später die Live-Visualisierung]
             </div>
-            
         </div>
 
     </div> 
@@ -224,12 +220,12 @@
         
         <div class="hero-grid">
             
-            <div class="creative-hero-item" onclick="handleDeadButton('Creative Detailansicht')">
+            <div class="creative-hero-item" onclick="handleDeadButton('Creative Detailansicht: Creative1.png')">
                 <div class="creative-media-container">
-                    <img src="placeholder-video.jpg" alt="Creative Thumbnail Video">
+                    <img src="/mock/Creative1.png" alt="Creative Thumbnail 1: Bild" loading="lazy">
                 </div>
                 <div class="creative-details">
-                    <h4 class="creative-name">21-05_Video_Problem_Hook</h4>
+                    <h4 class="creative-name">21-05_Static_Problem_Hook</h4>
                     <div class="creative-kpi-bar">
                         <span class="kpi-label">ROAS</span>
                         <span class="kpi-value-mini trend-positive">4.88x</span>
@@ -245,12 +241,12 @@
                 </div>
             </div>
 
-            <div class="creative-hero-item" onclick="handleDeadButton('Creative Detailansicht')">
+            <div class="creative-hero-item" onclick="handleDeadButton('Creative Detailansicht: Creative2.mp4')">
                 <div class="creative-media-container">
-                    <img src="placeholder-image.jpg" alt="Creative Thumbnail Image">
+                    <video src="/mock/Creative2.mp4" poster="/mock/Creative2_poster.jpg" autoplay muted loop class="creative-video-mock"></video>
                 </div>
                 <div class="creative-details">
-                    <h4 class="creative-name">20-07_Static_Value_Rasenmäher</h4>
+                    <h4 class="creative-name">20-07_Video_Value_Rasenmäher</h4>
                     <div class="creative-kpi-bar">
                         <span class="kpi-label">ROAS</span>
                         <span class="kpi-value-mini trend-positive">4.52x</span>
@@ -266,9 +262,9 @@
                 </div>
             </div>
 
-            <div class="creative-hero-item" onclick="handleDeadButton('Creative Detailansicht')">
+            <div class="creative-hero-item" onclick="handleDeadButton('Creative Detailansicht: Creative3.mp4')">
                 <div class="creative-media-container">
-                    <img src="placeholder-carousel.jpg" alt="Creative Thumbnail Carousel">
+                    <video src="/mock/Creative3.mp4" poster="/mock/Creative3_poster.jpg" autoplay muted loop class="creative-video-mock"></video>
                 </div>
                 <div class="creative-details">
                     <h4 class="creative-name">18-02_UGC_Quality_Unboxing</h4>
