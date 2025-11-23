@@ -9,6 +9,42 @@
  * 5. Mock-Handler für Klick-Aktionen (handleDeadButton, handleDropdownChange, handleTimeRange)
  */
 
+/* ============================================
+   GLOBALER APP STATE (Phase 1 – Live Ready)
+   ============================================ */
+
+const AppState = {
+    // Meta Connection Status
+    metaConnected: false,
+    
+    // Auth / User (später)
+    user: null,
+
+    // Aktives UI Verhalten
+    currentView: "dashboard",
+    timeRange: "last_7d",   // später: 'today', 'yesterday', 'last_30d'
+    brand: null,
+    campaignGroup: null,
+
+    // Live-Daten aus Meta API
+    meta: {
+        accessToken: null,
+        adAccounts: [],
+        selectedAdAccount: null,
+
+        // später dynamisch gefüllt:
+        campaigns: [],
+        adsets: [],
+        ads: [],
+        creatives: [],      // normalisiert
+        insights: {},       // globale KPIs
+    },
+
+    // Systemdaten
+    loading: false,
+    error: null,
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Initialisierung beim Laden der Seite
     updateDateTime();
