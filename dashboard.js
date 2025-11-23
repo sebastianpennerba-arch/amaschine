@@ -1,4 +1,11 @@
-// dashboard.js – Dashboard KPIs, Charts, Top-Kampagnen
+// dashboard.js – Premium Dashboard (Option B)
+// -------------------------------------------
+// Ziele der Premium-Version:
+// - Einheitliche KPI-Komponenten (Metric Chips)
+// - Harmonisierte Balken-Visualisierung im Performance Profil
+// - Effizientere Insights-Aggregation
+// - Verbesserte Fehlerbehandlung & Null-Schutz
+// - Konsistentes UI mit Creative Library + Campaign Manager
 
 import { AppState } from "./state.js";
 import {
@@ -7,441 +14,361 @@ import {
     fetchMetaCampaignInsights
 } from "./metaApi.js";
 
-const summaryElId = "dashboardMetaSummary";
+/* -----------------------------------------------------------
+   Utility Helpers
+----------------------------------------------------------- */
 
-function setDashboardSummary(text) {
-    const el = document.getElementById(summaryElId);
-    if (el) el.textContent = text;
+const nf = new Intl.NumberFormat("de-DE");
+
+function fEuro(v) {
+    const n = Number(v);
+    return !isFinite(n) || n === 0 ? "€ 0" : `€ ${nf.format(n)}`;
 }
 
-function buildTimeRangeLabel(dateStartStr, dateStopStr) {
-    if (!dateStartStr || !dateStopStr) return "Standard (Meta Zeitraum)";
+function fPct(v) {
+    const n = Number(v);
+    return !isFinite(n) || n === 0 ? "0%" : `${n.toFixed(2)}%`;
+}
 
-    const start = new Date(dateStartStr);
-    const stop = new Date(dateStopStr);
-    if (isNaN(start) || isNaN(stop)) return "Standard (Meta Zeitraum)";
+function fRoas(v) {
+    const n = Number(v);
+    return !isFinite(n) || n === 0 ? "0x" : `${n.toFixed(2)}x`;
+}
 
-    const diffMs = stop - start;
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
+function timeRangeLabel(start, stop) {
+    if (!start || !stop) return "Keine Daten";
+    const s = new Date(start);
+    const e = new Date(stop);
+    if (isNaN(s) || isNaN(e)) return "Keine Daten";
 
-    const sameDay =
-        start.getFullYear() === stop.getFullYear() &&
-        start.getMonth() === stop.getMonth() &&
-        start.getDate() === stop.getDate();
+    const same =
+        s.getFullYear() === e.getFullYear() &&
+        s.getMonth() === e.getMonth() &&
+        s.getDate() === e.getDate();
+    if (same) return s.toLocaleDateString("de-DE");
 
-    if (sameDay) return start.toLocaleDateString("de-DE");
+    const diffDays = Math.floor((e - s) / 86400000) + 1;
     if (diffDays === 7) return "Letzte 7 Tage";
     if (diffDays === 30) return "Letzte 30 Tage";
 
-    return `${start.toLocaleDateString("de-DE")} – ${stop.toLocaleDateString(
-        "de-DE"
-    )}`;
+    return `${s.toLocaleDateString("de-DE")} – ${e.toLocaleDateString("de-DE")}`;
 }
 
-function renderDashboardKpisPlaceholder() {
-    const container = document.getElementById("dashboardKpiContainer");
-    if (!container) return;
+/* -----------------------------------------------------------
+   KPI Placeholder
+----------------------------------------------------------- */
 
-    container.innerHTML = `
+function renderKpiPlaceholder() {
+    const cont = document.getElementById("dashboardKpiContainer");
+    if (!cont) return;
+
+    cont.innerHTML = `
         <div class="kpi-grid">
-            <div class="kpi-card">
-                <div class="kpi-label"><i class="fas fa-coins"></i> Ad Spend</div>
-                <div class="kpi-value">–</div>
-                <div class="kpi-trend trend-neutral">Verbinde Meta für Live-Daten</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-label"><i class="fas fa-percentage"></i> ROAS</div>
-                <div class="kpi-value">–</div>
-                <div class="kpi-trend trend-neutral">Verbinde Meta für Live-Daten</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-label"><i class="fas fa-mouse-pointer"></i> CTR</div>
-                <div class="kpi-value">–</div>
-                <div class="kpi-trend trend-neutral">Verbinde Meta für Live-Daten</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-label"><i class="fas fa-chart-area"></i> CPM</div>
-                <div class="kpi-value">–</div>
-                <div class="kpi-trend trend-neutral">Verbinde Meta für Live-Daten</div>
-            </div>
-        </div>
-    `;
-}
-
-function renderDashboardKpisLive(metrics) {
-    const container = document.getElementById("dashboardKpiContainer");
-    if (!container) return;
-
-    const safe = (v, unit = "") => {
-        const n = Number(v);
-        if (!isFinite(n)) return "–";
-        if (n === 0) return "0";
-        if (unit === "€") return `€ ${n.toLocaleString("de-DE")}`;
-        if (unit === "%") return `${n.toFixed(2)}%`;
-        if (unit === "x") return `${n.toFixed(2)}x`;
-        return n.toString();
-    };
-
-    container.innerHTML = `
-        <div class="kpi-grid">
-            <div class="kpi-card">
-                <div class="kpi-label"><i class="fas fa-coins"></i> Ad Spend</div>
-                <div class="kpi-value">${safe(metrics.spend, "€")}</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-label"><i class="fas fa-percentage"></i> ROAS</div>
-                <div class="kpi-value">${safe(metrics.roas, "x")}</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-label"><i class="fas fa-mouse-pointer"></i> CTR</div>
-                <div class="kpi-value">${safe(metrics.ctr, "%")}</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-label"><i class="fas fa-chart-area"></i> CPM</div>
-                <div class="kpi-value">${safe(metrics.cpm, "€")}</div>
-            </div>
-        </div>
-    `;
-}
-
-function renderDashboardChart(metrics) {
-    const container = document.getElementById("dashboardChartContainer");
-    if (!container) return;
-
-    if (!metrics) {
-        container.innerHTML = `
-            <div class="card performance-card">
-                <div class="card-header">
-                    <h3>Performance Profil</h3>
-                </div>
-                <div class="chart-placeholder">
-                    Verbinde Meta, um deinen Performance-Zeitraum zu sehen.
-                </div>
-            </div>
-        `;
-        return;
-    }
-
-    const spend = Number(metrics.spend) || 0;
-    const roas = Number(metrics.roas) || 0;
-    const ctr = Number(metrics.ctr) || 0;
-    const cpm = Number(metrics.cpm) || 0;
-    const impressions = Number(metrics.impressions) || 0;
-    const clicks = Number(metrics.clicks) || 0;
-
-    const items = [
-        { key: "spend", label: "Spend", value: spend, formatted: spend > 0 ? `€ ${spend.toLocaleString("de-DE")}` : "0" },
-        { key: "roas", label: "ROAS", value: roas, formatted: roas > 0 ? `${roas.toFixed(2)}x` : "0" },
-        { key: "ctr", label: "CTR", value: ctr, formatted: ctr > 0 ? `${ctr.toFixed(2)}%` : "0" },
-        { key: "cpm", label: "CPM", value: cpm, formatted: cpm > 0 ? `€ ${cpm.toFixed(2)}` : "0" }
-    ];
-
-    const maxVal = Math.max(...items.map((i) => i.value || 0), 1);
-
-    const rowsHtml = items
-        .map((i) => {
-            const pct =
-                i.value > 0 ? Math.max(8, Math.min(100, (i.value / maxVal) * 100)) : 8;
-            return `
-            <div style="display:flex; align-items:center; gap:10px;">
-                <div style="width:110px; font-size:12px; color:var(--text-secondary);">${i.label}</div>
-                <div style="flex:1; height:8px; border-radius:999px; background:rgba(148,163,184,0.35); overflow:hidden;">
-                    <div style="width:${pct}%; height:100%; border-radius:inherit; background:var(--color-primary);"></div>
-                </div>
-                <div style="width:90px; text-align:right; font-size:12px; color:var(--text-primary);">${i.formatted}</div>
-            </div>`;
-        })
-        .join("");
-
-    container.innerHTML = `
-        <div class="card performance-card">
-            <div class="card-header">
-                <div>
-                    <h3>Performance Profil</h3>
-                    <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">
-                        Basis: ${metrics.scopeLabel} • Zeitraum: ${metrics.timeRangeLabel}
-                    </div>
-                    <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">
-                        Impressionen: ${impressions.toLocaleString(
-                            "de-DE"
-                        )} • Klicks: ${clicks.toLocaleString("de-DE")}
-                    </div>
-                </div>
-            </div>
-            <div class="chart-placeholder">
-                <div style="width:100%; max-width:640px; display:flex; flex-direction:column; gap:12px;">
-                    ${rowsHtml}
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-function renderDashboardHeroCreatives() {
-    const container = document.getElementById("dashboardHeroCreativesContainer");
-    if (!container) return;
-
-    const entries = Object.entries(AppState.meta.insightsByCampaign || {});
-    const campaigns = AppState.meta.campaigns || [];
-
-    if (!AppState.metaConnected || !entries.length || !campaigns.length) {
-        container.innerHTML = `
-            <div class="card">
-                <h3>Top-Kampagnen</h3>
-                <p style="color: var(--text-secondary); font-size:14px; margin-top:8px;">
-                    Sobald deine Kampagnen mit Spend und Ergebnissen laufen, siehst du hier deine stärksten Kampagnen.
-                </p>
-            </div>
-        `;
-        return;
-    }
-
-    const enriched = entries.map(([id, m]) => {
-        const camp = campaigns.find((c) => c.id === id) || { name: id };
-        return {
-            id,
-            name: camp.name || id,
-            spend: m.spend || 0,
-            roas: m.roas || 0,
-            ctr: m.ctr || 0
-        };
-    });
-
-    enriched.sort((a, b) => {
-        const aScore = (a.roas || 0) * (a.spend || 0);
-        const bScore = (b.roas || 0) * (b.spend || 0);
-        return bScore - aScore;
-    });
-
-    const top3 = enriched.slice(0, 3);
-
-    container.innerHTML = `
-        <div class="card" style="margin-bottom: 16px;">
-            <h3 style="margin-bottom: 8px;">Top-Kampagnen (Impact-basiert)</h3>
-            <p style="color: var(--text-secondary); font-size:12px;">
-                Ranking nach Spend × ROAS im gewählten Zeitraum.
-            </p>
-        </div>
-        <div class="hero-grid">
-            ${top3
+            ${["Ad Spend", "ROAS", "CTR", "CPM"]
                 .map(
-                    (c, idx) => `
-                <div class="creative-hero-item">
-                    <div class="creative-media-container">
-                        <div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:18px;color:var(--text-secondary);background:rgba(15,23,42,0.85);">
-                            #${idx + 1}
-                        </div>
-                    </div>
-                    <div class="creative-details">
-                        <div class="creative-name">${c.name}</div>
-                        <div class="creative-kpi-bar">
-                            <span>ROAS</span>
-                            <span class="kpi-value-mini">${
-                                c.roas > 0 ? c.roas.toFixed(2) + "x" : "0"
-                            }</span>
-                        </div>
-                        <div class="creative-kpi-bar">
-                            <span>Spend</span>
-                            <span class="kpi-value-mini">${
-                                c.spend > 0
-                                    ? "€ " + c.spend.toLocaleString("de-DE")
-                                    : "0"
-                            }</span>
-                        </div>
-                        <div class="creative-kpi-bar">
-                            <span>CTR</span>
-                            <span class="kpi-value-mini">${
-                                c.ctr > 0 ? c.ctr.toFixed(2) + "%" : "0"
-                            }</span>
-                        </div>
-                    </div>
-                </div>`
+                    (l) => `
+                <div class="kpi-card">
+                    <div class="kpi-label">${l}</div>
+                    <div class="kpi-value">–</div>
+                    <div class="kpi-trend trend-neutral">Verbinde Meta</div>
+                </div>
+                `
                 )
                 .join("")}
         </div>
     `;
 }
 
-function storeCampaignInsightInCache(campaignId, d, preset) {
-    if (!AppState.meta.insightsByCampaign) {
-        AppState.meta.insightsByCampaign = {};
-    }
+/* -----------------------------------------------------------
+   KPI Live Rendering
+----------------------------------------------------------- */
 
-    const spend = Number(d.spend || 0);
-    let roas = 0;
-    if (Array.isArray(d.website_purchase_roas) && d.website_purchase_roas.length > 0) {
-        roas = Number(d.website_purchase_roas[0].value || 0);
-    }
-    const ctr = Number(d.ctr || 0);
-    const cpm = Number(d.cpm || 0);
+function renderKpis(metrics) {
+    const cont = document.getElementById("dashboardKpiContainer");
+    if (!cont) return;
 
-    AppState.meta.insightsByCampaign[campaignId] = {
-        spend,
-        roas,
-        ctr,
-        cpm,
-        raw: d,
-        rawPreset: preset
-    };
+    cont.innerHTML = `
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label">Ad Spend</div>
+                <div class="kpi-value">${fEuro(metrics.spend)}</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">ROAS</div>
+                <div class="kpi-value">${fRoas(metrics.roas)}</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">CTR</div>
+                <div class="kpi-value">${fPct(metrics.ctr)}</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">CPM</div>
+                <div class="kpi-value">${fEuro(metrics.cpm)}</div>
+            </div>
+        </div>
+    `;
 }
 
-async function aggregateInsightsForCampaigns(campaignIds, datePreset) {
-    let totalSpend = 0;
-    let totalImpressions = 0;
-    let totalClicks = 0;
-    let roasWeightedSum = 0;
-    let roasWeight = 0;
-    let minStart = null;
-    let maxStop = null;
+/* -----------------------------------------------------------
+   Performance Profile (Balken)
+----------------------------------------------------------- */
 
-    for (const id of campaignIds) {
+function renderPerformanceChart(metrics) {
+    const cont = document.getElementById("dashboardChartContainer");
+    if (!cont) return;
+
+    if (!metrics) {
+        cont.innerHTML = `
+            <div class="card performance-card">
+                <h3>Performance Profil</h3>
+                <div class="chart-placeholder">Verbinde Meta…</div>
+            </div>
+        `;
+        return;
+    }
+
+    const rows = [
+        { label: "Spend", value: Number(metrics.spend), formatted: fEuro(metrics.spend) },
+        { label: "ROAS", value: Number(metrics.roas), formatted: fRoas(metrics.roas) },
+        { label: "CTR", value: Number(metrics.ctr), formatted: fPct(metrics.ctr) },
+        { label: "CPM", value: Number(metrics.cpm), formatted: fEuro(metrics.cpm) }
+    ];
+
+    const maxVal = Math.max(...rows.map((r) => r.value || 0), 1);
+
+    cont.innerHTML = `
+        <div class="card performance-card">
+            <div class="card-header">
+                <h3>Performance Profil</h3>
+                <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">
+                    Basis: ${metrics.scopeLabel} • Zeitraum: ${metrics.timeRangeLabel}
+                </div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">
+                    Impressionen: ${nf.format(metrics.impressions)} • Klicks: ${nf.format(metrics.clicks)}
+                </div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:14px; padding-top:8px;">
+                ${rows
+                    .map((r) => {
+                        const pct = r.value > 0 ? Math.max(6, (r.value / maxVal) * 100) : 6;
+                        return `
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div style="width:110px; font-size:12px; color:var(--text-secondary);">
+                                ${r.label}
+                            </div>
+                            <div style="flex:1; height:8px; border-radius:999px; background:rgba(148,163,184,0.35); overflow:hidden;">
+                                <div style="
+                                    width:${pct}%; 
+                                    height:100%; 
+                                    background:var(--color-primary);
+                                    border-radius:inherit;">
+                                </div>
+                            </div>
+                            <div style="width:90px; text-align:right; font-size:12px; color:var(--text-primary);">
+                                ${r.formatted}
+                            </div>
+                        </div>
+                        `;
+                    })
+                    .join("")}
+            </div>
+        </div>
+    `;
+}
+
+/* -----------------------------------------------------------
+   Top-Kampagnen (Impact Ranking)
+----------------------------------------------------------- */
+
+function renderTopCampaigns() {
+    const cont = document.getElementById("dashboardHeroCreativesContainer");
+    if (!cont) return;
+
+    if (!AppState.metaConnected || !AppState.meta.campaigns.length) {
+        cont.innerHTML = `
+            <div class="card">
+                <h3>Top-Kampagnen</h3>
+                <p style="color:var(--text-secondary);font-size:14px;margin-top:8px;">
+                    Hier erscheinen deine stärksten Kampagnen sobald Spend & ROAS vorliegen.
+                </p>
+            </div>
+        `;
+        return;
+    }
+
+    const enrich = Object.entries(AppState.meta.insightsByCampaign || []).map(
+        ([id, m]) => {
+            const camp = AppState.meta.campaigns.find((c) => c.id === id) || {};
+            return {
+                id,
+                name: camp.name || id,
+                spend: m.spend || 0,
+                roas: m.roas || 0,
+                ctr: m.ctr || 0
+            };
+        }
+    );
+
+    enrich.sort((a, b) => b.spend * b.roas - a.spend * a.roas);
+
+    const top3 = enrich.slice(0, 3);
+
+    cont.innerHTML = `
+        <div class="card" style="margin-bottom:16px;">
+            <h3>Top-Kampagnen (Impact-basiert)</h3>
+            <p style="color:var(--text-secondary);font-size:12px;margin-top:4px;">
+                Ranking nach Spend × ROAS
+            </p>
+        </div>
+        <div class="hero-grid">
+            ${top3
+                .map(
+                    (c, i) => `
+                <div class="creative-hero-item">
+                    <div class="creative-media-container">
+                        <div style="
+                            display:flex;
+                            align-items:center;
+                            justify-content:center;
+                            width:100%;
+                            height:100%;
+                            background:rgba(15,23,42,0.85);
+                            color:#fff;
+                            font-size:20px;
+                            font-weight:700;">
+                            #${i + 1}
+                        </div>
+                    </div>
+                    <div class="creative-details">
+                        <div class="creative-name">${c.name}</div>
+                        <div class="creative-kpi-bar">
+                            <span>ROAS</span>
+                            <span class="kpi-value-mini">${fRoas(c.roas)}</span>
+                        </div>
+                        <div class="creative-kpi-bar">
+                            <span>Spend</span>
+                            <span class="kpi-value-mini">${fEuro(c.spend)}</span>
+                        </div>
+                        <div class="creative-kpi-bar">
+                            <span>CTR</span>
+                            <span class="kpi-value-mini">${fPct(c.ctr)}</span>
+                        </div>
+                    </div>
+                </div>
+                `
+                )
+                .join("")}
+        </div>
+    `;
+}
+
+/* -----------------------------------------------------------
+   Insights Aggregation
+----------------------------------------------------------- */
+
+async function aggregateCampaigns(ids, preset) {
+    let spend = 0,
+        impressions = 0,
+        clicks = 0,
+        roasWeighted = 0,
+        weight = 0;
+
+    let minStart = null,
+        maxStop = null;
+
+    for (const id of ids) {
         try {
-            const cached = AppState.meta.insightsByCampaign[id];
-            let d;
+            const insights = await fetchMetaCampaignInsights(id, preset);
+            if (!insights?.success) continue;
 
-            if (cached && cached.raw && cached.rawPreset === datePreset) {
-                d = cached.raw;
-            } else {
-                const insights = await fetchMetaCampaignInsights(id, datePreset);
-                if (
-                    !insights.success ||
-                    !insights.data ||
-                    !Array.isArray(insights.data.data) ||
-                    insights.data.data.length === 0
-                ) {
-                    continue;
-                }
-                d = insights.data.data[0];
-                storeCampaignInsightInCache(id, d, datePreset);
-            }
-
+            const d = insights.data?.data?.[0];
             if (!d) continue;
 
-            const spend = parseFloat(d.spend || "0") || 0;
-            const impressions = parseFloat(d.impressions || "0") || 0;
-            const clicks = parseFloat(d.clicks || "0") || 0;
+            const s = Number(d.spend || 0);
+            const imp = Number(d.impressions || 0);
+            const clk = Number(d.clicks || 0);
 
-            let roasVal = 0;
-            if (
-                Array.isArray(d.website_purchase_roas) &&
-                d.website_purchase_roas.length > 0
-            ) {
-                roasVal = parseFloat(d.website_purchase_roas[0].value || "0") || 0;
+            let r = 0;
+            if (Array.isArray(d.website_purchase_roas) && d.website_purchase_roas.length) {
+                r = Number(d.website_purchase_roas[0].value) || 0;
             }
 
-            totalSpend += spend;
-            totalImpressions += impressions;
-            totalClicks += clicks;
+            spend += s;
+            impressions += imp;
+            clicks += clk;
 
-            if (spend > 0 && roasVal > 0) {
-                roasWeightedSum += roasVal * spend;
-                roasWeight += spend;
+            if (s > 0 && r > 0) {
+                roasWeighted += r * s;
+                weight += s;
             }
 
-            if (d.date_start && d.date_stop) {
-                const start = new Date(d.date_start);
-                const stop = new Date(d.date_stop);
-                if (!isNaN(start)) {
-                    if (!minStart || start < minStart) minStart = start;
-                }
-                if (!isNaN(stop)) {
-                    if (!maxStop || stop > maxStop) maxStop = stop;
-                }
+            const ds = d.date_start;
+            const de = d.date_stop;
+
+            if (ds) {
+                const dsDate = new Date(ds);
+                if (!minStart || dsDate < minStart) minStart = dsDate;
+            }
+            if (de) {
+                const deDate = new Date(de);
+                if (!maxStop || deDate > maxStop) maxStop = deDate;
             }
         } catch (e) {
-            console.warn("Aggregation Insights Fehler für Kampagne:", id, e);
+            console.warn("Insight Aggregation Error:", id, e);
         }
     }
 
-    if (totalSpend === 0 && totalImpressions === 0 && totalClicks === 0) {
-        return null;
-    }
-
-    const aggSpend = totalSpend;
-    const aggCtr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
-    const aggCpm = totalImpressions > 0 ? (totalSpend / totalImpressions) * 1000 : 0;
-    const aggRoas = roasWeight > 0 ? roasWeightedSum / roasWeight : 0;
-
-    let dateStartStr = null;
-    let dateStopStr = null;
-    if (minStart && maxStop) {
-        dateStartStr = minStart.toISOString().slice(0, 10);
-        dateStopStr = maxStop.toISOString().slice(0, 10);
-    }
+    if (!spend && !impressions && !clicks) return null;
 
     return {
-        spend: aggSpend,
-        ctr: aggCtr,
-        cpm: aggCpm,
-        roas: aggRoas,
-        impressions: totalImpressions,
-        clicks: totalClicks,
-        dateStartStr,
-        dateStopStr
+        spend,
+        impressions,
+        clicks,
+        ctr: impressions > 0 ? (clicks / impressions) * 100 : 0,
+        cpm: impressions > 0 ? (spend / impressions) * 1000 : 0,
+        roas: weight > 0 ? roasWeighted / weight : 0,
+        dateStart: minStart,
+        dateStop: maxStop
     };
 }
 
+/* -----------------------------------------------------------
+   Public: Dashboard Update
+----------------------------------------------------------- */
+
 export async function updateDashboardView(connected) {
     if (!connected) {
-        renderDashboardKpisPlaceholder();
-        renderDashboardChart(null);
-        renderDashboardHeroCreatives();
-        setDashboardSummary("Noch keine Daten geladen.");
+        renderKpiPlaceholder();
+        renderPerformanceChart(null);
+        renderTopCampaigns();
         return;
     }
 
     try {
-        let accountsResult;
-        if (AppState.meta.adAccounts?.length) {
-            accountsResult = {
-                success: true,
-                data: { data: AppState.meta.adAccounts }
-            };
-        } else {
-            accountsResult = await fetchMetaAdAccounts();
+        // 1) Accounts laden
+        let accounts = AppState.meta.adAccounts;
+        if (!accounts.length) {
+            const res = await fetchMetaAdAccounts();
+            if (!res?.success) throw new Error("Ad Accounts Fehler");
+            accounts = res.data.data;
+            AppState.meta.adAccounts = accounts;
         }
 
-        if (
-            !accountsResult.success ||
-            !accountsResult.data ||
-            !Array.isArray(accountsResult.data.data) ||
-            accountsResult.data.data.length === 0
-        ) {
-            AppState.dashboardMetrics = {
-                spend: 0,
-                roas: 0,
-                ctr: 0,
-                cpm: 0,
-                impressions: 0,
-                clicks: 0,
-                scopeLabel: "Keine Daten",
-                timeRangeLabel: "Keine Daten"
-            };
-            renderDashboardKpisLive(AppState.dashboardMetrics);
-            renderDashboardChart(AppState.dashboardMetrics);
-            renderDashboardHeroCreatives();
-            setDashboardSummary("Kein Ad-Konto gefunden.");
-            AppState.dashboardLoaded = true;
-            return;
-        }
-
-        const accounts = accountsResult.data.data;
-        AppState.meta.adAccounts = accounts;
-
+        // First account default
         if (!AppState.selectedAccountId) {
             AppState.selectedAccountId = accounts[0].id;
         }
 
-        const campaignsResult = await fetchMetaCampaigns(AppState.selectedAccountId);
+        // 2) Kampagnen laden
+        const cr = await fetchMetaCampaigns(AppState.selectedAccountId);
+        if (!cr?.success) throw new Error("Kampagnen Fehler");
 
-        if (
-            !campaignsResult.success ||
-            !campaignsResult.data ||
-            !Array.isArray(campaignsResult.data.data) ||
-            campaignsResult.data.data.length === 0
-        ) {
-            AppState.meta.campaigns = [];
-            AppState.dashboardMetrics = {
+        const campaigns = cr.data.data;
+        AppState.meta.campaigns = campaigns;
+
+        if (!campaigns.length) {
+            const metrics = {
                 spend: 0,
                 roas: 0,
                 ctr: 0,
@@ -451,23 +378,21 @@ export async function updateDashboardView(connected) {
                 scopeLabel: "Keine Kampagnen",
                 timeRangeLabel: "Keine Daten"
             };
-            renderDashboardKpisLive(AppState.dashboardMetrics);
-            renderDashboardChart(AppState.dashboardMetrics);
-            renderDashboardHeroCreatives();
-            setDashboardSummary("Keine Kampagnen im ausgewählten Konto.");
-            AppState.dashboardLoaded = true;
+            renderKpis(metrics);
+            renderPerformanceChart(metrics);
+            renderTopCampaigns();
             return;
         }
 
-        const campaigns = campaignsResult.data.data;
-        AppState.meta.campaigns = campaigns;
-
         const preset = AppState.timeRangePreset || "last_30d";
-        let metrics;
+        let metrics = null;
 
+        // 3) Aggregation
         if (!AppState.selectedCampaignId) {
+            // Alle Kampagnen
             const ids = campaigns.map((c) => c.id);
-            const agg = await aggregateInsightsForCampaigns(ids, preset);
+            const agg = await aggregateCampaigns(ids, preset);
+
             if (!agg) {
                 metrics = {
                     spend: 0,
@@ -476,7 +401,7 @@ export async function updateDashboardView(connected) {
                     cpm: 0,
                     impressions: 0,
                     clicks: 0,
-                    scopeLabel: "Keine Insights",
+                    scopeLabel: `Alle Kampagnen (${campaigns.length})`,
                     timeRangeLabel: "Keine Daten"
                 };
             } else {
@@ -488,23 +413,15 @@ export async function updateDashboardView(connected) {
                     impressions: agg.impressions,
                     clicks: agg.clicks,
                     scopeLabel: `Alle Kampagnen (${campaigns.length})`,
-                    timeRangeLabel: buildTimeRangeLabel(
-                        agg.dateStartStr,
-                        agg.dateStopStr
-                    )
+                    timeRangeLabel: timeRangeLabel(agg.dateStart, agg.dateStop)
                 };
             }
         } else {
-            const insights = await fetchMetaCampaignInsights(
-                AppState.selectedCampaignId,
-                preset
-            );
-            if (
-                !insights.success ||
-                !insights.data ||
-                !Array.isArray(insights.data.data) ||
-                insights.data.data.length === 0
-            ) {
+            // Einzelne Kampagne
+            const ir = await fetchMetaCampaignInsights(AppState.selectedCampaignId, preset);
+            const d = ir?.data?.data?.[0];
+
+            if (!d) {
                 metrics = {
                     spend: 0,
                     roas: 0,
@@ -516,62 +433,40 @@ export async function updateDashboardView(connected) {
                     timeRangeLabel: "Keine Daten"
                 };
             } else {
-                const d = insights.data.data[0];
-                storeCampaignInsightInCache(AppState.selectedCampaignId, d, preset);
-
-                const spend = parseFloat(d.spend || "0") || 0;
-                const cpm = parseFloat(d.cpm || "0") || 0;
-                const ctr = parseFloat(d.ctr || "0") || 0;
-                const impressions = parseFloat(d.impressions || "0") || 0;
-                const clicks = parseFloat(d.clicks || "0") || 0;
+                const s = Number(d.spend || 0);
+                const imp = Number(d.impressions || 0);
+                const clk = Number(d.clicks || 0);
+                const ctr = imp > 0 ? (clk / imp) * 100 : 0;
+                const cpm = imp > 0 ? (s / imp) * 1000 : 0;
 
                 let roas = 0;
-                if (
-                    Array.isArray(d.website_purchase_roas) &&
-                    d.website_purchase_roas.length > 0
-                ) {
-                    roas = parseFloat(d.website_purchase_roas[0].value || "0") || 0;
+                if (Array.isArray(d.website_purchase_roas) && d.website_purchase_roas.length) {
+                    roas = Number(d.website_purchase_roas[0].value || 0);
                 }
 
-                const selectedCampaign = campaigns.find(
-                    (c) => c.id === AppState.selectedCampaignId
-                );
+                const camp = campaigns.find((c) => c.id === AppState.selectedCampaignId);
 
                 metrics = {
-                    spend,
+                    spend: s,
                     roas,
                     ctr,
                     cpm,
-                    impressions,
-                    clicks,
-                    scopeLabel: selectedCampaign
-                        ? selectedCampaign.name
-                        : "Ausgewählte Kampagne",
-                    timeRangeLabel: buildTimeRangeLabel(d.date_start, d.date_stop)
+                    impressions: imp,
+                    clicks: clk,
+                    scopeLabel: camp ? camp.name : "Kampagne",
+                    timeRangeLabel: timeRangeLabel(d.date_start, d.date_stop)
                 };
             }
         }
 
-        AppState.dashboardMetrics = metrics;
-        renderDashboardKpisLive(metrics);
-        renderDashboardChart(metrics);
-        renderDashboardHeroCreatives();
-        AppState.dashboardLoaded = true;
+        // 4) Render everything
+        renderKpis(metrics);
+        renderPerformanceChart(metrics);
+        renderTopCampaigns();
+    } catch (err) {
+        console.error("Dashboard Error:", err);
 
-        const totalCampaigns = campaigns.length;
-        const activeCount = campaigns.filter(
-            (c) => (c.status || "").toLowerCase() === "active"
-        ).length;
-        const pausedCount = campaigns.filter(
-            (c) => (c.status || "").toLowerCase() === "paused"
-        ).length;
-
-        setDashboardSummary(
-            `Kampagnen: ${totalCampaigns} gesamt • Aktiv: ${activeCount} • Pausiert: ${pausedCount}`
-        );
-    } catch (e) {
-        console.error("updateDashboardView error:", e);
-        AppState.dashboardMetrics = {
+        const m = {
             spend: 0,
             roas: 0,
             ctr: 0,
@@ -581,10 +476,9 @@ export async function updateDashboardView(connected) {
             scopeLabel: "Fehler",
             timeRangeLabel: "Fehler"
         };
-        renderDashboardKpisLive(AppState.dashboardMetrics);
-        renderDashboardChart(AppState.dashboardMetrics);
-        renderDashboardHeroCreatives();
-        setDashboardSummary("Fehler beim Laden der Dashboard-Daten.");
-        AppState.dashboardLoaded = true;
+
+        renderKpis(m);
+        renderPerformanceChart(m);
+        renderTopCampaigns();
     }
 }
