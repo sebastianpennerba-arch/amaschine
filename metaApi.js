@@ -102,3 +102,22 @@ export async function exchangeMetaCodeForToken(code, redirectUri) {
     if (!res) return { success: false, error: "Network error" };
     return await res.json();
 }
+
+// Neu: Kampagnenstatus (ACTIVE/PAUSED) ändern
+export async function updateMetaCampaignStatus(campaignId, status) {
+    if (!AppState.meta.accessToken) {
+        return { success: false, error: "No access token" };
+    }
+
+    const res = await fetch(META_BACKEND_CONFIG.campaignStatusEndpoint(campaignId), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            accessToken: AppState.meta.accessToken,
+            status
+        })
+    }).catch(() => null);
+
+    if (!res) return { success: false, error: "Network error" };
+    return await res.json();
+}
