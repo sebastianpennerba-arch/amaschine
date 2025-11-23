@@ -3,13 +3,12 @@
  *
  * Phase A – Live-Ready Architektur
  *
- * Enthält:
- * 1. Globalen AppState (Meta-ready)
+ * 1. Globaler AppState (Meta-ready)
  * 2. Meta Normalizer Layer
  * 3. UI Component Library
  * 4. Render Engine (Dashboard, Creatives, Campaigns)
  * 5. Navigation ohne Inline JS
- * 6. Meta-Connect Gatekeeper + Stripe + Simulation
+ * 6. Meta-Connect Gatekeeper + Simulation
  * 7. Toast & Modal System
  */
 
@@ -19,33 +18,26 @@
    ============================================ */
 
 const AppState = {
-    // Meta Connection Status
     metaConnected: false,
-
-    // Auth / User (später)
     user: null,
 
-    // Aktives UI Verhalten
     currentView: "dashboardView",
     timeRange: "last_7d",
     brand: null,
     campaignGroup: null,
 
-    // Live-Daten aus Meta API (später live befüllt)
     meta: {
         accessToken: null,
         adAccounts: [],
         selectedAdAccount: null,
 
-        // Normalisierte Daten (siehe Normalizer-Layer)
-        campaigns: [],   // [{ id, name, status, statusColor, goal, dailyBudget, spend30d, roas30d, ctr }]
+        campaigns: [],
         adsets: [],
         ads: [],
-        creatives: [],   // [{ id, name, type, url, thumbnail, platform, metrics: {...} }]
-        insights: {},    // { roas, roasTrend, cpp, cppTrend, ctr, ctrTrend, spendToday, spendTodayTrend }
+        creatives: [],
+        insights: {},
     },
 
-    // Systemdaten
     loading: false,
     error: null,
 };
@@ -55,14 +47,10 @@ const AppState = {
    META CONNECT GATEKEEPER
    ============================================ */
 
-/**
- * Zeigt/versteckt die Meta-Connect-Stripe oben im Layout.
- * Gibt true zurück, wenn verbunden; false sonst.
- */
 function checkMetaConnection() {
     const stripe = document.getElementById("metaConnectStripe");
 
-    if (!AppState.metaConnected) {
+    if (!AppState.metaConnected || !AppState.meta.accessToken) {
         if (stripe) stripe.classList.remove("hidden");
         return false;
     } else {
@@ -71,12 +59,6 @@ function checkMetaConnection() {
     }
 }
 
-/**
- * Gatekeeper für datenladende Funktionen:
- * - zeigt Toast
- * - aktualisiert Stripe
- * - verhindert API-Calls
- */
 function requireMetaConnection() {
     if (!AppState.metaConnected || !AppState.meta.accessToken) {
         showToast("Bitte verbinde Meta Ads, bevor Daten geladen werden.", "warning");
@@ -86,49 +68,26 @@ function requireMetaConnection() {
     return true;
 }
 
-/**
- * TEMPORÄR: Simulierter Meta-Connect (für UI-Tests in Phase A).
- * Kann in der Browser-Konsole aufgerufen werden:
- *   simulateMetaConnect()
- */
+/* TEMP: Simulation im Browser: simulateMetaConnect() */
 function simulateMetaConnect() {
     AppState.metaConnected = true;
     AppState.meta.accessToken = "SIMULATED_TOKEN";
     showToast("Meta erfolgreich verbunden (Simulation)", "success");
     checkMetaConnection();
-
-    // Aktuelle View mit neuem Status neu rendern
     handleViewRendering(AppState.currentView);
 }
-
-// Für Debug-Zugriff im Browser:
 window.simulateMetaConnect = simulateMetaConnect;
 
 
 /* ============================================
-   META NORMALIZER LAYER (Phase 1 – Live Ready)
+   META NORMALIZER LAYER
    ============================================ */
-/**
- * Ziel:
- *  - Rohdaten von Meta (Campaigns, Ads, Insights) in ein einheitliches,
- *    UI-freundliches SignalOne-Format bringen.
- *  - Später auch TikTok/Pinterest über dieselben Normalizer schleusen.
- */
 
 function toNumber(value) {
     const n = Number(value);
     return isNaN(n) ? 0 : n;
 }
 
-/**
- * Normalisiert eine Meta-Ad + zugehörige Creative- & Insights-Daten
- * in das interne Creative-Format von SignalOne.
- *
- * Erwartete Inputs (später aus Backend):
- *  - metaAd:        { id, name, creative: { id }, ... }
- *  - metaCreative:  { id, object_story_spec, thumbnail_url, ... }
- *  - insights:      Meta Insights-Objekt für diese Ad
- */
 function normalizeMetaCreative(metaAd, metaCreative, insights) {
     const metrics = extractMetricsFromInsights(insights);
 
@@ -145,16 +104,11 @@ function normalizeMetaCreative(metaAd, metaCreative, insights) {
             roas: metrics.roas,
             ctr: metrics.ctr,
             cpm: metrics.cpm,
-            score: null, // später: eigener Score-Algorithmus
+            score: null,
         }
     };
 }
 
-/**
- * Normalisiert eine Meta-Kampagne + Insights in das interne Campaign-Format.
- * - metaCampaign: { id, name, objective, status, daily_budget, ... }
- * - insights:     Meta Insights (aggregiert über 30 Tage o.ä.)
- */
 function normalizeMetaCampaign(metaCampaign, insights) {
     const metrics = extractMetricsFromInsights(insights);
 
@@ -164,18 +118,13 @@ function normalizeMetaCampaign(metaCampaign, insights) {
         status: metaCampaign.status || "UNKNOWN",
         statusColor: deriveStatusColorFromMetaStatus(metaCampaign.status),
         goal: metaCampaign.objective || "n/a",
-        dailyBudget: toNumber(metaCampaign.daily_budget) / 100, // Meta in Cent
+        dailyBudget: toNumber(metaCampaign.daily_budget) / 100,
         spend30d: metrics.spend,
         roas30d: metrics.roas,
         ctr: metrics.ctr,
     };
 }
 
-/**
- * Aggregiert eine Liste von Insights (z.B. pro Ad) in globale Dashboard-KPIs.
- * input: Array von Meta-Insights-Objekten
- * output: Struktur für AppState.meta.insights
- */
 function aggregateInsightsForDashboard(insightsList) {
     if (!Array.isArray(insightsList) || insightsList.length === 0) {
         return {
@@ -211,27 +160,16 @@ function aggregateInsightsForDashboard(insightsList) {
 
     return {
         roas,
-        roasTrend: null,       // Trendberechnung erfolgt später (Vergleich vs. Vorperiode)
+        roasTrend: null,
         cpp,
         cppTrend: null,
         ctr,
         ctrTrend: null,
-        spendToday: null,      // kann über heutigen Insights-Call berechnet werden
+        spendToday: null,
         spendTodayTrend: null,
     };
 }
 
-/**
- * Extrahiert Grund-KPIs aus einem Meta-Insights-Objekt.
- * Erwartete Felder (typische Marketing API Felder):
- *  - spend
- *  - impressions
- *  - clicks
- *  - actions (array mit purchase, etc.)
- *  - action_values
- *  - purchase_roas (array)
- *  - cpm
- */
 function extractMetricsFromInsights(insights) {
     if (!insights) {
         return {
@@ -255,16 +193,12 @@ function extractMetricsFromInsights(insights) {
 
     if (Array.isArray(insights.actions)) {
         const purchaseAction = insights.actions.find(a => a.action_type === "purchase");
-        if (purchaseAction) {
-            purchases = toNumber(purchaseAction.value);
-        }
+        if (purchaseAction) purchases = toNumber(purchaseAction.value);
     }
 
     if (Array.isArray(insights.action_values)) {
         const purchaseValue = insights.action_values.find(a => a.action_type === "purchase");
-        if (purchaseValue) {
-            revenue = toNumber(purchaseValue.value);
-        }
+        if (purchaseValue) revenue = toNumber(purchaseValue.value);
     }
 
     let roas = null;
@@ -289,10 +223,6 @@ function extractMetricsFromInsights(insights) {
     };
 }
 
-/**
- * Ermittelt eine visuelle Statusfarbe basierend auf Meta-Kampagnenstatus.
- * Beispiele: ACTIVE, PAUSED, DELETED, ARCHIVED...
- */
 function deriveStatusColorFromMetaStatus(status) {
     if (!status) return "yellow";
     const s = status.toUpperCase();
@@ -300,14 +230,9 @@ function deriveStatusColorFromMetaStatus(status) {
     if (s === "ACTIVE") return "green";
     if (s === "PAUSED") return "yellow";
     if (["DELETED", "ARCHIVED", "DISAPPROVED"].includes(s)) return "red";
-
     return "yellow";
 }
 
-/**
- * Versucht, Kreativtyp anhand der Creative-Daten zu bestimmen.
- * (simplifiziert, später erweiterbar)
- */
 function detectCreativeType(metaCreative) {
     if (!metaCreative) return "unknown";
     if (metaCreative.object_story_spec && metaCreative.object_story_spec.video_data) {
@@ -324,40 +249,25 @@ function detectCreativeType(metaCreative) {
     return "static";
 }
 
-/**
- * Extrahiert eine URL (z.B. für Poster) aus der Creative-Struktur.
- * Die konkrete Implementation hängt vom späteren Backend-Mapping ab.
- */
 function extractCreativeUrl(metaCreative) {
     if (!metaCreative) return null;
-    // Platzhalter: im echten System gibt uns das Backend eine saubere url.
     return metaCreative.video_url || metaCreative.image_url || null;
 }
 
-/**
- * Fallback: Thumbnail aus object_story_spec lesen.
- */
 function extractThumbnailFromStory(metaCreative) {
     if (!metaCreative || !metaCreative.object_story_spec) return null;
     const spec = metaCreative.object_story_spec;
 
-    if (spec.video_data && spec.video_data.thumbnail_url) {
-        return spec.video_data.thumbnail_url;
-    }
-    if (spec.link_data && spec.link_data.picture) {
-        return spec.link_data.picture;
-    }
+    if (spec.video_data && spec.video_data.thumbnail_url) return spec.video_data.thumbnail_url;
+    if (spec.link_data && spec.link_data.picture) return spec.link_data.picture;
     return null;
 }
 
 
 /* ============================================
-   UI COMPONENT LIBRARY (Phase 1 – Live Ready)
+   UI COMPONENT LIBRARY
    ============================================ */
 
-/* ----------------------------
-   FORMATTER HELPERS
----------------------------- */
 function formatCurrency(value) {
     if (!value || isNaN(value)) return "€ 0";
     return "€ " + Number(value).toLocaleString("de-DE", {
@@ -383,10 +293,6 @@ function getTrendClass(value) {
     return "trend-neutral";
 }
 
-
-/* ----------------------------
-   KPI CARD COMPONENT
----------------------------- */
 function createKpiCard({ label, value, trendValue }) {
     const trendClass = getTrendClass(trendValue);
 
@@ -404,16 +310,11 @@ function createKpiCard({ label, value, trendValue }) {
     return card;
 }
 
-
-/* ----------------------------
-   MEDIA PREVIEW (image/video)
----------------------------- */
 function createMediaPreview(creative) {
     const container = document.createElement("div");
     container.className = "creative-media-container-library";
 
     let element;
-
     const isVideo = creative.url && creative.url.endsWith(".mp4");
 
     if (isVideo) {
@@ -430,7 +331,6 @@ function createMediaPreview(creative) {
     element.className = "creative-video-mock";
     container.appendChild(element);
 
-    // Plattform-Badge (Meta, TikTok, Pinterest später dynamisch)
     const badge = document.createElement("i");
     badge.className = "platform-badge fab fa-meta";
     container.appendChild(badge);
@@ -438,10 +338,6 @@ function createMediaPreview(creative) {
     return container;
 }
 
-
-/* ----------------------------
-   CREATIVE CARD COMPONENT
----------------------------- */
 function createCreativeCard(creative) {
     const card = document.createElement("div");
     card.className = "card creative-library-item";
@@ -489,10 +385,6 @@ function createCreativeCard(creative) {
     return card;
 }
 
-
-/* ----------------------------
-   CAMPAIGN ROW COMPONENT
----------------------------- */
 function createCampaignRow(campaign) {
     const tr = document.createElement("tr");
 
@@ -512,20 +404,15 @@ function createCampaignRow(campaign) {
 
 
 /* ============================================
-   RENDER ENGINE (Phase 1 – Live Ready)
+   RENDER ENGINE
    ============================================ */
 
-/* ----------------------------
-   1. DASHBOARD RENDERER
----------------------------- */
 function renderDashboard() {
     renderDashboardKPIs();
     renderDashboardChart();
     renderHeroCreatives();
 }
 
-
-// ---- KPIs ----------------------------------
 function renderDashboardKPIs() {
     const container = document.getElementById("dashboardKpiContainer");
     if (!container) return;
@@ -563,8 +450,6 @@ function renderDashboardKPIs() {
     container.appendChild(grid);
 }
 
-
-// ---- CHART ----------------------------------
 function renderDashboardChart() {
     const container = document.getElementById("dashboardChartContainer");
     if (!container) return;
@@ -593,8 +478,6 @@ function renderDashboardChart() {
     `;
 }
 
-
-// ---- HERO CREATIVES ----------------------------------
 function renderHeroCreatives() {
     const container = document.getElementById("dashboardHeroCreativesContainer");
     if (!container) return;
@@ -615,10 +498,6 @@ function renderHeroCreatives() {
     container.appendChild(wrapper);
 }
 
-
-/* ----------------------------
-   2. CREATIVE LIBRARY RENDERER
----------------------------- */
 function renderCreativeLibrary() {
     const grid = document.getElementById("creativeLibraryGrid");
     if (!grid) return;
@@ -639,10 +518,6 @@ function renderCreativeLibrary() {
     creatives.forEach(creative => grid.appendChild(createCreativeCard(creative)));
 }
 
-
-/* ----------------------------
-   3. CAMPAIGNS RENDERER
----------------------------- */
 function renderCampaigns() {
     const tbody = document.getElementById("campaignsTableBody");
     if (!tbody) return;
@@ -665,12 +540,8 @@ function renderCampaigns() {
     campaigns.forEach(campaign => tbody.appendChild(createCampaignRow(campaign)));
 }
 
-
-/* ----------------------------
-   4. View Switch Hook
----------------------------- */
 function handleViewRendering(viewId) {
-    switch(viewId) {
+    switch (viewId) {
         case "dashboardView":
             renderDashboard();
             break;
@@ -691,18 +562,13 @@ function handleViewRendering(viewId) {
    ============================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Datum/Uhrzeit
     updateDateTime();
     setInterval(updateDateTime, 1000);
 
-    // 2. Navigation initialisieren
     initNavigation();
-
-    // 3. Meta-Stripe initial prüfen
-    checkMetaConnection();
     initMetaConnectUI();
+    checkMetaConnection();
 
-    // 4. Initiale View anzeigen (Dashboard)
     const initialActiveMenuItem = document.querySelector('.menu-item.active');
     let initialViewId = "dashboardView";
 
@@ -720,7 +586,6 @@ document.addEventListener('DOMContentLoaded', () => {
    BASIS-FUNKTIONEN
    ============================================ */
 
-// --- 1. DATUM & UHRZEIT ---
 function updateDateTime() {
     const now = new Date();
 
@@ -734,8 +599,6 @@ function updateDateTime() {
     if (timeElement) timeElement.textContent = now.toLocaleTimeString('de-DE', timeOptions);
 }
 
-
-// --- 2. NAVIGATION ---
 function initNavigation() {
     const menuItems = document.querySelectorAll('.menu-item');
 
@@ -751,8 +614,6 @@ function initNavigation() {
     });
 }
 
-
-// --- 3. META CONNECT UI ---
 function initMetaConnectUI() {
     const connectBtn = document.getElementById("connectMetaButton");
     if (!connectBtn) return;
@@ -765,26 +626,18 @@ function initMetaConnectUI() {
     });
 }
 
-
-// --- 4. VIEW HANDLING ---
 function showView(viewId, clickedElement, options = {}) {
-    // Views umschalten
     document.querySelectorAll('.view').forEach(view => view.classList.add('hidden'));
 
     const targetView = document.getElementById(viewId);
     if (targetView) targetView.classList.remove('hidden');
 
-    // Aktiven Menüpunkt markieren
     document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
     if (clickedElement) clickedElement.classList.add('active');
 
-    // Stripe aktualisieren (nur UI, keine Blockade)
     checkMetaConnection();
-
-    // Renderer starten
     handleViewRendering(viewId);
 
-    // Optionaler Toast
     if (!options.skipToast) {
         const label = viewId.replace('View', '');
         showToast(`Ansicht gewechselt: ${label}`, 'info');
@@ -792,7 +645,10 @@ function showView(viewId, clickedElement, options = {}) {
 }
 
 
-// --- 5. TOAST SYSTEM ---
+/* ============================================
+   TOAST & MODAL
+   ============================================ */
+
 function showToast(message, type = 'info') {
     const container = document.getElementById('toastContainer');
     if (!container) return;
@@ -828,8 +684,6 @@ function getIconForType(type) {
     }
 }
 
-
-// --- 6. MODAL SYSTEM ---
 function openModal(title, body) {
     const overlay = document.getElementById('modalOverlay');
     const titleElement = document.getElementById('modalTitle');
@@ -848,7 +702,10 @@ function closeModal() {
 }
 
 
-// --- 7. MOCK HANDLER ---
+/* ============================================
+   MOCK HANDLER
+   ============================================ */
+
 function handleDeadButton(actionName) {
     if (actionName.includes('Detailansicht') || actionName.includes('Custom Date Range')) {
         openModal(actionName, `Diese Funktion wird später implementiert: "${actionName}".`);
@@ -867,7 +724,6 @@ function handleChartChange(value) {
 
 function handleTimeRange(range, clickedButton) {
     document.querySelectorAll('.time-range-button').forEach(btn => btn.classList.remove('active'));
-
     if (clickedButton) clickedButton.classList.add('active');
 
     AppState.timeRange = range;
