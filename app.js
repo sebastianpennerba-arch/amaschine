@@ -1,10 +1,10 @@
 /**
- * SIGNALONE — FINAL WORKING APP.JS
- * - Meta OAuth
- * - Klarer Verbindungsstatus
- * - Sidebar Navigation
- * - Dashboard KPIs & Hero-Creatives (Demo)
- * - Campaigns Table (Demo)
+ * SIGNALONE — FINAL APP.JS
+ * - Meta OAuth Flow
+ * - Klarer Verbindungsstatus (Top-Pill + Sidebar + Stripe)
+ * - Sidebar Navigation & Views
+ * - Dashboard KPIs & Hero-Creatives (Live + Fallback)
+ * - Campaigns Table (Live + Fallback)
  */
 
 // ============================================
@@ -15,20 +15,22 @@ const AppState = {
     currentView: "dashboardView",
     metaConnected: false,
     meta: {
-        accessToken: null
-    }
+        accessToken: null,
+        adAccounts: [],
+        campaigns: [],
+        insightsByCampaign: {}
+    },
+    selectedAccountId: null,
+    dashboardLoaded: false,
+    campaignsLoaded: false
 };
 
-// Demo-Daten für Dashboard & Campaigns (bis Live-Meta-Daten angebunden sind)
+// Demo-Daten (Fallback)
 const DEMO_DASHBOARD = {
     spend: 12450,
     roas: 3.8,
-    conversions: 327,
-    cpm: 9.4,
-    trendSpend: "+12%",
-    trendRoas: "+8%",
-    trendConv: "+5%",
-    trendCpm: "-3%"
+    ctr: 2.4,
+    cpm: 9.4
 };
 
 const DEMO_CAMPAIGNS = [
@@ -36,31 +38,31 @@ const DEMO_CAMPAIGNS = [
         id: "CAMP-001",
         name: "Scaling Q1 – Main Funnel",
         status: "active",
-        goal: "Scaling",
-        dailyBudget: 500,
-        spend30d: 14500,
-        roas30d: 3.9,
-        ctr: "2.4%"
+        objective: "CONVERSIONS",
+        daily_budget: 50000, // in Cent
+        spend: 14500,
+        roas: 3.9,
+        ctr: 2.4
     },
     {
         id: "CAMP-002",
         name: "Creative Testing – Hooks Batch 3",
         status: "paused",
-        goal: "Testing",
-        dailyBudget: 150,
-        spend30d: 2900,
-        roas30d: 2.1,
-        ctr: "1.8%"
+        objective: "TRAFFIC",
+        daily_budget: 15000,
+        spend: 2900,
+        roas: 2.1,
+        ctr: 1.8
     },
     {
         id: "CAMP-003",
         name: "Retargeting – Warm Traffic 30D",
         status: "active",
-        goal: "Scaling",
-        dailyBudget: 200,
-        spend30d: 6200,
-        roas30d: 4.3,
-        ctr: "3.1%"
+        objective: "CONVERSIONS",
+        daily_budget: 20000,
+        spend: 6200,
+        roas: 4.3,
+        ctr: 3.1
     }
 ];
 
@@ -75,8 +77,31 @@ const META_OAUTH_CONFIG = {
 };
 
 const META_BACKEND_CONFIG = {
-    tokenEndpoint: "https://signalone-backend.onrender.com/api/meta/oauth/token"
+    tokenEndpoint: "https://signalone-backend.onrender.com/api/meta/oauth/token",
+    adAccountsEndpoint: "https://signalone-backend.onrender.com/api/meta/adaccounts",
+    campaignsEndpoint: (accountId) => `https://signalone-backend.onrender.com/api/meta/campaigns/${accountId}`,
+    insightsEndpoint: (campaignId) => `https://signalone-backend.onrender.com/api/meta/insights/${campaignId}`
 };
+
+// ============================================
+// TOOLS
+// ============================================
+
+function showToast(message, type = "info") {
+    const box = document.getElementById("toastContainer");
+    if (!box) return;
+
+    const el = document.createElement("div");
+    el.className = `toast ${type}`;
+    el.innerText = message;
+
+    box.appendChild(el);
+
+    setTimeout(() => {
+        el.classList.add("hide");
+        setTimeout(() => el.remove(), 300);
+    }, 2500);
+}
 
 // ============================================
 // META CONNECT LOGIC
@@ -168,31 +193,76 @@ async function handleMetaOAuthRedirectIfPresent() {
     const code = url.searchParams.get("code");
     if (!code) return;
 
+    // URL aufräumen
     window.history.replaceState({}, "", META_OAUTH_CONFIG.redirectUri);
     showToast("Meta-Code empfangen – tausche Token aus...", "info");
 
-    const response = await fetch(META_BACKEND_CONFIG.tokenEndpoint, {
+    try {
+        const response = await fetch(META_BACKEND_CONFIG.tokenEndpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                code,
+                redirectUri: META_OAUTH_CONFIG.redirectUri
+            })
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+            console.error("Token exchange error:", data);
+            showToast("Fehler beim Verbinden mit Meta.", "error");
+            return;
+        }
+
+        AppState.meta.accessToken = data.accessToken;
+        AppState.metaConnected = true;
+        AppState.dashboardLoaded = false;
+        AppState.campaignsLoaded = false;
+
+        showToast("Mit Meta verbunden!", "success");
+        updateUI();
+    } catch (e) {
+        console.error(e);
+        showToast("Fehler beim Verbinden mit Meta.", "error");
+    }
+}
+
+// ============================================
+// LIVE META API CALLS
+// ============================================
+
+async function fetchMetaAdAccounts() {
+    if (!AppState.meta.accessToken) return { success: false, error: "No access token" };
+
+    const res = await fetch(META_BACKEND_CONFIG.adAccountsEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            code,
-            redirectUri: META_OAUTH_CONFIG.redirectUri
-        })
+        body: JSON.stringify({ accessToken: AppState.meta.accessToken })
     });
+    return await res.json();
+}
 
-    const data = await response.json();
+async function fetchMetaCampaigns(accountId) {
+    if (!AppState.meta.accessToken) return { success: false, error: "No access token" };
 
-    if (!data.success) {
-        console.error("Token exchange error:", data);
-        showToast("Fehler beim Verbinden mit Meta.", "error");
-        return;
-    }
+    const res = await fetch(META_BACKEND_CONFIG.campaignsEndpoint(accountId), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accessToken: AppState.meta.accessToken })
+    });
+    return await res.json();
+}
 
-    AppState.meta.accessToken = data.accessToken;
-    AppState.metaConnected = true;
+async function fetchMetaCampaignInsights(campaignId) {
+    if (!AppState.meta.accessToken) return { success: false, error: "No access token" };
 
-    showToast("Mit Meta verbunden!", "success");
-    updateUI();
+    const res = await fetch(META_BACKEND_CONFIG.insightsEndpoint(campaignId), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accessToken: AppState.meta.accessToken })
+    });
+    return await res.json();
 }
 
 // ============================================
@@ -235,33 +305,62 @@ function showView(viewId) {
 // DASHBOARD RENDERING
 // ============================================
 
-function renderDashboardKpis() {
+function renderDashboardKpisPlaceholder() {
     const container = document.getElementById("dashboardKpiContainer");
     if (!container) return;
-
-    const d = DEMO_DASHBOARD;
 
     container.innerHTML = `
         <div class="kpi-grid">
             <div class="kpi-card">
                 <div class="kpi-label"><i class="fas fa-coins"></i> Ad Spend (30D)</div>
-                <div class="kpi-value">€ ${d.spend.toLocaleString("de-DE")}</div>
-                <div class="kpi-trend trend-positive">${d.trendSpend} vs. Vormonat</div>
+                <div class="kpi-value">–</div>
+                <div class="kpi-trend trend-neutral">Verbinde Meta für Live-Daten</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-label"><i class="fas fa-percentage"></i> ROAS (30D)</div>
-                <div class="kpi-value">${d.roas.toFixed(1)}x</div>
-                <div class="kpi-trend trend-positive">${d.trendRoas} vs. Vormonat</div>
+                <div class="kpi-value">–</div>
+                <div class="kpi-trend trend-neutral">Verbinde Meta für Live-Daten</div>
             </div>
             <div class="kpi-card">
-                <div class="kpi-label"><i class="fas fa-bullseye"></i> Conversions (30D)</div>
-                <div class="kpi-value">${d.conversions}</div>
-                <div class="kpi-trend trend-positive">${d.trendConv} vs. Vormonat</div>
+                <div class="kpi-label"><i class="fas fa-mouse-pointer"></i> CTR (30D)</div>
+                <div class="kpi-value">–</div>
+                <div class="kpi-trend trend-neutral">Verbinde Meta für Live-Daten</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-label"><i class="fas fa-chart-area"></i> CPM (30D)</div>
-                <div class="kpi-value">€ ${d.cpm.toFixed(2)}</div>
-                <div class="kpi-trend trend-neutral">${d.trendCpm} vs. Vormonat</div>
+                <div class="kpi-value">–</div>
+                <div class="kpi-trend trend-neutral">Verbinde Meta für Live-Daten</div>
+            </div>
+        </div>
+    `;
+}
+
+function renderDashboardKpisLive(spend, roas, ctr, cpm) {
+    const container = document.getElementById("dashboardKpiContainer");
+    if (!container) return;
+
+    const spendNum = Number(spend) || 0;
+    const roasNum = Number(roas) || 0;
+    const ctrNum = Number(ctr) || 0;
+    const cpmNum = Number(cpm) || 0;
+
+    container.innerHTML = `
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label"><i class="fas fa-coins"></i> Ad Spend (30D)</div>
+                <div class="kpi-value">€ ${spendNum.toLocaleString("de-DE")}</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label"><i class="fas fa-percentage"></i> ROAS (30D)</div>
+                <div class="kpi-value">${roasNum.toFixed(2)}x</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label"><i class="fas fa-mouse-pointer"></i> CTR (30D)</div>
+                <div class="kpi-value">${ctrNum.toFixed(2)}%</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label"><i class="fas fa-chart-area"></i> CPM (30D)</div>
+                <div class="kpi-value">€ ${cpmNum.toFixed(2)}</div>
             </div>
         </div>
     `;
@@ -336,11 +435,145 @@ function renderDashboardHeroCreatives() {
     `;
 }
 
+async function loadDashboardMetaData() {
+    try {
+        const accounts = await fetchMetaAdAccounts();
+        if (!accounts.success || !accounts.data || !Array.isArray(accounts.data.data) || accounts.data.data.length === 0) {
+            console.warn("Keine Meta Accounts gefunden. Fallback.");
+            renderDashboardKpisLive(DEMO_DASHBOARD.spend, DEMO_DASHBOARD.roas, DEMO_DASHBOARD.ctr, DEMO_DASHBOARD.cpm);
+            return;
+        }
+
+        const account = accounts.data.data[0];
+        AppState.selectedAccountId = account.id;
+        AppState.meta.adAccounts = accounts.data.data;
+
+        const campaigns = await fetchMetaCampaigns(account.id);
+        if (!campaigns.success || !campaigns.data || !Array.isArray(campaigns.data.data) || campaigns.data.data.length === 0) {
+            console.warn("Keine Meta Kampagnen gefunden. Fallback.");
+            renderDashboardKpisLive(DEMO_DASHBOARD.spend, DEMO_DASHBOARD.roas, DEMO_DASHBOARD.ctr, DEMO_DASHBOARD.cpm);
+            return;
+        }
+
+        const firstCampaign = campaigns.data.data[0];
+        AppState.meta.campaigns = campaigns.data.data;
+
+        const insights = await fetchMetaCampaignInsights(firstCampaign.id);
+        if (!insights.success || !insights.data || !Array.isArray(insights.data.data) || insights.data.data.length === 0) {
+            console.warn("Keine Insights. Fallback.");
+            renderDashboardKpisLive(DEMO_DASHBOARD.spend, DEMO_DASHBOARD.roas, DEMO_DASHBOARD.ctr, DEMO_DASHBOARD.cpm);
+            return;
+        }
+
+        const d = insights.data.data[0];
+
+        const spend = d.spend ?? DEMO_DASHBOARD.spend;
+        const cpm = d.cpm ?? DEMO_DASHBOARD.cpm;
+        const ctr = d.ctr ?? DEMO_DASHBOARD.ctr;
+        let roas = DEMO_DASHBOARD.roas;
+
+        if (Array.isArray(d.website_purchase_roas) && d.website_purchase_roas.length > 0) {
+            roas = d.website_purchase_roas[0].value ?? DEMO_DASHBOARD.roas;
+        }
+
+        renderDashboardKpisLive(spend, roas, ctr, cpm);
+    } catch (e) {
+        console.error("loadDashboardMetaData error:", e);
+        renderDashboardKpisLive(DEMO_DASHBOARD.spend, DEMO_DASHBOARD.roas, DEMO_DASHBOARD.ctr, DEMO_DASHBOARD.cpm);
+    }
+}
+
 // ============================================
 // CAMPAIGNS RENDERING
 // ============================================
 
-function renderCampaignsTable() {
+function renderCampaignsPlaceholder() {
+    const tbody = document.getElementById("campaignsTableBody");
+    if (!tbody) return;
+
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="8" style="padding:16px; color: var(--text-secondary);">
+                Verbinde Meta, um deine Kampagnen anzuzeigen.
+            </td>
+        </tr>
+    `;
+}
+
+async function loadLiveCampaignTable() {
+    const tbody = document.getElementById("campaignsTableBody");
+    if (!tbody) return;
+
+    tbody.innerHTML = "";
+
+    try {
+        let accountId = AppState.selectedAccountId;
+
+        if (!accountId) {
+            const accounts = await fetchMetaAdAccounts();
+            if (!accounts.success || !accounts.data || !Array.isArray(accounts.data.data) || accounts.data.data.length === 0) {
+                console.warn("Keine Accounts für Campaigns. Fallback.");
+                renderDemoCampaignsTable();
+                return;
+            }
+            accountId = accounts.data.data[0].id;
+            AppState.selectedAccountId = accountId;
+            AppState.meta.adAccounts = accounts.data.data;
+        }
+
+        const campaigns = await fetchMetaCampaigns(accountId);
+
+        if (!campaigns.success || !campaigns.data || !Array.isArray(campaigns.data.data) || campaigns.data.data.length === 0) {
+            console.warn("Keine Kampagnen gefunden. Fallback.");
+            renderDemoCampaignsTable();
+            return;
+        }
+
+        const list = campaigns.data.data;
+        AppState.meta.campaigns = list;
+
+        for (let c of list) {
+            const insights = await fetchMetaCampaignInsights(c.id);
+            const kpis = (insights.success && insights.data && Array.isArray(insights.data.data) && insights.data.data[0])
+                ? insights.data.data[0]
+                : {};
+
+            const spend = Number(kpis.spend || 0);
+            let roas = 0;
+            if (Array.isArray(kpis.website_purchase_roas) && kpis.website_purchase_roas.length > 0) {
+                roas = Number(kpis.website_purchase_roas[0].value || 0);
+            }
+            const ctr = Number(kpis.ctr || 0);
+
+            const tr = document.createElement("tr");
+
+            let statusIndicatorClass = "status-yellow";
+            if (c.status === "ACTIVE" || c.status === "active") statusIndicatorClass = "status-green";
+            if (c.status === "PAUSED" || c.status === "paused") statusIndicatorClass = "status-yellow";
+
+            const dailyBudget = Number(c.daily_budget || 0) / 100; // cent -> euro
+
+            tr.innerHTML = `
+                <td><span class="status-indicator ${statusIndicatorClass}"></span> ${c.status}</td>
+                <td>${c.name}</td>
+                <td>${c.objective || "-"}</td>
+                <td>€ ${dailyBudget.toLocaleString("de-DE")}</td>
+                <td>€ ${spend.toLocaleString("de-DE")}</td>
+                <td>${roas.toFixed(2)}x</td>
+                <td>${ctr.toFixed(2)}%</td>
+                <td><button class="action-button">Details</button></td>
+            `;
+
+            tbody.appendChild(tr);
+        }
+
+    } catch (e) {
+        console.error("loadLiveCampaignTable error:", e);
+        renderDemoCampaignsTable();
+    }
+}
+
+function renderDemoCampaignsTable() {
     const tbody = document.getElementById("campaignsTableBody");
     if (!tbody) return;
 
@@ -349,26 +582,19 @@ function renderCampaignsTable() {
     DEMO_CAMPAIGNS.forEach(c => {
         const tr = document.createElement("tr");
 
-        let statusBadge = "";
-        if (c.status === "active") {
-            statusBadge = `<span class="status-indicator status-green"></span> Aktiv`;
-        } else if (c.status === "paused") {
-            statusBadge = `<span class="status-indicator status-yellow"></span> Pausiert`;
-        } else {
-            statusBadge = `<span class="status-indicator status-red"></span> ${c.status}`;
-        }
+        let statusIndicatorClass = "status-yellow";
+        if (c.status === "active") statusIndicatorClass = "status-green";
+        if (c.status === "paused") statusIndicatorClass = "status-yellow";
 
         tr.innerHTML = `
-            <td>${statusBadge}</td>
+            <td><span class="status-indicator ${statusIndicatorClass}"></span> ${c.status}</td>
             <td>${c.name}</td>
-            <td>${c.goal}</td>
-            <td>€ ${c.dailyBudget.toLocaleString("de-DE")}</td>
-            <td>€ ${c.spend30d.toLocaleString("de-DE")}</td>
-            <td>${c.roas30d.toFixed(1)}x</td>
-            <td>${c.ctr}</td>
-            <td>
-                <button class="action-button">Details</button>
-            </td>
+            <td>${c.objective}</td>
+            <td>€ ${(c.daily_budget / 100).toLocaleString("de-DE")}</td>
+            <td>€ ${c.spend.toLocaleString("de-DE")}</td>
+            <td>${c.roas.toFixed(2)}x</td>
+            <td>${c.ctr.toFixed(2)}%</td>
+            <td><button class="action-button">Details</button></td>
         `;
 
         tbody.appendChild(tr);
@@ -376,39 +602,55 @@ function renderCampaignsTable() {
 }
 
 // ============================================
+// DATUM / ZEIT
+// ============================================
+
+function initDateTime() {
+    const dateEl = document.getElementById("currentDate");
+    const timeEl = document.getElementById("currentTime");
+    if (!dateEl || !timeEl) return;
+
+    function update() {
+        const now = new Date();
+        dateEl.textContent = now.toLocaleDateString("de-DE");
+        timeEl.textContent = now.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+    }
+
+    update();
+    setInterval(update, 60 * 1000);
+}
+
+// ============================================
 // UI UPDATE
 // ============================================
 
 function updateUI() {
-    checkMetaConnection();
+    const connected = checkMetaConnection();
 
     if (AppState.currentView === "dashboardView") {
-        renderDashboardKpis();
         renderDashboardChart();
         renderDashboardHeroCreatives();
-    } else if (AppState.currentView === "campaignsView") {
-        renderCampaignsTable();
+
+        if (connected) {
+            if (!AppState.dashboardLoaded) {
+                AppState.dashboardLoaded = true;
+                loadDashboardMetaData();
+            }
+        } else {
+            renderDashboardKpisPlaceholder();
+        }
     }
-}
 
-// ============================================
-// TOAST SYSTEM
-// ============================================
-
-function showToast(message, type = "info") {
-    const box = document.getElementById("toastContainer");
-    if (!box) return;
-
-    const el = document.createElement("div");
-    el.className = `toast ${type}`;
-    el.innerText = message;
-
-    box.appendChild(el);
-
-    setTimeout(() => {
-        el.classList.add("hide");
-        setTimeout(() => el.remove(), 300);
-    }, 2500);
+    if (AppState.currentView === "campaignsView") {
+        if (connected) {
+            if (!AppState.campaignsLoaded) {
+                AppState.campaignsLoaded = true;
+                loadLiveCampaignTable();
+            }
+        } else {
+            renderCampaignsPlaceholder();
+        }
+    }
 }
 
 // ============================================
@@ -416,16 +658,19 @@ function showToast(message, type = "info") {
 // ============================================
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Default-View anzeigen
+    // Initial View
     showView(AppState.currentView);
 
-    // Navigation
+    // Sidebar Navigation
     initSidebarNavigation();
 
     // Meta-Connect Button
     const metaBtn = document.getElementById("connectMetaButton");
     if (metaBtn) metaBtn.addEventListener("click", handleMetaConnectClick);
 
-    // Meta-Redirect verarbeiten (falls von Meta zurück)
+    // Datum / Zeit
+    initDateTime();
+
+    // Meta OAuth Redirect ggf. verarbeiten
     handleMetaOAuthRedirectIfPresent();
 });
