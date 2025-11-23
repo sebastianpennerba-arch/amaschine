@@ -1,16 +1,9 @@
 /**
- * SignalOne Elite Dashboard - app.js (FINAL FIXED VERSION)
- * 
- * - Vollständige Korrektur des Meta OAuth Flows
- * - Entfernte ungültige Funktion handleViewRendering()
- * - Ersetzt durch updateUI()
- * - Fix für showView()
- * - Fix für exchangeMetaCodeForToken()
- * - Redirect + Token Handling stabilisiert
+ * FINAL FIXED VERSION — BUTTON & OAUTH WORKING
  */
 
 // ============================================
-// GLOBALER APP STATE
+// GLOBAL APP STATE
 // ============================================
 
 const AppState = {
@@ -24,21 +17,11 @@ const AppState = {
         ads: [],
         creatives: [],
         insights: []
-    },
-    selectedAccount: null,
-    selectedCampaign: null,
-    selectedAd: null,
-    selectedCreative: null,
-    filters: {
-        search: "",
-        status: "all",
-        dateRange: "last_7_days"
-    },
-    timeRange: "7d"
+    }
 };
 
 // ============================================
-// OAUTH KONFIGURATION
+// META CONFIG
 // ============================================
 
 const META_OAUTH_CONFIG = {
@@ -52,34 +35,35 @@ const META_BACKEND_CONFIG = {
 };
 
 // ============================================
-// META CONNECT GATEKEEPER
+// CONNECT GATEKEEPER
 // ============================================
 
 function checkMetaConnection() {
     const stripe = document.getElementById("metaConnectStripe");
-    const connected = !!(AppState.metaConnected && AppState.meta.accessToken);
+    const isConnected = AppState.metaConnected && AppState.meta.accessToken;
 
-    if (!connected) {
-        if (stripe) stripe.classList.remove("hidden");
+    if (!isConnected) {
+        stripe?.classList.remove("hidden");
         return false;
     } else {
-        if (stripe) stripe.classList.add("hidden");
+        stripe?.classList.add("hidden");
         return true;
     }
 }
 
+// ============================================
+// BUTTON CLICK
+// ============================================
+
 function handleMetaConnectClick() {
     if (AppState.loading) return;
 
-    const stripe = document.getElementById("metaConnectStripe");
-    if (stripe) stripe.classList.add("connecting");
-
-    showToast("Verbinde mit Meta Ads...", "info");
+    showToast("Verbinde mit Meta...", "info");
     startMetaOAuthFlow();
 }
 
 // ============================================
-// OAUTH FLOW STARTEN
+// START OAUTH
 // ============================================
 
 function startMetaOAuthFlow() {
@@ -90,13 +74,13 @@ function startMetaOAuthFlow() {
             redirect_uri: META_OAUTH_CONFIG.redirectUri,
             response_type: "code",
             scope: META_OAUTH_CONFIG.scopes
-        }).toString();
+        });
 
     window.location.href = authUrl;
 }
 
 // ============================================
-// OAUTH: CODE ERKENNEN NACH REDIRECT
+// HANDLE REDIRECT
 // ============================================
 
 async function handleMetaOAuthRedirectIfPresent() {
@@ -105,140 +89,86 @@ async function handleMetaOAuthRedirectIfPresent() {
 
     if (!code) return;
 
-    // Cleanup URL
     window.history.replaceState({}, document.title, META_OAUTH_CONFIG.redirectUri);
 
-    showToast("Meta-Code empfangen – tausche Token aus...", "info");
+    showToast("Meta-Code erhalten – tausche Token...", "info");
 
     await exchangeMetaCodeForToken(code);
 }
 
 // ============================================
-// OAUTH: CODE → TOKEN
+// EXCHANGE TOKEN
 // ============================================
 
 async function exchangeMetaCodeForToken(code) {
     try {
-        const body = {
-            code,
-            redirectUri: META_OAUTH_CONFIG.redirectUri
-        };
-
         const response = await fetch(META_BACKEND_CONFIG.tokenEndpoint, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body)
+            body: JSON.stringify({
+                code,
+                redirectUri: META_OAUTH_CONFIG.redirectUri
+            })
         });
 
         const data = await response.json();
 
         if (!data.success) {
-            console.error("Token error:", data);
+            console.error("Token exchange error:", data);
             showToast("Fehler beim Verbinden mit Meta.", "error");
             return;
         }
 
-        // Erfolg!
         AppState.meta.accessToken = data.accessToken;
         AppState.metaConnected = true;
-        saveAppState(AppState);
 
         showToast("Mit Meta verbunden!", "success");
-        updateUI(); // <- FIX
+        updateUI();
 
-    } catch (err) {
-        console.error("Meta OAuth Fehler:", err);
+    } catch (e) {
+        console.error(e);
         showToast("Fehler beim Verbinden mit Meta.", "error");
     }
 }
 
 // ============================================
-// VIEW HANDLING (FIXED)
+// VIEW + UI
 // ============================================
 
 function showView(viewId) {
-    const views = document.querySelectorAll(".view");
-    views.forEach(v => v.classList.add("hidden"));
-
-    const target = document.getElementById(viewId);
-    if (target) target.classList.remove("hidden");
-
+    document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
+    document.getElementById(viewId)?.classList.remove("hidden");
     AppState.currentView = viewId;
-
-    updateUI(); // <- handleViewRendering() ersetzt
+    updateUI();
 }
-
-// ============================================
-// UPDATE UI (Haupt-Render)
-// ============================================
 
 function updateUI() {
     checkMetaConnection();
-
-    const dashboard = document.getElementById("dashboardView");
-    if (dashboard) {
-        dashboard.querySelector(".statusMeta").innerText =
-            AppState.metaConnected ? "Verbunden" : "Nicht verbunden";
-    }
-
-    updateSidebarActiveState();
-}
-
-function updateSidebarActiveState() {
-    const buttons = document.querySelectorAll(".sidebar button[data-view]");
-    buttons.forEach(btn => {
-        const target = btn.getAttribute("data-view");
-        if (target === AppState.currentView) {
-            btn.classList.add("active");
-        } else {
-            btn.classList.remove("active");
-        }
-    });
 }
 
 // ============================================
-// STATE SPEICHERN
-// ============================================
-
-function saveAppState() {
-    localStorage.setItem("SignalOneState", JSON.stringify(AppState));
-}
-
-function loadAppState() {
-    try {
-        const stored = JSON.parse(localStorage.getItem("SignalOneState"));
-        if (stored) Object.assign(AppState, stored);
-    } catch (err) {
-        console.warn("Konnte AppState nicht laden:", err);
-    }
-}
-
-// ============================================
-// TOAST SYSTEM
+// TOAST
 // ============================================
 
 function showToast(message, type = "info") {
-    const toastContainer = document.getElementById("toastContainer");
-    if (!toastContainer) return;
-
-    const toast = document.createElement("div");
-    toast.className = `toast ${type}`;
-    toast.innerText = message;
-
-    toastContainer.appendChild(toast);
-
-    setTimeout(() => {
-        toast.classList.add("hide");
-        setTimeout(() => toast.remove(), 300);
-    }, 2500);
+    const box = document.getElementById("toastContainer");
+    const el = document.createElement("div");
+    el.className = `toast ${type}`;
+    el.textContent = message;
+    box.appendChild(el);
+    setTimeout(() => { el.classList.add("hide"); setTimeout(() => el.remove(), 300); }, 2500);
 }
 
 // ============================================
 // INIT
 // ============================================
 
-window.addEventListener("DOMContentLoaded", () => {
-    loadAppState();
+document.addEventListener("DOMContentLoaded", () => {
+
+    // WICHTIG: Button ID = connectMetaButton (aus deiner index.html)
+    const metaBtn = document.getElementById("connectMetaButton");
+    if (metaBtn) metaBtn.addEventListener("click", handleMetaConnectClick);
+
     updateUI();
     handleMetaOAuthRedirectIfPresent();
 });
