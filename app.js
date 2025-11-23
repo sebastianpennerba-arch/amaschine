@@ -5,13 +5,13 @@
  *
  * Enthält:
  * 1. Globalen AppState (Meta-ready)
- * 2. Render Engine (Dashboard, Creatives, Campaigns)
- * 3. Initialisierung (Datum/Uhrzeit-Update, Navigation)
- * 4. View Handling (Sidebar-Navigation)
- * 5. Toast (Benachrichtigungs-) System
- * 6. Modal System
- * 7. Mock-Handler für Klick-Aktionen (handleDeadButton, handleDropdownChange, handleTimeRange)
+ * 2. UI Component Library (Schritt 4)
+ * 3. Render Engine (Schritt 3+5)
+ * 4. Navigation ohne Inline JS
+ * 5. Toast & Modal System
+ * 6. Basis für Meta-Integration
  */
+
 
 /* ============================================
    GLOBALER APP STATE (Phase 1 – Live Ready)
@@ -26,11 +26,11 @@ const AppState = {
 
     // Aktives UI Verhalten
     currentView: "dashboardView",
-    timeRange: "last_7d",   // später: 'today', 'yesterday', 'last_30d'
+    timeRange: "last_7d",
     brand: null,
     campaignGroup: null,
 
-    // Live-Daten aus Meta API
+    // Live-Daten aus Meta API (Schritt B/C)
     meta: {
         accessToken: null,
         adAccounts: [],
@@ -40,8 +40,8 @@ const AppState = {
         campaigns: [],
         adsets: [],
         ads: [],
-        creatives: [],      // normalisiert
-        insights: {},       // globale KPIs
+        creatives: [],      
+        insights: {},       
     },
 
     // Systemdaten
@@ -49,172 +49,6 @@ const AppState = {
     error: null,
 };
 
-
-/* ============================================
-   RENDER ENGINE (Phase 1 – Live Ready)
-   ============================================ */
-
-/* ----------------------------
-   1. Dashboard Renderer
----------------------------- */
-function renderDashboard() {
-    renderDashboardKPIs();
-    renderDashboardChart();
-    renderHeroCreatives();
-}
-
-/* KPIs */
-function renderDashboardKPIs() {
-    const container = document.getElementById("dashboardKpiContainer");
-    if (!container) return;
-
-    container.innerHTML = ""; // reset
-
-    // Platzhalter-KPIs – werden später mit echten Meta-Daten befüllt
-    const kpis = [
-        { label: "RETURN ON AD SPEND (ROAS)", value: "-", trend: "" },
-        { label: "COST PER PURCHASE (CPP)", value: "-", trend: "" },
-        { label: "CREATIVE CTR (GESAMT)", value: "-", trend: "" },
-        { label: "AD SPEND (HEUTE)", value: "-", trend: "" }
-    ];
-
-    const grid = document.createElement("div");
-    grid.className = "kpi-grid";
-
-    kpis.forEach(kpi => {
-        const card = document.createElement("div");
-        card.className = "kpi-card";
-
-        card.innerHTML = `
-            <span class="kpi-label">${kpi.label}</span>
-            <span class="kpi-value">${kpi.value}</span>
-            <span class="kpi-trend">${kpi.trend}</span>
-        `;
-
-        grid.appendChild(card);
-    });
-
-    container.appendChild(grid);
-}
-
-/* CHART */
-function renderDashboardChart() {
-    const container = document.getElementById("dashboardChartContainer");
-    if (!container) return;
-
-    container.innerHTML = `
-        <div class="card performance-card">
-            <div class="card-header">
-                <h3 class="elite-title" style="font-size: 20px;">Performance Trend</h3>
-                <div class="controls">
-                    <div class="select-container small-select">
-                        <select id="chartMetricSelect">
-                            <option>ROAS</option>
-                            <option>Spend</option>
-                        </select>
-                    </div>
-                    <div class="date-toggles time-range-group">
-                        <button class="date-btn time-range-button">Heute</button>
-                        <button class="date-btn time-range-button active">Letzte 7 Tage</button>
-                        <button class="date-btn time-range-button">Letzte 30 Tage</button>
-                        <button class="date-btn time-range-button">Custom</button>
-                    </div>
-                </div>
-            </div>
-            <div class="chart-placeholder">[ ELITE CHART PLATZHALTER – Live Daten folgen nach Meta-Integration ]</div>
-        </div>
-    `;
-}
-
-/* HERO CREATIVES */
-function renderHeroCreatives() {
-    const container = document.getElementById("dashboardHeroCreativesContainer");
-    if (!container) return;
-
-    container.innerHTML = ""; // reset
-
-    const wrapper = document.createElement("div");
-    wrapper.className = "card hero-creatives-card";
-
-    wrapper.innerHTML = `
-        <h3 class="elite-title" style="font-size: 24px; margin-bottom: 5px;">Hero Creatives (Top Performer)</h3>
-        <p style="color: var(--text-secondary); margin-bottom: 20px;">
-            Live-Daten werden nach Meta-Integration geladen. Aktuell keine Creatives im State.
-        </p>
-        <div class="hero-grid" id="heroCreativesGrid">
-            <!-- Später: dynamische Hero-Cards auf Basis AppState.meta.creatives -->
-        </div>
-    `;
-
-    container.appendChild(wrapper);
-}
-
-
-/* ----------------------------
-   2. Creative Library Renderer
----------------------------- */
-function renderCreativeLibrary() {
-    const grid = document.getElementById("creativeLibraryGrid");
-    if (!grid) return;
-
-    grid.innerHTML = ""; // reset
-
-    // solange keine Live-Daten vorhanden sind:
-    if (!AppState.meta.creatives || AppState.meta.creatives.length === 0) {
-        const empty = document.createElement("p");
-        empty.style.color = "var(--text-secondary)";
-        empty.style.padding = "8px";
-        empty.innerText = "Noch keine Creatives geladen. Bitte Meta Ads verbinden, um Live-Daten zu sehen.";
-        grid.appendChild(empty);
-        return;
-    }
-
-    // Später: hier iterieren wir über AppState.meta.creatives und erstellen Cards
-}
-
-
-/* ----------------------------
-   3. Campaigns Renderer
----------------------------- */
-function renderCampaigns() {
-    const tbody = document.getElementById("campaignsTableBody");
-    if (!tbody) return;
-
-    tbody.innerHTML = ""; // reset
-
-    if (!AppState.meta.campaigns || AppState.meta.campaigns.length === 0) {
-        const emptyRow = document.createElement("tr");
-        emptyRow.innerHTML = `
-            <td colspan="8" style="text-align:center; padding:20px; color:var(--text-secondary);">
-                Noch keine Kampagnen geladen. Bitte Meta Ads verbinden, um Live-Daten zu sehen.
-            </td>
-        `;
-        tbody.appendChild(emptyRow);
-        return;
-    }
-
-    // Später: hier iterieren wir über AppState.meta.campaigns und erstellen Tabellenzeilen
-}
-
-
-/* ----------------------------
-   4. View Switch Hook
----------------------------- */
-function handleViewRendering(viewId) {
-    switch(viewId) {
-        case "dashboardView":
-            renderDashboard();
-            break;
-        case "creativesView":
-            renderCreativeLibrary();
-            break;
-        case "campaignsView":
-            renderCampaigns();
-            break;
-        default:
-            break;
-    }
-}
 
 /* ============================================
    UI COMPONENT LIBRARY (Phase 1 – Live Ready)
@@ -262,7 +96,7 @@ function createKpiCard({ label, value, trendValue }) {
         <span class="kpi-label">${label}</span>
         <span class="kpi-value">${value}</span>
         <span class="kpi-trend ${trendClass}">
-            ${trendValue ? (trendValue > 0 ? "▲ " : "▼ ") + trendValue + "%" : ""}
+            ${trendValue != null ? (trendValue > 0 ? "▲ " : "▼ ") + trendValue + "%" : ""}
         </span>
     `;
 
@@ -292,10 +126,10 @@ function createMediaPreview(creative) {
         element.alt = creative.name;
     }
 
-    element.className = "creative-video-mock"; // CSS passt schon
+    element.className = "creative-video-mock";
     container.appendChild(element);
 
-    // Plattform-Badge (Meta, TikTok, Pinterest)
+    // Plattform-Badge (Meta, TikTok, Pinterest später dynamisch)
     const badge = document.createElement("i");
     badge.className = "platform-badge fab fa-meta";
     container.appendChild(badge);
@@ -375,6 +209,180 @@ function createCampaignRow(campaign) {
     return tr;
 }
 
+
+/* ============================================
+   RENDER ENGINE (Phase 1 – Live Ready)
+   ============================================ */
+
+/* ----------------------------
+   1. DASHBOARD RENDERER
+---------------------------- */
+function renderDashboard() {
+    renderDashboardKPIs();
+    renderDashboardChart();
+    renderHeroCreatives();
+}
+
+
+// ---- KPIs ----------------------------------
+function renderDashboardKPIs() {
+    const container = document.getElementById("dashboardKpiContainer");
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    const kpis = [
+        {
+            label: "RETURN ON AD SPEND (ROAS)",
+            value: formatROAS(AppState.meta.insights?.roas),
+            trendValue: AppState.meta.insights?.roasTrend
+        },
+        {
+            label: "COST PER PURCHASE (CPP)",
+            value: formatCurrency(AppState.meta.insights?.cpp),
+            trendValue: AppState.meta.insights?.cppTrend
+        },
+        {
+            label: "CREATIVE CTR (GESAMT)",
+            value: formatPercentage(AppState.meta.insights?.ctr),
+            trendValue: AppState.meta.insights?.ctrTrend
+        },
+        {
+            label: "AD SPEND (HEUTE)",
+            value: formatCurrency(AppState.meta.insights?.spendToday),
+            trendValue: AppState.meta.insights?.spendTodayTrend
+        }
+    ];
+
+    const grid = document.createElement("div");
+    grid.className = "kpi-grid";
+
+    kpis.forEach(kpi => grid.appendChild(createKpiCard(kpi)));
+
+    container.appendChild(grid);
+}
+
+
+// ---- CHART ----------------------------------
+function renderDashboardChart() {
+    const container = document.getElementById("dashboardChartContainer");
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="card performance-card">
+            <div class="card-header">
+                <h3 class="elite-title" style="font-size: 20px;">Performance Trend</h3>
+                <div class="controls">
+                    <div class="select-container small-select">
+                        <select id="chartMetricSelect">
+                            <option>ROAS</option>
+                            <option>Spend</option>
+                        </select>
+                    </div>
+                    <div class="date-toggles time-range-group">
+                        <button class="date-btn time-range-button">Heute</button>
+                        <button class="date-btn time-range-button active">Letzte 7 Tage</button>
+                        <button class="date-btn time-range-button">Letzte 30 Tage</button>
+                        <button class="date-btn time-range-button">Custom</button>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-placeholder">[ ELITE CHART – Live Meta Daten folgen ]</div>
+        </div>
+    `;
+}
+
+
+// ---- HERO CREATIVES ----------------------------------
+function renderHeroCreatives() {
+    const container = document.getElementById("dashboardHeroCreativesContainer");
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "card hero-creatives-card";
+
+    wrapper.innerHTML = `
+        <h3 class="elite-title" style="font-size: 24px; margin-bottom: 5px;">Hero Creatives (Top Performer)</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 20px;">
+            Live-Daten werden nach Meta-Integration geladen.
+        </p>
+        <div class="hero-grid" id="heroCreativesGrid"></div>
+    `;
+
+    container.appendChild(wrapper);
+}
+
+
+/* ----------------------------
+   2. CREATIVE LIBRARY RENDERER
+---------------------------- */
+function renderCreativeLibrary() {
+    const grid = document.getElementById("creativeLibraryGrid");
+    if (!grid) return;
+
+    grid.innerHTML = "";
+
+    const creatives = AppState.meta.creatives;
+
+    if (!creatives || creatives.length === 0) {
+        const empty = document.createElement("p");
+        empty.style.color = "var(--text-secondary)";
+        empty.style.padding = "10px";
+        empty.innerText = "Noch keine Creatives geladen. Bitte Meta verbinden.";
+        grid.appendChild(empty);
+        return;
+    }
+
+    creatives.forEach(creative => grid.appendChild(createCreativeCard(creative)));
+}
+
+
+/* ----------------------------
+   3. CAMPAIGNS RENDERER
+---------------------------- */
+function renderCampaigns() {
+    const tbody = document.getElementById("campaignsTableBody");
+    if (!tbody) return;
+
+    tbody.innerHTML = "";
+
+    const campaigns = AppState.meta.campaigns;
+
+    if (!campaigns || campaigns.length === 0) {
+        const emptyRow = document.createElement("tr");
+        emptyRow.innerHTML = `
+            <td colspan="8" style="text-align:center; padding:20px; color:var(--text-secondary);">
+                Noch keine Kampagnen geladen. Bitte Meta verbinden.
+            </td>
+        `;
+        tbody.appendChild(emptyRow);
+        return;
+    }
+
+    campaigns.forEach(campaign => tbody.appendChild(createCampaignRow(campaign)));
+}
+
+
+/* ----------------------------
+   4. View Switch Hook
+---------------------------- */
+function handleViewRendering(viewId) {
+    switch(viewId) {
+        case "dashboardView":
+            renderDashboard();
+            break;
+        case "creativesView":
+            renderCreativeLibrary();
+            break;
+        case "campaignsView":
+            renderCampaigns();
+            break;
+    }
+}
+
+
 /* ============================================
    INITIALISIERUNG
    ============================================ */
@@ -393,9 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (initialActiveMenuItem) {
         const dataView = initialActiveMenuItem.getAttribute('data-view');
-        if (dataView) {
-            initialViewId = dataView;
-        }
+        if (dataView) initialViewId = dataView;
     }
 
     AppState.currentView = initialViewId;
@@ -407,31 +413,22 @@ document.addEventListener('DOMContentLoaded', () => {
    BASIS-FUNKTIONEN
    ============================================ */
 
-// --- 1. DATUM & UHRZEIT FUNKTION ---
+// --- 1. DATUM & UHRZEIT ---
 function updateDateTime() {
     const now = new Date();
     
-    // Format für Datum (z.B. 21. November 2025)
     const dateOptions = { day: '2-digit', month: 'long', year: 'numeric' };
-    const dateString = now.toLocaleDateString('de-DE', dateOptions);
-
-    // Format für Zeit (z.B. 09:53:30)
     const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
-    const timeString = now.toLocaleTimeString('de-DE', timeOptions);
 
     const dateElement = document.getElementById('currentDate');
     const timeElement = document.getElementById('currentTime');
 
-    if (dateElement) {
-        dateElement.textContent = dateString;
-    }
-    if (timeElement) {
-        timeElement.textContent = timeString;
-    }
+    if (dateElement) dateElement.textContent = now.toLocaleDateString('de-DE', dateOptions);
+    if (timeElement) timeElement.textContent = now.toLocaleTimeString('de-DE', timeOptions);
 }
 
 
-// --- 2. NAVIGATION INIT ---
+// --- 2. NAVIGATION ---
 function initNavigation() {
     const menuItems = document.querySelectorAll('.menu-item');
 
@@ -448,38 +445,20 @@ function initNavigation() {
 }
 
 
-// --- 3. VIEW & NAVIGATION HANDLING ---
-/**
- * Wechselt die angezeigte Hauptansicht und aktualisiert den aktiven Menüpunkt.
- * @param {string} viewId - Die ID des anzuzeigenden <section class="view"> Elements (z.B. 'dashboardView').
- * @param {HTMLElement} clickedElement - Das geklickte <a> Element aus der Sidebar.
- * @param {Object} options - Zusätzliche Optionen (z.B. { skipToast: true }).
- */
+// --- 3. VIEW HANDLING ---
 function showView(viewId, clickedElement, options = {}) {
-    // Alle Views ausblenden
-    document.querySelectorAll('.view').forEach(view => {
-        view.classList.add('hidden');
-    });
 
-    // Gewünschte View anzeigen
+    document.querySelectorAll('.view').forEach(view => view.classList.add('hidden'));
+
     const targetView = document.getElementById(viewId);
-    if (targetView) {
-        targetView.classList.remove('hidden');
-    }
+    if (targetView) targetView.classList.remove('hidden');
 
-    // Aktiven Menüpunkt hervorheben
-    document.querySelectorAll('.menu-item').forEach(item => {
-        item.classList.remove('active');
-    });
+    document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
 
-    if (clickedElement) {
-        clickedElement.classList.add('active');
-    }
+    if (clickedElement) clickedElement.classList.add('active');
 
-    // Renderer für die jeweilige View triggern
     handleViewRendering(viewId);
-    
-    // Kleiner Toast zur Bestätigung (Mock-Feedback) – optional
+
     if (!options.skipToast) {
         const label = viewId.replace('View', '');
         showToast(`Ansicht gewechselt: ${label}`, 'info');
@@ -487,12 +466,7 @@ function showView(viewId, clickedElement, options = {}) {
 }
 
 
-// --- 4. TOAST SYSTEM (Benachrichtigungen) ---
-/**
- * Zeigt eine temporäre Benachrichtigung (Toast) an.
- * @param {string} message - Die Nachricht, die angezeigt werden soll.
- * @param {string} type - Typ des Toasts ('success', 'error', 'info', 'warning').
- */
+// --- 4. TOAST SYSTEM ---
 function showToast(message, type = 'info') {
     const container = document.getElementById('toastContainer');
     if (!container) return;
@@ -501,7 +475,6 @@ function showToast(message, type = 'info') {
     toast.className = `toast toast-${type}`;
     toast.innerHTML = `<i class="fas ${getIconForType(type)}"></i> ${message}`;
     
-    // Farbe für den Left Border (dynamisch aus CSS-Variablen)
     let borderColor = 'var(--color-primary)';
     if (type === 'success') borderColor = 'var(--success)';
     if (type === 'error') borderColor = 'var(--danger)';
@@ -511,11 +484,10 @@ function showToast(message, type = 'info') {
 
     container.appendChild(toast);
 
-    // Entfernen des Toasts nach 4 Sekunden
     setTimeout(() => {
         toast.style.opacity = 0;
         toast.style.transform = 'translateX(100%)';
-        // Nach Fade-Out das Element entfernen
+
         setTimeout(() => toast.remove(), 300);
     }, 4000);
 }
@@ -532,12 +504,6 @@ function getIconForType(type) {
 
 
 // --- 5. MODAL SYSTEM ---
-/**
- * Öffnet ein modales Fenster.
- * Wird hier nur als Mock für die "Dead Buttons" verwendet.
- * @param {string} title - Titel des Modals.
- * @param {string} body - Hauptinhalt des Modals.
- */
 function openModal(title, body) {
     const overlay = document.getElementById('modalOverlay');
     const titleElement = document.getElementById('modalTitle');
@@ -552,60 +518,31 @@ function openModal(title, body) {
 
 function closeModal() {
     const overlay = document.getElementById('modalOverlay');
-    if (overlay) {
-        overlay.classList.remove('active');
-    }
+    if (overlay) overlay.classList.remove('active');
 }
 
 
-// --- 6. MOCK HANDLER FÜR INTERAKTIONEN ---
-
-/**
- * Allgemeine Funktion zur Simulation einer Aktion (für alle Buttons, die noch keine Logik haben).
- * Zeigt einen Toast oder ein Modal.
- * @param {string} actionName - Name der ausgelösten Aktion.
- */
+// --- 6. MOCK HANDLER ---
 function handleDeadButton(actionName) {
     if (actionName.includes('Detailansicht') || actionName.includes('Custom Date Range')) {
-        openModal(actionName, `Dies ist die Detailansicht/Funktion für: "${actionName}". Die vollständige Implementierung folgt in einer späteren Phase.`);
+        openModal(actionName, `Diese Funktion wird später implementiert: "${actionName}".`);
     } else {
         showToast(`Aktion ausgeführt (Mock): ${actionName}`, 'info');
     }
 }
 
-/**
- * Handler für die Dropdown-Änderungen (Top Bar, Filter etc.).
- * @param {string} type - Typ des Dropdowns (z.B. 'Brand', 'Kampagnen Gruppe').
- * @param {string} value - Der ausgewählte Wert.
- */
 function handleDropdownChange(type, value) {
     showToast(`${type} geändert auf: ${value}`, 'info');
-    // In einer echten Anwendung würde hier ein Daten-Reload folgen.
 }
 
-/**
- * Handler für die Chart-Dropdowns.
- * @param {string} value - Die ausgewählte KPI (z.B. 'ROAS', 'Spend').
- */
 function handleChartChange(value) {
     showToast(`Chart Ansicht gewechselt zu: ${value}`, 'info');
 }
 
-/**
- * Handler für die Zeitbereichs-Buttons im Chart-Bereich.
- * @param {string} range - Der ausgewählte Zeitbereich.
- * @param {HTMLElement} clickedButton - Der geklickte Button.
- */
 function handleTimeRange(range, clickedButton) {
-    // Entfernt 'active' von allen Zeitbereichs-Buttons
-    document.querySelectorAll('.time-range-button').forEach(btn => {
-        btn.classList.remove('active');
-    });
+    document.querySelectorAll('.time-range-button').forEach(btn => btn.classList.remove('active'));
 
-    // Fügt 'active' zum geklickten Button hinzu
-    if (clickedButton) {
-        clickedButton.classList.add('active');
-    }
+    if (clickedButton) clickedButton.classList.add('active');
 
     AppState.timeRange = range;
     showToast(`Zeitbereich auf ${range} eingestellt.`, 'info');
