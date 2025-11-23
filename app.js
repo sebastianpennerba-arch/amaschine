@@ -6,6 +6,7 @@
  * - Dashboard KPIs & Hero-Creatives (Live + Fallback)
  * - Campaigns Table (Live + Fallback)
  * - Brand- & Campaign-Dropdowns an Live Meta API angebunden
+ * - Aggregation: "Alle Kampagnen" vs. einzelne Kampagne
  */
 
 // ============================================
@@ -22,7 +23,7 @@ const AppState = {
         insightsByCampaign: {}
     },
     selectedAccountId: null,
-    selectedCampaignId: null,
+    selectedCampaignId: null, // null = Alle Kampagnen
     dashboardLoaded: false,
     campaignsLoaded: false
 };
@@ -542,6 +543,71 @@ function renderDashboardHeroCreatives() {
     `;
 }
 
+// ============================================
+// AGGREGATION: MEHRERE KAMPAGNEN
+// ============================================
+
+async function aggregateInsightsForCampaigns(campaignIds) {
+    let totalSpend = 0;
+    let totalImpressions = 0;
+    let totalClicks = 0;
+    let roasWeightedSum = 0;
+    let roasWeight = 0;
+
+    for (const id of campaignIds) {
+        try {
+            const insights = await fetchMetaCampaignInsights(id);
+            if (
+                !insights.success ||
+                !insights.data ||
+                !Array.isArray(insights.data.data) ||
+                insights.data.data.length === 0
+            ) {
+                continue;
+            }
+
+            const d = insights.data.data[0];
+
+            const spend = parseFloat(d.spend ?? "0") || 0;
+            const impressions = parseFloat(d.impressions ?? "0") || 0;
+            const clicks = parseFloat(d.clicks ?? "0") || 0;
+
+            let roasVal = 0;
+            if (Array.isArray(d.website_purchase_roas) && d.website_purchase_roas.length > 0) {
+                roasVal = parseFloat(d.website_purchase_roas[0].value ?? "0") || 0;
+            }
+
+            totalSpend += spend;
+            totalImpressions += impressions;
+            totalClicks += clicks;
+
+            // ROAS gewichtet nach Spend
+            if (spend > 0 && roasVal > 0) {
+                roasWeightedSum += roasVal * spend;
+                roasWeight += spend;
+            }
+        } catch (e) {
+            console.warn("Aggregation Insights Fehler für Kampagne:", id, e);
+        }
+    }
+
+    if (totalSpend === 0 && totalImpressions === 0 && totalClicks === 0) {
+        return null; // nix da
+    }
+
+    const aggSpend = totalSpend;
+    const aggCtr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
+    const aggCpm = totalImpressions > 0 ? (totalSpend / totalImpressions) * 1000 : 0;
+    const aggRoas = roasWeight > 0 ? roasWeightedSum / roasWeight : 0;
+
+    return {
+        spend: aggSpend,
+        ctr: aggCtr,
+        cpm: aggCpm,
+        roas: aggRoas
+    };
+}
+
 async function loadDashboardMetaData() {
     try {
         // 1) Accounts laden (falls noch nicht im State)
@@ -607,45 +673,71 @@ async function loadDashboardMetaData() {
 
         // Kampagne im State setzen (falls noch keine oder nicht mehr gültig)
         if (
-            !AppState.selectedCampaignId ||
+            AppState.selectedCampaignId &&
             !campaigns.some((c) => c.id === AppState.selectedCampaignId)
         ) {
-            AppState.selectedCampaignId = campaigns[0].id;
+            AppState.selectedCampaignId = null;
         }
 
         // Campaign-Dropdown füllen
         populateCampaignDropdown();
 
-        // 3) Insights für ausgewählte Kampagne holen
-        const campaignIdToUse = AppState.selectedCampaignId || campaigns[0].id;
-        const insights = await fetchMetaCampaignInsights(campaignIdToUse);
+        // 3) Insights:
+        // - Wenn selectedCampaignId == null → ALLE Kampagnen aggregieren
+        // - Sonst → einzelne Kampagne
 
-        if (
-            !insights.success ||
-            !insights.data ||
-            !Array.isArray(insights.data.data) ||
-            insights.data.data.length === 0
-        ) {
-            console.warn("Keine Insights. Fallback.");
-            renderDashboardKpisLive(
-                DEMO_DASHBOARD.spend,
-                DEMO_DASHBOARD.roas,
-                DEMO_DASHBOARD.ctr,
-                DEMO_DASHBOARD.cpm
-            );
-            AppState.dashboardLoaded = true;
-            return;
-        }
+        let spend, cpm, ctr, roas;
 
-        const d = insights.data.data[0];
+        if (!AppState.selectedCampaignId) {
+            // Aggregation
+            const ids = campaigns.map((c) => c.id);
+            const agg = await aggregateInsightsForCampaigns(ids);
+            if (!agg) {
+                console.warn("Keine aggregierten Insights. Fallback.");
+                renderDashboardKpisLive(
+                    DEMO_DASHBOARD.spend,
+                    DEMO_DASHBOARD.roas,
+                    DEMO_DASHBOARD.ctr,
+                    DEMO_DASHBOARD.cpm
+                );
+                AppState.dashboardLoaded = true;
+                return;
+            }
+            spend = agg.spend;
+            cpm = agg.cpm;
+            ctr = agg.ctr;
+            roas = agg.roas;
+        } else {
+            // Einzel-Kampagne
+            const insights = await fetchMetaCampaignInsights(AppState.selectedCampaignId);
 
-        const spend = d.spend ?? DEMO_DASHBOARD.spend;
-        const cpm = d.cpm ?? DEMO_DASHBOARD.cpm;
-        const ctr = d.ctr ?? DEMO_DASHBOARD.ctr;
-        let roas = DEMO_DASHBOARD.roas;
+            if (
+                !insights.success ||
+                !insights.data ||
+                !Array.isArray(insights.data.data) ||
+                insights.data.data.length === 0
+            ) {
+                console.warn("Keine Insights. Fallback.");
+                renderDashboardKpisLive(
+                    DEMO_DASHBOARD.spend,
+                    DEMO_DASHBOARD.roas,
+                    DEMO_DASHBOARD.ctr,
+                    DEMO_DASHBOARD.cpm
+                );
+                AppState.dashboardLoaded = true;
+                return;
+            }
 
-        if (Array.isArray(d.website_purchase_roas) && d.website_purchase_roas.length > 0) {
-            roas = d.website_purchase_roas[0].value ?? DEMO_DASHBOARD.roas;
+            const d = insights.data.data[0];
+
+            spend = d.spend ?? DEMO_DASHBOARD.spend;
+            cpm = d.cpm ?? DEMO_DASHBOARD.cpm;
+            ctr = d.ctr ?? DEMO_DASHBOARD.ctr;
+            roas = DEMO_DASHBOARD.roas;
+
+            if (Array.isArray(d.website_purchase_roas) && d.website_purchase_roas.length > 0) {
+                roas = d.website_purchase_roas[0].value ?? DEMO_DASHBOARD.roas;
+            }
         }
 
         renderDashboardKpisLive(spend, roas, ctr, cpm);
