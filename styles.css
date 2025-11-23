@@ -2,30 +2,30 @@
 :root {
     --color-primary: #6366F1; /* Indigo-500 */
     --color-primary-dark: #4F46E5;
-    --color-background: #F3F4F6; /* Leicht bläulicher/grauer Hintergrund (Weicher als reines Weiß) */
+    --color-background: #F3F4F6; /* Leicht bläulicher/grauer Hintergrund */
     --color-sidebar: #FFFFFF;
     --color-topbar: #FFFFFF;
     --color-card: #FFFFFF;
-    --text-primary: #1F2937; /* Dunkles Grau für Haupttext */
-    --text-secondary: #6B7280; /* Mittleres Grau für Labels/Meta */
-    --border: #E5E7EB; /* Heller Grauton für Trennlinien */
+    --text-primary: #1F2937;
+    --text-secondary: #6B7280;
+    --border: #E5E7EB;
     --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.05);
 
-    --success: #10B981; /* Grün */
-    --warning: #F59E0B; /* Gelb/Orange */
-    --danger: #EF4444; /* Rot */
+    --success: #10B981;
+    --warning: #F59E0B;
+    --danger: #EF4444;
 
     --spacing-main: 24px;
     --spacing-inner: 16px;
     --radius: 12px;
 }
 
-/* Allgemeine Reset und Elite Font */
+/* Reset & Font */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Arial', sans-serif; /* Platzhalter, da keine spezifische Elite Font definiert */
+    font-family: 'Arial', sans-serif;
 }
 
 body {
@@ -35,7 +35,7 @@ body {
     min-height: 100vh;
 }
 
-/* --- SIDEBAR STYLES --- */
+/* --- SIDEBAR --- */
 .sidebar {
     width: 250px;
     background-color: var(--color-sidebar);
@@ -43,7 +43,7 @@ body {
     display: flex;
     flex-direction: column;
     padding: var(--spacing-inner) 0;
-    position: fixed; /* Fixiert links */
+    position: fixed;
     height: 100vh;
     overflow-y: auto;
     z-index: 1000;
@@ -94,14 +94,14 @@ body {
 }
 
 .menu-item.active {
-    background-color: #EEF2FF; /* Leicht bläulich */
+    background-color: #EEF2FF;
     color: var(--color-primary);
     border-left: 4px solid var(--color-primary);
     font-weight: 600;
 }
 
 .menu-footer {
-    margin-top: auto; /* Sorgt dafür, dass der Footer unten klebt */
+    margin-top: auto;
     padding-top: var(--spacing-inner);
     border-top: 1px solid var(--border);
     padding: var(--spacing-inner) 0;
@@ -127,16 +127,15 @@ body {
 .status-yellow { background-color: var(--warning); }
 .status-red { background-color: var(--danger); }
 
-
-/* --- TOP BAR STYLES --- */
+/* --- TOP BAR --- */
 .top-bar {
     position: fixed;
     top: 0;
-    left: 250px; /* Verschiebt die Top Bar neben die Sidebar */
+    left: 250px;
     right: 0;
     background-color: var(--color-topbar);
     box-shadow: var(--shadow-soft);
-    height: 70px; /* Fixe Höhe */
+    height: 70px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -164,7 +163,7 @@ body {
     display: inline-block;
 }
 .system-optimal {
-    background-color: rgba(16, 185, 129, 0.1); /* Helles Grün */
+    background-color: rgba(16, 185, 129, 0.1);
     color: var(--success);
 }
 
@@ -201,14 +200,50 @@ body {
     color: var(--color-primary);
 }
 
+/* --- META CONNECT STRIPE --- */
+.meta-connect-stripe {
+    background: var(--danger);
+    color: white;
+    padding: 10px 20px;
+    margin-bottom: 16px;
+    border-radius: 10px;
+    box-shadow: var(--shadow-soft);
+}
 
-/* --- MAIN CONTENT STYLES --- */
+.meta-connect-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 100%;
+    gap: 15px;
+}
+
+.meta-connect-inner span {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.connect-meta-btn {
+    background: white;
+    color: var(--danger);
+    border: none;
+    padding: 7px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 14px;
+}
+.connect-meta-btn:hover {
+    opacity: 0.9;
+}
+
+/* --- MAIN CONTENT --- */
 .main-content {
-    margin-left: 250px; /* Platz für die Sidebar */
-    margin-top: 70px; /* Platz für die Top Bar */
+    margin-left: 250px;
+    margin-top: 70px;
     flex-grow: 1;
     padding: var(--spacing-main);
-    max-width: 1600px; /* Max Width wie in Doku */
+    max-width: 1600px;
     width: calc(100% - 250px);
 }
 
@@ -227,7 +262,7 @@ body {
     margin-bottom: var(--spacing-main);
 }
 
-/* --- CARD KOMPONENTE --- */
+/* --- CARD --- */
 .card {
     background-color: var(--color-card);
     border-radius: var(--radius);
@@ -236,11 +271,10 @@ body {
     margin-bottom: var(--spacing-main);
 }
 
-/* --- KPI GRID STYLES (Matrix Struktur) --- */
+/* --- KPI GRID --- */
 .kpi-grid {
     display: grid;
-    /* 4 gleich breite Spalten */
-    grid-template-columns: repeat(4, 1fr); 
+    grid-template-columns: repeat(4, 1fr);
     gap: var(--spacing-main);
     margin-bottom: var(--spacing-main);
 }
@@ -282,16 +316,9 @@ body {
     font-weight: 600;
 }
 
-.trend-positive {
-    color: var(--success);
-}
-.trend-negative {
-    color: var(--danger);
-}
-.trend-neutral {
-    color: var(--text-secondary);
-}
-
+.trend-positive { color: var(--success); }
+.trend-negative { color: var(--danger); }
+.trend-neutral { color: var(--text-secondary); }
 
 /* --- PERFORMANCE CHART --- */
 .performance-card {
@@ -340,11 +367,10 @@ body {
     margin-top: 15px;
 }
 
-/* --- HERO CREATIVES STYLES --- */
+/* --- HERO CREATIVES --- */
 .hero-grid {
     display: grid;
-    /* 3 gleich breite Spalten */
-    grid-template-columns: repeat(3, 1fr); 
+    grid-template-columns: repeat(3, 1fr);
     gap: var(--spacing-main);
 }
 
@@ -358,12 +384,12 @@ body {
 }
 
 .creative-hero-item:hover {
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.15); /* Primary Color Shadow */
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.15);
     border-color: var(--color-primary);
 }
 
 .creative-media-container {
-    height: 200px; /* Fixe Höhe für Thumbnail/Video */
+    height: 200px;
     overflow: hidden;
     position: relative;
 }
@@ -393,20 +419,15 @@ body {
     line-height: 1.5;
 }
 
-.kpi-label {
-    color: var(--text-secondary);
-}
-
 .kpi-value-mini {
     font-weight: 700;
     color: var(--text-primary);
 }
 
-
-/* --- CREATIVE LIBRARY VIEW STYLES (Grid mit Visualisierung) --- */
+/* --- CREATIVE LIBRARY VIEW --- */
 .creative-library-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* Responsives Raster */
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
     gap: var(--spacing-main);
 }
 
@@ -441,7 +462,7 @@ body {
     top: 5px;
     left: 5px;
     color: white;
-    background-color: #000; /* Meta-Farb-Platzhalter */
+    background-color: #000;
     border-radius: 4px;
     padding: 5px 8px;
     font-size: 12px;
@@ -491,7 +512,7 @@ body {
 }
 .fill-positive { background-color: var(--success); }
 .fill-negative { background-color: var(--danger); }
-.fill-spend { background-color: var(--color-primary); } /* Primärfarbe für Spend/Input */
+.fill-spend { background-color: var(--color-primary); }
 
 .kpi-value-small {
     font-size: 12px;
@@ -513,7 +534,7 @@ body {
     color: var(--text-secondary);
 }
 
-/* --- CAMPAIGNS VIEW STYLES --- */
+/* --- CAMPAIGNS TABLE --- */
 .campaigns-table {
     width: 100%;
     border-collapse: collapse;
@@ -553,7 +574,7 @@ body {
     background-color: var(--color-primary-dark);
 }
 
-/* --- SENSEI STRATEGY STYLES --- */
+/* --- SENSEI STRATEGY --- */
 .strategy-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -580,7 +601,6 @@ body {
 .warning-card { border-left-color: var(--danger); }
 .generator-card { border-left: none; }
 
-
 .action-button-secondary {
     background-color: transparent;
     color: var(--color-primary);
@@ -598,8 +618,7 @@ body {
     color: white;
 }
 
-
-/* --- TOAST & MODAL STYLES --- */
+/* --- TOAST & MODAL --- */
 .toast-container {
     position: fixed;
     top: 90px;
@@ -671,31 +690,4 @@ body {
 .modal-content button {
     margin-top: var(--spacing-inner);
     float: right;
-}
-
-.meta-connect-stripe {
-    background: #ef4444;
-    color: white;
-    padding: 12px 20px;
-    text-align: center;
-    font-weight: 600;
-    display: flex;
-    justify-content: center;
-}
-.meta-connect-inner {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-.connect-meta-btn {
-    background: white;
-    color: #ef4444;
-    border: none;
-    padding: 7px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 700;
-}
-.connect-meta-btn:hover {
-    opacity: 0.85;
 }
