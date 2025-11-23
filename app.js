@@ -4,10 +4,9 @@
  * - Klarer Verbindungsstatus (Top-Pill + Sidebar + Stripe)
  * - Sidebar Navigation & Views
  * - Dashboard KPIs & Hero-Creatives (Live + Fallback)
- * - Campaigns Table (Live + Fallback) → PUNKT 3 FERTIG
+ * - Campaigns Table (Live + Fallback)
  * - Brand- & Campaign-Dropdowns an Live Meta API angebunden
  * - Aggregation: "Alle Kampagnen" vs. einzelne Kampagne
- * - Einfache Sensei-Logik (nur Anzeige, kein Muss)
  */
 
 // ============================================
@@ -21,7 +20,8 @@ const AppState = {
         accessToken: null,
         adAccounts: [],
         campaigns: [],
-        insightsByCampaign: {} // Cache für Kampagnen-Insights
+        insightsByCampaign: {}, // Cache für Kampagnen-Insights
+        user: null
     },
     selectedAccountId: null,
     selectedCampaignId: null, // null = "Alle Kampagnen"
@@ -44,7 +44,7 @@ const DEMO_CAMPAIGNS = [
         name: "Scaling Q1 – Main Funnel",
         status: "active",
         objective: "CONVERSIONS",
-        daily_budget: 50000, // in Cent
+        daily_budget: 50000,
         spend: 14500,
         roas: 3.9,
         ctr: 2.4
@@ -85,7 +85,8 @@ const META_BACKEND_CONFIG = {
     tokenEndpoint: "https://signalone-backend.onrender.com/api/meta/oauth/token",
     adAccountsEndpoint: "https://signalone-backend.onrender.com/api/meta/adaccounts",
     campaignsEndpoint: (accountId) => `https://signalone-backend.onrender.com/api/meta/campaigns/${accountId}`,
-    insightsEndpoint: (campaignId) => `https://signalone-backend.onrender.com/api/meta/insights/${campaignId}`
+    insightsEndpoint: (campaignId) => `https://signalone-backend.onrender.com/api/meta/insights/${campaignId}`,
+    meEndpoint: "https://signalone-backend.onrender.com/api/meta/me"
 };
 
 // ============================================
@@ -95,26 +96,22 @@ const META_BACKEND_CONFIG = {
 function showToast(message, type = "info") {
     const box = document.getElementById("toastContainer");
     if (!box) return;
-
     const el = document.createElement("div");
     el.className = `toast ${type}`;
     el.innerText = message;
-
     box.appendChild(el);
-
     setTimeout(() => {
         el.classList.add("hide");
         setTimeout(() => el.remove(), 300);
     }, 2500);
 }
 
-// Modal Helper (für Kampagnendetails)
+// Modal Helper
 function openModal(title, bodyHtml) {
     const overlay = document.getElementById("modalOverlay");
     const titleEl = document.getElementById("modalTitle");
     const bodyEl = document.getElementById("modalBody");
     if (!overlay || !titleEl || !bodyEl) return;
-
     titleEl.textContent = title;
     bodyEl.innerHTML = bodyHtml;
     overlay.classList.add("visible");
@@ -125,7 +122,44 @@ function closeModal() {
     if (!overlay) return;
     overlay.classList.remove("visible");
 }
-window.closeModal = closeModal; // für onclick im HTML
+window.closeModal = closeModal;
+
+// ============================================
+// GREETING / USERNAME
+// ============================================
+
+function updateGreeting() {
+    const titleEl = document.getElementById("greetingTitle");
+    if (!titleEl) return;
+
+    const base = "Guten Tag";
+    if (AppState.meta && AppState.meta.user && AppState.meta.user.name) {
+        titleEl.textContent = `${base}, ${AppState.meta.user.name}!`;
+    } else {
+        titleEl.textContent = `${base}!`;
+    }
+}
+
+async function fetchMetaUser() {
+    if (!AppState.meta.accessToken) return;
+    try {
+        const res = await fetch(META_BACKEND_CONFIG.meEndpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ accessToken: AppState.meta.accessToken })
+        });
+        const data = await res.json();
+        if (data && data.success && data.data) {
+            AppState.meta.user = {
+                id: data.data.id,
+                name: data.data.name
+            };
+            updateGreeting();
+        }
+    } catch (e) {
+        console.warn("fetchMetaUser error:", e);
+    }
+}
 
 // ============================================
 // META CONNECT / DISCONNECT LOGIC
@@ -147,59 +181,40 @@ function checkMetaConnection() {
         if (stripeText) {
             stripeText.innerHTML = '<i class="fas fa-plug"></i> Mit Meta Ads verbunden';
         }
-
         if (pill) {
             pill.classList.add("meta-connected");
             pill.classList.remove("meta-disconnected");
         }
-        if (pillLabel) {
-            pillLabel.textContent = "Verbunden mit Meta Ads";
-        }
-        if (pillDot) {
-            pillDot.style.backgroundColor = "var(--success)";
-        }
-
-        if (sidebarLabel) {
-            sidebarLabel.textContent = "Meta Ads (Live)";
-        }
+        if (pillLabel) pillLabel.textContent = "Verbunden mit Meta Ads";
+        if (pillDot) pillDot.style.backgroundColor = "var(--success)";
+        if (sidebarLabel) sidebarLabel.textContent = "Meta Ads (Live)";
         if (sidebarIndicator) {
             sidebarIndicator.classList.remove("status-red");
             sidebarIndicator.classList.add("status-green");
         }
-
         return true;
     } else {
         if (stripe) stripe.classList.remove("hidden");
         if (stripeText) {
             stripeText.innerHTML = '<i class="fas fa-plug"></i> Nicht mit Meta Ads verbunden';
         }
-
         if (pill) {
             pill.classList.add("meta-disconnected");
             pill.classList.remove("meta-connected");
         }
-        if (pillLabel) {
-            pillLabel.textContent = "Nicht mit Meta verbunden";
-        }
-        if (pillDot) {
-            pillDot.style.backgroundColor = "var(--danger)";
-        }
-
-        if (sidebarLabel) {
-            sidebarLabel.textContent = "Meta Ads (Offline)";
-        }
+        if (pillLabel) pillLabel.textContent = "Nicht mit Meta verbunden";
+        if (pillDot) pillDot.style.backgroundColor = "var(--danger)";
+        if (sidebarLabel) sidebarLabel.textContent = "Meta Ads (Offline)";
         if (sidebarIndicator) {
             sidebarIndicator.classList.remove("status-green");
             sidebarIndicator.classList.add("status-red");
         }
-
         return false;
     }
 }
 
 function handleMetaConnectClick() {
     showToast("Verbinde mit Meta...", "info");
-
     const authUrl =
         "https://www.facebook.com/v21.0/dialog/oauth?" +
         new URLSearchParams({
@@ -208,7 +223,6 @@ function handleMetaConnectClick() {
             response_type: "code",
             scope: META_OAUTH_CONFIG.scopes
         });
-
     window.location.href = authUrl;
 }
 
@@ -218,14 +232,15 @@ function disconnectMeta() {
         accessToken: null,
         adAccounts: [],
         campaigns: [],
-        insightsByCampaign: {}
+        insightsByCampaign: {},
+        user: null
     };
     AppState.selectedAccountId = null;
     AppState.selectedCampaignId = null;
     AppState.dashboardLoaded = false;
     AppState.campaignsLoaded = false;
     AppState.dashboardMetrics = null;
-
+    updateGreeting();
     showToast("Verbindung zu Meta wurde getrennt.", "info");
     updateUI();
 }
@@ -235,7 +250,6 @@ async function handleMetaOAuthRedirectIfPresent() {
     const code = url.searchParams.get("code");
     if (!code) return;
 
-    // URL aufräumen
     window.history.replaceState({}, "", META_OAUTH_CONFIG.redirectUri);
     showToast("Meta-Code empfangen – tausche Token aus...", "info");
 
@@ -266,6 +280,7 @@ async function handleMetaOAuthRedirectIfPresent() {
         AppState.dashboardMetrics = null;
         AppState.meta.insightsByCampaign = {};
 
+        await fetchMetaUser();
         showToast("Mit Meta verbunden!", "success");
         updateUI();
     } catch (e) {
@@ -354,7 +369,6 @@ function populateBrandDropdown() {
         select.appendChild(opt);
     });
 
-    // On change -> Account wechseln, Dashboard & Kampagnen neu laden
     select.onchange = async (e) => {
         AppState.selectedAccountId = e.target.value;
         AppState.selectedCampaignId = null;
@@ -386,13 +400,11 @@ function populateCampaignDropdown() {
 
     const total = campaigns.length;
 
-    // Option "Alle Kampagnen"
     const allOpt = document.createElement("option");
     allOpt.value = "all";
     allOpt.textContent = `Alle Kampagnen (${total})`;
     select.appendChild(allOpt);
 
-    // Einzelne Kampagnen
     campaigns.forEach((c) => {
         const opt = document.createElement("option");
         opt.value = c.id;
@@ -400,14 +412,12 @@ function populateCampaignDropdown() {
         select.appendChild(opt);
     });
 
-    // Auswahl passend zu AppState setzen
     if (AppState.selectedCampaignId) {
         select.value = AppState.selectedCampaignId;
     } else {
         select.value = "all";
     }
 
-    // On change -> Kampagne im State setzen & Dashboard KPIs neu laden
     select.onchange = async (e) => {
         const val = e.target.value;
         AppState.selectedCampaignId = val === "all" ? null : val;
@@ -448,14 +458,12 @@ function showView(viewId) {
     document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
     const view = document.getElementById(viewId);
     if (view) view.classList.remove("hidden");
-
     AppState.currentView = viewId;
     updateUI();
 }
 
 // ============================================
 // DASHBOARD RENDERING
-// (unverändert, Basis für später; Fokus jetzt auf Campaigns)
 // ============================================
 
 function renderDashboardKpisPlaceholder() {
@@ -501,19 +509,19 @@ function renderDashboardKpisLive(spend, roas, ctr, cpm) {
         <div class="kpi-grid">
             <div class="kpi-card">
                 <div class="kpi-label"><i class="fas fa-coins"></i> Ad Spend (30D)</div>
-                <div class="kpi-value">€ ${spendNum.toLocaleString("de-DE")}</div>
+                <div class="kpi-value">${spendNum > 0 ? `€ ${spendNum.toLocaleString("de-DE")}` : "–"}</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-label"><i class="fas fa-percentage"></i> ROAS (30D)</div>
-                <div class="kpi-value">${roasNum.toFixed(2)}x</div>
+                <div class="kpi-value">${roasNum > 0 ? `${roasNum.toFixed(2)}x` : "–"}</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-label"><i class="fas fa-mouse-pointer"></i> CTR (30D)</div>
-                <div class="kpi-value">${ctrNum.toFixed(2)}%</div>
+                <div class="kpi-value">${ctrNum > 0 ? `${ctrNum.toFixed(2)}%` : "–"}</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-label"><i class="fas fa-chart-area"></i> CPM (30D)</div>
-                <div class="kpi-value">€ ${cpmNum.toFixed(2)}</div>
+                <div class="kpi-value">${cpmNum > 0 ? `€ ${cpmNum.toFixed(2)}` : "–"}</div>
             </div>
         </div>
     `;
@@ -553,17 +561,17 @@ function renderDashboardChart() {
     const scopeLabel = metrics.scopeLabel || "Aktuelle Auswahl";
 
     const items = [
-        { key: "spend", label: "Spend", value: spend, formatted: `€ ${spend.toLocaleString("de-DE")}` },
-        { key: "roas", label: "ROAS", value: roas, formatted: `${roas.toFixed(2)}x` },
-        { key: "ctr", label: "CTR", value: ctr, formatted: `${ctr.toFixed(2)}%` },
-        { key: "cpm", label: "CPM", value: cpm, formatted: `€ ${cpm.toFixed(2)}` }
+        { key: "spend", label: "Spend", value: spend, formatted: spend > 0 ? `€ ${spend.toLocaleString("de-DE")}` : "–" },
+        { key: "roas", label: "ROAS", value: roas, formatted: roas > 0 ? `${roas.toFixed(2)}x` : "–" },
+        { key: "ctr", label: "CTR", value: ctr, formatted: ctr > 0 ? `${ctr.toFixed(2)}%` : "–" },
+        { key: "cpm", label: "CPM", value: cpm, formatted: cpm > 0 ? `€ ${cpm.toFixed(2)}` : "–" }
     ];
 
     const values = items.map(i => i.value > 0 ? i.value : 0);
     const maxVal = Math.max(...values, 1);
 
     const rowsHtml = items.map(i => {
-        const pct = Math.max(8, Math.min(100, (i.value / maxVal) * 100));
+        const pct = i.value > 0 ? Math.max(8, Math.min(100, (i.value / maxVal) * 100)) : 8;
         return `
             <div style="display:flex; align-items:center; gap:10px;">
                 <div style="width:110px; font-size:12px; color:var(--text-secondary);">${i.label}</div>
@@ -599,48 +607,104 @@ function renderDashboardChart() {
     `;
 }
 
+// HERO „CREATIVES“ = Top-Kampagnen
 function renderDashboardHeroCreatives() {
     const container = document.getElementById("dashboardHeroCreativesContainer");
     if (!container) return;
 
+    const entries = Object.entries(AppState.meta.insightsByCampaign || {});
+    const campaigns = AppState.meta.campaigns || [];
+
+    if (!AppState.metaConnected || !entries.length || !campaigns.length) {
+        // Fallback: Statische Platzhalter
+        container.innerHTML = `
+            <div class="hero-grid">
+                <div class="creative-hero-item">
+                    <div class="creative-media-container">
+                        <img src="https://via.placeholder.com/400x200?text=Top+Creative+1" alt="Creative 1">
+                    </div>
+                    <div class="creative-details">
+                        <div class="creative-name">Hook: "Stop Scrolling – Scale Smart"</div>
+                        <div class="creative-kpi-bar">
+                            <span>ROAS</span>
+                            <span class="kpi-value-mini">4.2x</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="creative-hero-item">
+                    <div class="creative-media-container">
+                        <img src="https://via.placeholder.com/400x200?text=Top+Creative+2" alt="Creative 2">
+                    </div>
+                    <div class="creative-details">
+                        <div class="creative-name">UGC: "Honest Review Clip"</div>
+                        <div class="creative-kpi-bar">
+                            <span>CTR</span>
+                            <span class="kpi-value-mini">3.1%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="creative-hero-item">
+                    <div class="creative-media-container">
+                        <img src="https://via.placeholder.com/400x200?text=Top+Creative+3" alt="Creative 3">
+                    </div>
+                    <div class="creative-details">
+                        <div class="creative-name">Static: "Clean Product Shot"</div>
+                        <div class="creative-kpi-bar">
+                            <span>Spend 30D</span>
+                            <span class="kpi-value-mini">€ 4.200</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    const enriched = entries.map(([id, m]) => {
+        const camp = campaigns.find(c => c.id === id) || { name: id };
+        return {
+            id,
+            name: camp.name || id,
+            spend: m.spend || 0,
+            roas: m.roas || 0,
+            ctr: m.ctr || 0
+        };
+    });
+
+    enriched.sort((a, b) => {
+        const aScore = (a.roas || 0) * (a.spend || 0);
+        const bScore = (b.roas || 0) * (b.spend || 0);
+        return bScore - aScore;
+    });
+
+    const top3 = enriched.slice(0, 3);
+
     container.innerHTML = `
         <div class="hero-grid">
-            <div class="creative-hero-item">
-                <div class="creative-media-container">
-                    <img src="https://via.placeholder.com/400x200?text=Top+Creative+1" alt="Creative 1">
-                </div>
-                <div class="creative-details">
-                    <div class="creative-name">Hook: "Stop Scrolling – Scale Smart"</div>
-                    <div class="creative-kpi-bar">
-                        <span>ROAS</span>
-                        <span class="kpi-value-mini">4.2x</span>
+            ${top3.map((c, idx) => `
+                <div class="creative-hero-item">
+                    <div class="creative-media-container">
+                        <div class="creative-faux-thumb">
+                            <span>#${idx + 1}</span>
+                        </div>
+                    </div>
+                    <div class="creative-details">
+                        <div class="creative-name">${c.name}</div>
+                        <div class="creative-kpi-bar">
+                            <span>ROAS</span>
+                            <span class="kpi-value-mini">${c.roas > 0 ? c.roas.toFixed(2) + "x" : "–"}</span>
+                        </div>
+                        <div class="creative-kpi-bar">
+                            <span>Spend</span>
+                            <span class="kpi-value-mini">${c.spend > 0 ? "€ " + c.spend.toLocaleString("de-DE") : "–"}</span>
+                        </div>
+                        <div class="creative-kpi-bar">
+                            <span>CTR</span>
+                            <span class="kpi-value-mini">${c.ctr > 0 ? c.ctr.toFixed(2) + "%" : "–"}</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="creative-hero-item">
-                <div class="creative-media-container">
-                    <img src="https://via.placeholder.com/400x200?text=Top+Creative+2" alt="Creative 2">
-                </div>
-                <div class="creative-details">
-                    <div class="creative-name">UGC: "Honest Review Clip"</div>
-                    <div class="creative-kpi-bar">
-                        <span>CTR</span>
-                        <span class="kpi-value-mini">3.1%</span>
-                    </div>
-                </div>
-            </div>
-            <div class="creative-hero-item">
-                <div class="creative-media-container">
-                    <img src="https://via.placeholder.com/400x200?text=Top+Creative+3" alt="Creative 3">
-                </div>
-                <div class="creative-details">
-                    <div class="creative-name">Static: "Clean Product Shot"</div>
-                    <div class="creative-kpi-bar">
-                        <span>Spend 30D</span>
-                        <span class="kpi-value-mini">€ 4.200</span>
-                    </div>
-                </div>
-            </div>
+            `).join("")}
         </div>
     `;
 }
@@ -679,13 +743,13 @@ async function aggregateInsightsForCampaigns(campaignIds) {
 
             if (!d) continue;
 
-            const spend = parseFloat(d.spend ?? "0") || 0;
-            const impressions = parseFloat(d.impressions ?? "0") || 0;
-            const clicks = parseFloat(d.clicks ?? "0") || 0;
+            const spend = parseFloat(d.spend || "0") || 0;
+            const impressions = parseFloat(d.impressions || "0") || 0;
+            const clicks = parseFloat(d.clicks || "0") || 0;
 
             let roasVal = 0;
             if (Array.isArray(d.website_purchase_roas) && d.website_purchase_roas.length > 0) {
-                roasVal = parseFloat(d.website_purchase_roas[0].value ?? "0") || 0;
+                roasVal = parseFloat(d.website_purchase_roas[0].value || "0") || 0;
             }
 
             totalSpend += spend;
@@ -742,7 +806,6 @@ function storeCampaignInsightInCache(campaignId, d) {
 
 async function loadDashboardMetaData() {
     try {
-        // 1) Accounts laden (falls noch nicht im State)
         let accountsResult;
         if (AppState.meta.adAccounts && AppState.meta.adAccounts.length > 0) {
             accountsResult = { success: true, data: { data: AppState.meta.adAccounts } };
@@ -758,35 +821,28 @@ async function loadDashboardMetaData() {
         ) {
             console.warn("Keine Meta Accounts gefunden. Fallback.");
             AppState.dashboardMetrics = {
-                spend: DEMO_DASHBOARD.spend,
-                roas: DEMO_DASHBOARD.roas,
-                ctr: DEMO_DASHBOARD.ctr,
-                cpm: DEMO_DASHBOARD.cpm,
-                scopeLabel: "Demo-Daten"
+                spend: 0,
+                roas: 0,
+                ctr: 0,
+                cpm: 0,
+                scopeLabel: "Keine Daten"
             };
-            renderDashboardKpisLive(
-                DEMO_DASHBOARD.spend,
-                DEMO_DASHBOARD.roas,
-                DEMO_DASHBOARD.ctr,
-                DEMO_DASHBOARD.cpm
-            );
+            renderDashboardKpisLive(0, 0, 0, 0);
             renderDashboardChart();
             AppState.dashboardLoaded = true;
+            renderDashboardHeroCreatives();
             return;
         }
 
         const accounts = accountsResult.data.data;
         AppState.meta.adAccounts = accounts;
 
-        // Account im State setzen, falls noch nicht vorhanden
         if (!AppState.selectedAccountId) {
             AppState.selectedAccountId = accounts[0].id;
         }
 
-        // Brand-Dropdown füllen
         populateBrandDropdown();
 
-        // 2) Kampagnen für Account laden
         const campaignsResult = await fetchMetaCampaigns(AppState.selectedAccountId);
 
         if (
@@ -795,31 +851,26 @@ async function loadDashboardMetaData() {
             !Array.isArray(campaignsResult.data.data) ||
             campaignsResult.data.data.length === 0
         ) {
-            console.warn("Keine Meta Kampagnen gefunden. Fallback.");
+            console.warn("Keine Meta Kampagnen gefunden.");
             AppState.meta.campaigns = [];
             populateCampaignDropdown();
             AppState.dashboardMetrics = {
-                spend: DEMO_DASHBOARD.spend,
-                roas: DEMO_DASHBOARD.roas,
-                ctr: DEMO_DASHBOARD.ctr,
-                cpm: DEMO_DASHBOARD.cpm,
-                scopeLabel: "Demo-Daten"
+                spend: 0,
+                roas: 0,
+                ctr: 0,
+                cpm: 0,
+                scopeLabel: "Keine Kampagnen"
             };
-            renderDashboardKpisLive(
-                DEMO_DASHBOARD.spend,
-                DEMO_DASHBOARD.roas,
-                DEMO_DASHBOARD.ctr,
-                DEMO_DASHBOARD.cpm
-            );
+            renderDashboardKpisLive(0, 0, 0, 0);
             renderDashboardChart();
             AppState.dashboardLoaded = true;
+            renderDashboardHeroCreatives();
             return;
         }
 
         const campaigns = campaignsResult.data.data;
         AppState.meta.campaigns = campaigns;
 
-        // Kampagne im State setzen (falls noch keine oder nicht mehr gültig)
         if (
             AppState.selectedCampaignId &&
             !campaigns.some((c) => c.id === AppState.selectedCampaignId)
@@ -827,32 +878,26 @@ async function loadDashboardMetaData() {
             AppState.selectedCampaignId = null;
         }
 
-        // Campaign-Dropdown füllen
         populateCampaignDropdown();
 
-        // 3) Insights:
         let spend, cpm, ctr, roas, scopeLabel;
 
         if (!AppState.selectedCampaignId) {
             const ids = campaigns.map((c) => c.id);
             const agg = await aggregateInsightsForCampaigns(ids);
             if (!agg) {
-                console.warn("Keine aggregierten Insights. Fallback.");
+                console.warn("Keine aggregierten Insights.");
                 AppState.dashboardMetrics = {
-                    spend: DEMO_DASHBOARD.spend,
-                    roas: DEMO_DASHBOARD.roas,
-                    ctr: DEMO_DASHBOARD.ctr,
-                    cpm: DEMO_DASHBOARD.cpm,
-                    scopeLabel: "Demo-Daten"
+                    spend: 0,
+                    roas: 0,
+                    ctr: 0,
+                    cpm: 0,
+                    scopeLabel: "Keine Insights"
                 };
-                renderDashboardKpisLive(
-                    DEMO_DASHBOARD.spend,
-                    DEMO_DASHBOARD.roas,
-                    DEMO_DASHBOARD.ctr,
-                    DEMO_DASHBOARD.cpm
-                );
+                renderDashboardKpisLive(0, 0, 0, 0);
                 renderDashboardChart();
                 AppState.dashboardLoaded = true;
+                renderDashboardHeroCreatives();
                 return;
             }
             spend = agg.spend;
@@ -869,35 +914,30 @@ async function loadDashboardMetaData() {
                 !Array.isArray(insights.data.data) ||
                 insights.data.data.length === 0
             ) {
-                console.warn("Keine Insights. Fallback.");
+                console.warn("Keine Insights für ausgewählte Kampagne.");
                 AppState.dashboardMetrics = {
-                    spend: DEMO_DASHBOARD.spend,
-                    roas: DEMO_DASHBOARD.roas,
-                    ctr: DEMO_DASHBOARD.ctr,
-                    cpm: DEMO_DASHBOARD.cpm,
-                    scopeLabel: "Demo-Daten"
+                    spend: 0,
+                    roas: 0,
+                    ctr: 0,
+                    cpm: 0,
+                    scopeLabel: "Keine Insights"
                 };
-                renderDashboardKpisLive(
-                    DEMO_DASHBOARD.spend,
-                    DEMO_DASHBOARD.roas,
-                    DEMO_DASHBOARD.ctr,
-                    DEMO_DASHBOARD.cpm
-                );
+                renderDashboardKpisLive(0, 0, 0, 0);
                 renderDashboardChart();
                 AppState.dashboardLoaded = true;
+                renderDashboardHeroCreatives();
                 return;
             }
 
             const d = insights.data.data[0];
             storeCampaignInsightInCache(AppState.selectedCampaignId, d);
 
-            spend = d.spend ?? DEMO_DASHBOARD.spend;
-            cpm = d.cpm ?? DEMO_DASHBOARD.cpm;
-            ctr = d.ctr ?? DEMO_DASHBOARD.ctr;
-            roas = DEMO_DASHBOARD.roas;
-
+            spend = parseFloat(d.spend || "0") || 0;
+            cpm = parseFloat(d.cpm || "0") || 0;
+            ctr = parseFloat(d.ctr || "0") || 0;
+            roas = 0;
             if (Array.isArray(d.website_purchase_roas) && d.website_purchase_roas.length > 0) {
-                roas = d.website_purchase_roas[0].value ?? DEMO_DASHBOARD.roas;
+                roas = parseFloat(d.website_purchase_roas[0].value || "0") || 0;
             }
 
             const selectedCampaign = campaigns.find(c => c.id === AppState.selectedCampaignId);
@@ -915,28 +955,25 @@ async function loadDashboardMetaData() {
         renderDashboardKpisLive(spend, roas, ctr, cpm);
         renderDashboardChart();
         AppState.dashboardLoaded = true;
+        renderDashboardHeroCreatives();
     } catch (e) {
         console.error("loadDashboardMetaData error:", e);
         AppState.dashboardMetrics = {
-            spend: DEMO_DASHBOARD.spend,
-            roas: DEMO_DASHBOARD.roas,
-            ctr: DEMO_DASHBOARD.ctr,
-            cpm: DEMO_DASHBOARD.cpm,
-            scopeLabel: "Demo-Daten"
+            spend: 0,
+            roas: 0,
+            ctr: 0,
+            cpm: 0,
+            scopeLabel: "Fehler"
         };
-        renderDashboardKpisLive(
-            DEMO_DASHBOARD.spend,
-            DEMO_DASHBOARD.roas,
-            DEMO_DASHBOARD.ctr,
-            DEMO_DASHBOARD.cpm
-        );
+        renderDashboardKpisLive(0, 0, 0, 0);
         renderDashboardChart();
         AppState.dashboardLoaded = true;
+        renderDashboardHeroCreatives();
     }
 }
 
 // ============================================
-// CAMPAIGNS RENDERING — PUNKT 3
+// CAMPAIGNS RENDERING
 // ============================================
 
 function renderCampaignsPlaceholder(text = "Verbinde Meta, um deine Kampagnen anzuzeigen.") {
@@ -991,7 +1028,6 @@ async function loadLiveCampaignTable() {
     try {
         let accountId = AppState.selectedAccountId;
 
-        // Sicherstellen, dass wir ein AdAccount haben
         if (!accountId) {
             const accounts = await fetchMetaAdAccounts();
             if (
@@ -1011,7 +1047,6 @@ async function loadLiveCampaignTable() {
             populateBrandDropdown();
         }
 
-        // Kampagnen holen
         const campaigns = await fetchMetaCampaigns(accountId);
 
         if (
@@ -1036,7 +1071,6 @@ async function loadLiveCampaignTable() {
             AppState.meta.insightsByCampaign = {};
         }
 
-        // Insights pro Kampagne holen / aus Cache
         const rows = [];
 
         for (let c of list) {
@@ -1071,7 +1105,6 @@ async function loadLiveCampaignTable() {
             });
         }
 
-        // FILTER & SEARCH
         const searchInput = document.getElementById("campaignSearch");
         const statusFilter = document.getElementById("campaignStatusFilter");
 
@@ -1097,21 +1130,17 @@ async function loadLiveCampaignTable() {
             });
         }
 
-        // Sort nach Spend (Desc) als Default
         filteredRows.sort((a, b) => (b.metrics.spend || 0) - (a.metrics.spend || 0));
 
-        // Render
         tbody.innerHTML = "";
 
         filteredRows.forEach(({ campaign: c, metrics: kpis }) => {
             const spend = Number(kpis.spend || 0);
             const roas = Number(kpis.roas || 0);
             const ctr = Number(kpis.ctr || 0);
-            // cpm wäre möglich, wird aber nicht als eigene Spalte angezeigt
-            const dailyBudget = Number(c.daily_budget || 0) / 100; // cent -> euro
+            const dailyBudget = Number(c.daily_budget || 0) / 100;
 
             const tr = document.createElement("tr");
-
             const statusIndicatorClass = getStatusIndicatorClass(c.status);
 
             tr.innerHTML = `
@@ -1132,7 +1161,6 @@ async function loadLiveCampaignTable() {
             renderCampaignsPlaceholder("Keine Kampagnen entsprechen den aktuellen Filtern.");
         }
 
-        // Details-Buttons clicken → Modal mit KPIs
         tbody.querySelectorAll(".campaign-details-btn").forEach(btn => {
             btn.addEventListener("click", async (e) => {
                 const campaignId = e.currentTarget.getAttribute("data-campaign-id");
@@ -1156,7 +1184,6 @@ function renderDemoCampaignsTable() {
 
     DEMO_CAMPAIGNS.forEach(c => {
         const tr = document.createElement("tr");
-
         const statusIndicatorClass = getStatusIndicatorClass(c.status);
 
         tr.innerHTML = `
@@ -1173,10 +1200,6 @@ function renderDemoCampaignsTable() {
         tbody.appendChild(tr);
     });
 }
-
-// ============================================
-// KAMPAGNEN-DETAILS (Modal)
-// ============================================
 
 async function openCampaignDetails(campaignId) {
     if (!campaignId) return;
@@ -1214,118 +1237,8 @@ async function openCampaignDetails(campaignId) {
 }
 
 // ============================================
-// SENSEI STRATEGY (kann bleiben, nutzt Campaign-Insights)
+// (Sensei lassen wir für jetzt weg / unverändert wäre Zusatz – Fokus: Dashboard + Campaigns)
 // ============================================
-
-async function ensureInsightsCache() {
-    if (!AppState.meta.campaigns || !AppState.meta.campaigns.length) return;
-
-    if (!AppState.meta.insightsByCampaign) {
-        AppState.meta.insightsByCampaign = {};
-    }
-
-    const missing = AppState.meta.campaigns.filter(c => !AppState.meta.insightsByCampaign[c.id]);
-
-    for (const c of missing) {
-        try {
-            const insights = await fetchMetaCampaignInsights(c.id);
-            if (
-                insights.success &&
-                insights.data &&
-                Array.isArray(insights.data.data) &&
-                insights.data.data[0]
-            ) {
-                storeCampaignInsightInCache(c.id, insights.data.data[0]);
-            }
-        } catch (e) {
-            console.warn("ensureInsightsCache Fehler für Kampagne:", c.id, e);
-        }
-    }
-}
-
-async function renderSenseiStrategy() {
-    const view = document.getElementById("senseiStrategyView");
-    if (!view) return;
-
-    const recCard = view.querySelector(".recommendation-card p");
-    const alertCard = view.querySelector(".alert-card p");
-    const warnCard = view.querySelector(".warning-card p");
-
-    if (!AppState.metaConnected || !AppState.meta.accessToken) {
-        if (recCard) recCard.textContent = "Verbinde Meta, um Creative-Empfehlungen auf Basis deiner Kampagnen zu erhalten.";
-        if (alertCard) alertCard.textContent = "Verbinde Meta, um Budget-Pacing Alerts zu aktivieren.";
-        if (warnCard) warnCard.textContent = "Verbinde Meta, um Creative-Fatigue Hinweise zu sehen.";
-        return;
-    }
-
-    if (!AppState.meta.campaigns || !AppState.meta.campaigns.length) {
-        if (recCard) recCard.textContent = "Keine Kampagnen gefunden. Erstelle Kampagnen in Meta Ads, um Empfehlungen zu erhalten.";
-        if (alertCard) alertCard.textContent = "Noch keine Daten für Budget-Pacing verfügbar.";
-        if (warnCard) warnCard.textContent = "Noch keine Daten für Creative-Fatigue verfügbar.";
-        return;
-    }
-
-    await ensureInsightsCache();
-
-    const entries = Object.entries(AppState.meta.insightsByCampaign || {});
-    if (!entries.length) {
-        if (recCard) recCard.textContent = "Noch keine ausreichenden Insights für Empfehlungen.";
-        if (alertCard) alertCard.textContent = "Budget-Pacing kann noch nicht berechnet werden.";
-        if (warnCard) warnCard.textContent = "Creative-Fatigue kann noch nicht berechnet werden.";
-        return;
-    }
-
-    const enriched = entries.map(([id, m]) => {
-        const camp = AppState.meta.campaigns.find(c => c.id === id) || { name: id };
-        return {
-            id,
-            name: camp.name || id,
-            status: camp.status || "UNKNOWN",
-            objective: camp.objective || "-",
-            spend: m.spend || 0,
-            roas: m.roas || 0,
-            ctr: m.ctr || 0,
-            cpm: m.cpm || 0
-        };
-    });
-
-    const best = enriched
-        .filter(e => e.spend > 0)
-        .sort((a, b) => (b.roas || 0) - (a.roas || 0))[0];
-
-    const worst = enriched
-        .filter(e => e.spend > 0 && e.roas > 0)
-        .sort((a, b) => (a.roas || 0) - (b.roas || 0))[0];
-
-    const fatigue = enriched
-        .filter(e => e.spend > 0)
-        .sort((a, b) => {
-            const scoreA = (a.cpm || 0) - (a.ctr || 0) * 2;
-            const scoreB = (b.cpm || 0) - (b.ctr || 0) * 2;
-            return scoreB - scoreA;
-        })[0];
-
-    if (best && recCard) {
-        recCard.textContent =
-            `Skaliere "${best.name}" weiter: ROAS ${best.roas.toFixed(2)}x bei ` +
-            `Spend von € ${best.spend.toLocaleString("de-DE")}. ` +
-            `Prüfe, ob du das Tagesbudget schrittweise um 15–20 % anheben kannst.`;
-    }
-
-    if (worst && alertCard) {
-        alertCard.textContent =
-            `Budget-Pacing: "${worst.name}" läuft mit ROAS ${worst.roas.toFixed(2)}x ` +
-            `bei € ${worst.spend.toLocaleString("de-DE")} Spend. ` +
-            `Überlege, Budget von dieser Kampagne in deinen Top-Performer umzuschichten.`;
-    }
-
-    if (fatigue && warnCard) {
-        warnCard.textContent =
-            `Creative Fatigue Verdacht bei "${fatigue.name}": CTR ${fatigue.ctr.toFixed(2)} %, ` +
-            `CPM € ${fatigue.cpm.toFixed(2)}. ` +
-            `Teste neue Hooks / Thumbnails oder setze eine neue Creative-Variante auf.`;
-    }
-}
 
 // ============================================
 // DATUM / ZEIT
@@ -1352,10 +1265,9 @@ function initDateTime() {
 
 function updateUI() {
     const connected = checkMetaConnection();
+    updateGreeting();
 
     if (AppState.currentView === "dashboardView") {
-        renderDashboardHeroCreatives();
-
         if (connected) {
             if (!AppState.dashboardLoaded) {
                 loadDashboardMetaData();
@@ -1367,10 +1279,12 @@ function updateUI() {
                     AppState.dashboardMetrics.cpm
                 );
                 renderDashboardChart();
+                renderDashboardHeroCreatives();
             }
         } else {
             renderDashboardKpisPlaceholder();
             renderDashboardChart();
+            renderDashboardHeroCreatives();
         }
     }
 
@@ -1383,10 +1297,6 @@ function updateUI() {
             renderCampaignsPlaceholder();
         }
     }
-
-    if (AppState.currentView === "senseiStrategyView") {
-        renderSenseiStrategy();
-    }
 }
 
 // ============================================
@@ -1394,17 +1304,12 @@ function updateUI() {
 // ============================================
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Initial View
     showView(AppState.currentView);
-
-    // Sidebar Navigation
     initSidebarNavigation();
 
-    // Meta-Connect Button
     const metaBtn = document.getElementById("connectMetaButton");
     if (metaBtn) metaBtn.addEventListener("click", handleMetaConnectClick);
 
-    // Meta-Disconnect Button (oben rechts)
     const disconnectBtn = document.getElementById("disconnectMetaButton");
     if (disconnectBtn) {
         disconnectBtn.addEventListener("click", (e) => {
@@ -1413,13 +1318,10 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Datum / Zeit
     initDateTime();
-
-    // Meta OAuth Redirect ggf. verarbeiten
+    updateGreeting();
     handleMetaOAuthRedirectIfPresent();
 
-    // Campaign-Filter / Search live koppeln
     const searchInput = document.getElementById("campaignSearch");
     const statusFilter = document.getElementById("campaignStatusFilter");
 
