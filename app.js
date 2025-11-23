@@ -1,5 +1,5 @@
 /**
- * SIGNALONE — FINAL APP.JS
+ * SIGNALONE — APP.JS
  * - Meta OAuth Flow
  * - Klarer Verbindungsstatus (Top-Pill + Sidebar + Stripe)
  * - Sidebar Navigation & Views
@@ -7,6 +7,8 @@
  * - Campaigns Table (Live + Fallback)
  * - Brand- & Campaign-Dropdowns an Live Meta API angebunden
  * - Aggregation: "Alle Kampagnen" vs. einzelne Kampagne
+ * - Erste Sensei-Logik (Empfehlungen)
+ * - Einfache Live-"Chart"-Visualisierung der aktuellen KPIs
  */
 
 // ============================================
@@ -20,12 +22,13 @@ const AppState = {
         accessToken: null,
         adAccounts: [],
         campaigns: [],
-        insightsByCampaign: {}
+        insightsByCampaign: {} // Cache für Kampagnen-Insights
     },
     selectedAccountId: null,
-    selectedCampaignId: null, // null = Alle Kampagnen
+    selectedCampaignId: null, // null = "Alle Kampagnen"
     dashboardLoaded: false,
-    campaignsLoaded: false
+    campaignsLoaded: false,
+    dashboardMetrics: null // { spend, roas, ctr, cpm, scopeLabel }
 };
 
 // Demo-Daten (Fallback)
@@ -224,6 +227,8 @@ async function handleMetaOAuthRedirectIfPresent() {
         AppState.campaignsLoaded = false;
         AppState.selectedAccountId = null;
         AppState.selectedCampaignId = null;
+        AppState.dashboardMetrics = null;
+        AppState.meta.insightsByCampaign = {};
 
         showToast("Mit Meta verbunden!", "success");
         updateUI();
@@ -319,6 +324,8 @@ function populateBrandDropdown() {
         AppState.selectedCampaignId = null;
         AppState.dashboardLoaded = false;
         AppState.campaignsLoaded = false;
+        AppState.dashboardMetrics = null;
+        AppState.meta.insightsByCampaign = {};
         await loadDashboardMetaData();
         if (AppState.currentView === "campaignsView") {
             await loadLiveCampaignTable();
@@ -369,6 +376,7 @@ function populateCampaignDropdown() {
         const val = e.target.value;
         AppState.selectedCampaignId = val === "all" ? null : val;
         AppState.dashboardLoaded = false;
+        AppState.dashboardMetrics = null;
         await loadDashboardMetaData();
     };
 }
@@ -478,20 +486,78 @@ function renderDashboardChart() {
     const container = document.getElementById("dashboardChartContainer");
     if (!container) return;
 
+    const metrics = AppState.dashboardMetrics;
+
+    if (!metrics) {
+        // Fallback Placeholder
+        container.innerHTML = `
+            <div class="card performance-card">
+                <div class="card-header">
+                    <h3>Performance Verlauf</h3>
+                    <div class="controls">
+                        <div class="time-range-group">
+                            <button class="active">30D</button>
+                            <button>7D</button>
+                            <button>90D</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-placeholder">
+                    Charts folgen nach Meta Live-Daten Integration.
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    const spend = Number(metrics.spend) || 0;
+    const roas = Number(metrics.roas) || 0;
+    const ctr = Number(metrics.ctr) || 0;
+    const cpm = Number(metrics.cpm) || 0;
+    const scopeLabel = metrics.scopeLabel || "Aktuelle Auswahl";
+
+    const items = [
+        { key: "spend", label: "Spend", value: spend, formatted: `€ ${spend.toLocaleString("de-DE")}` },
+        { key: "roas", label: "ROAS", value: roas, formatted: `${roas.toFixed(2)}x` },
+        { key: "ctr", label: "CTR", value: ctr, formatted: `${ctr.toFixed(2)}%` },
+        { key: "cpm", label: "CPM", value: cpm, formatted: `€ ${cpm.toFixed(2)}` }
+    ];
+
+    const values = items.map(i => i.value > 0 ? i.value : 0);
+    const maxVal = Math.max(...values, 1);
+
+    const rowsHtml = items.map(i => {
+        const pct = Math.max(8, Math.min(100, (i.value / maxVal) * 100));
+        return `
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width:110px; font-size:12px; color:var(--text-secondary);">${i.label}</div>
+                <div style="flex:1; height:8px; border-radius:999px; background:rgba(148,163,184,0.35); overflow:hidden;">
+                    <div style="width:${pct}%; height:100%; border-radius:inherit; background:var(--color-primary);"></div>
+                </div>
+                <div style="width:90px; text-align:right; font-size:12px; color:var(--text-primary);">${i.formatted}</div>
+            </div>
+        `;
+    }).join("");
+
     container.innerHTML = `
         <div class="card performance-card">
             <div class="card-header">
-                <h3>Performance Verlauf</h3>
+                <h3>Performance Profil</h3>
                 <div class="controls">
                     <div class="time-range-group">
-                        <button class="active">7D</button>
-                        <button>30D</button>
-                        <button>90D</button>
+                        <button class="active">30D</button>
+                        <button disabled>7D</button>
+                        <button disabled>90D</button>
                     </div>
                 </div>
             </div>
             <div class="chart-placeholder">
-                Charts folgen nach Meta Live-Daten Integration.
+                <div style="width:100%; max-width:640px; display:flex; flex-direction:column; gap:12px;">
+                    <div style="font-size:12px; color:var(--text-secondary); margin-bottom:4px;">
+                        Basis: ${scopeLabel}, Zeitraum: letzte 30 Tage
+                    </div>
+                    ${rowsHtml}
+                </div>
             </div>
         </div>
     `;
@@ -556,17 +622,28 @@ async function aggregateInsightsForCampaigns(campaignIds) {
 
     for (const id of campaignIds) {
         try {
-            const insights = await fetchMetaCampaignInsights(id);
-            if (
-                !insights.success ||
-                !insights.data ||
-                !Array.isArray(insights.data.data) ||
-                insights.data.data.length === 0
-            ) {
-                continue;
+            const cached = AppState.meta.insightsByCampaign[id];
+            let d;
+
+            if (cached) {
+                d = cached.raw || null;
+            } else {
+                const insights = await fetchMetaCampaignInsights(id);
+                if (
+                    !insights.success ||
+                    !insights.data ||
+                    !Array.isArray(insights.data.data) ||
+                    insights.data.data.length === 0
+                ) {
+                    continue;
+                }
+                d = insights.data.data[0];
+
+                // Cache minimal Struktur für später (Sensei etc.)
+                storeCampaignInsightInCache(id, d);
             }
 
-            const d = insights.data.data[0];
+            if (!d) continue;
 
             const spend = parseFloat(d.spend ?? "0") || 0;
             const impressions = parseFloat(d.impressions ?? "0") || 0;
@@ -581,7 +658,6 @@ async function aggregateInsightsForCampaigns(campaignIds) {
             totalImpressions += impressions;
             totalClicks += clicks;
 
-            // ROAS gewichtet nach Spend
             if (spend > 0 && roasVal > 0) {
                 roasWeightedSum += roasVal * spend;
                 roasWeight += spend;
@@ -592,7 +668,7 @@ async function aggregateInsightsForCampaigns(campaignIds) {
     }
 
     if (totalSpend === 0 && totalImpressions === 0 && totalClicks === 0) {
-        return null; // nix da
+        return null;
     }
 
     const aggSpend = totalSpend;
@@ -605,6 +681,28 @@ async function aggregateInsightsForCampaigns(campaignIds) {
         ctr: aggCtr,
         cpm: aggCpm,
         roas: aggRoas
+    };
+}
+
+function storeCampaignInsightInCache(campaignId, d) {
+    if (!AppState.meta.insightsByCampaign) {
+        AppState.meta.insightsByCampaign = {};
+    }
+
+    const spend = Number(d.spend || 0);
+    let roas = 0;
+    if (Array.isArray(d.website_purchase_roas) && d.website_purchase_roas.length > 0) {
+        roas = Number(d.website_purchase_roas[0].value || 0);
+    }
+    const ctr = Number(d.ctr || 0);
+    const cpm = Number(d.cpm || 0);
+
+    AppState.meta.insightsByCampaign[campaignId] = {
+        spend,
+        roas,
+        ctr,
+        cpm,
+        raw: d
     };
 }
 
@@ -625,12 +723,20 @@ async function loadDashboardMetaData() {
             accountsResult.data.data.length === 0
         ) {
             console.warn("Keine Meta Accounts gefunden. Fallback.");
+            AppState.dashboardMetrics = {
+                spend: DEMO_DASHBOARD.spend,
+                roas: DEMO_DASHBOARD.roas,
+                ctr: DEMO_DASHBOARD.ctr,
+                cpm: DEMO_DASHBOARD.cpm,
+                scopeLabel: "Demo-Daten"
+            };
             renderDashboardKpisLive(
                 DEMO_DASHBOARD.spend,
                 DEMO_DASHBOARD.roas,
                 DEMO_DASHBOARD.ctr,
                 DEMO_DASHBOARD.cpm
             );
+            renderDashboardChart();
             AppState.dashboardLoaded = true;
             return;
         }
@@ -658,12 +764,20 @@ async function loadDashboardMetaData() {
             console.warn("Keine Meta Kampagnen gefunden. Fallback.");
             AppState.meta.campaigns = [];
             populateCampaignDropdown();
+            AppState.dashboardMetrics = {
+                spend: DEMO_DASHBOARD.spend,
+                roas: DEMO_DASHBOARD.roas,
+                ctr: DEMO_DASHBOARD.ctr,
+                cpm: DEMO_DASHBOARD.cpm,
+                scopeLabel: "Demo-Daten"
+            };
             renderDashboardKpisLive(
                 DEMO_DASHBOARD.spend,
                 DEMO_DASHBOARD.roas,
                 DEMO_DASHBOARD.ctr,
                 DEMO_DASHBOARD.cpm
             );
+            renderDashboardChart();
             AppState.dashboardLoaded = true;
             return;
         }
@@ -686,20 +800,27 @@ async function loadDashboardMetaData() {
         // - Wenn selectedCampaignId == null → ALLE Kampagnen aggregieren
         // - Sonst → einzelne Kampagne
 
-        let spend, cpm, ctr, roas;
+        let spend, cpm, ctr, roas, scopeLabel;
 
         if (!AppState.selectedCampaignId) {
-            // Aggregation
             const ids = campaigns.map((c) => c.id);
             const agg = await aggregateInsightsForCampaigns(ids);
             if (!agg) {
                 console.warn("Keine aggregierten Insights. Fallback.");
+                AppState.dashboardMetrics = {
+                    spend: DEMO_DASHBOARD.spend,
+                    roas: DEMO_DASHBOARD.roas,
+                    ctr: DEMO_DASHBOARD.ctr,
+                    cpm: DEMO_DASHBOARD.cpm,
+                    scopeLabel: "Demo-Daten"
+                };
                 renderDashboardKpisLive(
                     DEMO_DASHBOARD.spend,
                     DEMO_DASHBOARD.roas,
                     DEMO_DASHBOARD.ctr,
                     DEMO_DASHBOARD.cpm
                 );
+                renderDashboardChart();
                 AppState.dashboardLoaded = true;
                 return;
             }
@@ -707,8 +828,8 @@ async function loadDashboardMetaData() {
             cpm = agg.cpm;
             ctr = agg.ctr;
             roas = agg.roas;
+            scopeLabel = `Alle Kampagnen (${campaigns.length})`;
         } else {
-            // Einzel-Kampagne
             const insights = await fetchMetaCampaignInsights(AppState.selectedCampaignId);
 
             if (
@@ -718,17 +839,26 @@ async function loadDashboardMetaData() {
                 insights.data.data.length === 0
             ) {
                 console.warn("Keine Insights. Fallback.");
+                AppState.dashboardMetrics = {
+                    spend: DEMO_DASHBOARD.spend,
+                    roas: DEMO_DASHBOARD.roas,
+                    ctr: DEMO_DASHBOARD.ctr,
+                    cpm: DEMO_DASHBOARD.cpm,
+                    scopeLabel: "Demo-Daten"
+                };
                 renderDashboardKpisLive(
                     DEMO_DASHBOARD.spend,
                     DEMO_DASHBOARD.roas,
                     DEMO_DASHBOARD.ctr,
                     DEMO_DASHBOARD.cpm
                 );
+                renderDashboardChart();
                 AppState.dashboardLoaded = true;
                 return;
             }
 
             const d = insights.data.data[0];
+            storeCampaignInsightInCache(AppState.selectedCampaignId, d);
 
             spend = d.spend ?? DEMO_DASHBOARD.spend;
             cpm = d.cpm ?? DEMO_DASHBOARD.cpm;
@@ -738,18 +868,38 @@ async function loadDashboardMetaData() {
             if (Array.isArray(d.website_purchase_roas) && d.website_purchase_roas.length > 0) {
                 roas = d.website_purchase_roas[0].value ?? DEMO_DASHBOARD.roas;
             }
+
+            const selectedCampaign = campaigns.find(c => c.id === AppState.selectedCampaignId);
+            scopeLabel = selectedCampaign ? selectedCampaign.name : "Ausgewählte Kampagne";
         }
 
+        AppState.dashboardMetrics = {
+            spend: Number(spend) || 0,
+            roas: Number(roas) || 0,
+            ctr: Number(ctr) || 0,
+            cpm: Number(cpm) || 0,
+            scopeLabel
+        };
+
         renderDashboardKpisLive(spend, roas, ctr, cpm);
+        renderDashboardChart();
         AppState.dashboardLoaded = true;
     } catch (e) {
         console.error("loadDashboardMetaData error:", e);
+        AppState.dashboardMetrics = {
+            spend: DEMO_DASHBOARD.spend,
+            roas: DEMO_DASHBOARD.roas,
+            ctr: DEMO_DASHBOARD.ctr,
+            cpm: DEMO_DASHBOARD.cpm,
+            scopeLabel: "Demo-Daten"
+        };
         renderDashboardKpisLive(
             DEMO_DASHBOARD.spend,
             DEMO_DASHBOARD.roas,
             DEMO_DASHBOARD.ctr,
             DEMO_DASHBOARD.cpm
         );
+        renderDashboardChart();
         AppState.dashboardLoaded = true;
     }
 }
@@ -819,21 +969,77 @@ async function loadLiveCampaignTable() {
         AppState.meta.campaigns = list;
         populateCampaignDropdown();
 
-        for (let c of list) {
-            const insights = await fetchMetaCampaignInsights(c.id);
-            const kpis =
-                insights.success &&
-                insights.data &&
-                Array.isArray(insights.data.data) &&
-                insights.data.data[0]
-                    ? insights.data.data[0]
-                    : {};
+        if (!AppState.meta.insightsByCampaign) {
+            AppState.meta.insightsByCampaign = {};
+        }
 
-            const spend = Number(kpis.spend || 0);
-            let roas = 0;
-            if (Array.isArray(kpis.website_purchase_roas) && kpis.website_purchase_roas.length > 0) {
-                roas = Number(kpis.website_purchase_roas[0].value || 0);
+        const rows = [];
+
+        for (let c of list) {
+            let kpisObj = AppState.meta.insightsByCampaign[c.id];
+
+            if (!kpisObj || !kpisObj.raw) {
+                const insights = await fetchMetaCampaignInsights(c.id);
+                const d =
+                    insights.success &&
+                    insights.data &&
+                    Array.isArray(insights.data.data) &&
+                    insights.data.data[0]
+                        ? insights.data.data[0]
+                        : null;
+
+                if (d) {
+                    storeCampaignInsightInCache(c.id, d);
+                    kpisObj = AppState.meta.insightsByCampaign[c.id];
+                } else {
+                    kpisObj = {
+                        spend: 0,
+                        roas: 0,
+                        ctr: 0,
+                        cpm: 0
+                    };
+                }
             }
+
+            rows.push({
+                campaign: c,
+                metrics: kpisObj
+            });
+        }
+
+        // Simple Filter & Search
+        const searchInput = document.getElementById("campaignSearch");
+        const statusFilter = document.getElementById("campaignStatusFilter");
+
+        const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : "";
+        const statusValue = statusFilter ? statusFilter.value : "all";
+
+        let filteredRows = rows;
+
+        if (searchTerm) {
+            filteredRows = filteredRows.filter(({ campaign }) =>
+                (campaign.name || "").toLowerCase().includes(searchTerm) ||
+                (campaign.id || "").toLowerCase().includes(searchTerm)
+            );
+        }
+
+        if (statusValue !== "all") {
+            filteredRows = filteredRows.filter(({ campaign }) => {
+                const status = (campaign.status || "").toLowerCase();
+                if (statusValue === "active") return status === "active";
+                if (statusValue === "paused") return status === "paused";
+                if (statusValue === "completed") return status === "completed";
+                return true;
+            });
+        }
+
+        // Sort nach Spend (Desc) als Default
+        filteredRows.sort((a, b) => (b.metrics.spend || 0) - (a.metrics.spend || 0));
+
+        // Render
+        filteredRows.forEach(({ campaign: c, metrics: kpis }) => {
+            const spend = Number(kpis.spend || 0);
+            const roas = Number(kpis.roas || 0);
             const ctr = Number(kpis.ctr || 0);
 
             const tr = document.createElement("tr");
@@ -856,6 +1062,16 @@ async function loadLiveCampaignTable() {
             `;
 
             tbody.appendChild(tr);
+        });
+
+        if (!filteredRows.length) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" style="padding:16px; color: var(--text-secondary);">
+                        Keine Kampagnen entsprechen den Filtern.
+                    </td>
+                </tr>
+            `;
         }
 
         AppState.campaignsLoaded = true;
@@ -895,6 +1111,125 @@ function renderDemoCampaignsTable() {
 }
 
 // ============================================
+// SENSEI STRATEGY (erste einfache Logik)
+// ============================================
+
+async function ensureInsightsCache() {
+    if (!AppState.meta.campaigns || !AppState.meta.campaigns.length) return;
+
+    if (!AppState.meta.insightsByCampaign) {
+        AppState.meta.insightsByCampaign = {};
+    }
+
+    const missing = AppState.meta.campaigns.filter(c => !AppState.meta.insightsByCampaign[c.id]);
+
+    for (const c of missing) {
+        try {
+            const insights = await fetchMetaCampaignInsights(c.id);
+            if (
+                insights.success &&
+                insights.data &&
+                Array.isArray(insights.data.data) &&
+                insights.data.data[0]
+            ) {
+                storeCampaignInsightInCache(c.id, insights.data.data[0]);
+            }
+        } catch (e) {
+            console.warn("ensureInsightsCache Fehler für Kampagne:", c.id, e);
+        }
+    }
+}
+
+async function renderSenseiStrategy() {
+    const view = document.getElementById("senseiStrategyView");
+    if (!view) return;
+
+    const recCard = view.querySelector(".recommendation-card p");
+    const alertCard = view.querySelector(".alert-card p");
+    const warnCard = view.querySelector(".warning-card p");
+
+    if (!AppState.metaConnected || !AppState.meta.accessToken) {
+        if (recCard) recCard.textContent = "Verbinde Meta, um Creative-Empfehlungen auf Basis deiner Kampagnen zu erhalten.";
+        if (alertCard) alertCard.textContent = "Verbinde Meta, um Budget-Pacing Alerts zu aktivieren.";
+        if (warnCard) warnCard.textContent = "Verbinde Meta, um Creative-Fatigue Hinweise zu sehen.";
+        return;
+    }
+
+    // Sicherstellen, dass wir Daten haben
+    if (!AppState.meta.campaigns || !AppState.meta.campaigns.length) {
+        if (recCard) recCard.textContent = "Keine Kampagnen gefunden. Erstelle Kampagnen in Meta Ads, um Empfehlungen zu erhalten.";
+        if (alertCard) alertCard.textContent = "Noch keine Daten für Budget-Pacing verfügbar.";
+        if (warnCard) warnCard.textContent = "Noch keine Daten für Creative-Fatigue verfügbar.";
+        return;
+    }
+
+    await ensureInsightsCache();
+
+    const entries = Object.entries(AppState.meta.insightsByCampaign || {});
+    if (!entries.length) {
+        if (recCard) recCard.textContent = "Noch keine ausreichenden Insights für Empfehlungen.";
+        if (alertCard) alertCard.textContent = "Budget-Pacing kann noch nicht berechnet werden.";
+        if (warnCard) warnCard.textContent = "Creative-Fatigue kann noch nicht berechnet werden.";
+        return;
+    }
+
+    // Kampagnen sortiert nach ROAS / Spend
+    const enriched = entries.map(([id, m]) => {
+        const camp = AppState.meta.campaigns.find(c => c.id === id) || { name: id };
+        return {
+            id,
+            name: camp.name || id,
+            status: camp.status || "UNKNOWN",
+            objective: camp.objective || "-",
+            spend: m.spend || 0,
+            roas: m.roas || 0,
+            ctr: m.ctr || 0,
+            cpm: m.cpm || 0
+        };
+    });
+
+    // Best Performer (nach ROAS, min Spend)
+    const best = enriched
+        .filter(e => e.spend > 0)
+        .sort((a, b) => (b.roas || 0) - (a.roas || 0))[0];
+
+    // Unterperformer (ROAS < 1, höherer Spend)
+    const worst = enriched
+        .filter(e => e.spend > 0 && e.roas > 0)
+        .sort((a, b) => (a.roas || 0) - (b.roas || 0))[0];
+
+    // Fatigue-Kandidat (hoher Spend, niedrige CTR, hoher CPM)
+    const fatigue = enriched
+        .filter(e => e.spend > 0)
+        .sort((a, b) => {
+            const scoreA = (a.cpm || 0) - (a.ctr || 0) * 2;
+            const scoreB = (b.cpm || 0) - (b.ctr || 0) * 2;
+            return scoreB - scoreA;
+        })[0];
+
+    if (best && recCard) {
+        recCard.textContent =
+            `Skaliere "${best.name}" weiter: ROAS ${best.roas.toFixed(2)}x bei ` +
+            `Spend von € ${best.spend.toLocaleString("de-DE")}. ` +
+            `Prüfe, ob du das Tagesbudget schrittweise um 15–20 % anheben kannst.`;
+    }
+
+    if (worst && alertCard) {
+        alertCard.textContent =
+            `Budget-Pacing: "${worst.name}" läuft mit ROAS ${worst.roas.toFixed(2)}x ` +
+            `bei € ${worst.spend.toLocaleString("de-DE")} Spend. ` +
+            `Überlege, Budget von dieser Kampagne in deinen Top-Performer umzuschichten.`;
+    }
+
+    if (fatigue && warnCard) {
+        warnCard.textContent =
+            `Creative Fatigue Verdacht bei "${fatigue.name}": CTR ${fatigue.ctr.toFixed(2)} %, ` +
+            `CPM € ${fatigue.cpm.toFixed(2)}. ` +
+            `Teste neue Hooks / Thumbnails oder setze eine neue Creative-Variante auf.`;
+    }
+}
+
+// ============================================
 // DATUM / ZEIT
 // ============================================
 
@@ -921,15 +1256,24 @@ function updateUI() {
     const connected = checkMetaConnection();
 
     if (AppState.currentView === "dashboardView") {
-        renderDashboardChart();
         renderDashboardHeroCreatives();
 
         if (connected) {
             if (!AppState.dashboardLoaded) {
                 loadDashboardMetaData();
+            } else {
+                // falls schon geladen, Chart ggf. aktualisieren
+                renderDashboardKpisLive(
+                    AppState.dashboardMetrics?.spend ?? DEMO_DASHBOARD.spend,
+                    AppState.dashboardMetrics?.roas ?? DEMO_DASHBOARD.roas,
+                    AppState.dashboardMetrics?.ctr ?? DEMO_DASHBOARD.ctr,
+                    AppState.dashboardMetrics?.cpm ?? DEMO_DASHBOARD.cpm
+                );
+                renderDashboardChart();
             }
         } else {
             renderDashboardKpisPlaceholder();
+            renderDashboardChart();
         }
     }
 
@@ -941,6 +1285,10 @@ function updateUI() {
         } else {
             renderCampaignsPlaceholder();
         }
+    }
+
+    if (AppState.currentView === "senseiStrategyView") {
+        renderSenseiStrategy();
     }
 }
 
@@ -964,4 +1312,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Meta OAuth Redirect ggf. verarbeiten
     handleMetaOAuthRedirectIfPresent();
+
+    // Campaign-Filter / Search live koppeln
+    const searchInput = document.getElementById("campaignSearch");
+    const statusFilter = document.getElementById("campaignStatusFilter");
+
+    if (searchInput) {
+        searchInput.addEventListener("input", () => {
+            if (!AppState.metaConnected) return;
+            AppState.campaignsLoaded = false;
+            loadLiveCampaignTable();
+        });
+    }
+
+    if (statusFilter) {
+        statusFilter.addEventListener("change", () => {
+            if (!AppState.metaConnected) return;
+            AppState.campaignsLoaded = false;
+            loadLiveCampaignTable();
+        });
+    }
 });
