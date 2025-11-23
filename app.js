@@ -5,6 +5,7 @@
  * - Sidebar Navigation & Views
  * - Dashboard KPIs & Hero-Creatives (Live + Fallback)
  * - Campaigns Table (Live + Fallback)
+ * - Brand- & Campaign-Dropdowns an Live Meta API angebunden
  */
 
 // ============================================
@@ -21,6 +22,7 @@ const AppState = {
         insightsByCampaign: {}
     },
     selectedAccountId: null,
+    selectedCampaignId: null,
     dashboardLoaded: false,
     campaignsLoaded: false
 };
@@ -219,6 +221,8 @@ async function handleMetaOAuthRedirectIfPresent() {
         AppState.metaConnected = true;
         AppState.dashboardLoaded = false;
         AppState.campaignsLoaded = false;
+        AppState.selectedAccountId = null;
+        AppState.selectedCampaignId = null;
 
         showToast("Mit Meta verbunden!", "success");
         updateUI();
@@ -263,6 +267,109 @@ async function fetchMetaCampaignInsights(campaignId) {
         body: JSON.stringify({ accessToken: AppState.meta.accessToken })
     });
     return await res.json();
+}
+
+// ============================================
+// DROPDOWNS: BRANDS (ADACCOUNTS) & CAMPAIGNS
+// ============================================
+
+function populateBrandDropdown() {
+    const select = document.getElementById("brandSelect");
+    if (!select) return;
+
+    const accounts = AppState.meta.adAccounts || [];
+
+    if (!accounts.length) {
+        select.innerHTML = `<option>Kein Meta Ad-Konto gefunden</option>`;
+        select.disabled = true;
+        return;
+    }
+
+    select.disabled = false;
+    select.innerHTML = "";
+
+    accounts.forEach((acc, index) => {
+        const opt = document.createElement("option");
+        opt.value = acc.id;
+
+        const statusLabel =
+            acc.account_status === 1
+                ? "Active"
+                : acc.account_status !== undefined
+                ? `Status ${acc.account_status}`
+                : "Unknown";
+
+        opt.textContent = `${acc.name || acc.id} (${statusLabel})`;
+
+        if (
+            acc.id === AppState.selectedAccountId ||
+            (!AppState.selectedAccountId && index === 0)
+        ) {
+            opt.selected = true;
+            AppState.selectedAccountId = acc.id;
+        }
+
+        select.appendChild(opt);
+    });
+
+    // On change -> Account wechseln, Dashboard & Kampagnen neu laden
+    select.onchange = async (e) => {
+        AppState.selectedAccountId = e.target.value;
+        AppState.selectedCampaignId = null;
+        AppState.dashboardLoaded = false;
+        AppState.campaignsLoaded = false;
+        await loadDashboardMetaData();
+        if (AppState.currentView === "campaignsView") {
+            await loadLiveCampaignTable();
+        }
+    };
+}
+
+function populateCampaignDropdown() {
+    const select = document.getElementById("campaignGroupSelect");
+    if (!select) return;
+
+    const campaigns = AppState.meta.campaigns || [];
+
+    if (!campaigns.length) {
+        select.innerHTML = `<option>Keine Kampagnen</option>`;
+        select.disabled = true;
+        return;
+    }
+
+    select.disabled = false;
+    select.innerHTML = "";
+
+    const total = campaigns.length;
+
+    // Option "Alle Kampagnen"
+    const allOpt = document.createElement("option");
+    allOpt.value = "all";
+    allOpt.textContent = `Alle Kampagnen (${total})`;
+    select.appendChild(allOpt);
+
+    // Einzelne Kampagnen
+    campaigns.forEach((c) => {
+        const opt = document.createElement("option");
+        opt.value = c.id;
+        opt.textContent = c.name || c.id;
+        select.appendChild(opt);
+    });
+
+    // Auswahl passend zu AppState setzen
+    if (AppState.selectedCampaignId) {
+        select.value = AppState.selectedCampaignId;
+    } else {
+        select.value = "all";
+    }
+
+    // On change -> Kampagne im State setzen & Dashboard KPIs neu laden
+    select.onchange = async (e) => {
+        const val = e.target.value;
+        AppState.selectedCampaignId = val === "all" ? null : val;
+        AppState.dashboardLoaded = false;
+        await loadDashboardMetaData();
+    };
 }
 
 // ============================================
@@ -437,31 +544,96 @@ function renderDashboardHeroCreatives() {
 
 async function loadDashboardMetaData() {
     try {
-        const accounts = await fetchMetaAdAccounts();
-        if (!accounts.success || !accounts.data || !Array.isArray(accounts.data.data) || accounts.data.data.length === 0) {
+        // 1) Accounts laden (falls noch nicht im State)
+        let accountsResult;
+        if (AppState.meta.adAccounts && AppState.meta.adAccounts.length > 0) {
+            accountsResult = { success: true, data: { data: AppState.meta.adAccounts } };
+        } else {
+            accountsResult = await fetchMetaAdAccounts();
+        }
+
+        if (
+            !accountsResult.success ||
+            !accountsResult.data ||
+            !Array.isArray(accountsResult.data.data) ||
+            accountsResult.data.data.length === 0
+        ) {
             console.warn("Keine Meta Accounts gefunden. Fallback.");
-            renderDashboardKpisLive(DEMO_DASHBOARD.spend, DEMO_DASHBOARD.roas, DEMO_DASHBOARD.ctr, DEMO_DASHBOARD.cpm);
+            renderDashboardKpisLive(
+                DEMO_DASHBOARD.spend,
+                DEMO_DASHBOARD.roas,
+                DEMO_DASHBOARD.ctr,
+                DEMO_DASHBOARD.cpm
+            );
+            AppState.dashboardLoaded = true;
             return;
         }
 
-        const account = accounts.data.data[0];
-        AppState.selectedAccountId = account.id;
-        AppState.meta.adAccounts = accounts.data.data;
+        const accounts = accountsResult.data.data;
+        AppState.meta.adAccounts = accounts;
 
-        const campaigns = await fetchMetaCampaigns(account.id);
-        if (!campaigns.success || !campaigns.data || !Array.isArray(campaigns.data.data) || campaigns.data.data.length === 0) {
+        // Account im State setzen, falls noch nicht vorhanden
+        if (!AppState.selectedAccountId) {
+            AppState.selectedAccountId = accounts[0].id;
+        }
+
+        // Brand-Dropdown füllen
+        populateBrandDropdown();
+
+        // 2) Kampagnen für Account laden
+        const campaignsResult = await fetchMetaCampaigns(AppState.selectedAccountId);
+
+        if (
+            !campaignsResult.success ||
+            !campaignsResult.data ||
+            !Array.isArray(campaignsResult.data.data) ||
+            campaignsResult.data.data.length === 0
+        ) {
             console.warn("Keine Meta Kampagnen gefunden. Fallback.");
-            renderDashboardKpisLive(DEMO_DASHBOARD.spend, DEMO_DASHBOARD.roas, DEMO_DASHBOARD.ctr, DEMO_DASHBOARD.cpm);
+            AppState.meta.campaigns = [];
+            populateCampaignDropdown();
+            renderDashboardKpisLive(
+                DEMO_DASHBOARD.spend,
+                DEMO_DASHBOARD.roas,
+                DEMO_DASHBOARD.ctr,
+                DEMO_DASHBOARD.cpm
+            );
+            AppState.dashboardLoaded = true;
             return;
         }
 
-        const firstCampaign = campaigns.data.data[0];
-        AppState.meta.campaigns = campaigns.data.data;
+        const campaigns = campaignsResult.data.data;
+        AppState.meta.campaigns = campaigns;
 
-        const insights = await fetchMetaCampaignInsights(firstCampaign.id);
-        if (!insights.success || !insights.data || !Array.isArray(insights.data.data) || insights.data.data.length === 0) {
+        // Kampagne im State setzen (falls noch keine oder nicht mehr gültig)
+        if (
+            !AppState.selectedCampaignId ||
+            !campaigns.some((c) => c.id === AppState.selectedCampaignId)
+        ) {
+            AppState.selectedCampaignId = campaigns[0].id;
+        }
+
+        // Campaign-Dropdown füllen
+        populateCampaignDropdown();
+
+        // 3) Insights für ausgewählte Kampagne holen
+        const campaignIdToUse = AppState.selectedCampaignId || campaigns[0].id;
+        const insights = await fetchMetaCampaignInsights(campaignIdToUse);
+
+        if (
+            !insights.success ||
+            !insights.data ||
+            !Array.isArray(insights.data.data) ||
+            insights.data.data.length === 0
+        ) {
             console.warn("Keine Insights. Fallback.");
-            renderDashboardKpisLive(DEMO_DASHBOARD.spend, DEMO_DASHBOARD.roas, DEMO_DASHBOARD.ctr, DEMO_DASHBOARD.cpm);
+            renderDashboardKpisLive(
+                DEMO_DASHBOARD.spend,
+                DEMO_DASHBOARD.roas,
+                DEMO_DASHBOARD.ctr,
+                DEMO_DASHBOARD.cpm
+            );
+            AppState.dashboardLoaded = true;
             return;
         }
 
@@ -477,9 +649,16 @@ async function loadDashboardMetaData() {
         }
 
         renderDashboardKpisLive(spend, roas, ctr, cpm);
+        AppState.dashboardLoaded = true;
     } catch (e) {
         console.error("loadDashboardMetaData error:", e);
-        renderDashboardKpisLive(DEMO_DASHBOARD.spend, DEMO_DASHBOARD.roas, DEMO_DASHBOARD.ctr, DEMO_DASHBOARD.cpm);
+        renderDashboardKpisLive(
+            DEMO_DASHBOARD.spend,
+            DEMO_DASHBOARD.roas,
+            DEMO_DASHBOARD.ctr,
+            DEMO_DASHBOARD.cpm
+        );
+        AppState.dashboardLoaded = true;
     }
 }
 
@@ -511,32 +690,52 @@ async function loadLiveCampaignTable() {
 
         if (!accountId) {
             const accounts = await fetchMetaAdAccounts();
-            if (!accounts.success || !accounts.data || !Array.isArray(accounts.data.data) || accounts.data.data.length === 0) {
+            if (
+                !accounts.success ||
+                !accounts.data ||
+                !Array.isArray(accounts.data.data) ||
+                accounts.data.data.length === 0
+            ) {
                 console.warn("Keine Accounts für Campaigns. Fallback.");
                 renderDemoCampaignsTable();
+                AppState.campaignsLoaded = true;
                 return;
             }
             accountId = accounts.data.data[0].id;
             AppState.selectedAccountId = accountId;
             AppState.meta.adAccounts = accounts.data.data;
+            populateBrandDropdown();
         }
 
         const campaigns = await fetchMetaCampaigns(accountId);
 
-        if (!campaigns.success || !campaigns.data || !Array.isArray(campaigns.data.data) || campaigns.data.data.length === 0) {
+        if (
+            !campaigns.success ||
+            !campaigns.data ||
+            !Array.isArray(campaigns.data.data) ||
+            campaigns.data.data.length === 0
+        ) {
             console.warn("Keine Kampagnen gefunden. Fallback.");
+            AppState.meta.campaigns = [];
+            populateCampaignDropdown();
             renderDemoCampaignsTable();
+            AppState.campaignsLoaded = true;
             return;
         }
 
         const list = campaigns.data.data;
         AppState.meta.campaigns = list;
+        populateCampaignDropdown();
 
         for (let c of list) {
             const insights = await fetchMetaCampaignInsights(c.id);
-            const kpis = (insights.success && insights.data && Array.isArray(insights.data.data) && insights.data.data[0])
-                ? insights.data.data[0]
-                : {};
+            const kpis =
+                insights.success &&
+                insights.data &&
+                Array.isArray(insights.data.data) &&
+                insights.data.data[0]
+                    ? insights.data.data[0]
+                    : {};
 
             const spend = Number(kpis.spend || 0);
             let roas = 0;
@@ -567,9 +766,11 @@ async function loadLiveCampaignTable() {
             tbody.appendChild(tr);
         }
 
+        AppState.campaignsLoaded = true;
     } catch (e) {
         console.error("loadLiveCampaignTable error:", e);
         renderDemoCampaignsTable();
+        AppState.campaignsLoaded = true;
     }
 }
 
@@ -633,7 +834,6 @@ function updateUI() {
 
         if (connected) {
             if (!AppState.dashboardLoaded) {
-                AppState.dashboardLoaded = true;
                 loadDashboardMetaData();
             }
         } else {
@@ -644,7 +844,6 @@ function updateUI() {
     if (AppState.currentView === "campaignsView") {
         if (connected) {
             if (!AppState.campaignsLoaded) {
-                AppState.campaignsLoaded = true;
                 loadLiveCampaignTable();
             }
         } else {
