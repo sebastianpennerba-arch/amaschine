@@ -1,13 +1,5 @@
 /**
  * SIGNALONE — APP.JS (Dashboard + Meta Connect + Campaigns)
- * - Meta OAuth Flow (Connect + Disconnect)
- * - Klarer Verbindungsstatus (Top-Pill + Sidebar + Stripe)
- * - Sidebar Navigation & Views
- * - Dashboard KPIs & Hero-Kampagnen (Live + Fallback)
- * - Campaigns Table (Live + Fallback)
- * - Brand- & Campaign-Dropdowns an Live Meta API angebunden
- * - Aggregation: "Alle Kampagnen" vs. einzelne Kampagne
- * - Dynamischer Zeitraum (aus date_start / date_stop vom Meta Insight)
  */
 
 // ============================================
@@ -21,24 +13,18 @@ const AppState = {
         accessToken: null,
         adAccounts: [],
         campaigns: [],
-        insightsByCampaign: {}, // Cache für Kampagnen-Insights
+        insightsByCampaign: {},
         user: null
     },
     selectedAccountId: null,
-    selectedCampaignId: null, // null = "Alle Kampagnen"
+    selectedCampaignId: null,
+    timeRangePreset: "last_7d", // today | last_7d | last_30d
     dashboardLoaded: false,
     campaignsLoaded: false,
-    dashboardMetrics: null // { spend, roas, ctr, cpm, scopeLabel, timeRangeLabel }
+    dashboardMetrics: null // { spend, roas, ctr, cpm, impressions, clicks, scopeLabel, timeRangeLabel }
 };
 
-// Demo-Daten (Fallback)
-const DEMO_DASHBOARD = {
-    spend: 12450,
-    roas: 3.8,
-    ctr: 2.4,
-    cpm: 9.4
-};
-
+// Demo-Fallback
 const DEMO_CAMPAIGNS = [
     {
         id: "CAMP-001",
@@ -107,7 +93,6 @@ function showToast(message, type = "info") {
     }, 2500);
 }
 
-// Modal Helper
 function openModal(title, bodyHtml) {
     const overlay = document.getElementById("modalOverlay");
     const titleEl = document.getElementById("modalTitle");
@@ -126,7 +111,7 @@ function closeModal() {
 window.closeModal = closeModal;
 
 // ============================================
-// GREETING / USERNAME
+// GREETING
 // ============================================
 
 function updateGreeting() {
@@ -134,7 +119,7 @@ function updateGreeting() {
     if (!titleEl) return;
 
     const base = "Guten Tag";
-    if (AppState.meta && AppState.meta.user && AppState.meta.user.name) {
+    if (AppState.meta?.user?.name) {
         titleEl.textContent = `${base}, ${AppState.meta.user.name}!`;
     } else {
         titleEl.textContent = `${base}!`;
@@ -150,7 +135,7 @@ async function fetchMetaUser() {
             body: JSON.stringify({ accessToken: AppState.meta.accessToken })
         });
         const data = await res.json();
-        if (data && data.success && data.data) {
+        if (data?.success && data.data) {
             AppState.meta.user = {
                 id: data.data.id,
                 name: data.data.name
@@ -163,7 +148,7 @@ async function fetchMetaUser() {
 }
 
 // ============================================
-// META CONNECT / DISCONNECT LOGIC
+// META CONNECT / DISCONNECT
 // ============================================
 
 function checkMetaConnection() {
@@ -178,14 +163,10 @@ function checkMetaConnection() {
     const sidebarIndicator = document.getElementById("sidebarMetaStatusIndicator");
 
     if (connected) {
-        if (stripe) stripe.classList.add("hidden");
-        if (stripeText) {
-            stripeText.innerHTML = '<i class="fas fa-plug"></i> Mit Meta Ads verbunden';
-        }
-        if (pill) {
-            pill.classList.add("meta-connected");
-            pill.classList.remove("meta-disconnected");
-        }
+        stripe?.classList.add("hidden");
+        if (stripeText) stripeText.innerHTML = '<i class="fas fa-plug"></i> Mit Meta Ads verbunden';
+        pill?.classList.add("meta-connected");
+        pill?.classList.remove("meta-disconnected");
         if (pillLabel) pillLabel.textContent = "Verbunden mit Meta Ads";
         if (pillDot) pillDot.style.backgroundColor = "var(--success)";
         if (sidebarLabel) sidebarLabel.textContent = "Meta Ads (Live)";
@@ -195,14 +176,10 @@ function checkMetaConnection() {
         }
         return true;
     } else {
-        if (stripe) stripe.classList.remove("hidden");
-        if (stripeText) {
-            stripeText.innerHTML = '<i class="fas fa-plug"></i> Nicht mit Meta Ads verbunden';
-        }
-        if (pill) {
-            pill.classList.add("meta-disconnected");
-            pill.classList.remove("meta-connected");
-        }
+        stripe?.classList.remove("hidden");
+        if (stripeText) stripeText.innerHTML = '<i class="fas fa-plug"></i> Nicht mit Meta Ads verbunden';
+        pill?.classList.add("meta-disconnected");
+        pill?.classList.remove("meta-connected");
         if (pillLabel) pillLabel.textContent = "Nicht mit Meta verbunden";
         if (pillDot) pillDot.style.backgroundColor = "var(--danger)";
         if (sidebarLabel) sidebarLabel.textContent = "Meta Ads (Offline)";
@@ -291,7 +268,7 @@ async function handleMetaOAuthRedirectIfPresent() {
 }
 
 // ============================================
-// META API CALLS
+// META API WRAPPER
 // ============================================
 
 async function fetchMetaAdAccounts() {
@@ -318,20 +295,27 @@ async function fetchMetaCampaigns(accountId) {
     return await res.json();
 }
 
-async function fetchMetaCampaignInsights(campaignId) {
+async function fetchMetaCampaignInsights(campaignId, datePreset) {
     if (!AppState.meta.accessToken) return { success: false, error: "No access token" };
+
+    const body = {
+        accessToken: AppState.meta.accessToken
+    };
+    if (datePreset) {
+        body.datePreset = datePreset;
+    }
 
     const res = await fetch(META_BACKEND_CONFIG.insightsEndpoint(campaignId), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ accessToken: AppState.meta.accessToken })
+        body: JSON.stringify(body)
     }).catch(() => null);
     if (!res) return { success: false };
     return await res.json();
 }
 
 // ============================================
-// DATUMS-HILFSFUNKTIONEN FÜR DASHBOARD
+// DATUM / ZEIT
 // ============================================
 
 function buildTimeRangeLabel(dateStartStr, dateStopStr) {
@@ -367,7 +351,7 @@ function buildTimeRangeLabel(dateStartStr, dateStopStr) {
 }
 
 // ============================================
-// DROPDOWNS: BRANDS (ADACCOUNTS) & CAMPAIGNS
+// DROPDOWNS
 // ============================================
 
 function populateBrandDropdown() {
@@ -468,7 +452,7 @@ function populateCampaignDropdown() {
 }
 
 // ============================================
-// SIDEBAR NAVIGATION
+// SIDEBAR NAV
 // ============================================
 
 function initSidebarNavigation() {
@@ -574,6 +558,7 @@ function renderDashboardKpisLive(spend, roas, ctr, cpm) {
 
 function renderDashboardChart() {
     const container = document.getElementById("dashboardChartContainer");
+    const summaryEl = document.getElementById("dashboardMetaSummary");
     if (!container) return;
 
     const metrics = AppState.dashboardMetrics;
@@ -589,6 +574,9 @@ function renderDashboardChart() {
                 </div>
             </div>
         `;
+        if (summaryEl) {
+            summaryEl.textContent = "Noch keine Daten geladen.";
+        }
         return;
     }
 
@@ -596,6 +584,8 @@ function renderDashboardChart() {
     const roas = Number(metrics.roas) || 0;
     const ctr = Number(metrics.ctr) || 0;
     const cpm = Number(metrics.cpm) || 0;
+    const impressions = Number(metrics.impressions) || 0;
+    const clicks = Number(metrics.clicks) || 0;
     const scopeLabel = metrics.scopeLabel || "Aktuelle Auswahl";
     const timeRangeLabel = metrics.timeRangeLabel || "Standard (Meta Zeitraum)";
 
@@ -630,6 +620,9 @@ function renderDashboardChart() {
                     <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">
                         Basis: ${scopeLabel} • Zeitraum: ${timeRangeLabel}
                     </div>
+                    <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">
+                        Impressionen: ${impressions.toLocaleString("de-DE")} • Klicks: ${clicks.toLocaleString("de-DE")}
+                    </div>
                 </div>
             </div>
             <div class="chart-placeholder">
@@ -639,9 +632,28 @@ function renderDashboardChart() {
             </div>
         </div>
     `;
+
+    if (summaryEl) {
+        const campaigns = AppState.meta.campaigns || [];
+        const totalCampaigns = campaigns.length;
+        const activeCount = campaigns.filter(c => (c.status || "").toLowerCase() === "active").length;
+        const pausedCount = campaigns.filter(c => (c.status || "").toLowerCase() === "paused").length;
+
+        let withSpend = 0;
+        campaigns.forEach(c => {
+            const k = AppState.meta.insightsByCampaign[c.id];
+            if (k && k.spend > 0) withSpend++;
+        });
+
+        if (!totalCampaigns && spend === 0 && impressions === 0) {
+            summaryEl.textContent = "Keine Kampagnen oder Daten im ausgewählten Zeitraum.";
+        } else {
+            summaryEl.textContent = `Kampagnen: ${totalCampaigns} gesamt • Aktiv: ${activeCount} • Pausiert: ${pausedCount} • Mit Spend im Zeitraum: ${withSpend}`;
+        }
+    }
 }
 
-// HERO „KAMPAGNEN“ (Top-Kampagnen)
+// Top-Kampagnen (statt Fake-Creatives)
 function renderDashboardHeroCreatives() {
     const container = document.getElementById("dashboardHeroCreativesContainer");
     if (!container) return;
@@ -650,12 +662,11 @@ function renderDashboardHeroCreatives() {
     const campaigns = AppState.meta.campaigns || [];
 
     if (!AppState.metaConnected || !entries.length || !campaigns.length) {
-        // Klarer Hinweis statt Fake-Creatives
         container.innerHTML = `
             <div class="card">
                 <h3>Top-Kampagnen</h3>
                 <p style="color: var(--text-secondary); font-size:14px; margin-top:8px;">
-                    Sobald deine Kampagnen mit Spend und Ergebnissen laufen, siehst du hier deine Top-Kampagnen.
+                    Sobald deine Kampagnen mit Spend und Ergebnissen laufen, siehst du hier deine stärksten Kampagnen.
                 </p>
             </div>
         `;
@@ -685,7 +696,7 @@ function renderDashboardHeroCreatives() {
         <div class="card" style="margin-bottom: 16px;">
             <h3 style="margin-bottom: 8px;">Top-Kampagnen (Impact-basiert)</h3>
             <p style="color: var(--text-secondary); font-size:12px;">
-                Ranking nach Spend × ROAS. Perfekt, um schnell die stärksten Kampagnen zu erkennen.
+                Ranking nach Spend × ROAS im gewählten Zeitraum.
             </p>
         </div>
         <div class="hero-grid">
@@ -718,10 +729,10 @@ function renderDashboardHeroCreatives() {
 }
 
 // ============================================
-// AGGREGATION: MEHRERE KAMPAGNEN (für Dashboard)
+// AGGREGATION
 // ============================================
 
-async function aggregateInsightsForCampaigns(campaignIds) {
+async function aggregateInsightsForCampaigns(campaignIds, datePreset) {
     let totalSpend = 0;
     let totalImpressions = 0;
     let totalClicks = 0;
@@ -735,10 +746,10 @@ async function aggregateInsightsForCampaigns(campaignIds) {
             const cached = AppState.meta.insightsByCampaign[id];
             let d;
 
-            if (cached && cached.raw) {
+            if (cached && cached.raw && cached.rawPreset === datePreset) {
                 d = cached.raw;
             } else {
-                const insights = await fetchMetaCampaignInsights(id);
+                const insights = await fetchMetaCampaignInsights(id, datePreset);
                 if (
                     !insights.success ||
                     !insights.data ||
@@ -748,7 +759,7 @@ async function aggregateInsightsForCampaigns(campaignIds) {
                     continue;
                 }
                 d = insights.data.data[0];
-                storeCampaignInsightInCache(id, d);
+                storeCampaignInsightInCache(id, d, datePreset);
             }
 
             if (!d) continue;
@@ -807,12 +818,14 @@ async function aggregateInsightsForCampaigns(campaignIds) {
         ctr: aggCtr,
         cpm: aggCpm,
         roas: aggRoas,
+        impressions: totalImpressions,
+        clicks: totalClicks,
         dateStartStr,
         dateStopStr
     };
 }
 
-function storeCampaignInsightInCache(campaignId, d) {
+function storeCampaignInsightInCache(campaignId, d, preset) {
     if (!AppState.meta.insightsByCampaign) {
         AppState.meta.insightsByCampaign = {};
     }
@@ -830,14 +843,15 @@ function storeCampaignInsightInCache(campaignId, d) {
         roas,
         ctr,
         cpm,
-        raw: d
+        raw: d,
+        rawPreset: preset
     };
 }
 
 async function loadDashboardMetaData() {
     try {
         let accountsResult;
-        if (AppState.meta.adAccounts && AppState.meta.adAccounts.length > 0) {
+        if (AppState.meta.adAccounts?.length) {
             accountsResult = { success: true, data: { data: AppState.meta.adAccounts } };
         } else {
             accountsResult = await fetchMetaAdAccounts();
@@ -849,12 +863,13 @@ async function loadDashboardMetaData() {
             !Array.isArray(accountsResult.data.data) ||
             accountsResult.data.data.length === 0
         ) {
-            console.warn("Keine Meta Accounts gefunden. Fallback.");
             AppState.dashboardMetrics = {
                 spend: 0,
                 roas: 0,
                 ctr: 0,
                 cpm: 0,
+                impressions: 0,
+                clicks: 0,
                 scopeLabel: "Keine Daten",
                 timeRangeLabel: "Keine Daten"
             };
@@ -882,7 +897,6 @@ async function loadDashboardMetaData() {
             !Array.isArray(campaignsResult.data.data) ||
             campaignsResult.data.data.length === 0
         ) {
-            console.warn("Keine Meta Kampagnen gefunden.");
             AppState.meta.campaigns = [];
             populateCampaignDropdown();
             AppState.dashboardMetrics = {
@@ -890,6 +904,8 @@ async function loadDashboardMetaData() {
                 roas: 0,
                 ctr: 0,
                 cpm: 0,
+                impressions: 0,
+                clicks: 0,
                 scopeLabel: "Keine Kampagnen",
                 timeRangeLabel: "Keine Daten"
             };
@@ -912,18 +928,20 @@ async function loadDashboardMetaData() {
 
         populateCampaignDropdown();
 
-        let spend, cpm, ctr, roas, scopeLabel, timeRangeLabel;
+        let spend, cpm, ctr, roas, impressions, clicks, scopeLabel, timeRangeLabel;
+        const preset = AppState.timeRangePreset;
 
         if (!AppState.selectedCampaignId) {
             const ids = campaigns.map((c) => c.id);
-            const agg = await aggregateInsightsForCampaigns(ids);
+            const agg = await aggregateInsightsForCampaigns(ids, preset);
             if (!agg) {
-                console.warn("Keine aggregierten Insights.");
                 AppState.dashboardMetrics = {
                     spend: 0,
                     roas: 0,
                     ctr: 0,
                     cpm: 0,
+                    impressions: 0,
+                    clicks: 0,
                     scopeLabel: "Keine Insights",
                     timeRangeLabel: "Keine Daten"
                 };
@@ -937,10 +955,12 @@ async function loadDashboardMetaData() {
             cpm = agg.cpm;
             ctr = agg.ctr;
             roas = agg.roas;
+            impressions = agg.impressions;
+            clicks = agg.clicks;
             scopeLabel = `Alle Kampagnen (${campaigns.length})`;
             timeRangeLabel = buildTimeRangeLabel(agg.dateStartStr, agg.dateStopStr);
         } else {
-            const insights = await fetchMetaCampaignInsights(AppState.selectedCampaignId);
+            const insights = await fetchMetaCampaignInsights(AppState.selectedCampaignId, preset);
 
             if (
                 !insights.success ||
@@ -948,12 +968,13 @@ async function loadDashboardMetaData() {
                 !Array.isArray(insights.data.data) ||
                 insights.data.data.length === 0
             ) {
-                console.warn("Keine Insights für ausgewählte Kampagne.");
                 AppState.dashboardMetrics = {
                     spend: 0,
                     roas: 0,
                     ctr: 0,
                     cpm: 0,
+                    impressions: 0,
+                    clicks: 0,
                     scopeLabel: "Keine Insights",
                     timeRangeLabel: "Keine Daten"
                 };
@@ -965,11 +986,13 @@ async function loadDashboardMetaData() {
             }
 
             const d = insights.data.data[0];
-            storeCampaignInsightInCache(AppState.selectedCampaignId, d);
+            storeCampaignInsightInCache(AppState.selectedCampaignId, d, preset);
 
             spend = parseFloat(d.spend || "0") || 0;
             cpm = parseFloat(d.cpm || "0") || 0;
             ctr = parseFloat(d.ctr || "0") || 0;
+            impressions = parseFloat(d.impressions || "0") || 0;
+            clicks = parseFloat(d.clicks || "0") || 0;
             roas = 0;
             if (Array.isArray(d.website_purchase_roas) && d.website_purchase_roas.length > 0) {
                 roas = parseFloat(d.website_purchase_roas[0].value || "0") || 0;
@@ -985,6 +1008,8 @@ async function loadDashboardMetaData() {
             roas: Number(roas) || 0,
             ctr: Number(ctr) || 0,
             cpm: Number(cpm) || 0,
+            impressions: Number(impressions) || 0,
+            clicks: Number(clicks) || 0,
             scopeLabel,
             timeRangeLabel
         };
@@ -1000,6 +1025,8 @@ async function loadDashboardMetaData() {
             roas: 0,
             ctr: 0,
             cpm: 0,
+            impressions: 0,
+            clicks: 0,
             scopeLabel: "Fehler",
             timeRangeLabel: "Fehler"
         };
@@ -1011,7 +1038,7 @@ async function loadDashboardMetaData() {
 }
 
 // ============================================
-// CAMPAIGNS RENDERING
+// CAMPAIGNS TABLE
 // ============================================
 
 function renderCampaignsPlaceholder(text = "Verbinde Meta, um deine Kampagnen anzuzeigen.") {
@@ -1074,7 +1101,6 @@ async function loadLiveCampaignTable() {
                 !Array.isArray(accounts.data.data) ||
                 accounts.data.data.length === 0
             ) {
-                console.warn("Keine Accounts für Campaigns. Fallback.");
                 renderDemoCampaignsTable();
                 AppState.campaignsLoaded = true;
                 return;
@@ -1093,7 +1119,6 @@ async function loadLiveCampaignTable() {
             !Array.isArray(campaigns.data.data) ||
             campaigns.data.data.length === 0
         ) {
-            console.warn("Keine Kampagnen gefunden. Fallback.");
             AppState.meta.campaigns = [];
             populateCampaignDropdown();
             renderDemoCampaignsTable();
@@ -1110,12 +1135,13 @@ async function loadLiveCampaignTable() {
         }
 
         const rows = [];
+        const preset = AppState.timeRangePreset;
 
         for (let c of list) {
             let kpisObj = AppState.meta.insightsByCampaign[c.id];
 
-            if (!kpisObj || !kpisObj.raw) {
-                const insights = await fetchMetaCampaignInsights(c.id);
+            if (!kpisObj || !kpisObj.raw || kpisObj.rawPreset !== preset) {
+                const insights = await fetchMetaCampaignInsights(c.id, preset);
                 const d =
                     insights.success &&
                     insights.data &&
@@ -1125,7 +1151,7 @@ async function loadLiveCampaignTable() {
                         : null;
 
                 if (d) {
-                    storeCampaignInsightInCache(c.id, d);
+                    storeCampaignInsightInCache(c.id, d, preset);
                     kpisObj = AppState.meta.insightsByCampaign[c.id];
                 } else {
                     kpisObj = {
@@ -1244,15 +1270,17 @@ async function openCampaignDetails(campaignId) {
 
     let metrics = AppState.meta.insightsByCampaign[campaignId];
 
-    if (!metrics || !metrics.raw) {
-        const insights = await fetchMetaCampaignInsights(campaignId);
+    const preset = AppState.timeRangePreset;
+
+    if (!metrics || !metrics.raw || metrics.rawPreset !== preset) {
+        const insights = await fetchMetaCampaignInsights(campaignId, preset);
         if (
             insights.success &&
             insights.data &&
             Array.isArray(insights.data.data) &&
             insights.data.data[0]
         ) {
-            storeCampaignInsightInCache(campaignId, insights.data.data[0]);
+            storeCampaignInsightInCache(campaignId, insights.data.data[0], preset);
             metrics = AppState.meta.insightsByCampaign[campaignId];
         }
     }
@@ -1275,7 +1303,7 @@ async function openCampaignDetails(campaignId) {
 }
 
 // ============================================
-// DATUM / ZEIT
+// DATUM / ZEIT UI
 // ============================================
 
 function initDateTime() {
@@ -1291,6 +1319,22 @@ function initDateTime() {
 
     update();
     setInterval(update, 60 * 1000);
+}
+
+function initDashboardTimeRangeControls() {
+    const select = document.getElementById("dashboardTimeRange");
+    if (!select) return;
+
+    // set initial
+    select.value = AppState.timeRangePreset;
+
+    select.addEventListener("change", async (e) => {
+        AppState.timeRangePreset = e.target.value;
+        AppState.dashboardLoaded = false;
+        AppState.dashboardMetrics = null;
+        AppState.meta.insightsByCampaign = {};
+        await loadDashboardMetaData();
+    });
 }
 
 // ============================================
@@ -1342,36 +1386,31 @@ document.addEventListener("DOMContentLoaded", () => {
     initSidebarNavigation();
 
     const metaBtn = document.getElementById("connectMetaButton");
-    if (metaBtn) metaBtn.addEventListener("click", handleMetaConnectClick);
+    metaBtn?.addEventListener("click", handleMetaConnectClick);
 
     const disconnectBtn = document.getElementById("disconnectMetaButton");
-    if (disconnectBtn) {
-        disconnectBtn.addEventListener("click", (e) => {
-            e.preventDefault();
-            disconnectMeta();
-        });
-    }
+    disconnectBtn?.addEventListener("click", (e) => {
+        e.preventDefault();
+        disconnectMeta();
+    });
 
     initDateTime();
+    initDashboardTimeRangeControls();
     updateGreeting();
     handleMetaOAuthRedirectIfPresent();
 
     const searchInput = document.getElementById("campaignSearch");
     const statusFilter = document.getElementById("campaignStatusFilter");
 
-    if (searchInput) {
-        searchInput.addEventListener("input", () => {
-            if (!AppState.metaConnected) return;
-            AppState.campaignsLoaded = false;
-            loadLiveCampaignTable();
-        });
-    }
+    searchInput?.addEventListener("input", () => {
+        if (!AppState.metaConnected) return;
+        AppState.campaignsLoaded = false;
+        loadLiveCampaignTable();
+    });
 
-    if (statusFilter) {
-        statusFilter.addEventListener("change", () => {
-            if (!AppState.metaConnected) return;
-            AppState.campaignsLoaded = false;
-            loadLiveCampaignTable();
-        });
-    }
+    statusFilter?.addEventListener("change", () => {
+        if (!AppState.metaConnected) return;
+        AppState.campaignsLoaded = false;
+        loadLiveCampaignTable();
+    });
 });
