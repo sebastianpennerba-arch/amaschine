@@ -8,7 +8,6 @@
  * - Brand- & Campaign-Dropdowns an Live Meta API angebunden
  * - Aggregation: "Alle Kampagnen" vs. einzelne Kampagne
  * - Erste Sensei-Logik (Empfehlungen)
- * - Einfache Live-"Chart"-Visualisierung der aktuellen KPIs
  */
 
 // ============================================
@@ -110,7 +109,7 @@ function showToast(message, type = "info") {
 }
 
 // ============================================
-// META CONNECT LOGIC
+// META CONNECT / DISCONNECT LOGIC
 // ============================================
 
 function checkMetaConnection() {
@@ -192,6 +191,25 @@ function handleMetaConnectClick() {
         });
 
     window.location.href = authUrl;
+}
+
+function disconnectMeta() {
+    // AppState komplett zurücksetzen
+    AppState.metaConnected = false;
+    AppState.meta = {
+        accessToken: null,
+        adAccounts: [],
+        campaigns: [],
+        insightsByCampaign: {}
+    };
+    AppState.selectedAccountId = null;
+    AppState.selectedCampaignId = null;
+    AppState.dashboardLoaded = false;
+    AppState.campaignsLoaded = false;
+    AppState.dashboardMetrics = null;
+
+    showToast("Verbindung zu Meta wurde getrennt.", "info");
+    updateUI();
 }
 
 async function handleMetaOAuthRedirectIfPresent() {
@@ -489,7 +507,6 @@ function renderDashboardChart() {
     const metrics = AppState.dashboardMetrics;
 
     if (!metrics) {
-        // Fallback Placeholder
         container.innerHTML = `
             <div class="card performance-card">
                 <div class="card-header">
@@ -639,7 +656,6 @@ async function aggregateInsightsForCampaigns(campaignIds) {
                 }
                 d = insights.data.data[0];
 
-                // Cache minimal Struktur für später (Sensei etc.)
                 storeCampaignInsightInCache(id, d);
             }
 
@@ -797,9 +813,6 @@ async function loadDashboardMetaData() {
         populateCampaignDropdown();
 
         // 3) Insights:
-        // - Wenn selectedCampaignId == null → ALLE Kampagnen aggregieren
-        // - Sonst → einzelne Kampagne
-
         let spend, cpm, ctr, roas, scopeLabel;
 
         if (!AppState.selectedCampaignId) {
@@ -1261,13 +1274,12 @@ function updateUI() {
         if (connected) {
             if (!AppState.dashboardLoaded) {
                 loadDashboardMetaData();
-            } else {
-                // falls schon geladen, Chart ggf. aktualisieren
+            } else if (AppState.dashboardMetrics) {
                 renderDashboardKpisLive(
-                    AppState.dashboardMetrics?.spend ?? DEMO_DASHBOARD.spend,
-                    AppState.dashboardMetrics?.roas ?? DEMO_DASHBOARD.roas,
-                    AppState.dashboardMetrics?.ctr ?? DEMO_DASHBOARD.ctr,
-                    AppState.dashboardMetrics?.cpm ?? DEMO_DASHBOARD.cpm
+                    AppState.dashboardMetrics.spend,
+                    AppState.dashboardMetrics.roas,
+                    AppState.dashboardMetrics.ctr,
+                    AppState.dashboardMetrics.cpm
                 );
                 renderDashboardChart();
             }
@@ -1306,6 +1318,15 @@ document.addEventListener("DOMContentLoaded", () => {
     // Meta-Connect Button
     const metaBtn = document.getElementById("connectMetaButton");
     if (metaBtn) metaBtn.addEventListener("click", handleMetaConnectClick);
+
+    // Meta-Disconnect Button (oben rechts)
+    const disconnectBtn = document.getElementById("disconnectMetaButton");
+    if (disconnectBtn) {
+        disconnectBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            disconnectMeta();
+        });
+    }
 
     // Datum / Zeit
     initDateTime();
