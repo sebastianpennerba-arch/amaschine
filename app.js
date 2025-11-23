@@ -57,7 +57,7 @@ const META_OAUTH_CONFIG = {
 
 // TODO: HIER dein Backend-Endpoint eintragen, der code -> access_token tauscht
 const META_BACKEND_CONFIG = {
-    tokenEndpoint: window.location.origin + "/api/meta/oauth/token"
+tokenEndpoint: window.location.origin + "/api/meta/oauth/token-debug"
 };
 
 /* ============================================
