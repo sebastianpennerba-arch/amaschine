@@ -418,12 +418,13 @@ body {
     border-radius: var(--radius);
     overflow: hidden;
     cursor: pointer;
-    transition: box-shadow 0.3s;
+    transition: box-shadow 0.3s, border-color 0.3s, transform 0.15s ease-out;
 }
 
 .creative-hero-item:hover {
     box-shadow: 0 6px 20px rgba(99, 102, 241, 0.15);
     border-color: var(--color-primary);
+    transform: translateY(-1px);
 }
 
 .creative-media-container {
@@ -475,10 +476,13 @@ body {
     overflow: hidden;
     cursor: pointer;
     transition: box-shadow 0.3s, transform 0.3s;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-soft);
 }
 
 .creative-library-item:hover {
     box-shadow: 0 6px 20px rgba(99, 102, 241, 0.15);
+    transform: translateY(-1px);
 }
 
 .creative-media-container-library {
@@ -648,7 +652,7 @@ body {
     font-size: 14px;
     font-weight: 600;
     margin-top: 15px;
-    transition: background-color 0.2s;
+    transition: background-color 0.2s, color 0.2s;
 }
 .action-button-secondary:hover {
     background-color: var(--color-primary);
@@ -673,6 +677,24 @@ body {
     min-width: 300px;
     border-left: 5px solid var(--color-primary);
     animation: slideIn 0.3s ease-out;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* sanfter Fade-Out, wenn .hide via JS gesetzt wird */
+.toast.hide {
+    opacity: 0;
+    transform: translateX(20px);
+}
+
+/* optionale Farbcodierung nach Typ */
+.toast.success {
+    border-left-color: var(--success);
+}
+.toast.error {
+    border-left-color: var(--danger);
+}
+.toast.info {
+    border-left-color: var(--color-primary);
 }
 
 @keyframes slideIn {
@@ -702,7 +724,8 @@ body {
     transition: visibility 0s, opacity 0.3s;
 }
 
-.modal-overlay.active {
+/* angepasst an JS: openModal() setzt .visible */
+.modal-overlay.visible {
     visibility: visible;
     opacity: 1;
 }
@@ -717,7 +740,8 @@ body {
     transition: transform 0.3s;
 }
 
-.modal-overlay.active .modal-content {
+/* sanfte Slide-Animation beim Öffnen */
+.modal-overlay.visible .modal-content {
     transform: translateY(0);
 }
 
