@@ -216,6 +216,164 @@ function handleViewRendering(viewId) {
     }
 }
 
+/* ============================================
+   UI COMPONENT LIBRARY (Phase 1 – Live Ready)
+   ============================================ */
+
+/* ----------------------------
+   FORMATTER HELPERS
+---------------------------- */
+function formatCurrency(value) {
+    if (!value || isNaN(value)) return "€ 0";
+    return "€ " + Number(value).toLocaleString("de-DE", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+function formatROAS(value) {
+    if (!value || isNaN(value)) return "-";
+    return Number(value).toFixed(2) + "x";
+}
+
+function formatPercentage(value) {
+    if (!value || isNaN(value)) return "-";
+    return Number(value).toFixed(2) + "%";
+}
+
+function getTrendClass(value) {
+    if (value == null || isNaN(value)) return "trend-neutral";
+    if (value > 0) return "trend-positive";
+    if (value < 0) return "trend-negative";
+    return "trend-neutral";
+}
+
+
+/* ----------------------------
+   KPI CARD COMPONENT
+---------------------------- */
+function createKpiCard({ label, value, trendValue }) {
+    const trendClass = getTrendClass(trendValue);
+
+    const card = document.createElement("div");
+    card.className = "kpi-card";
+
+    card.innerHTML = `
+        <span class="kpi-label">${label}</span>
+        <span class="kpi-value">${value}</span>
+        <span class="kpi-trend ${trendClass}">
+            ${trendValue ? (trendValue > 0 ? "▲ " : "▼ ") + trendValue + "%" : ""}
+        </span>
+    `;
+
+    return card;
+}
+
+
+/* ----------------------------
+   MEDIA PREVIEW (image/video)
+---------------------------- */
+function createMediaPreview(creative) {
+    const container = document.createElement("div");
+    container.className = "creative-media-container-library";
+
+    let element;
+
+    const isVideo = creative.url && creative.url.endsWith(".mp4");
+
+    if (isVideo) {
+        element = document.createElement("video");
+        element.src = creative.url;
+        element.poster = creative.thumbnail;
+        element.muted = true;
+    } else {
+        element = document.createElement("img");
+        element.src = creative.thumbnail;
+        element.alt = creative.name;
+    }
+
+    element.className = "creative-video-mock"; // CSS passt schon
+    container.appendChild(element);
+
+    // Plattform-Badge (Meta, TikTok, Pinterest)
+    const badge = document.createElement("i");
+    badge.className = "platform-badge fab fa-meta";
+    container.appendChild(badge);
+
+    return container;
+}
+
+
+/* ----------------------------
+   CREATIVE CARD COMPONENT
+---------------------------- */
+function createCreativeCard(creative) {
+    const card = document.createElement("div");
+    card.className = "card creative-library-item";
+
+    const media = createMediaPreview(creative);
+
+    const stats = document.createElement("div");
+    stats.className = "creative-stats";
+
+    stats.innerHTML = `
+        <h4 class="creative-name-library">${creative.name}</h4>
+        <p class="creative-meta">
+            Typ: ${creative.type} |
+            ROAS: <strong class="${getTrendClass(creative.metrics.roas)}">
+                ${formatROAS(creative.metrics.roas)}
+            </strong>
+        </p>
+
+        <div class="kpi-bar-visual">
+            <span class="kpi-label-small">Verkäufe:</span>
+            <div class="kpi-slider-track">
+                <div class="kpi-slider-fill fill-positive" style="width:${creative.metrics.purchases}%"></div>
+            </div>
+            <span class="kpi-value-small">${creative.metrics.purchases}</span>
+        </div>
+
+        <div class="kpi-bar-visual">
+            <span class="kpi-label-small">Spend:</span>
+            <div class="kpi-slider-track">
+                <div class="kpi-slider-fill fill-spend" style="width:${creative.metrics.spend / 100}%"></div>
+            </div>
+            <span class="kpi-value-small">${formatCurrency(creative.metrics.spend)}</span>
+        </div>
+
+        <div class="creative-footer-kpis">
+            <span class="kpi-footer-item">CTR: ${formatPercentage(creative.metrics.ctr)}</span>
+            <span class="kpi-footer-item">CPM: ${formatCurrency(creative.metrics.cpm)}</span>
+            <span class="kpi-footer-item">Score: ${creative.metrics.score ?? "-"}</span>
+        </div>
+    `;
+
+    card.appendChild(media);
+    card.appendChild(stats);
+
+    return card;
+}
+
+
+/* ----------------------------
+   CAMPAIGN ROW COMPONENT
+---------------------------- */
+function createCampaignRow(campaign) {
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+        <td><span class="status-indicator status-${campaign.statusColor}"></span> ${campaign.status}</td>
+        <td>${campaign.name}</td>
+        <td>${campaign.goal}</td>
+        <td>${formatCurrency(campaign.dailyBudget)}</td>
+        <td>${formatCurrency(campaign.spend30d)}</td>
+        <td>${formatROAS(campaign.roas30d)}</td>
+        <td>${formatPercentage(campaign.ctr)}</td>
+        <td><button class="action-button">Details</button></td>
+    `;
+
+    return tr;
+}
 
 /* ============================================
    INITIALISIERUNG
