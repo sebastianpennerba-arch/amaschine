@@ -63,13 +63,14 @@
     <!-- ========================================= -->
     <header class="top-bar">
         <div class="greeting-status">
-            <h1>Guten Tag, [User Name]!</h1>
+            <!-- WICHTIG: ID hinzugefügt, damit JS den Namen setzen kann -->
+            <h1 id="greetingTitle">Guten Tag, [User Name]!</h1>
             <span class="header-date-time">
                 Datum: <span id="currentDate"></span> | Zeit: <span id="currentTime"></span>
             </span>
             <span class="system-health system-optimal">SYSTEM HEALTH: OPTIMAL</span>
 
-            <!-- NEU: Klarer Meta-Verbindungsstatus -->
+            <!-- Klarer Meta-Verbindungsstatus -->
             <div class="meta-connection-pill meta-disconnected" id="metaConnectionPill">
                 <span class="meta-connection-dot" id="metaConnectionDot"></span>
                 <span id="metaConnectionLabel">Nicht mit Meta verbunden</span>
@@ -92,7 +93,7 @@
             
             <button class="header-action-button"><i class="fas fa-user-circle"></i></button>
             <button class="header-action-button"><i class="fas fa-bell"></i></button>
-            <!-- WICHTIG: Dieser Button trennt jetzt Meta -->
+            <!-- Disconnect-Button bleibt -->
             <button class="header-action-button" id="disconnectMetaButton">
                 <i class="fas fa-sign-out-alt"></i>
             </button>
@@ -104,7 +105,7 @@
     <!-- ========================================= -->
     <main class="main-content" id="mainContent">
 
-        <!-- META CONNECT STRIPE (im Main, nicht als Body-Flex) -->
+        <!-- META CONNECT STRIPE -->
         <div id="metaConnectStripe" class="meta-connect-stripe">
             <div class="meta-connect-inner">
                 <span id="metaStripeText">
