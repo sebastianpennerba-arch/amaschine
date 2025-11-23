@@ -441,7 +441,7 @@ function initMetaConnectUI() {
     if (!connectBtn) return;
 
     connectBtn.addEventListener("click", () => {
-        startMetaOAuth();
+        startMetaOAuthFlow();  // <- KORREKT
     });
 }
 
