@@ -1,8 +1,8 @@
 {
+  "type": "module",
   "name": "amaschine",
   "version": "1.0.0",
-  "private": true,
   "scripts": {
-    "build": "echo ok"
+    "start": "node api/index.js"
   }
 }
