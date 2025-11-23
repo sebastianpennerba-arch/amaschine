@@ -46,7 +46,8 @@
         
         <div class="menu-footer">
             <div class="menu-status" style="margin-bottom: 5px;">
-                <span class="status-indicator status-green"></span> Meta Ads (Live)
+                <span id="sidebarMetaStatusIndicator" class="status-indicator status-red"></span>
+                <span id="sidebarMetaStatusLabel">Meta Ads (Offline)</span>
             </div>
             <div class="menu-status" style="margin-bottom: 15px;">
                 <span class="status-indicator status-yellow"></span> API Health (Delayed)
@@ -67,6 +68,12 @@
                 Datum: <span id="currentDate"></span> | Zeit: <span id="currentTime"></span>
             </span>
             <span class="system-health system-optimal">SYSTEM HEALTH: OPTIMAL</span>
+
+            <!-- NEU: Klarer Meta-Verbindungsstatus -->
+            <div class="meta-connection-pill meta-disconnected" id="metaConnectionPill">
+                <span class="meta-connection-dot" id="metaConnectionDot"></span>
+                <span id="metaConnectionLabel">Nicht mit Meta verbunden</span>
+            </div>
         </div>
         
         <div class="account-selection">
@@ -97,7 +104,9 @@
         <!-- META CONNECT STRIPE (im Main, nicht als Body-Flex) -->
         <div id="metaConnectStripe" class="meta-connect-stripe">
             <div class="meta-connect-inner">
-                <span><i class="fas fa-plug"></i> Nicht mit Meta Ads verbunden</span>
+                <span id="metaStripeText">
+                    <i class="fas fa-plug"></i> Nicht mit Meta Ads verbunden
+                </span>
                 <button id="connectMetaButton" class="connect-meta-btn">
                     <i class="fab fa-meta"></i> Mit Meta verbinden
                 </button>
