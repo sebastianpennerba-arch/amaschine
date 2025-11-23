@@ -1,20 +1,21 @@
 /**
  * SignalOne Elite Dashboard - app.js
  *
- * Phase A – Live-Ready Architektur
+ * Phase A + Phase 2 (OAuth Frontend)
  *
  * 1. Globaler AppState (Meta-ready)
- * 2. Meta Normalizer Layer
- * 3. UI Component Library
- * 4. Render Engine (Dashboard, Creatives, Campaigns)
- * 5. Navigation ohne Inline JS
- * 6. Meta-Connect Gatekeeper + Simulation
- * 7. Toast & Modal System
+ * 2. OAuth-Konfiguration (Frontend-Seite)
+ * 3. Meta Normalizer Layer
+ * 4. UI Component Library
+ * 5. Render Engine (Dashboard, Creatives, Campaigns)
+ * 6. Navigation ohne Inline JS
+ * 7. Meta-Connect Gatekeeper + OAuth-Flow
+ * 8. Toast & Modal System
  */
 
 
 /* ============================================
-   GLOBALER APP STATE (Phase 1 – Live Ready)
+   GLOBALER APP STATE
    ============================================ */
 
 const AppState = {
@@ -44,13 +45,33 @@ const AppState = {
 
 
 /* ============================================
+   META OAUTH CONFIG (ANPASSEN!)
+   ============================================ */
+
+// TODO: HIER deine echte Meta App-ID eintragen
+const META_OAUTH_CONFIG = {
+    appId: "732040642590155",
+    // Muss mit der in der Meta-App registrierten Redirect-URL übereinstimmen
+    redirectUri: window.location.origin + window.location.pathname,
+    scopes: "ads_read,business_management"
+};
+
+// TODO: HIER dein Backend-Endpoint eintragen, der code -> access_token tauscht
+const META_BACKEND_CONFIG = {
+    tokenEndpoint: "https://amaschine.vercel.app/meta/oauth/token"
+};
+
+
+/* ============================================
    META CONNECT GATEKEEPER
    ============================================ */
 
 function checkMetaConnection() {
     const stripe = document.getElementById("metaConnectStripe");
 
-    if (!AppState.metaConnected || !AppState.meta.accessToken) {
+    const connected = !!(AppState.metaConnected && AppState.meta.accessToken);
+
+    if (!connected) {
         if (stripe) stripe.classList.remove("hidden");
         return false;
     } else {
@@ -60,23 +81,132 @@ function checkMetaConnection() {
 }
 
 function requireMetaConnection() {
-    if (!AppState.metaConnected || !AppState.meta.accessToken) {
-        showToast("Bitte verbinde Meta Ads, bevor Daten geladen werden.", "warning");
-        checkMetaConnection();
+    if (!checkMetaConnection()) {
+        showToast("Bitte verbinde Meta Ads, bevor Live-Daten geladen werden.", "warning");
         return false;
     }
     return true;
 }
 
-/* TEMP: Simulation im Browser: simulateMetaConnect() */
-function simulateMetaConnect() {
-    AppState.metaConnected = true;
-    AppState.meta.accessToken = "SIMULATED_TOKEN";
-    showToast("Meta erfolgreich verbunden (Simulation)", "success");
-    checkMetaConnection();
-    handleViewRendering(AppState.currentView);
+
+/* ============================================
+   META OAUTH FLOW (Frontend)
+   ============================================ */
+
+function generateOAuthState() {
+    if (window.crypto && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+    return Math.random().toString(36).slice(2);
 }
-window.simulateMetaConnect = simulateMetaConnect;
+
+function startMetaOAuth() {
+    if (!META_OAUTH_CONFIG.appId || META_OAUTH_CONFIG.appId === "YOUR_META_APP_ID") {
+        openModal(
+            "Meta OAuth nicht konfiguriert",
+            "Bitte trage deine echte Meta App-ID in META_OAUTH_CONFIG.appId in app.js ein."
+        );
+        return;
+    }
+
+    const state = generateOAuthState();
+    sessionStorage.setItem("meta_oauth_state", state);
+
+    const authUrl = new URL("https://www.facebook.com/v19.0/dialog/oauth");
+    authUrl.searchParams.set("client_id", META_OAUTH_CONFIG.appId);
+    authUrl.searchParams.set("redirect_uri", META_OAUTH_CONFIG.redirectUri);
+    authUrl.searchParams.set("response_type", "code");
+    authUrl.searchParams.set("scope", META_OAUTH_CONFIG.scopes);
+    authUrl.searchParams.set("state", state);
+
+    window.location.href = authUrl.toString();
+}
+
+async function handleMetaOAuthRedirectIfPresent() {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    const error = params.get("error");
+    const state = params.get("state");
+
+    if (!code && !error) return;
+
+    const cleanupUrl = () => {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("code");
+        url.searchParams.delete("state");
+        url.searchParams.delete("error");
+        window.history.replaceState({}, "", url.toString());
+    };
+
+    if (error) {
+        showToast("Meta Login abgebrochen oder fehlgeschlagen.", "error");
+        cleanupUrl();
+        return;
+    }
+
+    const storedState = sessionStorage.getItem("meta_oauth_state");
+    if (storedState && state && storedState !== state) {
+        showToast("Ungültiger OAuth State (Security Check). Bitte erneut versuchen.", "error");
+        cleanupUrl();
+        return;
+    }
+    sessionStorage.removeItem("meta_oauth_state");
+
+    await exchangeMetaCodeForToken(code);
+    cleanupUrl();
+}
+
+async function exchangeMetaCodeForToken(code) {
+    try {
+        if (!META_BACKEND_CONFIG.tokenEndpoint || META_BACKEND_CONFIG.tokenEndpoint.includes("your-backend-domain")) {
+            openModal(
+                "Backend-Endpoint fehlt",
+                "Bitte trage deinen echten Backend-Endpoint in META_BACKEND_CONFIG.tokenEndpoint ein. Dieser Endpoint tauscht den OAuth-Code gegen ein Access Token."
+            );
+            return;
+        }
+
+        AppState.loading = true;
+        showToast("Verbinde mit Meta Ads...", "info");
+
+        const res = await fetch(META_BACKEND_CONFIG.tokenEndpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                code,
+                redirectUri: META_OAUTH_CONFIG.redirectUri
+            })
+        });
+
+        if (!res.ok) {
+            throw new Error("HTTP " + res.status);
+        }
+
+        const data = await res.json();
+
+        if (!data.accessToken) {
+            throw new Error("Kein accessToken in Backend-Response gefunden.");
+        }
+
+        AppState.meta.accessToken = data.accessToken;
+        AppState.meta.adAccounts = data.adAccounts || [];
+        AppState.metaConnected = true;
+
+        checkMetaConnection();
+        showToast("Meta erfolgreich verbunden.", "success");
+
+        // Aktuelle View mit neuem Status neu rendern
+        handleViewRendering(AppState.currentView);
+
+    } catch (err) {
+        console.error("Meta OAuth Fehler:", err);
+        AppState.metaConnected = false;
+        AppState.meta.accessToken = null;
+        showToast("Fehler beim Verbinden mit Meta. Bitte erneut versuchen.", "error");
+    } finally {
+        AppState.loading = false;
+    }
+}
 
 
 /* ============================================
@@ -568,6 +698,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
     initMetaConnectUI();
     checkMetaConnection();
+    handleMetaOAuthRedirectIfPresent();
 
     const initialActiveMenuItem = document.querySelector('.menu-item.active');
     let initialViewId = "dashboardView";
@@ -619,10 +750,7 @@ function initMetaConnectUI() {
     if (!connectBtn) return;
 
     connectBtn.addEventListener("click", () => {
-        openModal(
-            "Meta verbinden",
-            "In der nächsten Phase wird hier der echte Meta OAuth Flow integriert. Aktuell ist dies ein Platzhalter."
-        );
+        startMetaOAuth();
     });
 }
 
@@ -703,7 +831,7 @@ function closeModal() {
 
 
 /* ============================================
-   MOCK HANDLER
+   MOCK HANDLER (bis wir echte Actions bauen)
    ============================================ */
 
 function handleDeadButton(actionName) {
