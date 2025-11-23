@@ -1,13 +1,13 @@
 /**
  * SIGNALONE — APP.JS
- * - Meta OAuth Flow
+ * - Meta OAuth Flow (Connect + Disconnect)
  * - Klarer Verbindungsstatus (Top-Pill + Sidebar + Stripe)
  * - Sidebar Navigation & Views
  * - Dashboard KPIs & Hero-Creatives (Live + Fallback)
- * - Campaigns Table (Live + Fallback)
+ * - Campaigns Table (Live + Fallback) → PUNKT 3 FERTIG
  * - Brand- & Campaign-Dropdowns an Live Meta API angebunden
  * - Aggregation: "Alle Kampagnen" vs. einzelne Kampagne
- * - Erste Sensei-Logik (Empfehlungen)
+ * - Einfache Sensei-Logik (nur Anzeige, kein Muss)
  */
 
 // ============================================
@@ -108,6 +108,25 @@ function showToast(message, type = "info") {
     }, 2500);
 }
 
+// Modal Helper (für Kampagnendetails)
+function openModal(title, bodyHtml) {
+    const overlay = document.getElementById("modalOverlay");
+    const titleEl = document.getElementById("modalTitle");
+    const bodyEl = document.getElementById("modalBody");
+    if (!overlay || !titleEl || !bodyEl) return;
+
+    titleEl.textContent = title;
+    bodyEl.innerHTML = bodyHtml;
+    overlay.classList.add("visible");
+}
+
+function closeModal() {
+    const overlay = document.getElementById("modalOverlay");
+    if (!overlay) return;
+    overlay.classList.remove("visible");
+}
+window.closeModal = closeModal; // für onclick im HTML
+
 // ============================================
 // META CONNECT / DISCONNECT LOGIC
 // ============================================
@@ -194,7 +213,6 @@ function handleMetaConnectClick() {
 }
 
 function disconnectMeta() {
-    // AppState komplett zurücksetzen
     AppState.metaConnected = false;
     AppState.meta = {
         accessToken: null,
@@ -437,6 +455,7 @@ function showView(viewId) {
 
 // ============================================
 // DASHBOARD RENDERING
+// (unverändert, Basis für später; Fokus jetzt auf Campaigns)
 // ============================================
 
 function renderDashboardKpisPlaceholder() {
@@ -627,7 +646,7 @@ function renderDashboardHeroCreatives() {
 }
 
 // ============================================
-// AGGREGATION: MEHRERE KAMPAGNEN
+// AGGREGATION: MEHRERE KAMPAGNEN (für Dashboard)
 // ============================================
 
 async function aggregateInsightsForCampaigns(campaignIds) {
@@ -642,8 +661,8 @@ async function aggregateInsightsForCampaigns(campaignIds) {
             const cached = AppState.meta.insightsByCampaign[id];
             let d;
 
-            if (cached) {
-                d = cached.raw || null;
+            if (cached && cached.raw) {
+                d = cached.raw;
             } else {
                 const insights = await fetchMetaCampaignInsights(id);
                 if (
@@ -655,7 +674,6 @@ async function aggregateInsightsForCampaigns(campaignIds) {
                     continue;
                 }
                 d = insights.data.data[0];
-
                 storeCampaignInsightInCache(id, d);
             }
 
@@ -918,31 +936,62 @@ async function loadDashboardMetaData() {
 }
 
 // ============================================
-// CAMPAIGNS RENDERING
+// CAMPAIGNS RENDERING — PUNKT 3
 // ============================================
 
-function renderCampaignsPlaceholder() {
+function renderCampaignsPlaceholder(text = "Verbinde Meta, um deine Kampagnen anzuzeigen.") {
     const tbody = document.getElementById("campaignsTableBody");
     if (!tbody) return;
 
     tbody.innerHTML = `
         <tr>
             <td colspan="8" style="padding:16px; color: var(--text-secondary);">
-                Verbinde Meta, um deine Kampagnen anzuzeigen.
+                ${text}
             </td>
         </tr>
     `;
+}
+
+function renderCampaignsLoading() {
+    renderCampaignsPlaceholder("Lade Kampagnen & Metriken aus Meta...");
+}
+
+function formatEuro(value) {
+    const n = Number(value);
+    if (!isFinite(n) || n === 0) return "–";
+    return `€ ${n.toLocaleString("de-DE")}`;
+}
+
+function formatPercent(value) {
+    const n = Number(value);
+    if (!isFinite(n) || n === 0) return "–";
+    return `${n.toFixed(2)}%`;
+}
+
+function formatRoas(value) {
+    const n = Number(value);
+    if (!isFinite(n) || n === 0) return "–";
+    return `${n.toFixed(2)}x`;
+}
+
+function getStatusIndicatorClass(status) {
+    const s = (status || "").toLowerCase();
+    if (s === "active") return "status-green";
+    if (s === "paused") return "status-yellow";
+    if (s === "deleted" || s === "archived") return "status-red";
+    return "status-yellow";
 }
 
 async function loadLiveCampaignTable() {
     const tbody = document.getElementById("campaignsTableBody");
     if (!tbody) return;
 
-    tbody.innerHTML = "";
+    renderCampaignsLoading();
 
     try {
         let accountId = AppState.selectedAccountId;
 
+        // Sicherstellen, dass wir ein AdAccount haben
         if (!accountId) {
             const accounts = await fetchMetaAdAccounts();
             if (
@@ -962,6 +1011,7 @@ async function loadLiveCampaignTable() {
             populateBrandDropdown();
         }
 
+        // Kampagnen holen
         const campaigns = await fetchMetaCampaigns(accountId);
 
         if (
@@ -986,6 +1036,7 @@ async function loadLiveCampaignTable() {
             AppState.meta.insightsByCampaign = {};
         }
 
+        // Insights pro Kampagne holen / aus Cache
         const rows = [];
 
         for (let c of list) {
@@ -1020,7 +1071,7 @@ async function loadLiveCampaignTable() {
             });
         }
 
-        // Simple Filter & Search
+        // FILTER & SEARCH
         const searchInput = document.getElementById("campaignSearch");
         const statusFilter = document.getElementById("campaignStatusFilter");
 
@@ -1050,42 +1101,44 @@ async function loadLiveCampaignTable() {
         filteredRows.sort((a, b) => (b.metrics.spend || 0) - (a.metrics.spend || 0));
 
         // Render
+        tbody.innerHTML = "";
+
         filteredRows.forEach(({ campaign: c, metrics: kpis }) => {
             const spend = Number(kpis.spend || 0);
             const roas = Number(kpis.roas || 0);
             const ctr = Number(kpis.ctr || 0);
+            // cpm wäre möglich, wird aber nicht als eigene Spalte angezeigt
+            const dailyBudget = Number(c.daily_budget || 0) / 100; // cent -> euro
 
             const tr = document.createElement("tr");
 
-            let statusIndicatorClass = "status-yellow";
-            if (c.status === "ACTIVE" || c.status === "active") statusIndicatorClass = "status-green";
-            if (c.status === "PAUSED" || c.status === "paused") statusIndicatorClass = "status-yellow";
-
-            const dailyBudget = Number(c.daily_budget || 0) / 100; // cent -> euro
+            const statusIndicatorClass = getStatusIndicatorClass(c.status);
 
             tr.innerHTML = `
-                <td><span class="status-indicator ${statusIndicatorClass}"></span> ${c.status}</td>
-                <td>${c.name}</td>
+                <td><span class="status-indicator ${statusIndicatorClass}"></span> ${c.status || "-"}</td>
+                <td>${c.name || c.id}</td>
                 <td>${c.objective || "-"}</td>
-                <td>€ ${dailyBudget.toLocaleString("de-DE")}</td>
-                <td>€ ${spend.toLocaleString("de-DE")}</td>
-                <td>${roas.toFixed(2)}x</td>
-                <td>${ctr.toFixed(2)}%</td>
-                <td><button class="action-button">Details</button></td>
+                <td>${formatEuro(dailyBudget)}</td>
+                <td>${formatEuro(spend)}</td>
+                <td>${formatRoas(roas)}</td>
+                <td>${formatPercent(ctr)}</td>
+                <td><button class="action-button campaign-details-btn" data-campaign-id="${c.id}">Details</button></td>
             `;
 
             tbody.appendChild(tr);
         });
 
         if (!filteredRows.length) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="8" style="padding:16px; color: var(--text-secondary);">
-                        Keine Kampagnen entsprechen den Filtern.
-                    </td>
-                </tr>
-            `;
+            renderCampaignsPlaceholder("Keine Kampagnen entsprechen den aktuellen Filtern.");
         }
+
+        // Details-Buttons clicken → Modal mit KPIs
+        tbody.querySelectorAll(".campaign-details-btn").forEach(btn => {
+            btn.addEventListener("click", async (e) => {
+                const campaignId = e.currentTarget.getAttribute("data-campaign-id");
+                await openCampaignDetails(campaignId);
+            });
+        });
 
         AppState.campaignsLoaded = true;
     } catch (e) {
@@ -1104,18 +1157,16 @@ function renderDemoCampaignsTable() {
     DEMO_CAMPAIGNS.forEach(c => {
         const tr = document.createElement("tr");
 
-        let statusIndicatorClass = "status-yellow";
-        if (c.status === "active") statusIndicatorClass = "status-green";
-        if (c.status === "paused") statusIndicatorClass = "status-yellow";
+        const statusIndicatorClass = getStatusIndicatorClass(c.status);
 
         tr.innerHTML = `
             <td><span class="status-indicator ${statusIndicatorClass}"></span> ${c.status}</td>
             <td>${c.name}</td>
             <td>${c.objective}</td>
-            <td>€ ${(c.daily_budget / 100).toLocaleString("de-DE")}</td>
-            <td>€ ${c.spend.toLocaleString("de-DE")}</td>
-            <td>${c.roas.toFixed(2)}x</td>
-            <td>${c.ctr.toFixed(2)}%</td>
+            <td>${formatEuro(c.daily_budget / 100)}</td>
+            <td>${formatEuro(c.spend)}</td>
+            <td>${formatRoas(c.roas)}</td>
+            <td>${formatPercent(c.ctr)}</td>
             <td><button class="action-button">Details</button></td>
         `;
 
@@ -1124,7 +1175,46 @@ function renderDemoCampaignsTable() {
 }
 
 // ============================================
-// SENSEI STRATEGY (erste einfache Logik)
+// KAMPAGNEN-DETAILS (Modal)
+// ============================================
+
+async function openCampaignDetails(campaignId) {
+    if (!campaignId) return;
+
+    let metrics = AppState.meta.insightsByCampaign[campaignId];
+
+    if (!metrics || !metrics.raw) {
+        const insights = await fetchMetaCampaignInsights(campaignId);
+        if (
+            insights.success &&
+            insights.data &&
+            Array.isArray(insights.data.data) &&
+            insights.data.data[0]
+        ) {
+            storeCampaignInsightInCache(campaignId, insights.data.data[0]);
+            metrics = AppState.meta.insightsByCampaign[campaignId];
+        }
+    }
+
+    const campaign = (AppState.meta.campaigns || []).find(c => c.id === campaignId) || { name: campaignId };
+    const m = metrics || { spend: 0, roas: 0, ctr: 0, cpm: 0 };
+
+    const html = `
+        <div style="display:flex; flex-direction:column; gap:8px;">
+            <div><strong>Status:</strong> ${campaign.status || "-"}</div>
+            <div><strong>Objective:</strong> ${campaign.objective || "-"}</div>
+            <div><strong>Ad Spend (30D):</strong> ${formatEuro(m.spend)}</div>
+            <div><strong>ROAS (30D):</strong> ${formatRoas(m.roas)}</div>
+            <div><strong>CTR (30D):</strong> ${formatPercent(m.ctr)}</div>
+            <div><strong>CPM (30D):</strong> ${formatEuro(m.cpm)}</div>
+        </div>
+    `;
+
+    openModal(`Kampagne: ${campaign.name || campaignId}`, html);
+}
+
+// ============================================
+// SENSEI STRATEGY (kann bleiben, nutzt Campaign-Insights)
 // ============================================
 
 async function ensureInsightsCache() {
@@ -1168,7 +1258,6 @@ async function renderSenseiStrategy() {
         return;
     }
 
-    // Sicherstellen, dass wir Daten haben
     if (!AppState.meta.campaigns || !AppState.meta.campaigns.length) {
         if (recCard) recCard.textContent = "Keine Kampagnen gefunden. Erstelle Kampagnen in Meta Ads, um Empfehlungen zu erhalten.";
         if (alertCard) alertCard.textContent = "Noch keine Daten für Budget-Pacing verfügbar.";
@@ -1186,7 +1275,6 @@ async function renderSenseiStrategy() {
         return;
     }
 
-    // Kampagnen sortiert nach ROAS / Spend
     const enriched = entries.map(([id, m]) => {
         const camp = AppState.meta.campaigns.find(c => c.id === id) || { name: id };
         return {
@@ -1201,17 +1289,14 @@ async function renderSenseiStrategy() {
         };
     });
 
-    // Best Performer (nach ROAS, min Spend)
     const best = enriched
         .filter(e => e.spend > 0)
         .sort((a, b) => (b.roas || 0) - (a.roas || 0))[0];
 
-    // Unterperformer (ROAS < 1, höherer Spend)
     const worst = enriched
         .filter(e => e.spend > 0 && e.roas > 0)
         .sort((a, b) => (a.roas || 0) - (b.roas || 0))[0];
 
-    // Fatigue-Kandidat (hoher Spend, niedrige CTR, hoher CPM)
     const fatigue = enriched
         .filter(e => e.spend > 0)
         .sort((a, b) => {
