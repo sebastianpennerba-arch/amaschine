@@ -1,422 +1,516 @@
-// campaigns.js – Kampagnen-Tabelle (P3)
+// campaigns.js – Kampagnen-Tabelle (P3) – überarbeitete Version
+// --------------------------------------------------------------
+// Ziele dieser Version:
+// 1) Dropdowns oben links (Werbekonto + Kampagne) werden automatisch
+//    mit Live-Daten befüllt, sobald Meta verbunden ist – auch dann,
+//    wenn der User NICHT zuerst auf "Campaigns" klickt.
+// 2) Start/Stop der Kampagnen direkt aus der Tabelle.
+// 3) Klick auf eine Kampagne öffnet ein hochwertiges Detail-Modal
+//    (kein "DOS-Alert" mehr).
+// 4) Wechsel der Dropdowns synchronisiert Dashboard & Creative Library.
 
-import { AppState, DEMO_CAMPAIGNS } from "./state.js";
+import { AppState } from "./state.js";
 import {
-    fetchMetaAdAccounts,
-    fetchMetaCampaigns,
-    fetchMetaCampaignInsights,
-    updateMetaCampaignStatus
+  fetchMetaAdAccounts,
+  fetchMetaCampaigns,
+  fetchMetaCampaignInsights,
+  // Optional: Wenn du diese Funktion in metaApi.js schon hast, lass sie drin.
+  // Wenn nicht, einfach die Zeilen mit updateMetaCampaignStatus unten auskommentieren
+  // oder die Funktion dort ergänzen.
+  updateMetaCampaignStatus,
 } from "./metaApi.js";
 import { openModal, showToast } from "./uiCore.js";
+import { updateDashboardView } from "./dashboard.js";
+import { updateCreativeLibraryView } from "./creativeLibrary.js";
 
-function renderCampaignsPlaceholder(
-    text = "Verbinde Meta, um deine Kampagnen anzuzeigen."
-) {
-    const tbody = document.getElementById("campaignsTableBody");
-    if (!tbody) return;
+let topbarHydrated = false;
 
-    tbody.innerHTML = `
-        <tr>
-            <td colspan="8" style="padding:16px; color: var(--text-secondary); text-align:center;">
-                ${text}
-            </td>
-        </tr>
-    `;
-}
-
-function renderCampaignsLoading() {
-    renderCampaignsPlaceholder("Lade Kampagnen & Metriken aus Meta...");
-}
+// ---------------------------------------------------------
+// Kleine Format-Helper
+// ---------------------------------------------------------
 
 function formatEuro(value) {
-    const n = Number(value);
-    if (!isFinite(n) || n === 0) return "0";
-    return `€ ${n.toLocaleString("de-DE")}`;
+  const n = Number(value);
+  if (!isFinite(n) || n === 0) return "€ 0";
+  return `€ ${n.toLocaleString("de-DE", { minimumFractionDigits: 0 })}`;
 }
 
 function formatPercent(value) {
-    const n = Number(value);
-    if (!isFinite(n) || n === 0) return "0";
-    return `${n.toFixed(2)}%`;
+  const n = Number(value);
+  if (!isFinite(n) || n === 0) return "0%";
+  return `${n.toFixed(2)}%`;
 }
 
 function formatRoas(value) {
-    const n = Number(value);
-    if (!isFinite(n) || n === 0) return "0";
-    return `${n.toFixed(2)}x`;
+  const n = Number(value);
+  if (!isFinite(n) || n === 0) return "0x";
+  return `${n.toFixed(2)}x`;
 }
 
 function getStatusIndicatorClass(status) {
-    const s = (status || "").toLowerCase();
-    if (s === "active") return "status-green";
-    if (s === "paused") return "status-yellow";
-    if (s === "deleted" || s === "archived") return "status-red";
-    return "status-yellow";
+  const s = (status || "").toLowerCase();
+  if (s === "active") return "status-green";
+  if (s === "paused") return "status-yellow";
+  if (s === "deleted" || s === "archived") return "status-red";
+  return "status-yellow";
 }
 
-function renderDemoCampaignsTable() {
-    const tbody = document.getElementById("campaignsTableBody");
-    if (!tbody) return;
+// ---------------------------------------------------------
+// Platzhalter / Loading
+// ---------------------------------------------------------
 
-    tbody.innerHTML = "";
+function renderCampaignsPlaceholder(
+  text = "Verbinde Meta, um deine Kampagnen anzuzeigen."
+) {
+  const tbody = document.getElementById("campaignsTableBody");
+  if (!tbody) return;
 
-    DEMO_CAMPAIGNS.forEach((c) => {
-        const tr = document.createElement("tr");
-        const statusIndicatorClass = getStatusIndicatorClass(c.status);
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="9" style="padding:16px; color: var(--text-secondary); text-align:center;">
+        ${text}
+      </td>
+    </tr>
+  `;
+}
 
-        tr.innerHTML = `
-            <td><span class="status-indicator ${statusIndicatorClass}"></span> ${
-            c.status
-        }</td>
-            <td>${c.name}</td>
-            <td>${c.objective}</td>
-            <td>${formatEuro(c.daily_budget / 100)}</td>
-            <td>${formatEuro(c.spend)}</td>
-            <td>${formatRoas(c.roas)}</td>
-            <td>${formatPercent(c.ctr)}</td>
-            <td>
-                <button class="action-button-secondary" disabled>Demo</button>
-            </td>
-        `;
+function renderCampaignsLoading() {
+  renderCampaignsPlaceholder("Lade Kampagnen & Metriken aus Meta…");
+}
 
-        tbody.appendChild(tr);
+// ---------------------------------------------------------
+// Topbar-Dropdowns (Werbekonto + Kampagne)
+// ---------------------------------------------------------
+
+async function hydrateTopbarSelectors() {
+  const accountSelect = document.getElementById("brandSelect");
+  const campaignSelect = document.getElementById("campaignGroupSelect");
+  if (!accountSelect || !campaignSelect) return;
+  if (!AppState.metaConnected) return;
+
+  // 1) Ad Accounts laden (falls noch nicht im State)
+  if (!Array.isArray(AppState.meta.adAccounts) || !AppState.meta.adAccounts.length) {
+    const accountsRes = await fetchMetaAdAccounts();
+    if (!accountsRes?.success) {
+      console.warn("Konnte Meta Ad Accounts nicht laden.");
+      return;
+    }
+    const accounts = accountsRes.data?.data || [];
+    AppState.meta.adAccounts = accounts;
+    if (!AppState.selectedAccountId && accounts.length) {
+      AppState.selectedAccountId = accounts[0].id;
+    }
+  }
+
+  // 2) Kampagnen für ausgewähltes Konto laden
+  if (AppState.selectedAccountId) {
+    const campaignsRes = await fetchMetaCampaigns(AppState.selectedAccountId);
+    if (campaignsRes?.success) {
+      AppState.meta.campaigns = campaignsRes.data?.data || [];
+    }
+  }
+
+  // 3) Dropdowns befüllen
+  updateTopbarDropdowns(accountSelect, campaignSelect);
+}
+
+function updateTopbarDropdowns(accountSelect, campaignSelect) {
+  const accounts = AppState.meta.adAccounts || [];
+  const campaigns = AppState.meta.campaigns || [];
+
+  // Werbekonto
+  accountSelect.innerHTML = "";
+  const accPlaceholder = document.createElement("option");
+  accPlaceholder.value = "";
+  accPlaceholder.textContent = "Werbekonto wählen";
+  accountSelect.appendChild(accPlaceholder);
+
+  accounts.forEach((acc) => {
+    const opt = document.createElement("option");
+    opt.value = acc.id;
+    opt.textContent = acc.name || acc.id;
+    accountSelect.appendChild(opt);
+  });
+
+  accountSelect.disabled = accounts.length === 0;
+  if (AppState.selectedAccountId) {
+    accountSelect.value = AppState.selectedAccountId;
+  }
+
+  // Kampagne
+  campaignSelect.innerHTML = "";
+  const campPlaceholder = document.createElement("option");
+  campPlaceholder.value = "";
+  campPlaceholder.textContent = "Kampagne wählen";
+  campaignSelect.appendChild(campPlaceholder);
+
+  campaigns.forEach((c) => {
+    const opt = document.createElement("option");
+    opt.value = c.id;
+    opt.textContent = c.name || c.id;
+    campaignSelect.appendChild(opt);
+  });
+
+  campaignSelect.disabled = campaigns.length === 0;
+  if (AppState.selectedCampaignId) {
+    campaignSelect.value = AppState.selectedCampaignId;
+  }
+}
+
+function initTopbarDropdownBehaviour() {
+  document.addEventListener("DOMContentLoaded", () => {
+    const accountSelect = document.getElementById("brandSelect");
+    const campaignSelect = document.getElementById("campaignGroupSelect");
+    if (!accountSelect || !campaignSelect) return;
+
+    // Änderungen am Werbekonto → Kampagnen + Views neu laden
+    accountSelect.addEventListener("change", async (e) => {
+      const newId = e.target.value || null;
+      AppState.selectedAccountId = newId;
+      AppState.selectedCampaignId = null;
+
+      // Flags resetten, damit Ansichten neu geladen werden können
+      AppState.campaignsLoaded = false;
+      AppState.dashboardLoaded = false;
+      AppState.creativesLoaded = false;
+
+      if (!newId) {
+        AppState.meta.campaigns = [];
+      } else {
+        const campaignsRes = await fetchMetaCampaigns(newId);
+        if (campaignsRes?.success) {
+          AppState.meta.campaigns = campaignsRes.data?.data || [];
+        }
+      }
+
+      updateTopbarDropdowns(accountSelect, campaignSelect);
+
+      if (AppState.metaConnected) {
+        await updateDashboardView(true);
+        await updateCreativeLibraryView(true);
+        await updateCampaignsView(true);
+      }
     });
+
+    // Änderungen an der Kampagne → Dashboard + Creatives + Campaigns filtern
+    campaignSelect.addEventListener("change", async (e) => {
+      const newCampaignId = e.target.value || null;
+      AppState.selectedCampaignId = newCampaignId;
+
+      AppState.dashboardLoaded = false;
+      AppState.creativesLoaded = false;
+      AppState.campaignsLoaded = false;
+
+      if (AppState.metaConnected) {
+        await updateDashboardView(true);
+        await updateCreativeLibraryView(true);
+        await updateCampaignsView(true);
+      }
+    });
+
+    // Polling: Sobald Meta verbunden ist, werden Accounts + Kampagnen geladen,
+    // auch wenn der User noch nie auf "Campaigns" geklickt hat.
+    const poll = window.setInterval(async () => {
+      if (!AppState.metaConnected || topbarHydrated) return;
+      topbarHydrated = true;
+      window.clearInterval(poll);
+      try {
+        await hydrateTopbarSelectors();
+      } catch (err) {
+        console.error("Fehler beim Initialisieren der Topbar-Selectoren:", err);
+      }
+    }, 1000);
+  });
 }
+
+// Direkt ausführen, sobald dieses Modul geladen wird.
+initTopbarDropdownBehaviour();
+
+// ---------------------------------------------------------
+// Kampagnen-Daten laden & Tabelle rendern
+// ---------------------------------------------------------
+
+async function ensureCampaignsWithInsights() {
+  if (!AppState.metaConnected) {
+    return [];
+  }
+
+  // Sicherstellen, dass Accounts & Kampagnen vorhanden sind
+  if (!topbarHydrated) {
+    try {
+      await hydrateTopbarSelectors();
+      topbarHydrated = true;
+    } catch (err) {
+      console.error("Fehler beim Hydratisieren der Topbar:", err);
+    }
+  }
+
+  const accountId = AppState.selectedAccountId;
+  if (!accountId) return [];
+
+  // Kampagnen laden (falls nötig)
+  if (!Array.isArray(AppState.meta.campaigns) || !AppState.meta.campaigns.length) {
+    const campaignsRes = await fetchMetaCampaigns(accountId);
+    if (campaignsRes?.success) {
+      AppState.meta.campaigns = campaignsRes.data?.data || [];
+    }
+  }
+
+  const campaigns = AppState.meta.campaigns || [];
+  if (!campaigns.length) return [];
+
+  // Insights pro Kampagne laden
+  const ids = campaigns.map((c) => c.id);
+  const insightsRes = await fetchMetaCampaignInsights(accountId, ids);
+  const insightsByCampaign = insightsRes?.success ? insightsRes.data || {} : {};
+
+  const enriched = campaigns.map((c) => {
+    const metrics = insightsByCampaign[c.id] || {};
+    return {
+      ...c,
+      metrics,
+    };
+  });
+
+  AppState.meta.campaigns = enriched;
+  AppState.campaignsLoaded = true;
+
+  return enriched;
+}
+
+function renderCampaignsTable(campaigns) {
+  const tbody = document.getElementById("campaignsTableBody");
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+
+  if (!campaigns.length) {
+    renderCampaignsPlaceholder("Keine Kampagnen für dieses Werbekonto gefunden.");
+    return;
+  }
+
+  campaigns.forEach((c) => {
+    const tr = document.createElement("tr");
+    tr.dataset.campaignId = c.id;
+
+    const statusIndicatorClass = getStatusIndicatorClass(c.status);
+    const metrics = c.metrics || {};
+
+    const isActive = (c.status || "").toUpperCase() === "ACTIVE";
+    const toggleLabel = isActive ? "Stoppen" : "Starten";
+
+    tr.innerHTML = `
+      <td>
+        <span class="status-indicator ${statusIndicatorClass}"></span>
+        ${c.status || "-"}
+      </td>
+      <td>${c.name || "-"}</td>
+      <td>${c.objective || "-"}</td>
+      <td>${formatEuro(metrics.daily_budget || c.daily_budget / 100 || 0)}</td>
+      <td>${formatEuro(metrics.spend || 0)}</td>
+      <td>${formatRoas(metrics.roas || metrics.purchase_roas || 0)}</td>
+      <td>${formatPercent(metrics.ctr || 0)}</td>
+      <td>${metrics.impressions || 0}</td>
+      <td style="white-space:nowrap;">
+        <button class="action-button action-secondary" data-action="toggle">
+          ${toggleLabel}
+        </button>
+        <button class="action-button" data-action="details">
+          Details
+        </button>
+      </td>
+    `;
+
+    // Zeilenklick → Detail-Modal
+    tr.addEventListener("click", (event) => {
+      const btn = event.target.closest("button");
+      if (btn) return; // Buttons separat behandeln
+      openCampaignDetails(c);
+    });
+
+    // Buttons für Start/Stop & Details
+    tr.querySelectorAll("button[data-action]").forEach((btn) => {
+      const action = btn.dataset.action;
+      btn.addEventListener("click", async (event) => {
+        event.stopPropagation();
+
+        if (action === "toggle") {
+          await handleToggleCampaignStatus(c);
+        } else if (action === "details") {
+          openCampaignDetails(c);
+        }
+      });
+    });
+
+    tbody.appendChild(tr);
+  });
+}
+
+// ---------------------------------------------------------
+// Public API – von app.js aufgerufen
+// ---------------------------------------------------------
 
 export async function updateCampaignsView(connected) {
-    const tbody = document.getElementById("campaignsTableBody");
-    if (!tbody) return;
+  const tbody = document.getElementById("campaignsTableBody");
+  if (!tbody) return;
 
-    if (!connected) {
-        renderCampaignsPlaceholder();
-        return;
-    }
+  if (!connected) {
+    renderCampaignsPlaceholder();
+    return;
+  }
 
-    if (AppState.campaignsLoaded && AppState.meta.campaigns?.length) {
-        // Re-render mit aktuellen Filtern
-        await loadLiveCampaignTable();
-        return;
-    }
+  renderCampaignsLoading();
 
-    await loadLiveCampaignTable();
+  try {
+    const campaigns = await ensureCampaignsWithInsights();
+    renderCampaignsTable(campaigns);
+  } catch (err) {
+    console.error("Fehler beim Laden der Kampagnen:", err);
+    renderCampaignsPlaceholder("Fehler beim Laden der Kampagnen.");
+  }
 }
 
-async function loadLiveCampaignTable() {
-    const tbody = document.getElementById("campaignsTableBody");
-    if (!tbody) return;
+// ---------------------------------------------------------
+// Start / Stop Kampagne
+// ---------------------------------------------------------
 
-    renderCampaignsLoading();
+async function handleToggleCampaignStatus(campaign) {
+  if (typeof updateMetaCampaignStatus !== "function") {
+    console.warn(
+      "updateMetaCampaignStatus ist nicht definiert. Bitte in metaApi.js implementieren oder Import entfernen."
+    );
+    return;
+  }
 
-    try {
-        let accountId = AppState.selectedAccountId;
+  const current = (campaign.status || "").toUpperCase();
+  const newStatus = current === "ACTIVE" ? "PAUSED" : "ACTIVE";
 
-        if (!accountId) {
-            const accounts = await fetchMetaAdAccounts();
-            if (
-                !accounts.success ||
-                !accounts.data ||
-                !Array.isArray(accounts.data.data) ||
-                accounts.data.data.length === 0
-            ) {
-                renderDemoCampaignsTable();
-                AppState.campaignsLoaded = true;
-                return;
-            }
-            accountId = accounts.data.data[0].id;
-            AppState.selectedAccountId = accountId;
-            AppState.meta.adAccounts = accounts.data.data;
-        }
-
-        const campaigns = await fetchMetaCampaigns(accountId);
-
-        if (
-            !campaigns.success ||
-            !campaigns.data ||
-            !Array.isArray(campaigns.data.data) ||
-            campaigns.data.data.length === 0
-        ) {
-            AppState.meta.campaigns = [];
-            renderDemoCampaignsTable();
-            AppState.campaignsLoaded = true;
-            return;
-        }
-
-        const list = campaigns.data.data;
-        AppState.meta.campaigns = list;
-
-        if (!AppState.meta.insightsByCampaign) {
-            AppState.meta.insightsByCampaign = {};
-        }
-
-        const rows = [];
-        const preset = AppState.timeRangePreset || "last_30d";
-
-        for (let c of list) {
-            let kpisObj = AppState.meta.insightsByCampaign[c.id];
-
-            if (!kpisObj || !kpisObj.raw || kpisObj.rawPreset !== preset) {
-                const insights = await fetchMetaCampaignInsights(c.id, preset);
-                const d =
-                    insights.success &&
-                    insights.data &&
-                    Array.isArray(insights.data.data) &&
-                    insights.data.data[0]
-                        ? insights.data.data[0]
-                        : null;
-
-                if (d) {
-                    const spend = parseFloat(d.spend || "0") || 0;
-                    let roas = 0;
-                    if (
-                        Array.isArray(d.website_purchase_roas) &&
-                        d.website_purchase_roas.length > 0
-                    ) {
-                        roas =
-                            parseFloat(
-                                d.website_purchase_roas[0].value || "0"
-                            ) || 0;
-                    }
-                    const ctr = parseFloat(d.ctr || "0") || 0;
-                    const cpm = parseFloat(d.cpm || "0") || 0;
-
-                    kpisObj = {
-                        spend,
-                        roas,
-                        ctr,
-                        cpm,
-                        raw: d,
-                        rawPreset: preset
-                    };
-                    AppState.meta.insightsByCampaign[c.id] = kpisObj;
-                } else {
-                    kpisObj = {
-                        spend: 0,
-                        roas: 0,
-                        ctr: 0,
-                        cpm: 0
-                    };
-                }
-            }
-
-            rows.push({
-                campaign: c,
-                metrics: kpisObj
-            });
-        }
-
-        const searchInput = document.getElementById("campaignSearch");
-        const statusFilter = document.getElementById("campaignStatusFilter");
-
-        const searchTerm = searchInput
-            ? searchInput.value.trim().toLowerCase()
-            : "";
-        const statusValue = statusFilter ? statusFilter.value : "all";
-
-        let filteredRows = rows;
-
-        if (searchTerm) {
-            filteredRows = filteredRows.filter(({ campaign }) =>
-                (campaign.name || "").toLowerCase().includes(searchTerm) ||
-                (campaign.id || "").toLowerCase().includes(searchTerm)
-            );
-        }
-
-        if (statusValue !== "all") {
-            filteredRows = filteredRows.filter(({ campaign }) => {
-                const status = (campaign.status || "").toLowerCase();
-                if (statusValue === "active") return status === "active";
-                if (statusValue === "paused") return status === "paused";
-                if (statusValue === "completed") return status === "completed";
-                return true;
-            });
-        }
-
-        filteredRows.sort(
-            (a, b) => (b.metrics.spend || 0) - (a.metrics.spend || 0)
-        );
-
-        tbody.innerHTML = "";
-
-        filteredRows.forEach(({ campaign: c, metrics: kpis }) => {
-            const spend = Number(kpis.spend || 0);
-            const roas = Number(kpis.roas || 0);
-            const ctr = Number(kpis.ctr || 0);
-            const dailyBudget = Number(c.daily_budget || 0) / 100;
-
-            const tr = document.createElement("tr");
-            const statusIndicatorClass = getStatusIndicatorClass(c.status);
-            const statusUpper = (c.status || "").toUpperCase();
-            const isActive = statusUpper === "ACTIVE";
-            const toggleLabel = isActive ? "Pause" : "Start";
-
-            tr.innerHTML = `
-                <td><span class="status-indicator ${statusIndicatorClass}"></span> ${
-                c.status || "-"
-            }</td>
-                <td>${c.name || c.id}</td>
-                <td>${c.objective || "-"}</td>
-                <td>${formatEuro(dailyBudget)}</td>
-                <td>${formatEuro(spend)}</td>
-                <td>${formatRoas(roas)}</td>
-                <td>${formatPercent(ctr)}</td>
-                <td>
-                    <button
-                        class="action-button-secondary campaign-toggle-btn"
-                        data-campaign-id="${c.id}"
-                        data-current-status="${c.status || ""}"
-                    >
-                        ${toggleLabel}
-                    </button>
-                    <button
-                        class="action-button campaign-details-btn"
-                        data-campaign-id="${c.id}"
-                    >
-                        Details
-                    </button>
-                </td>
-            `;
-
-            tbody.appendChild(tr);
-        });
-
-        if (!filteredRows.length) {
-            renderCampaignsPlaceholder(
-                "Keine Kampagnen entsprechen den aktuellen Filtern."
-            );
-        }
-
-        tbody.querySelectorAll(".campaign-details-btn").forEach((btn) => {
-            btn.addEventListener("click", async (e) => {
-                const campaignId =
-                    e.currentTarget.getAttribute("data-campaign-id");
-                await openCampaignDetails(campaignId);
-            });
-        });
-
-        tbody.querySelectorAll(".campaign-toggle-btn").forEach((btn) => {
-            btn.addEventListener("click", async (e) => {
-                const campaignId =
-                    e.currentTarget.getAttribute("data-campaign-id");
-                const currentStatus = (
-                    e.currentTarget.getAttribute("data-current-status") || ""
-                ).toUpperCase();
-                const nextStatus =
-                    currentStatus === "ACTIVE" ? "PAUSED" : "ACTIVE";
-                await handleCampaignToggle(campaignId, nextStatus);
-            });
-        });
-
-        AppState.campaignsLoaded = true;
-    } catch (e) {
-        console.error("loadLiveCampaignTable error:", e);
-        renderDemoCampaignsTable();
-        AppState.campaignsLoaded = true;
+  try {
+    const res = await updateMetaCampaignStatus(campaign.id, newStatus);
+    if (!res?.success) {
+      showToast("Kampagnenstatus konnte nicht aktualisiert werden.", "error");
+      return;
     }
+
+    campaign.status = newStatus;
+    showToast(
+      `Kampagne wurde ${newStatus === "ACTIVE" ? "gestartet" : "pausiert"}.`,
+      "success"
+    );
+
+    AppState.campaignsLoaded = false;
+    await updateCampaignsView(true);
+  } catch (err) {
+    console.error("Fehler beim Aktualisieren des Kampagnenstatus:", err);
+    showToast("Fehler beim Aktualisieren des Kampagnenstatus.", "error");
+  }
 }
 
-async function openCampaignDetails(campaignId) {
-    if (!campaignId) return;
+// ---------------------------------------------------------
+// Edel: Kampagnen-Detail-Modal
+// ---------------------------------------------------------
 
-    let metrics = AppState.meta.insightsByCampaign[campaignId];
-    const preset = AppState.timeRangePreset || "last_30d";
+function openCampaignDetails(campaign) {
+  const metrics = campaign.metrics || {};
 
-    if (!metrics || !metrics.raw || metrics.rawPreset !== preset) {
-        const insights = await fetchMetaCampaignInsights(campaignId, preset);
-        if (
-            insights.success &&
-            insights.data &&
-            Array.isArray(insights.data.data) &&
-            insights.data.data[0]
-        ) {
-            const d = insights.data.data[0];
-            const spend = parseFloat(d.spend || "0") || 0;
-            let roas = 0;
-            if (
-                Array.isArray(d.website_purchase_roas) &&
-                d.website_purchase_roas.length > 0
-            ) {
-                roas = parseFloat(
-                    d.website_purchase_roas[0].value || "0"
-                ) || 0;
-            }
-            const ctr = parseFloat(d.ctr || "0") || 0;
-            const cpm = parseFloat(d.cpm || "0") || 0;
+  const statusClass = getStatusIndicatorClass(campaign.status);
+  const isActive = (campaign.status || "").toUpperCase() === "ACTIVE";
 
-            metrics = {
-                spend,
-                roas,
-                ctr,
-                cpm,
-                raw: d,
-                rawPreset: preset
-            };
-            AppState.meta.insightsByCampaign[campaignId] = metrics;
-        }
-    }
-
-    const campaign =
-        (AppState.meta.campaigns || []).find((c) => c.id === campaignId) || {
-            name: campaignId
-        };
-    const m = metrics || { spend: 0, roas: 0, ctr: 0, cpm: 0 };
-
-    const html = `
-        <div style="display:flex; flex-direction:column; gap:8px;">
-            <div><strong>Status:</strong> ${campaign.status || "-"}</div>
-            <div><strong>Objective:</strong> ${campaign.objective || "-"}</div>
-            <div><strong>Ad Spend (30D):</strong> ${formatEuro(m.spend)}</div>
-            <div><strong>ROAS (30D):</strong> ${formatRoas(m.roas)}</div>
-            <div><strong>CTR (30D):</strong> ${formatPercent(m.ctr)}</div>
-            <div><strong>CPM (30D):</strong> ${formatEuro(m.cpm)}</div>
+  const html = `
+    <div style="display:flex; flex-direction:column; gap:20px; max-width:640px;">
+      <header style="display:flex; justify-content:space-between; gap:16px; align-items:flex-start;">
+        <div style="flex:1;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+            <span style="
+              display:inline-flex;
+              align-items:center;
+              justify-content:center;
+              padding:4px 10px;
+              border-radius:999px;
+              font-size:11px;
+              font-weight:600;
+              background:rgba(99,102,241,0.08);
+              color:var(--primary);
+            ">
+              Meta • Campaign
+            </span>
+            <span class="status-indicator ${statusClass}"></span>
+            <span style="font-size:12px; color:var(--text-secondary); text-transform:uppercase;">
+              ${campaign.status || "-"}
+            </span>
+          </div>
+          <h3 style="font-size:20px; font-weight:600; margin:0 0 4px 0;">
+            ${campaign.name || "Unbenannte Kampagne"}
+          </h3>
+          <p style="margin:0; font-size:13px; color:var(--text-secondary);">
+            Ziel: <strong>${campaign.objective || "-"}</strong> · ID: ${campaign.id}
+          </p>
         </div>
-   `;
+        <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
+          <button
+            class="action-button action-secondary"
+            data-modal-action="toggle"
+            style="min-width:120px;"
+          >
+            ${isActive ? "Kampagne pausieren" : "Kampagne starten"}
+          </button>
+        </div>
+      </header>
 
-    openModal(`Kampagne: ${campaign.name || campaignId}`, html);
-}
+      <section style="display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px;">
+        <div class="metric-chip">
+          <div class="metric-label">Spend (30D)</div>
+          <div class="metric-value">${formatEuro(metrics.spend || 0)}</div>
+        </div>
+        <div class="metric-chip">
+          <div class="metric-label">ROAS (30D)</div>
+          <div class="metric-value">${formatRoas(
+            metrics.roas || metrics.purchase_roas || 0
+          )}</div>
+        </div>
+        <div class="metric-chip">
+          <div class="metric-label">CTR (30D)</div>
+          <div class="metric-value">${formatPercent(metrics.ctr || 0)}</div>
+        </div>
+        <div class="metric-chip">
+          <div class="metric-label">Impressions (30D)</div>
+          <div class="metric-value">${(metrics.impressions || 0).toLocaleString(
+            "de-DE"
+          )}</div>
+        </div>
+        <div class="metric-chip">
+          <div class="metric-label">Clicks (30D)</div>
+          <div class="metric-value">${(metrics.clicks || 0).toLocaleString(
+            "de-DE"
+          )}</div>
+        </div>
+        <div class="metric-chip">
+          <div class="metric-label">CPM (30D)</div>
+          <div class="metric-value">${formatEuro(metrics.cpm || 0)}</div>
+        </div>
+      </section>
 
-// Start/Stop Kampagnen wie im Meta-Manager (Minimum)
-async function handleCampaignToggle(campaignId, nextStatus) {
-    if (!campaignId || !nextStatus) return;
+      <section style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:13px; font-weight:600;">Nächste Schritte (Placeholder)</div>
+        <ul style="margin:0; padding-left:18px; font-size:13px; color:var(--text-secondary);">
+          <li>„Jetzt Performanceanalyse durchführen“ – später: öffnet Sensei/Insights für diese Kampagne.</li>
+          <li>„Neue Kampagne mit Sensei erstellen“ – später: AI-gestütztes Setup auf Basis der Best-Performer.</li>
+          <li>„Meta Metriken besser verstehen“ – später: kurzer Lern-Overlay mit Erklärungen zu ROAS, CTR, CPM etc.</li>
+        </ul>
+      </section>
+    </div>
+  `;
 
-    try {
-        const result = await updateMetaCampaignStatus(campaignId, nextStatus);
-        if (!result || result.success === false) {
-            console.error("updateMetaCampaignStatus failed:", result);
-            if (typeof showToast === "function") {
-                showToast(
-                    "Konnte Kampagnenstatus nicht ändern.",
-                    "error"
-                );
-            }
-            return;
-        }
-
-        // Lokalen Status updaten
-        const list = AppState.meta.campaigns || [];
-        const found = list.find((c) => c.id === campaignId);
-        if (found) {
-            found.status = nextStatus;
-        }
-
-        if (typeof showToast === "function") {
-            showToast(
-                `Kampagne wurde ${
-                    nextStatus === "ACTIVE" ? "gestartet" : "pausiert"
-                }.`,
-                "success"
-            );
-        }
-
-        // Tabelle neu laden, damit Button/Status aktualisiert werden
-        AppState.campaignsLoaded = false;
-        await loadLiveCampaignTable();
-    } catch (e) {
-        console.error("handleCampaignToggle error:", e);
-        if (typeof showToast === "function") {
-            showToast(
-                "Unerwarteter Fehler beim Ändern des Kampagnenstatus.",
-                "error"
-            );
-        }
-    }
+  openModal("Kampagnendetails", html, {
+    onOpen(modalElement) {
+      const toggleBtn = modalElement.querySelector(
+        'button[data-modal-action="toggle"]'
+      );
+      if (toggleBtn) {
+        toggleBtn.addEventListener("click", async () => {
+          await handleToggleCampaignStatus(campaign);
+        });
+      }
+    },
+  });
 }
