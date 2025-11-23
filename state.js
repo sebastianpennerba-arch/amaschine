@@ -9,10 +9,16 @@ export const META_OAUTH_CONFIG = {
 export const META_BACKEND_CONFIG = {
     tokenEndpoint: "https://signalone-backend.onrender.com/api/meta/oauth/token",
     adAccountsEndpoint: "https://signalone-backend.onrender.com/api/meta/adaccounts",
-    campaignsEndpoint: (accountId) => `https://signalone-backend.onrender.com/api/meta/campaigns/${accountId}`,
-    insightsEndpoint: (campaignId) => `https://signalone-backend.onrender.com/api/meta/insights/${campaignId}`,
-    adsEndpoint: (accountId) => `https://signalone-backend.onrender.com/api/meta/ads/${accountId}`,
-    meEndpoint: "https://signalone-backend.onrender.com/api/meta/me"
+    campaignsEndpoint: (accountId) =>
+        `https://signalone-backend.onrender.com/api/meta/campaigns/${accountId}`,
+    insightsEndpoint: (campaignId) =>
+        `https://signalone-backend.onrender.com/api/meta/insights/${campaignId}`,
+    adsEndpoint: (accountId) =>
+        `https://signalone-backend.onrender.com/api/meta/ads/${accountId}`,
+    meEndpoint: "https://signalone-backend.onrender.com/api/meta/me",
+    // Neu: Kampagnen-Status-Update für Start/Stop
+    campaignStatusEndpoint: (campaignId) =>
+        `https://signalone-backend.onrender.com/api/meta/campaigns/${campaignId}/status`
 };
 
 export const DEMO_CAMPAIGNS = [
