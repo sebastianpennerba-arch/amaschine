@@ -5,12 +5,12 @@
  *
  * Enthält:
  * 1. Globalen AppState (Meta-ready)
- * 2. Meta Normalizer Layer (Schritt 6)
- * 3. UI Component Library (Schritt 4)
- * 4. Render Engine (Schritt 3+5)
+ * 2. Meta Normalizer Layer
+ * 3. UI Component Library
+ * 4. Render Engine (Dashboard, Creatives, Campaigns)
  * 5. Navigation ohne Inline JS
- * 6. Toast & Modal System
- * 7. Basis für Meta-Integration (TikTok/Pinterest erweiterbar)
+ * 6. Meta-Connect Gatekeeper + Stripe + Simulation
+ * 7. Toast & Modal System
  */
 
 
@@ -21,7 +21,7 @@
 const AppState = {
     // Meta Connection Status
     metaConnected: false,
-    
+
     // Auth / User (später)
     user: null,
 
@@ -49,6 +49,60 @@ const AppState = {
     loading: false,
     error: null,
 };
+
+
+/* ============================================
+   META CONNECT GATEKEEPER
+   ============================================ */
+
+/**
+ * Zeigt/versteckt die Meta-Connect-Stripe oben im Layout.
+ * Gibt true zurück, wenn verbunden; false sonst.
+ */
+function checkMetaConnection() {
+    const stripe = document.getElementById("metaConnectStripe");
+
+    if (!AppState.metaConnected) {
+        if (stripe) stripe.classList.remove("hidden");
+        return false;
+    } else {
+        if (stripe) stripe.classList.add("hidden");
+        return true;
+    }
+}
+
+/**
+ * Gatekeeper für datenladende Funktionen:
+ * - zeigt Toast
+ * - aktualisiert Stripe
+ * - verhindert API-Calls
+ */
+function requireMetaConnection() {
+    if (!AppState.metaConnected || !AppState.meta.accessToken) {
+        showToast("Bitte verbinde Meta Ads, bevor Daten geladen werden.", "warning");
+        checkMetaConnection();
+        return false;
+    }
+    return true;
+}
+
+/**
+ * TEMPORÄR: Simulierter Meta-Connect (für UI-Tests in Phase A).
+ * Kann in der Browser-Konsole aufgerufen werden:
+ *   simulateMetaConnect()
+ */
+function simulateMetaConnect() {
+    AppState.metaConnected = true;
+    AppState.meta.accessToken = "SIMULATED_TOKEN";
+    showToast("Meta erfolgreich verbunden (Simulation)", "success");
+    checkMetaConnection();
+
+    // Aktuelle View mit neuem Status neu rendern
+    handleViewRendering(AppState.currentView);
+}
+
+// Für Debug-Zugriff im Browser:
+window.simulateMetaConnect = simulateMetaConnect;
 
 
 /* ============================================
@@ -174,6 +228,7 @@ function aggregateInsightsForDashboard(insightsList) {
  *  - impressions
  *  - clicks
  *  - actions (array mit purchase, etc.)
+ *  - action_values
  *  - purchase_roas (array)
  *  - cpm
  */
@@ -258,9 +313,12 @@ function detectCreativeType(metaCreative) {
     if (metaCreative.object_story_spec && metaCreative.object_story_spec.video_data) {
         return "video";
     }
-    if (metaCreative.object_story_spec && metaCreative.object_story_spec.link_data &&
+    if (
+        metaCreative.object_story_spec &&
+        metaCreative.object_story_spec.link_data &&
         Array.isArray(metaCreative.object_story_spec.link_data.child_attachments) &&
-        metaCreative.object_story_spec.link_data.child_attachments.length > 1) {
+        metaCreative.object_story_spec.link_data.child_attachments.length > 1
+    ) {
         return "carousel";
     }
     return "static";
@@ -423,7 +481,7 @@ function createCreativeCard(creative) {
             <span class="kpi-footer-item">CPM: ${formatCurrency(creative.metrics.cpm)}</span>
             <span class="kpi-footer-item">Score: ${creative.metrics.score ?? "-"}</span>
         </div>
-    """
+    `;
 
     card.appendChild(media);
     card.appendChild(stats);
@@ -622,6 +680,8 @@ function handleViewRendering(viewId) {
         case "campaignsView":
             renderCampaigns();
             break;
+        default:
+            break;
     }
 }
 
@@ -633,12 +693,16 @@ function handleViewRendering(viewId) {
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Datum/Uhrzeit
     updateDateTime();
-    setInterval(updateDateTime, 1000); 
+    setInterval(updateDateTime, 1000);
 
     // 2. Navigation initialisieren
     initNavigation();
 
-    // 3. Initiale View anzeigen (Dashboard)
+    // 3. Meta-Stripe initial prüfen
+    checkMetaConnection();
+    initMetaConnectUI();
+
+    // 4. Initiale View anzeigen (Dashboard)
     const initialActiveMenuItem = document.querySelector('.menu-item.active');
     let initialViewId = "dashboardView";
 
@@ -659,7 +723,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // --- 1. DATUM & UHRZEIT ---
 function updateDateTime() {
     const now = new Date();
-    
+
     const dateOptions = { day: '2-digit', month: 'long', year: 'numeric' };
     const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
 
@@ -688,20 +752,39 @@ function initNavigation() {
 }
 
 
-// --- 3. VIEW HANDLING ---
-function showView(viewId, clickedElement, options = {}) {
+// --- 3. META CONNECT UI ---
+function initMetaConnectUI() {
+    const connectBtn = document.getElementById("connectMetaButton");
+    if (!connectBtn) return;
 
+    connectBtn.addEventListener("click", () => {
+        openModal(
+            "Meta verbinden",
+            "In der nächsten Phase wird hier der echte Meta OAuth Flow integriert. Aktuell ist dies ein Platzhalter."
+        );
+    });
+}
+
+
+// --- 4. VIEW HANDLING ---
+function showView(viewId, clickedElement, options = {}) {
+    // Views umschalten
     document.querySelectorAll('.view').forEach(view => view.classList.add('hidden'));
 
     const targetView = document.getElementById(viewId);
     if (targetView) targetView.classList.remove('hidden');
 
+    // Aktiven Menüpunkt markieren
     document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
-
     if (clickedElement) clickedElement.classList.add('active');
 
+    // Stripe aktualisieren (nur UI, keine Blockade)
+    checkMetaConnection();
+
+    // Renderer starten
     handleViewRendering(viewId);
 
+    // Optionaler Toast
     if (!options.skipToast) {
         const label = viewId.replace('View', '');
         showToast(`Ansicht gewechselt: ${label}`, 'info');
@@ -709,7 +792,7 @@ function showView(viewId, clickedElement, options = {}) {
 }
 
 
-// --- 4. TOAST SYSTEM ---
+// --- 5. TOAST SYSTEM ---
 function showToast(message, type = 'info') {
     const container = document.getElementById('toastContainer');
     if (!container) return;
@@ -717,7 +800,7 @@ function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.innerHTML = `<i class="fas ${getIconForType(type)}"></i> ${message}`;
-    
+
     let borderColor = 'var(--color-primary)';
     if (type === 'success') borderColor = 'var(--success)';
     if (type === 'error') borderColor = 'var(--danger)';
@@ -746,7 +829,7 @@ function getIconForType(type) {
 }
 
 
-// --- 5. MODAL SYSTEM ---
+// --- 6. MODAL SYSTEM ---
 function openModal(title, body) {
     const overlay = document.getElementById('modalOverlay');
     const titleElement = document.getElementById('modalTitle');
@@ -765,7 +848,7 @@ function closeModal() {
 }
 
 
-// --- 6. MOCK HANDLER ---
+// --- 7. MOCK HANDLER ---
 function handleDeadButton(actionName) {
     if (actionName.includes('Detailansicht') || actionName.includes('Custom Date Range')) {
         openModal(actionName, `Diese Funktion wird später implementiert: "${actionName}".`);
