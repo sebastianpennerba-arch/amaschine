@@ -11,7 +11,7 @@
 <body>
 
     <!-- ========================================= -->
-    <!-- SIDEBAR (Grundgerüst unverändert) -->
+    <!-- SIDEBAR -->
     <!-- ========================================= -->
     <nav class="sidebar" id="sidebar">
         <div class="logo-container">
@@ -72,7 +72,6 @@
 
             <span class="system-health system-optimal">SYSTEM HEALTH: OPTIMAL</span>
 
-            <!-- Meta Verbindungspille -->
             <div class="meta-connection-pill meta-disconnected" id="metaConnectionPill">
                 <span class="meta-connection-dot" id="metaConnectionDot"></span>
                 <span id="metaConnectionLabel">Nicht mit Meta verbunden</span>
@@ -131,6 +130,23 @@
         <!-- =========================== -->
         <section class="view" id="dashboardView">
             <h2 class="elite-title">Dashboard Overview</h2>
+
+            <!-- Zeitraum-Selector + Summary -->
+            <div class="card" id="dashboardFilters">
+                <div class="filter-bar" style="display:flex;align-items:center;justify-content:space-between;gap:16px;">
+                    <div style="font-size:14px;color:var(--text-secondary);">
+                        Zeitraum:
+                        <select id="dashboardTimeRange" style="margin-left:8px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;">
+                            <option value="today">Heute</option>
+                            <option value="last_7d" selected>Letzte 7 Tage</option>
+                            <option value="last_30d">Letzte 30 Tage</option>
+                        </select>
+                    </div>
+                    <div id="dashboardMetaSummary" style="font-size:12px;color:var(--text-secondary);">
+                        Noch keine Daten geladen.
+                    </div>
+                </div>
+            </div>
 
             <div id="dashboardKpiContainer"></div>
             <div id="dashboardChartContainer"></div>
