@@ -5,11 +5,12 @@
  *
  * Enthält:
  * 1. Globalen AppState (Meta-ready)
- * 2. UI Component Library (Schritt 4)
- * 3. Render Engine (Schritt 3+5)
- * 4. Navigation ohne Inline JS
- * 5. Toast & Modal System
- * 6. Basis für Meta-Integration
+ * 2. Meta Normalizer Layer (Schritt 6)
+ * 3. UI Component Library (Schritt 4)
+ * 4. Render Engine (Schritt 3+5)
+ * 5. Navigation ohne Inline JS
+ * 6. Toast & Modal System
+ * 7. Basis für Meta-Integration (TikTok/Pinterest erweiterbar)
  */
 
 
@@ -30,24 +31,266 @@ const AppState = {
     brand: null,
     campaignGroup: null,
 
-    // Live-Daten aus Meta API (Schritt B/C)
+    // Live-Daten aus Meta API (später live befüllt)
     meta: {
         accessToken: null,
         adAccounts: [],
         selectedAdAccount: null,
 
-        // später dynamisch gefüllt:
-        campaigns: [],
+        // Normalisierte Daten (siehe Normalizer-Layer)
+        campaigns: [],   // [{ id, name, status, statusColor, goal, dailyBudget, spend30d, roas30d, ctr }]
         adsets: [],
         ads: [],
-        creatives: [],      
-        insights: {},       
+        creatives: [],   // [{ id, name, type, url, thumbnail, platform, metrics: {...} }]
+        insights: {},    // { roas, roasTrend, cpp, cppTrend, ctr, ctrTrend, spendToday, spendTodayTrend }
     },
 
     // Systemdaten
     loading: false,
     error: null,
 };
+
+
+/* ============================================
+   META NORMALIZER LAYER (Phase 1 – Live Ready)
+   ============================================ */
+/**
+ * Ziel:
+ *  - Rohdaten von Meta (Campaigns, Ads, Insights) in ein einheitliches,
+ *    UI-freundliches SignalOne-Format bringen.
+ *  - Später auch TikTok/Pinterest über dieselben Normalizer schleusen.
+ */
+
+function toNumber(value) {
+    const n = Number(value);
+    return isNaN(n) ? 0 : n;
+}
+
+/**
+ * Normalisiert eine Meta-Ad + zugehörige Creative- & Insights-Daten
+ * in das interne Creative-Format von SignalOne.
+ *
+ * Erwartete Inputs (später aus Backend):
+ *  - metaAd:        { id, name, creative: { id }, ... }
+ *  - metaCreative:  { id, object_story_spec, thumbnail_url, ... }
+ *  - insights:      Meta Insights-Objekt für diese Ad
+ */
+function normalizeMetaCreative(metaAd, metaCreative, insights) {
+    const metrics = extractMetricsFromInsights(insights);
+
+    return {
+        id: metaAd.id,
+        name: metaAd.name || "Unnamed Creative",
+        type: detectCreativeType(metaCreative),
+        url: extractCreativeUrl(metaCreative),
+        thumbnail: metaCreative.thumbnail_url || extractThumbnailFromStory(metaCreative),
+        platform: "meta",
+        metrics: {
+            spend: metrics.spend,
+            purchases: metrics.purchases,
+            roas: metrics.roas,
+            ctr: metrics.ctr,
+            cpm: metrics.cpm,
+            score: null, // später: eigener Score-Algorithmus
+        }
+    };
+}
+
+/**
+ * Normalisiert eine Meta-Kampagne + Insights in das interne Campaign-Format.
+ * - metaCampaign: { id, name, objective, status, daily_budget, ... }
+ * - insights:     Meta Insights (aggregiert über 30 Tage o.ä.)
+ */
+function normalizeMetaCampaign(metaCampaign, insights) {
+    const metrics = extractMetricsFromInsights(insights);
+
+    return {
+        id: metaCampaign.id,
+        name: metaCampaign.name || "Unnamed Campaign",
+        status: metaCampaign.status || "UNKNOWN",
+        statusColor: deriveStatusColorFromMetaStatus(metaCampaign.status),
+        goal: metaCampaign.objective || "n/a",
+        dailyBudget: toNumber(metaCampaign.daily_budget) / 100, // Meta in Cent
+        spend30d: metrics.spend,
+        roas30d: metrics.roas,
+        ctr: metrics.ctr,
+    };
+}
+
+/**
+ * Aggregiert eine Liste von Insights (z.B. pro Ad) in globale Dashboard-KPIs.
+ * input: Array von Meta-Insights-Objekten
+ * output: Struktur für AppState.meta.insights
+ */
+function aggregateInsightsForDashboard(insightsList) {
+    if (!Array.isArray(insightsList) || insightsList.length === 0) {
+        return {
+            roas: null,
+            roasTrend: null,
+            cpp: null,
+            cppTrend: null,
+            ctr: null,
+            ctrTrend: null,
+            spendToday: null,
+            spendTodayTrend: null,
+        };
+    }
+
+    let totalSpend = 0;
+    let totalImpressions = 0;
+    let totalClicks = 0;
+    let totalPurchases = 0;
+    let totalRevenue = 0;
+
+    insightsList.forEach(insights => {
+        const m = extractMetricsFromInsights(insights);
+        totalSpend += m.spend;
+        totalImpressions += m.impressions;
+        totalClicks += m.clicks;
+        totalPurchases += m.purchases;
+        totalRevenue += m.revenue;
+    });
+
+    const ctr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : null;
+    const cpp = totalPurchases > 0 ? totalSpend / totalPurchases : null;
+    const roas = totalSpend > 0 ? totalRevenue / totalSpend : null;
+
+    return {
+        roas,
+        roasTrend: null,       // Trendberechnung erfolgt später (Vergleich vs. Vorperiode)
+        cpp,
+        cppTrend: null,
+        ctr,
+        ctrTrend: null,
+        spendToday: null,      // kann über heutigen Insights-Call berechnet werden
+        spendTodayTrend: null,
+    };
+}
+
+/**
+ * Extrahiert Grund-KPIs aus einem Meta-Insights-Objekt.
+ * Erwartete Felder (typische Marketing API Felder):
+ *  - spend
+ *  - impressions
+ *  - clicks
+ *  - actions (array mit purchase, etc.)
+ *  - purchase_roas (array)
+ *  - cpm
+ */
+function extractMetricsFromInsights(insights) {
+    if (!insights) {
+        return {
+            spend: 0,
+            impressions: 0,
+            clicks: 0,
+            ctr: null,
+            purchases: 0,
+            revenue: 0,
+            roas: null,
+            cpm: 0,
+        };
+    }
+
+    const spend = toNumber(insights.spend);
+    const impressions = toNumber(insights.impressions);
+    const clicks = toNumber(insights.clicks);
+
+    let purchases = 0;
+    let revenue = 0;
+
+    if (Array.isArray(insights.actions)) {
+        const purchaseAction = insights.actions.find(a => a.action_type === "purchase");
+        if (purchaseAction) {
+            purchases = toNumber(purchaseAction.value);
+        }
+    }
+
+    if (Array.isArray(insights.action_values)) {
+        const purchaseValue = insights.action_values.find(a => a.action_type === "purchase");
+        if (purchaseValue) {
+            revenue = toNumber(purchaseValue.value);
+        }
+    }
+
+    let roas = null;
+    if (Array.isArray(insights.purchase_roas) && insights.purchase_roas.length > 0) {
+        roas = toNumber(insights.purchase_roas[0].value);
+    } else if (spend > 0 && revenue > 0) {
+        roas = revenue / spend;
+    }
+
+    const ctr = impressions > 0 ? (clicks / impressions) * 100 : null;
+    const cpm = toNumber(insights.cpm);
+
+    return {
+        spend,
+        impressions,
+        clicks,
+        ctr,
+        purchases,
+        revenue,
+        roas,
+        cpm,
+    };
+}
+
+/**
+ * Ermittelt eine visuelle Statusfarbe basierend auf Meta-Kampagnenstatus.
+ * Beispiele: ACTIVE, PAUSED, DELETED, ARCHIVED...
+ */
+function deriveStatusColorFromMetaStatus(status) {
+    if (!status) return "yellow";
+    const s = status.toUpperCase();
+
+    if (s === "ACTIVE") return "green";
+    if (s === "PAUSED") return "yellow";
+    if (["DELETED", "ARCHIVED", "DISAPPROVED"].includes(s)) return "red";
+
+    return "yellow";
+}
+
+/**
+ * Versucht, Kreativtyp anhand der Creative-Daten zu bestimmen.
+ * (simplifiziert, später erweiterbar)
+ */
+function detectCreativeType(metaCreative) {
+    if (!metaCreative) return "unknown";
+    if (metaCreative.object_story_spec && metaCreative.object_story_spec.video_data) {
+        return "video";
+    }
+    if (metaCreative.object_story_spec && metaCreative.object_story_spec.link_data &&
+        Array.isArray(metaCreative.object_story_spec.link_data.child_attachments) &&
+        metaCreative.object_story_spec.link_data.child_attachments.length > 1) {
+        return "carousel";
+    }
+    return "static";
+}
+
+/**
+ * Extrahiert eine URL (z.B. für Poster) aus der Creative-Struktur.
+ * Die konkrete Implementation hängt vom späteren Backend-Mapping ab.
+ */
+function extractCreativeUrl(metaCreative) {
+    if (!metaCreative) return null;
+    // Platzhalter: im echten System gibt uns das Backend eine saubere url.
+    return metaCreative.video_url || metaCreative.image_url || null;
+}
+
+/**
+ * Fallback: Thumbnail aus object_story_spec lesen.
+ */
+function extractThumbnailFromStory(metaCreative) {
+    if (!metaCreative || !metaCreative.object_story_spec) return null;
+    const spec = metaCreative.object_story_spec;
+
+    if (spec.video_data && spec.video_data.thumbnail_url) {
+        return spec.video_data.thumbnail_url;
+    }
+    if (spec.link_data && spec.link_data.picture) {
+        return spec.link_data.picture;
+    }
+    return null;
+}
 
 
 /* ============================================
@@ -180,7 +423,7 @@ function createCreativeCard(creative) {
             <span class="kpi-footer-item">CPM: ${formatCurrency(creative.metrics.cpm)}</span>
             <span class="kpi-footer-item">Score: ${creative.metrics.score ?? "-"}</span>
         </div>
-    `;
+    """
 
     card.appendChild(media);
     card.appendChild(stats);
