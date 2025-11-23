@@ -458,9 +458,10 @@ select:hover {
     box-shadow: var(--shadow-soft);
     margin-bottom: 10px;
     min-width: 300px;
-    border-left: 5px solid var(--color-primary);
+    /* Styles für die dynamischen Toast-Typen */
+    border-left: 5px solid var(--color-primary); 
     animation: slideIn 0.3s ease-out;
-    opacity: 1; /* Muss gesetzt werden, um den Fade-Out in app.js zu ermöglichen */
+    opacity: 1; 
     transform: translateX(0);
     transition: opacity 0.3s, transform 0.3s;
 }
