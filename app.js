@@ -51,8 +51,7 @@ const AppState = {
 // TODO: HIER deine echte Meta App-ID eintragen
 const META_OAUTH_CONFIG = {
     appId: "732040642590155",
-    // Muss mit der in der Meta-App registrierten Redirect-URL übereinstimmen
-    redirectUri: window.location.origin + window.location.pathname,
+    redirectUri: "https://amaschine.vercel.app/",
     scopes: "ads_read,business_management"
 };
 
