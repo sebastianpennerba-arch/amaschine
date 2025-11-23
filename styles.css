@@ -200,6 +200,44 @@ body {
     color: var(--color-primary);
 }
 
+/* --- META CONNECT STATUS PILL (TOP BAR) --- */
+.meta-connection-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    margin-top: 6px;
+}
+
+.meta-connection-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--danger);
+}
+
+.meta-connected {
+    border-color: rgba(16, 185, 129, 0.6);
+    color: var(--success);
+}
+
+.meta-connected .meta-connection-dot {
+    background-color: var(--success);
+}
+
+.meta-disconnected {
+    border-color: rgba(239, 68, 68, 0.6);
+    color: var(--danger);
+}
+
+.meta-disconnected .meta-connection-dot {
+    background-color: var(--danger);
+}
+
 /* --- META CONNECT STRIPE --- */
 .meta-connect-stripe {
     background: var(--danger);
