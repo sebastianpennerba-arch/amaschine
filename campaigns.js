@@ -4,11 +4,14 @@ import { AppState, DEMO_CAMPAIGNS } from "./state.js";
 import {
     fetchMetaAdAccounts,
     fetchMetaCampaigns,
-    fetchMetaCampaignInsights
+    fetchMetaCampaignInsights,
+    updateMetaCampaignStatus
 } from "./metaApi.js";
-import { openModal } from "./uiCore.js";
+import { openModal, showToast } from "./uiCore.js";
 
-function renderCampaignsPlaceholder(text = "Verbinde Meta, um deine Kampagnen anzuzeigen.") {
+function renderCampaignsPlaceholder(
+    text = "Verbinde Meta, um deine Kampagnen anzuzeigen."
+) {
     const tbody = document.getElementById("campaignsTableBody");
     if (!tbody) return;
 
@@ -71,7 +74,9 @@ function renderDemoCampaignsTable() {
             <td>${formatEuro(c.spend)}</td>
             <td>${formatRoas(c.roas)}</td>
             <td>${formatPercent(c.ctr)}</td>
-            <td><button class="action-button">Details</button></td>
+            <td>
+                <button class="action-button-secondary" disabled>Demo</button>
+            </td>
         `;
 
         tbody.appendChild(tr);
@@ -166,9 +171,10 @@ async function loadLiveCampaignTable() {
                         Array.isArray(d.website_purchase_roas) &&
                         d.website_purchase_roas.length > 0
                     ) {
-                        roas = parseFloat(
-                            d.website_purchase_roas[0].value || "0"
-                        ) || 0;
+                        roas =
+                            parseFloat(
+                                d.website_purchase_roas[0].value || "0"
+                            ) || 0;
                     }
                     const ctr = parseFloat(d.ctr || "0") || 0;
                     const cpm = parseFloat(d.cpm || "0") || 0;
@@ -201,7 +207,9 @@ async function loadLiveCampaignTable() {
         const searchInput = document.getElementById("campaignSearch");
         const statusFilter = document.getElementById("campaignStatusFilter");
 
-        const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : "";
+        const searchTerm = searchInput
+            ? searchInput.value.trim().toLowerCase()
+            : "";
         const statusValue = statusFilter ? statusFilter.value : "all";
 
         let filteredRows = rows;
@@ -223,7 +231,9 @@ async function loadLiveCampaignTable() {
             });
         }
 
-        filteredRows.sort((a, b) => (b.metrics.spend || 0) - (a.metrics.spend || 0));
+        filteredRows.sort(
+            (a, b) => (b.metrics.spend || 0) - (a.metrics.spend || 0)
+        );
 
         tbody.innerHTML = "";
 
@@ -235,6 +245,9 @@ async function loadLiveCampaignTable() {
 
             const tr = document.createElement("tr");
             const statusIndicatorClass = getStatusIndicatorClass(c.status);
+            const statusUpper = (c.status || "").toUpperCase();
+            const isActive = statusUpper === "ACTIVE";
+            const toggleLabel = isActive ? "Pause" : "Start";
 
             tr.innerHTML = `
                 <td><span class="status-indicator ${statusIndicatorClass}"></span> ${
@@ -246,22 +259,50 @@ async function loadLiveCampaignTable() {
                 <td>${formatEuro(spend)}</td>
                 <td>${formatRoas(roas)}</td>
                 <td>${formatPercent(ctr)}</td>
-                <td><button class="action-button campaign-details-btn" data-campaign-id="${
-                    c.id
-                }">Details</button></td>
+                <td>
+                    <button
+                        class="action-button-secondary campaign-toggle-btn"
+                        data-campaign-id="${c.id}"
+                        data-current-status="${c.status || ""}"
+                    >
+                        ${toggleLabel}
+                    </button>
+                    <button
+                        class="action-button campaign-details-btn"
+                        data-campaign-id="${c.id}"
+                    >
+                        Details
+                    </button>
+                </td>
             `;
 
             tbody.appendChild(tr);
         });
 
         if (!filteredRows.length) {
-            renderCampaignsPlaceholder("Keine Kampagnen entsprechen den aktuellen Filtern.");
+            renderCampaignsPlaceholder(
+                "Keine Kampagnen entsprechen den aktuellen Filtern."
+            );
         }
 
         tbody.querySelectorAll(".campaign-details-btn").forEach((btn) => {
             btn.addEventListener("click", async (e) => {
-                const campaignId = e.currentTarget.getAttribute("data-campaign-id");
+                const campaignId =
+                    e.currentTarget.getAttribute("data-campaign-id");
                 await openCampaignDetails(campaignId);
+            });
+        });
+
+        tbody.querySelectorAll(".campaign-toggle-btn").forEach((btn) => {
+            btn.addEventListener("click", async (e) => {
+                const campaignId =
+                    e.currentTarget.getAttribute("data-campaign-id");
+                const currentStatus = (
+                    e.currentTarget.getAttribute("data-current-status") || ""
+                ).toUpperCase();
+                const nextStatus =
+                    currentStatus === "ACTIVE" ? "PAUSED" : "ACTIVE";
+                await handleCampaignToggle(campaignId, nextStatus);
             });
         });
 
@@ -294,7 +335,9 @@ async function openCampaignDetails(campaignId) {
                 Array.isArray(d.website_purchase_roas) &&
                 d.website_purchase_roas.length > 0
             ) {
-                roas = parseFloat(d.website_purchase_roas[0].value || "0") || 0;
+                roas = parseFloat(
+                    d.website_purchase_roas[0].value || "0"
+                ) || 0;
             }
             const ctr = parseFloat(d.ctr || "0") || 0;
             const cpm = parseFloat(d.cpm || "0") || 0;
@@ -329,4 +372,51 @@ async function openCampaignDetails(campaignId) {
    `;
 
     openModal(`Kampagne: ${campaign.name || campaignId}`, html);
+}
+
+// Start/Stop Kampagnen wie im Meta-Manager (Minimum)
+async function handleCampaignToggle(campaignId, nextStatus) {
+    if (!campaignId || !nextStatus) return;
+
+    try {
+        const result = await updateMetaCampaignStatus(campaignId, nextStatus);
+        if (!result || result.success === false) {
+            console.error("updateMetaCampaignStatus failed:", result);
+            if (typeof showToast === "function") {
+                showToast(
+                    "Konnte Kampagnenstatus nicht ändern.",
+                    "error"
+                );
+            }
+            return;
+        }
+
+        // Lokalen Status updaten
+        const list = AppState.meta.campaigns || [];
+        const found = list.find((c) => c.id === campaignId);
+        if (found) {
+            found.status = nextStatus;
+        }
+
+        if (typeof showToast === "function") {
+            showToast(
+                `Kampagne wurde ${
+                    nextStatus === "ACTIVE" ? "gestartet" : "pausiert"
+                }.`,
+                "success"
+            );
+        }
+
+        // Tabelle neu laden, damit Button/Status aktualisiert werden
+        AppState.campaignsLoaded = false;
+        await loadLiveCampaignTable();
+    } catch (e) {
+        console.error("handleCampaignToggle error:", e);
+        if (typeof showToast === "function") {
+            showToast(
+                "Unerwarteter Fehler beim Ändern des Kampagnenstatus.",
+                "error"
+            );
+        }
+    }
 }
