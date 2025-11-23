@@ -9,18 +9,8 @@
 </head>
 <body>
 
-    <!-- META CONNECT STRIPE -->
-<div id="metaConnectStripe" class="meta-connect-stripe hidden">
-    <div class="meta-connect-inner">
-        <span><i class="fas fa-plug"></i> Nicht verbunden mit Meta Ads</span>
-        <button id="connectMetaButton" class="connect-meta-btn">
-            <i class="fab fa-meta"></i> Mit Meta verbinden
-        </button>
-    </div>
-</div>
-
     <!-- ========================================= -->
-    <!-- SIDEBAR (UNVERÄNDERT, WIE VORGEGEBEN) -->
+    <!-- SIDEBAR (Grundgerüst unverändert) -->
     <!-- ========================================= -->
     <nav class="sidebar" id="sidebar">
         <div class="logo-container">
@@ -28,17 +18,31 @@
         </div>
         
         <div class="menu-category">ANALYTICS</div>
-        <a href="#" class="menu-item active" id="menuDashboard" data-view="dashboardView"><i class="fas fa-chart-line"></i> Dashboard</a>
-        <a href="#" class="menu-item" id="menuCreativeLibrary" data-view="creativesView"><i class="fas fa-image"></i> Creative Library</a>
-        <a href="#" class="menu-item" id="menuCampaigns" data-view="campaignsView"><i class="fas fa-bullhorn"></i> Campaigns</a>
+        <a href="#" class="menu-item active" id="menuDashboard" data-view="dashboardView">
+            <i class="fas fa-chart-line"></i> Dashboard
+        </a>
+        <a href="#" class="menu-item" id="menuCreativeLibrary" data-view="creativesView">
+            <i class="fas fa-image"></i> Creative Library
+        </a>
+        <a href="#" class="menu-item" id="menuCampaigns" data-view="campaignsView">
+            <i class="fas fa-bullhorn"></i> Campaigns
+        </a>
         
         <div class="menu-category">INTELLIGENCE</div>
-        <a href="#" class="menu-item" id="menuSenseiStrategy" data-view="senseiStrategyView"><i class="fas fa-brain"></i> Sensei Strategy</a>
-        <a href="#" class="menu-item" id="menuReportsExport" data-view="reportsExportView"><i class="fas fa-file-export"></i> Reports & Export</a>
+        <a href="#" class="menu-item" id="menuSenseiStrategy" data-view="senseiStrategyView">
+            <i class="fas fa-brain"></i> Sensei Strategy
+        </a>
+        <a href="#" class="menu-item" id="menuReportsExport" data-view="reportsExportView">
+            <i class="fas fa-file-export"></i> Reports & Export
+        </a>
         
         <div class="menu-category">TOOLS</div>
-        <a href="#" class="menu-item" id="menuTestingLog" data-view="testingLogView"><i class="fas fa-flask"></i> Testing Log</a>
-        <a href="#" class="menu-item" id="menuCustomBuilder" data-view="customBuilderView"><i class="fas fa-wrench"></i> Custom Builder</a>
+        <a href="#" class="menu-item" id="menuTestingLog" data-view="testingLogView">
+            <i class="fas fa-flask"></i> Testing Log
+        </a>
+        <a href="#" class="menu-item" id="menuCustomBuilder" data-view="customBuilderView">
+            <i class="fas fa-wrench"></i> Custom Builder
+        </a>
         
         <div class="menu-footer">
             <div class="menu-status" style="margin-bottom: 5px;">
@@ -47,17 +51,21 @@
             <div class="menu-status" style="margin-bottom: 15px;">
                 <span class="status-indicator status-yellow"></span> API Health (Delayed)
             </div>
-            <a href="#" class="menu-item" id="menuSettings" data-view="settingsView"><i class="fas fa-cog"></i> Settings</a>
+            <a href="#" class="menu-item" id="menuSettings" data-view="settingsView">
+                <i class="fas fa-cog"></i> Settings
+            </a>
         </div>
     </nav>
 
     <!-- ========================================= -->
-    <!-- TOP BAR (UNVERÄNDERT, WIE VORGEGEBEN) -->
+    <!-- TOP BAR -->
     <!-- ========================================= -->
     <header class="top-bar">
         <div class="greeting-status">
             <h1>Guten Tag, [User Name]!</h1>
-            <span class="header-date-time">Datum: <span id="currentDate"></span> | Zeit: <span id="currentTime"></span></span>
+            <span class="header-date-time">
+                Datum: <span id="currentDate"></span> | Zeit: <span id="currentTime"></span>
+            </span>
             <span class="system-health system-optimal">SYSTEM HEALTH: OPTIMAL</span>
         </div>
         
@@ -86,6 +94,16 @@
     <!-- ========================================= -->
     <main class="main-content" id="mainContent">
 
+        <!-- META CONNECT STRIPE (jetzt im Main, nicht mehr im Body-Flex) -->
+        <div id="metaConnectStripe" class="meta-connect-stripe">
+            <div class="meta-connect-inner">
+                <span><i class="fas fa-plug"></i> Nicht mit Meta Ads verbunden</span>
+                <button id="connectMetaButton" class="connect-meta-btn">
+                    <i class="fab fa-meta"></i> Mit Meta verbinden
+                </button>
+            </div>
+        </div>
+
         <!-- =========================== -->
         <!-- DASHBOARD VIEW -->
         <!-- =========================== -->
@@ -110,7 +128,12 @@
 
             <div class="card" style="padding: 25px; margin-bottom: 25px;">
                 <div class="filter-bar" style="display: flex; gap: 15px; align-items: center;">
-                    <input type="text" id="creativeSearch" placeholder="Suche nach Namen, Hook oder KPI" style="flex-grow: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px;">
+                    <input
+                        type="text"
+                        id="creativeSearch"
+                        placeholder="Suche nach Namen, Hook oder KPI"
+                        style="flex-grow: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px;"
+                    >
 
                     <div class="select-container" style="min-width: 150px;">
                         <select id="creativeSort">
@@ -146,8 +169,12 @@
             
             <div class="card" style="padding: 25px; margin-bottom: 25px;">
                 <div class="filter-bar" style="display: flex; gap: 15px; align-items: center;">
-                    <input type="text" id="campaignSearch" placeholder="Suche nach Kampagnen-Namen oder ID" 
-                        style="flex-grow: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px;">
+                    <input
+                        type="text"
+                        id="campaignSearch"
+                        placeholder="Suche nach Kampagnen-Namen oder ID"
+                        style="flex-grow: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px;"
+                    >
 
                     <div class="select-container" style="min-width: 150px;">
                         <select id="campaignStatusFilter">
@@ -218,17 +245,25 @@
             </div>
         </section>
 
-        <!-- Placeholder Views bleiben -->
-        <section class="view hidden" id="reportsExportView"><h2 class="elite-title">Reports & Export</h2></section>
-        <section class="view hidden" id="testingLogView"><h2 class="elite-title">Testing Log</h2></section>
-        <section class="view hidden" id="customBuilderView"><h2 class="elite-title">Custom Builder</h2></section>
-        <section class="view hidden" id="settingsView"><h2 class="elite-title">Settings</h2></section>
+        <!-- Placeholder Views -->
+        <section class="view hidden" id="reportsExportView">
+            <h2 class="elite-title">Reports & Export</h2>
+        </section>
+        <section class="view hidden" id="testingLogView">
+            <h2 class="elite-title">Testing Log</h2>
+        </section>
+        <section class="view hidden" id="customBuilderView">
+            <h2 class="elite-title">Custom Builder</h2>
+        </section>
+        <section class="view hidden" id="settingsView">
+            <h2 class="elite-title">Settings</h2>
+        </section>
 
     </main>
 
     <!-- TOAST + MODAL -->
     <div class="toast-container" id="toastContainer"></div>
-
+    
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal-content">
             <h3 id="modalTitle">Modal Titel</h3>
