@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
+
 <body>
 
     <!-- ========================================= -->
@@ -63,14 +64,15 @@
     <!-- ========================================= -->
     <header class="top-bar">
         <div class="greeting-status">
-            <!-- WICHTIG: ID hinzugefügt, damit JS den Namen setzen kann -->
-            <h1 id="greetingTitle">Guten Tag, [User Name]!</h1>
+            <h1 id="greetingTitle">Guten Tag!</h1>
+
             <span class="header-date-time">
                 Datum: <span id="currentDate"></span> | Zeit: <span id="currentTime"></span>
             </span>
+
             <span class="system-health system-optimal">SYSTEM HEALTH: OPTIMAL</span>
 
-            <!-- Klarer Meta-Verbindungsstatus -->
+            <!-- Meta Verbindungspille -->
             <div class="meta-connection-pill meta-disconnected" id="metaConnectionPill">
                 <span class="meta-connection-dot" id="metaConnectionDot"></span>
                 <span id="metaConnectionLabel">Nicht mit Meta verbunden</span>
@@ -84,6 +86,7 @@
                     <option>Kunde Y</option>
                 </select>
             </div>
+
             <div class="select-container">
                 <select id="campaignGroupSelect">
                     <option>Alle Kampagnen (8)</option>
@@ -93,7 +96,6 @@
             
             <button class="header-action-button"><i class="fas fa-user-circle"></i></button>
             <button class="header-action-button"><i class="fas fa-bell"></i></button>
-            <!-- Disconnect-Button bleibt -->
             <button class="header-action-button" id="disconnectMetaButton">
                 <i class="fas fa-sign-out-alt"></i>
             </button>
@@ -134,7 +136,7 @@
         <section class="view hidden" id="creativesView">
             <h2 class="elite-title">Creative Library (Live Daten)</h2>
 
-            <div class="card" style="padding: 25px; margin-bottom: 25px;">
+            <div class="card">
                 <div class="filter-bar" style="display: flex; gap: 15px; align-items: center;">
                     <input
                         type="text"
@@ -167,14 +169,13 @@
             <div class="creative-library-grid" id="creativeLibraryGrid"></div>
         </section>
 
-
         <!-- =========================== -->
         <!-- CAMPAIGNS VIEW -->
         <!-- =========================== -->
         <section class="view hidden" id="campaignsView">
             <h2 class="elite-title">Campaigns Overview</h2>
             
-            <div class="card" style="padding: 25px; margin-bottom: 25px;">
+            <div class="card">
                 <div class="filter-bar" style="display: flex; gap: 15px; align-items: center;">
                     <input
                         type="text"
@@ -204,7 +205,7 @@
                 </div>
             </div>
 
-            <div class="card campaign-list-card" style="padding: 0;">
+            <div class="card" style="padding: 0;">
                 <table class="campaigns-table">
                     <thead>
                         <tr>
@@ -228,7 +229,7 @@
         <!-- =========================== -->
         <section class="view hidden" id="senseiStrategyView">
             <h2 class="elite-title">Sensei Strategy</h2>
-            <p class="section-description" style="color: var(--text-secondary); margin-bottom: 30px;">
+            <p style="color: var(--text-secondary); margin-bottom: 30px;">
                 Intelligente, datengesteuerte Empfehlungen zur Optimierung Ihrer Werbekampagnen.
             </p>
 
@@ -252,20 +253,25 @@
         <section class="view hidden" id="reportsExportView">
             <h2 class="elite-title">Reports & Export</h2>
         </section>
+
         <section class="view hidden" id="testingLogView">
             <h2 class="elite-title">Testing Log</h2>
         </section>
+
         <section class="view hidden" id="customBuilderView">
             <h2 class="elite-title">Custom Builder</h2>
         </section>
+
         <section class="view hidden" id="settingsView">
             <h2 class="elite-title">Settings</h2>
         </section>
 
     </main>
 
+    <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
     
+    <!-- Modal -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal-content">
             <h3 id="modalTitle">Modal Titel</h3>
