@@ -9,23 +9,26 @@
 </head>
 <body>
 
+    <!-- ========================================= -->
+    <!-- SIDEBAR (UNVERÄNDERT, WIE VORGEGEBEN) -->
+    <!-- ========================================= -->
     <nav class="sidebar" id="sidebar">
         <div class="logo-container">
             <img src="Logo_re_Sc.png" alt="SignalOne Logo" class="logo">
         </div>
         
         <div class="menu-category">ANALYTICS</div>
-        <a href="#" class="menu-item active" id="menuDashboard" data-view="dashboard" onclick="showView('dashboardView', this)"><i class="fas fa-chart-line"></i> Dashboard</a>
-        <a href="#" class="menu-item" id="menuCreativeLibrary" data-view="creatives" onclick="showView('creativesView', this)"><i class="fas fa-image"></i> Creative Library</a>
-        <a href="#" class="menu-item" id="menuCampaigns" data-view="campaigns" onclick="showView('campaignsView', this)"><i class="fas fa-bullhorn"></i> Campaigns</a>
+        <a href="#" class="menu-item active" id="menuDashboard" data-view="dashboardView"><i class="fas fa-chart-line"></i> Dashboard</a>
+        <a href="#" class="menu-item" id="menuCreativeLibrary" data-view="creativesView"><i class="fas fa-image"></i> Creative Library</a>
+        <a href="#" class="menu-item" id="menuCampaigns" data-view="campaignsView"><i class="fas fa-bullhorn"></i> Campaigns</a>
         
         <div class="menu-category">INTELLIGENCE</div>
-        <a href="#" class="menu-item" id="menuSenseiStrategy" data-view="senseiStrategy" onclick="showView('senseiStrategyView', this)"><i class="fas fa-brain"></i> Sensei Strategy</a>
-        <a href="#" class="menu-item" id="menuReportsExport" data-view="reportsExport" onclick="showView('reportsExportView', this)"><i class="fas fa-file-export"></i> Reports & Export</a>
+        <a href="#" class="menu-item" id="menuSenseiStrategy" data-view="senseiStrategyView"><i class="fas fa-brain"></i> Sensei Strategy</a>
+        <a href="#" class="menu-item" id="menuReportsExport" data-view="reportsExportView"><i class="fas fa-file-export"></i> Reports & Export</a>
         
         <div class="menu-category">TOOLS</div>
-        <a href="#" class="menu-item" id="menuTestingLog" data-view="testingLog" onclick="showView('testingLogView', this)"><i class="fas fa-flask"></i> Testing Log</a>
-        <a href="#" class="menu-item" id="menuCustomBuilder" data-view="customBuilder" onclick="showView('customBuilderView', this)"><i class="fas fa-wrench"></i> Custom Builder</a>
+        <a href="#" class="menu-item" id="menuTestingLog" data-view="testingLogView"><i class="fas fa-flask"></i> Testing Log</a>
+        <a href="#" class="menu-item" id="menuCustomBuilder" data-view="customBuilderView"><i class="fas fa-wrench"></i> Custom Builder</a>
         
         <div class="menu-footer">
             <div class="menu-status" style="margin-bottom: 5px;">
@@ -34,334 +37,129 @@
             <div class="menu-status" style="margin-bottom: 15px;">
                 <span class="status-indicator status-yellow"></span> API Health (Delayed)
             </div>
-            <a href="#" class="menu-item" id="menuSettings" data-view="settings" onclick="showView('settingsView', this)"><i class="fas fa-cog"></i> Settings</a>
+            <a href="#" class="menu-item" id="menuSettings" data-view="settingsView"><i class="fas fa-cog"></i> Settings</a>
         </div>
     </nav>
 
+    <!-- ========================================= -->
+    <!-- TOP BAR (UNVERÄNDERT, WIE VORGEGEBEN) -->
+    <!-- ========================================= -->
     <header class="top-bar">
         <div class="greeting-status">
             <h1>Guten Tag, [User Name]!</h1>
-            <span class="header-date-time">Datum: <span id="currentDate">21. November 2025</span> | Zeit: <span id="currentTime">09:53:30</span></span>
+            <span class="header-date-time">Datum: <span id="currentDate"></span> | Zeit: <span id="currentTime"></span></span>
             <span class="system-health system-optimal">SYSTEM HEALTH: OPTIMAL</span>
         </div>
         
         <div class="account-selection">
             <div class="select-container">
-                <select onchange="handleDropdownChange('Brand', this.value)">
+                <select id="brandSelect">
                     <option>SignalOne Brand (Active)</option>
                     <option>Kunde Y</option>
                 </select>
             </div>
             <div class="select-container">
-                <select onchange="handleDropdownChange('Kampagnen Gruppe', this.value)">
+                <select id="campaignGroupSelect">
                     <option>Alle Kampagnen (8)</option>
                     <option>Scaling (3)</option>
                 </select>
             </div>
             
-            <button class="header-action-button" onclick="handleDeadButton('User Profile')"><i class="fas fa-user-circle"></i></button>
-            <button class="header-action-button" onclick="handleDeadButton('Quick Actions')"><i class="fas fa-bell"></i></button>
-            <button class="header-action-button" onclick="handleDeadButton('Logout')"><i class="fas fa-sign-out-alt"></i></button>
+            <button class="header-action-button"><i class="fas fa-user-circle"></i></button>
+            <button class="header-action-button"><i class="fas fa-bell"></i></button>
+            <button class="header-action-button"><i class="fas fa-sign-out-alt"></i></button>
         </div>
     </header>
 
+    <!-- ========================================= -->
+    <!-- MAIN CONTENT -->
+    <!-- ========================================= -->
     <main class="main-content" id="mainContent">
-        
+
+        <!-- =========================== -->
+        <!-- DASHBOARD VIEW -->
+        <!-- =========================== -->
         <section class="view" id="dashboardView">
             <h2 class="elite-title">Dashboard Overview</h2>
-            
-            <div class="kpi-grid">
-                
-                <div class="kpi-card">
-                    <span class="kpi-label"><i class="fas fa-fire trend-positive"></i> RETURN ON AD SPEND (ROAS)</span>
-                    <span class="kpi-value">4.12x</span>
-                    <span class="kpi-trend trend-positive">▲ +1.4% vs. letzter Monat</span>
-                </div>
-                
-                <div class="kpi-card">
-                    <span class="kpi-label"><i class="fas fa-receipt trend-negative"></i> COST PER PURCHASE (CPP)</span>
-                    <span class="kpi-value">€ 18.33</span>
-                    <span class="kpi-trend trend-negative">▼ -5.9% vs. letzter Monat</span>
-                </div>
-                
-                <div class="kpi-card">
-                    <span class="kpi-label"><i class="fas fa-chart-bar trend-positive"></i> CREATIVE CTR (GESAMT)</span>
-                    <span class="kpi-value">2.88%</span>
-                    <span class="kpi-trend trend-positive">▲ +0.3% vs. Durchschnitt</span>
-                </div>
 
-                <div class="kpi-card">
-                    <span class="kpi-label"><i class="fas fa-money-bill-wave trend-positive"></i> AD SPEND (HEUTE)</span>
-                    <span class="kpi-value">€ 5,123.00</span>
-                    <span class="kpi-trend trend-neutral">▶ +0.0% vs. Budgetiert</span>
-                </div>
-            </div>
+            <!-- DYNAMIC KPI RENDER TARGET -->
+            <div id="dashboardKpiContainer"></div>
 
-            <div class="card performance-card">
-                <div class="card-header">
-                    <h3 class="elite-title" style="font-size: 20px;">Performance Trend</h3>
-                    <div class="controls">
-                        <div class="select-container small-select">
-                            <select onchange="handleChartChange(this.value)">
-                                <option>ROAS</option>
-                                <option>Spend</option>
-                            </select>
-                        </div>
-                        <div class="date-toggles time-range-group">
-                            <button class="date-btn time-range-button" onclick="handleTimeRange('Heute', this)">Heute</button>
-                            <button class="date-btn time-range-button active" onclick="handleTimeRange('Letzte 7 Tage', this)">Letzte 7 Tage</button>
-                            <button class="date-btn time-range-button" onclick="handleTimeRange('Letzte 30 Tage', this)">Letzte 30 Tage</button>
-                            <button class="date-btn time-range-button" onclick="handleDeadButton('Custom Date Range')">Custom</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="chart-placeholder">
-                    [ ELITE CHART PLATZHALTER: Hier rendert später die Live-Visualisierung]
-                </div>
-            </div>
+            <!-- DYNAMIC CHART RENDER TARGET -->
+            <div id="dashboardChartContainer"></div>
 
-            <div class="card hero-creatives-card">
-                <h3 class="elite-title" style="font-size: 24px; margin-bottom: 5px;">Hero Creatives (Top 3 Performer)</h3>
-                <p style="color: var(--text-secondary); margin-bottom: 20px;">Die Creatives mit der höchsten Gesamt-Performance im aktuellen Zeitraum.</p>
-                
-                <div class="hero-grid">
-                    
-                    <div class="creative-hero-item" onclick="handleDeadButton('Creative Detailansicht: Creative1.png öffnen')">
-                        <div class="creative-media-container">
-                            <img src="/mock/Creative1.png" alt="Creative Thumbnail 1" loading="lazy">
-                        </div>
-                        <div class="creative-details">
-                            <h4 class="creative-name">21-05_Static_Problem_Hook</h4>
-                            <div class="creative-kpi-bar"><span class="kpi-label">ROAS</span><span class="kpi-value-mini trend-positive">4.88x</span></div>
-                            <div class="creative-kpi-bar"><span class="kpi-label">Spend</span><span class="kpi-value-mini">€ 1,200</span></div>
-                            <div class="creative-kpi-bar"><span class="kpi-label">Purchases</span><span class="kpi-value-mini">89</span></div>
-                        </div>
-                    </div>
-
-                    <div class="creative-hero-item" onclick="handleDeadButton('Creative Detailansicht: Creative10.mp4 abspielen')">
-                        <div class="creative-media-container">
-                            <video 
-                                src="/mock/Creative10.mp4" 
-                                poster="/mock/Creative2.png" 
-                                muted 
-                                class="creative-video-mock"
-                            ></video>
-                        </div>
-                        <div class="creative-details">
-                            <h4 class="creative-name">20-07_Video_Value_Rasenmäher</h4>
-                            <div class="creative-kpi-bar"><span class="kpi-label">ROAS</span><span class="kpi-value-mini trend-positive">4.52x</span></div>
-                            <div class="creative-kpi-bar"><span class="kpi-label">Spend</span><span class="kpi-value-mini">€ 950</span></div>
-                            <div class="creative-kpi-bar"><span class="kpi-label">Purchases</span><span class="kpi-value-mini">65</span></div>
-                        </div>
-                    </div>
-
-                    <div class="creative-hero-item" onclick="handleDeadButton('Creative Detailansicht: Creative11.mp4 abspielen')">
-                        <div class="creative-media-container">
-                            <video 
-                                src="/mock/Creative11.mp4" 
-                                poster="/mock/Creative3.png" 
-                                muted 
-                                class="creative-video-mock"
-                            ></video>
-                        </div>
-                        <div class="creative-details">
-                            <h4 class="creative-name">18-02_UGC_Quality_Unboxing</h4>
-                            <div class="creative-kpi-bar"><span class="kpi-label">ROAS</span><span class="kpi-value-mini trend-positive">3.98x</span></div>
-                            <div class="creative-kpi-bar"><span class="kpi-label">Spend</span><span class="kpi-value-mini">€ 1,500</span></div>
-                            <div class="creative-kpi-bar"><span class="kpi-label">Purchases</span><span class="kpi-value-mini">112</span></div>
-                        </div>
-                    </div>
-                    
-                </div>
-            </div>
+            <!-- DYNAMIC HERO CREATIVES -->
+            <div id="dashboardHeroCreativesContainer"></div>
         </section>
 
-
+        <!-- =========================== -->
+        <!-- CREATIVE LIBRARY VIEW -->
+        <!-- =========================== -->
         <section class="view hidden" id="creativesView">
-            <h2 class="elite-title">Creative Library (Detailansicht)</h2>
+            <h2 class="elite-title">Creative Library (Live Daten)</h2>
 
             <div class="card" style="padding: 25px; margin-bottom: 25px;">
                 <div class="filter-bar" style="display: flex; gap: 15px; align-items: center;">
-                    <input type="text" placeholder="Suche nach Namen, Hook oder KPI" style="flex-grow: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px;">
+                    <input type="text" id="creativeSearch" placeholder="Suche nach Namen, Hook oder KPI" style="flex-grow: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px;">
 
                     <div class="select-container" style="min-width: 150px;">
-                        <select onchange="handleDropdownChange('Sortierung', this.value)">
-                            <option>Sortieren nach: ROAS (absteigend)</option>
-                            <option>Sortieren nach: Spend (aufsteigend)</option>
+                        <select id="creativeSort">
+                            <option value="roas_desc">Sortieren nach: ROAS (absteigend)</option>
+                            <option value="spend_asc">Sortieren nach: Spend (aufsteigend)</option>
                         </select>
                     </div>
+
                     <div class="select-container" style="min-width: 150px;">
-                        <select onchange="handleDropdownChange('Creative Typ', this.value)">
-                            <option>Typ: Alle</option>
-                            <option>Typ: Video</option>
-                            <option>Typ: Static</option>
-                            <option>Typ: Carousel</option>
+                        <select id="creativeType">
+                            <option value="all">Typ: Alle</option>
+                            <option value="video">Typ: Video</option>
+                            <option value="static">Typ: Static</option>
+                            <option value="carousel">Typ: Carousel</option>
                         </select>
                     </div>
-                    <button class="header-action-button" onclick="handleDeadButton('Filter anwenden')">Filter ◩</button>
-                    <button class="header-action-button" onclick="handleDeadButton('Neues Creative hochladen')">⬆️ Upload</button>
+
+                    <button class="header-action-button">Filter ◩</button>
+                    <button class="header-action-button">⬆️ Upload</button>
                 </div>
             </div>
 
-            <div class="creative-library-grid">
-                
-                <div class="card creative-library-item" onclick="handleDeadButton('Detailansicht Creative 1')">
-                    <div class="creative-media-container-library">
-                        <img src="/mock/Creative1.png" alt="Creative 1" loading="lazy">
-                        <i class="platform-badge fab fa-meta"></i>
-                    </div>
-                    <div class="creative-stats">
-                        <h4 class="creative-name-library">Creative1.png (Problem Hook)</h4>
-                        <p class="creative-meta">Typ: Static | ROAS: <strong class="trend-positive">4.88x</strong></p>
-                        
-                        <div class="kpi-bar-visual">
-                            <span class="kpi-label-small">Verkäufe:</span>
-                            <div class="kpi-slider-track"><div class="kpi-slider-fill fill-positive" style="width: 95%;"></div></div>
-                            <span class="kpi-value-small">189</span>
-                        </div>
-                        <div class="kpi-bar-visual">
-                            <span class="kpi-label-small">Kosten pro Verkauf:</span>
-                            <div class="kpi-slider-track"><div class="kpi-slider-fill fill-negative" style="width: 25%;"></div></div>
-                            <span class="kpi-value-small">€ 10.50</span>
-                        </div>
-                        <div class="kpi-bar-visual">
-                            <span class="kpi-label-small">Spend:</span>
-                            <div class="kpi-slider-track"><div class="kpi-slider-fill fill-spend" style="width: 70%;"></div></div>
-                            <span class="kpi-value-small">€ 5.000</span>
-                        </div>
-                        <div class="creative-footer-kpis">
-                            <span class="kpi-footer-item">CTR: 3.1%</span>
-                            <span class="kpi-footer-item">CPM: €8.50</span>
-                            <span class="kpi-footer-item">Score: 92</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card creative-library-item" onclick="handleDeadButton('Detailansicht Creative 10')">
-                    <div class="creative-media-container-library">
-                        <video src="/mock/Creative10.mp4" poster="/mock/Creative2.png" muted class="creative-video-mock"></video>
-                        <i class="platform-badge fab fa-meta"></i>
-                    </div>
-                    <div class="creative-stats">
-                        <h4 class="creative-name-library">Creative10.mp4 (Value Prop)</h4>
-                        <p class="creative-meta">Typ: Video | ROAS: <strong class="trend-positive">4.15x</strong></p>
-
-                        <div class="kpi-bar-visual">
-                            <span class="kpi-label-small">Verkäufe:</span>
-                            <div class="kpi-slider-track"><div class="kpi-slider-fill fill-positive" style="width: 75%;"></div></div>
-                            <span class="kpi-value-small">140</span>
-                        </div>
-                        <div class="kpi-bar-visual">
-                            <span class="kpi-label-small">Kosten pro Verkauf:</span>
-                            <div class="kpi-slider-track"><div class="kpi-slider-fill fill-negative" style="width: 45%;"></div></div>
-                            <span class="kpi-value-small">€ 12.80</span>
-                        </div>
-                        <div class="kpi-bar-visual">
-                            <span class="kpi-label-small">Spend:</span>
-                            <div class="kpi-slider-track"><div class="kpi-slider-fill fill-spend" style="width: 50%;"></div></div>
-                            <span class="kpi-value-small">€ 3.500</span>
-                        </div>
-                        <div class="creative-footer-kpis">
-                            <span class="kpi-footer-item">CTR: 2.5%</span>
-                            <span class="kpi-footer-item">CPM: €9.10</span>
-                            <span class="kpi-footer-item">Score: 81</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card creative-library-item" onclick="handleDeadButton('Detailansicht Creative 3')">
-                    <div class="creative-media-container-library">
-                        <img src="/mock/Creative3.png" alt="Creative 3" loading="lazy">
-                        <i class="platform-badge fab fa-meta"></i>
-                    </div>
-                    <div class="creative-stats">
-                        <h4 class="creative-name-library">Creative3.png (Unboxing)</h4>
-                        <p class="creative-meta">Typ: Static | ROAS: <strong class="trend-neutral">3.30x</strong></p>
-                        
-                        <div class="kpi-bar-visual">
-                            <span class="kpi-label-small">Verkäufe:</span>
-                            <div class="kpi-slider-track"><div class="kpi-slider-fill fill-positive" style="width: 40%;"></div></div>
-                            <span class="kpi-value-small">75</span>
-                        </div>
-                        <div class="kpi-bar-visual">
-                            <span class="kpi-label-small">Kosten pro Verkauf:</span>
-                            <div class="kpi-slider-track"><div class="kpi-slider-fill fill-negative" style="width: 70%;"></div></div>
-                            <span class="kpi-value-small">€ 18.30</span>
-                        </div>
-                        <div class="kpi-bar-visual">
-                            <span class="kpi-label-small">Spend:</span>
-                            <div class="kpi-slider-track"><div class="kpi-slider-fill fill-spend" style="width: 30%;"></div></div>
-                            <span class="kpi-value-small">€ 1.800</span>
-                        </div>
-                        <div class="creative-footer-kpis">
-                            <span class="kpi-footer-item">CTR: 1.9%</span>
-                            <span class="kpi-footer-item">CPM: €10.20</span>
-                            <span class="kpi-footer-item">Score: 68</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card creative-library-item" onclick="handleDeadButton('Detailansicht Creative 9')">
-                    <div class="creative-media-container-library">
-                        <img src="/mock/Creative9.jpg" alt="Creative 9" loading="lazy">
-                        <i class="platform-badge fab fa-meta"></i>
-                    </div>
-                    <div class="creative-stats">
-                        <h4 class="creative-name-library">Creative9.jpg (Lifestyle)</h4>
-                        <p class="creative-meta">Typ: Static | ROAS: <strong class="trend-neutral">3.55x</strong></p>
-                        <div class="kpi-bar-visual">
-                            <span class="kpi-label-small">Verkäufe:</span>
-                            <div class="kpi-slider-track"><div class="kpi-slider-fill fill-positive" style="width: 55%;"></div></div>
-                            <span class="kpi-value-small">95</span>
-                        </div>
-                        <div class="kpi-bar-visual">
-                            <span class="kpi-label-small">Kosten pro Verkauf:</span>
-                            <div class="kpi-slider-track"><div class="kpi-slider-fill fill-negative" style="width: 50%;"></div></div>
-                            <span class="kpi-value-small">€ 14.50</span>
-                        </div>
-                        <div class="kpi-bar-visual">
-                            <span class="kpi-label-small">Spend:</span>
-                            <div class="kpi-slider-track"><div class="kpi-slider-fill fill-spend" style="width: 45%;"></div></div>
-                            <span class="kpi-value-small">€ 2.100</span>
-                        </div>
-                        <div class="creative-footer-kpis">
-                            <span class="kpi-footer-item">CTR: 1.5%</span>
-                            <span class="kpi-footer-item">CPM: €9.80</span>
-                            <span class="kpi-footer-item">Score: 72</span>
-                        </div>
-                    </div>
-                </div>
-                
-            </div>
+            <!-- DYNAMIC CREATIVE GRID -->
+            <div class="creative-library-grid" id="creativeLibraryGrid"></div>
         </section>
 
 
+        <!-- =========================== -->
+        <!-- CAMPAIGNS VIEW -->
+        <!-- =========================== -->
         <section class="view hidden" id="campaignsView">
             <h2 class="elite-title">Campaigns Overview</h2>
             
             <div class="card" style="padding: 25px; margin-bottom: 25px;">
                 <div class="filter-bar" style="display: flex; gap: 15px; align-items: center;">
-                    <input type="text" placeholder="Suche nach Kampagnen-Namen oder ID" style="flex-grow: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px;">
+                    <input type="text" id="campaignSearch" placeholder="Suche nach Kampagnen-Namen oder ID" 
+                        style="flex-grow: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px;">
 
                     <div class="select-container" style="min-width: 150px;">
-                        <select onchange="handleDropdownChange('Kampagnen Status', this.value)">
-                            <option>Status: Alle</option>
-                            <option>Status: Aktiv</option>
-                            <option>Status: Pausiert</option>
-                            <option>Status: Abgeschlossen</option>
+                        <select id="campaignStatusFilter">
+                            <option value="all">Status: Alle</option>
+                            <option value="active">Status: Aktiv</option>
+                            <option value="paused">Status: Pausiert</option>
+                            <option value="completed">Status: Abgeschlossen</option>
                         </select>
                     </div>
+
                     <div class="select-container" style="min-width: 150px;">
-                        <select onchange="handleDropdownChange('Kampagnen Ziel', this.value)">
-                            <option>Ziel: Alle</option>
-                            <option>Ziel: Scaling</option>
-                            <option>Ziel: Testing</option>
+                        <select id="campaignGoalFilter">
+                            <option value="all">Ziel: Alle</option>
+                            <option value="scaling">Ziel: Scaling</option>
+                            <option value="testing">Ziel: Testing</option>
                         </select>
                     </div>
-                    <button class="header-action-button" onclick="handleDeadButton('Neue Kampagne erstellen')">➕ Neu</button>
+
+                    <button class="header-action-button">➕ Neu</button>
                 </div>
             </div>
-            
+
             <div class="card campaign-list-card" style="padding: 0;">
                 <table class="campaigns-table">
                     <thead>
@@ -376,107 +174,51 @@
                             <th>Aktionen</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td><span class="status-indicator status-green"></span> Aktiv</td>
-                            <td>Scaling Campaign Q4 2025</td>
-                            <td>Scaling</td>
-                            <td>€ 1.500</td>
-                            <td>€ 32.500</td>
-                            <td>4.25x</td>
-                            <td>3.1%</td>
-                            <td><button class="action-button" onclick="handleDeadButton('Kampagnen-Details Scaling')">Details</button></td>
-                        </tr>
-                        <tr>
-                            <td><span class="status-indicator status-yellow"></span> Pausiert</td>
-                            <td>Testing: UGC Hook Tests</td>
-                            <td>Testing</td>
-                            <td>€ 500</td>
-                            <td>€ 7.200</td>
-                            <td>3.10x</td>
-                            <td>1.9%</td>
-                            <td><button class="action-button" onclick="handleDeadButton('Kampagnen-Details Testing')">Details</button></td>
-                        </tr>
-                        <tr>
-                            <td><span class="status-indicator status-red"></span> Abgeschlossen</td>
-                            <td>Summer Promotion 2025</td>
-                            <td>Scaling</td>
-                            <td>€ 0</td>
-                            <td>€ 150.000</td>
-                            <td>4.55x</td>
-                            <td>3.5%</td>
-                            <td><button class="action-button" onclick="handleDeadButton('Kampagnen-Details Promotion')">Details</button></td>
-                        </tr>
-                    </tbody>
+
+                    <!-- DYNAMIC TABLE BODY -->
+                    <tbody id="campaignsTableBody"></tbody>
+
                 </table>
             </div>
         </section>
 
-
+        <!-- =========================== -->
+        <!-- SENSEI STRATEGY VIEW -->
+        <!-- =========================== -->
         <section class="view hidden" id="senseiStrategyView">
             <h2 class="elite-title">Sensei Strategy</h2>
             <p class="section-description" style="color: var(--text-secondary); margin-bottom: 30px;">
                 Intelligente, datengesteuerte Empfehlungen zur Optimierung Ihrer Werbekampagnen.
             </p>
 
-            <div class="strategy-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-bottom: 25px;">
-                
+            <!-- Vorläufig statisch – später dynamisch -->
+            <div class="strategy-grid">
                 <div class="card strategy-card recommendation-card">
                     <h3 class="strategy-title">💡 Creative Recommendation</h3>
-                    <p class="kpi-value-mini trend-positive" style="font-size: 28px; margin: 10px 0;">+15% ROAS Potential</p>
-                    <p style="color: var(--text-secondary);">Empfehlung: **Skaliere** Creative ID: 21-05_Static_Problem_Hook (ROAS 4.88x) auf alle 5 Active Adsets.</p>
-                    <button class="action-button-secondary" onclick="handleDeadButton('Skalierung ausführen')">Automatisch Skalieren</button>
+                    <p style="color: var(--text-secondary);">Live-Daten folgen nach Integration.</p>
                 </div>
-
                 <div class="card strategy-card alert-card">
                     <h3 class="strategy-title">⚠️ Budget Pacing Alert</h3>
-                    <p class="kpi-value-mini trend-negative" style="font-size: 28px; margin: 10px 0;">-8% Unterausgaben</p>
-                    <p style="color: var(--text-secondary);">Warnung: Die Testing-Kampagne "UGC Hook Tests" gibt -8% unter dem geplanten Budget aus. **Erhöhe** Budget um 10%.</p>
-                    <button class="action-button-secondary" onclick="handleDeadButton('Budget anpassen')">Budget Anpassen</button>
+                    <p style="color: var(--text-secondary);">Live-Daten folgen nach Integration.</p>
                 </div>
-
                 <div class="card strategy-card warning-card">
                     <h3 class="strategy-title">🚨 Creative Fatigue</h3>
-                    <p class="kpi-value-mini trend-negative" style="font-size: 28px; margin: 10px 0;">-0.5% CTR Drop</p>
-                    <p style="color: var(--text-secondary);">Warnung: Creative ID 18-02_UGC_Quality_Unboxing zeigt Ermüdung. **Ersetze** es in 3 Adsets durch neues Material.</p>
-                    <button class="action-button-secondary" onclick="handleDeadButton('Creative pausieren')">Creative Pausieren</button>
+                    <p style="color: var(--text-secondary);">Live-Daten folgen nach Integration.</p>
                 </div>
-
-                <div class="card strategy-card generator-card" style="grid-column: span 3;">
-                    <h3 class="strategy-title">⚙️ Sensei AI Hook Generator (Mock)</h3>
-                    <p style="color: var(--text-secondary); margin-bottom: 15px;">Generiere datengestützte neue Hooks und Skripte basierend auf deinen Top-Performern.</p>
-                    <div style="display: flex; gap: 15px;">
-                        <input type="text" placeholder="Fokus-Produkt eingeben (z.B. Rasenmähermesser)" style="flex-grow: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px;">
-                        <button class="action-button" onclick="handleDeadButton('Hooks generieren')">Hooks Generieren</button>
-                        <button class="action-button-secondary" onclick="handleDeadButton('Scripts generieren')">Scripts Generieren</button>
-                    </div>
-                </div>
-
             </div>
         </section>
 
-        <section class="view hidden" id="reportsExportView">
-            <h2 class="elite-title">Reports & Export</h2>
-            <p>Platzhalter für Report-Generierung und Export-Funktionen.</p>
-        </section>
-        <section class="view hidden" id="testingLogView">
-            <h2 class="elite-title">Testing Log</h2>
-            <p>Platzhalter für das A/B-Testing-Logbuch.</p>
-        </section>
-        <section class="view hidden" id="customBuilderView">
-            <h2 class="elite-title">Custom Builder</h2>
-            <p>Platzhalter für den Custom Builder.</p>
-        </section>
-        <section class="view hidden" id="settingsView">
-            <h2 class="elite-title">Settings</h2>
-            <p>Platzhalter für die Einstellungen.</p>
-        </section>
-
+        <!-- Placeholder Views bleiben -->
+        <section class="view hidden" id="reportsExportView"><h2 class="elite-title">Reports & Export</h2></section>
+        <section class="view hidden" id="testingLogView"><h2 class="elite-title">Testing Log</h2></section>
+        <section class="view hidden" id="customBuilderView"><h2 class="elite-title">Custom Builder</h2></section>
+        <section class="view hidden" id="settingsView"><h2 class="elite-title">Settings</h2></section>
 
     </main>
 
+    <!-- TOAST + MODAL -->
     <div class="toast-container" id="toastContainer"></div>
-    
+
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal-content">
             <h3 id="modalTitle">Modal Titel</h3>
@@ -484,7 +226,6 @@
             <button onclick="closeModal()">Schließen</button>
         </div>
     </div>
-
 
     <script src="app.js"></script>
 </body>
