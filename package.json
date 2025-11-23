@@ -1,11 +1,8 @@
 {
-  "name": "signalone-backend",
+  "name": "amaschine",
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "vercel dev",
-    "start": "vercel dev",
-    "build": "echo \"Vercel functions werden zur Build-Zeit erzeugt\""
-  },
-  "dependencies": {}
+    "build": "echo 'Static site' "
+  }
 }
