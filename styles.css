@@ -672,3 +672,30 @@ body {
     margin-top: var(--spacing-inner);
     float: right;
 }
+
+.meta-connect-stripe {
+    background: #ef4444;
+    color: white;
+    padding: 12px 20px;
+    text-align: center;
+    font-weight: 600;
+    display: flex;
+    justify-content: center;
+}
+.meta-connect-inner {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.connect-meta-btn {
+    background: white;
+    color: #ef4444;
+    border: none;
+    padding: 7px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 700;
+}
+.connect-meta-btn:hover {
+    opacity: 0.85;
+}
