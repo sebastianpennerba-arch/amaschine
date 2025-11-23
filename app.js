@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateDateTime();
     setInterval(updateDateTime, 1000); 
 
-    // Initialen Status der Meta-Verbindung prüfen und UI aktualisieren
+    // Initialen Status der Meta-Verbindung prüfen und UI in Settings aktualisieren
     checkMetaConnectionStatus(); 
 
     // Zeigt die initiale Ansicht (Dashboard)
@@ -48,9 +48,7 @@ const MOCK_DATA = {
         { name: "Video Hook 1 - Best ROAS", id: 1, roas: 5.1, spend: 500 },
         { name: "Image Static - Volume Winner", id: 2, roas: 4.8, spend: 1200 },
         { name: "Carousel - Highest CTR", id: 3, roas: 4.5, spend: 800 },
-    ],
-    creatives: [],
-    campaigns: []
+    ]
 };
 
 /**
@@ -81,7 +79,14 @@ function fetchMetaAdsData() {
  * Lädt Daten für die aktuelle View und rendert sie.
  */
 async function loadViewData(viewId) {
-    if (viewId === 'settingsView') return; 
+    // Die Settings View lädt keine Dashboard-Daten
+    if (viewId === 'settingsView') {
+        checkMetaConnectionStatus(); 
+        return; 
+    }
+
+    // Zeigt Lade-Status an (wird durch renderDashboard überschrieben, falls erfolgreich)
+    renderDashboardLoading(); 
 
     showToast(`Lade Daten für ${viewId.replace('View', '')}...`, 'info');
     
@@ -100,7 +105,7 @@ async function loadViewData(viewId) {
         console.error("Fehler beim Laden der Daten:", error.message);
         showToast(error.message, 'error'); 
         
-        // Zeigt den Platzhalter für fehlende Verbindung nur im Dashboard an
+        // Zeigt den Fehler-Platzhalter
         if (viewId === 'dashboardView') {
             renderDashboardPlaceholder(error.message);
         }
@@ -119,22 +124,9 @@ function renderDashboard(kpis, heroCreatives) {
         senseiScore: { value: kpis.senseiScore, trend: 'Stabile Performance', trendClass: 'trend-neutral' }
     };
 
-    const kpiContainers = document.querySelectorAll('.kpi-grid > .kpi-card'); // Nur die eigentlichen Karten
+    const kpiContainers = document.querySelectorAll('#kpiGrid > .kpi-card'); 
 
-    // Stellt die ursprüngliche Struktur wieder her, falls der Platzhalter aktiv war
-    const kpiGrid = document.querySelector('.kpi-grid');
-    if (kpiGrid && kpiGrid.children.length === 1 && kpiGrid.children[0].style.gridColumn === '1 / -1') {
-        // Da wir das HTML nicht im Code haben, müssen wir hier einen Mock-Reload der statischen Struktur simulieren. 
-        // Für dieses Mocking ist es ausreichend, die Daten einfach über die statisch vorhandenen Karten zu legen, wenn die Karten existieren.
-        // Das Dashboard wird nur mit den Werten befüllt, wenn die 4 Karten im HTML vorhanden sind.
-        // Wenn die kpiContainers leer sind, bedeutet das, dass der Fehler-Platzhalter aktiv ist. Wir müssen das HTML der KPI-Karten zurücksetzen, um die Werte zu rendern.
-        // Da das Neuschreiben des statischen HTML-Codes im JS sehr komplex ist, verlasse ich mich darauf, dass der `renderDashboardPlaceholder` das Grid nur bei Fehler überschreibt und hier der normale Zustand herrscht.
-
-        // Simpler Reset (falls nötig, um den Error-Platzhalter zu entfernen - der `index.html` Code enthält die 4 KPI Karten)
-        // Dieser Code blockiert den Reset, da wir davon ausgehen, dass die 4 Karten im HTML hart kodiert sind.
-        // Wenn Sie einen echten Reset brauchen, müsste der gesamte Inhalt des kpi-grid Elements aus index.html hier neu eingefügt werden.
-    }
-    
+    // Befüllt die statischen KPI-Karten im HTML mit den Werten
     kpiContainers.forEach((card, index) => {
         const key = Object.keys(kpiElements)[index];
         const data = kpiElements[key];
@@ -159,6 +151,32 @@ function renderDashboard(kpis, heroCreatives) {
             </div>
         `).join('');
     }
+    
+    // 3. Chart Placeholder Text aktualisieren
+    const chartPlaceholder = document.querySelector('.chart-placeholder');
+    if (chartPlaceholder) chartPlaceholder.innerHTML = '<p style="color: var(--text-secondary);">Chart-Daten erfolgreich geladen. Hier würde die Visualisierung erscheinen.</p>';
+}
+
+/**
+ * Stellt die initialen Lade-Zustände wieder her.
+ */
+function renderDashboardLoading() {
+    const kpiContainers = document.querySelectorAll('#kpiGrid > .kpi-card'); 
+    kpiContainers.forEach((card) => {
+        const valueElement = card.querySelector('.kpi-value');
+        const trendElement = card.querySelector('.kpi-trend');
+        if (valueElement) valueElement.textContent = '€ 0,00';
+        if (trendElement) {
+            trendElement.textContent = 'Wird geladen...';
+            trendElement.className = 'kpi-trend trend-neutral';
+        }
+    });
+
+    const heroGrid = document.getElementById('creativeHeroGrid');
+    if (heroGrid) heroGrid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: var(--text-secondary);">Lade Hero Creatives...</p>';
+    
+    const chartPlaceholder = document.querySelector('.chart-placeholder');
+    if (chartPlaceholder) chartPlaceholder.innerHTML = '<p>Hier würde der Performance-Chart geladen werden.</p>';
 }
 
 /**
@@ -166,12 +184,13 @@ function renderDashboard(kpis, heroCreatives) {
  * @param {string} message - Die Fehlermeldung
  */
 function renderDashboardPlaceholder(message = "Daten nicht verfügbar.") {
-    const kpiGrid = document.querySelector('.kpi-grid');
+    const kpiGrid = document.getElementById('kpiGrid');
+    // Versteckt die 4 KPI-Karten und zeigt einen zentralen Fehler-Hinweis
     if (kpiGrid) {
          kpiGrid.innerHTML = `
             <div style="grid-column: 1 / -1; text-align: center; padding: 30px; border: 1px dashed var(--danger); border-radius: var(--radius); background-color: rgba(239, 68, 68, 0.05); margin-bottom: 20px;">
                 <p style="color: var(--danger); font-weight: 600; margin-bottom: 10px;"><i class="fas fa-exclamation-triangle"></i> Verbindung erforderlich!</p>
-                <p style="color: var(--text-secondary);">${message}</p>
+                <p style="color: var(--text-secondary);">${message} Bitte navigieren Sie zu **Settings** und verbinden Sie Ihr Meta Ads Konto.</p>
             </div>
         `;
     }
@@ -203,7 +222,7 @@ function checkMetaConnectionStatus() {
             connectButton.classList.add('action-button-secondary'); 
         } else {
             statusElement.innerHTML = `Status: <span style="color: var(--danger);"><i class="fas fa-times-circle"></i> **Nicht verbunden**</span>`;
-            connectButton.innerHTML = `<i class="fab fa-facebook-f"></i> Meta Ads verbinden (OAuth)`;
+            connectButton.innerHTML = `<i class="fab fa-facebook-f"></i> Meta Ads verbinden (FB Login)`;
             connectButton.onclick = startMetaOAuthFlow;
             connectButton.classList.add('action-button');
             connectButton.classList.remove('action-button-secondary');
@@ -212,17 +231,17 @@ function checkMetaConnectionStatus() {
 }
 
 /**
- * Startet den simulierten OAuth-Flow.
+ * Startet den simulierten OAuth-Flow (FB Login).
  */
 function startMetaOAuthFlow() {
     // ECHTE LOGIK: window.location.href = `https://www.facebook.com/v18.0/dialog/oauth?...`
 
     showToast("Starte Meta OAuth Flow Simulation...", 'info');
-    openModal("Meta Ads Verbindung starten", "In einem echten Szenario würden Sie jetzt zur Meta Login-Seite weitergeleitet. Nach erfolgreicher Freigabe (Scopes: ads_read) wird der Access Token gespeichert. Wir simulieren diesen Prozess in 3 Sekunden.");
+    openModal("Meta Ads Verbindung starten (FB Login)", "In einem echten Szenario würden Sie jetzt zur Meta Login-Seite weitergeleitet. Nach erfolgreicher Freigabe (Scopes: ads_read) wird der Access Token gespeichert. Wir simulieren diesen Prozess in 3 Sekunden.");
 
     // Simuliere den erfolgreichen Rücksprung und das Speichern des Tokens
     setTimeout(() => {
-        // Der hier gespeicherte Token ist der langlebige Access Token Ihrer Plattform.
+        // Speichere den Mock-Token im LocalStorage
         const mockToken = 'EAA...MOCK_TOKEN_' + Date.now(); 
         localStorage.setItem(META_ACCESS_TOKEN_KEY, mockToken);
         showToast("Meta Ads erfolgreich verbunden! Daten werden geladen...", 'success');
@@ -245,15 +264,13 @@ function disconnectMetaAccount() {
 }
 
 
-// --- 1. DATUM & UHRZEIT FUNKTION (UNVERÄNDERT) ---
+// --- 1. DATUM & UHRZEIT FUNKTION ---
 function updateDateTime() {
     const now = new Date();
     
-    // Format für Datum (z.B. 21. November 2025)
     const dateOptions = { day: '2-digit', month: 'long', year: 'numeric' };
     const dateString = now.toLocaleDateString('de-DE', dateOptions);
 
-    // Format für Zeit (z.B. 09:53:30)
     const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
     const timeString = now.toLocaleTimeString('de-DE', timeOptions);
 
@@ -269,7 +286,7 @@ function updateDateTime() {
 }
 
 
-// --- 2. VIEW & NAVIGATION HANDLING (UPDATE FÜR DATENLADUNG) ---
+// --- 2. VIEW & NAVIGATION HANDLING ---
 /**
  * Wechselt die angezeigte Hauptansicht und aktualisiert den aktiven Menüpunkt.
  */
@@ -294,18 +311,14 @@ function showView(viewId, clickedElement) {
         clickedElement.classList.add('active');
     }
     
-    // Ruft die Datenladefunktion auf (nur für Daten-Views)
-    if (viewId === 'dashboardView' || viewId === 'creativesView' || viewId === 'campaignsView') {
-        loadViewData(viewId);
-    } else if (viewId === 'settingsView') {
-        checkMetaConnectionStatus(); // Status in Settings View immer aktualisieren
-    }
+    // Ruft die Datenladefunktion auf (relevant für alle Views, auch für Settings, um den Status zu prüfen)
+    loadViewData(viewId);
 
     showToast(`Ansicht gewechselt: ${viewId.replace('View', '')}`, 'info');
 }
 
 
-// --- 3. TOAST SYSTEM (Benachrichtigungen) (UNVERÄNDERT) ---
+// --- 3. TOAST SYSTEM (Benachrichtigungen) ---
 /**
  * Zeigt eine temporäre Benachrichtigung (Toast) an.
  */
@@ -339,7 +352,7 @@ function getIconForType(type) {
 }
 
 
-// --- 4. MODAL SYSTEM (UNVERÄNDERT) ---
+// --- 4. MODAL SYSTEM ---
 /**
  * Öffnet ein modales Fenster.
  */
@@ -363,7 +376,7 @@ function closeModal() {
 }
 
 
-// --- 5. MOCK HANDLER FÜR INTERAKTIONEN (UNVERÄNDERT) ---
+// --- 5. MOCK HANDLER FÜR INTERAKTIONEN ---
 
 /**
  * Allgemeine Funktion zur Simulation einer Aktion.
