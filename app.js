@@ -1,5 +1,11 @@
 /**
- * FINAL FIXED VERSION — BUTTON & OAUTH WORKING
+ * SIGNALONE — FINAL WORKING APP.JS
+ * Fixes:
+ *  - Sidebar Navigation
+ *  - View Switching
+ *  - Meta OAuth Flow
+ *  - UI Updates
+ *  - Connect Button
  */
 
 // ============================================
@@ -9,14 +15,8 @@
 const AppState = {
     currentView: "dashboardView",
     metaConnected: false,
-    loading: false,
     meta: {
-        accessToken: null,
-        adAccounts: [],
-        campaigns: [],
-        ads: [],
-        creatives: [],
-        insights: []
+        accessToken: null
     }
 };
 
@@ -35,38 +35,24 @@ const META_BACKEND_CONFIG = {
 };
 
 // ============================================
-// CONNECT GATEKEEPER
+// META CONNECT LOGIC
 // ============================================
 
 function checkMetaConnection() {
     const stripe = document.getElementById("metaConnectStripe");
-    const isConnected = AppState.metaConnected && AppState.meta.accessToken;
 
-    if (!isConnected) {
-        stripe?.classList.remove("hidden");
+    if (!AppState.metaConnected) {
+        stripe.classList.remove("hidden");
         return false;
     } else {
-        stripe?.classList.add("hidden");
+        stripe.classList.add("hidden");
         return true;
     }
 }
 
-// ============================================
-// BUTTON CLICK
-// ============================================
-
 function handleMetaConnectClick() {
-    if (AppState.loading) return;
-
     showToast("Verbinde mit Meta...", "info");
-    startMetaOAuthFlow();
-}
 
-// ============================================
-// START OAUTH
-// ============================================
-
-function startMetaOAuthFlow() {
     const authUrl =
         "https://www.facebook.com/v21.0/dialog/oauth?" +
         new URLSearchParams({
@@ -79,84 +65,96 @@ function startMetaOAuthFlow() {
     window.location.href = authUrl;
 }
 
-// ============================================
-// HANDLE REDIRECT
-// ============================================
-
 async function handleMetaOAuthRedirectIfPresent() {
     const url = new URL(window.location.href);
     const code = url.searchParams.get("code");
-
     if (!code) return;
 
-    window.history.replaceState({}, document.title, META_OAUTH_CONFIG.redirectUri);
+    window.history.replaceState({}, "", META_OAUTH_CONFIG.redirectUri);
+    showToast("Meta-Code empfangen – tausche Token aus...", "info");
 
-    showToast("Meta-Code erhalten – tausche Token...", "info");
+    const response = await fetch(META_BACKEND_CONFIG.tokenEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            code,
+            redirectUri: META_OAUTH_CONFIG.redirectUri
+        })
+    });
 
-    await exchangeMetaCodeForToken(code);
-}
+    const data = await response.json();
 
-// ============================================
-// EXCHANGE TOKEN
-// ============================================
-
-async function exchangeMetaCodeForToken(code) {
-    try {
-        const response = await fetch(META_BACKEND_CONFIG.tokenEndpoint, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                code,
-                redirectUri: META_OAUTH_CONFIG.redirectUri
-            })
-        });
-
-        const data = await response.json();
-
-        if (!data.success) {
-            console.error("Token exchange error:", data);
-            showToast("Fehler beim Verbinden mit Meta.", "error");
-            return;
-        }
-
-        AppState.meta.accessToken = data.accessToken;
-        AppState.metaConnected = true;
-
-        showToast("Mit Meta verbunden!", "success");
-        updateUI();
-
-    } catch (e) {
-        console.error(e);
+    if (!data.success) {
         showToast("Fehler beim Verbinden mit Meta.", "error");
+        return;
     }
+
+    AppState.meta.accessToken = data.accessToken;
+    AppState.metaConnected = true;
+
+    showToast("Mit Meta verbunden!", "success");
+    updateUI();
 }
 
 // ============================================
-// VIEW + UI
+// SIDEBAR NAVIGATION
+// ============================================
+
+function initSidebarNavigation() {
+    const items = document.querySelectorAll(".menu-item[data-view]");
+
+    items.forEach(item => {
+        item.addEventListener("click", (e) => {
+            e.preventDefault();
+            const targetView = item.getAttribute("data-view");
+            showView(targetView);
+            setActiveMenuItem(item);
+        });
+    });
+}
+
+function setActiveMenuItem(activeItem) {
+    document.querySelectorAll(".menu-item").forEach(i => i.classList.remove("active"));
+    activeItem.classList.add("active");
+}
+
+// ============================================
+// VIEW HANDLING
 // ============================================
 
 function showView(viewId) {
     document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
-    document.getElementById(viewId)?.classList.remove("hidden");
+    document.getElementById(viewId).classList.remove("hidden");
+
     AppState.currentView = viewId;
     updateUI();
 }
+
+// ============================================
+// UI UPDATE
+// ============================================
 
 function updateUI() {
     checkMetaConnection();
 }
 
 // ============================================
-// TOAST
+// TOAST SYSTEM
 // ============================================
 
 function showToast(message, type = "info") {
     const box = document.getElementById("toastContainer");
+
     const el = document.createElement("div");
     el.className = `toast ${type}`;
-    el.textContent = message;
+    el.innerText = message;
+
     box.appendChild(el);
-    setTimeout(() => { el.classList.add("hide"); setTimeout(() => el.remove(), 300); }, 2500);
+
+    setTimeout(() => {
+        el.classList.add("hide");
+        setTimeout(() => el.remove(), 300);
+    }, 2500);
 }
 
 // ============================================
@@ -165,10 +163,14 @@ function showToast(message, type = "info") {
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    // WICHTIG: Button ID = connectMetaButton (aus deiner index.html)
+    // Navigation fix
+    initSidebarNavigation();
+
+    // Meta Connect Button
     const metaBtn = document.getElementById("connectMetaButton");
     if (metaBtn) metaBtn.addEventListener("click", handleMetaConnectClick);
 
+    // Updates
     updateUI();
     handleMetaOAuthRedirectIfPresent();
 });
