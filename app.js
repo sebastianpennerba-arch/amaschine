@@ -58,9 +58,8 @@ const META_OAUTH_CONFIG = {
 
 // TODO: HIER dein Backend-Endpoint eintragen, der code -> access_token tauscht
 const META_BACKEND_CONFIG = {
-    tokenEndpoint: "https://amaschine.vercel.app/api/meta-auth"
+    tokenEndpoint: window.location.origin + "/api/meta/oauth/token"
 };
-
 
 /* ============================================
    META CONNECT GATEKEEPER
