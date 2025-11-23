@@ -1,8 +1,8 @@
 /* Globale Variablen */
 :root {
-    --color-primary: #6366F1; /* Indigo-500 */
+    --color-primary: #6366F1;
     --color-primary-dark: #4F46E5;
-    --color-background: #F3F4F6; /* Leicht bläulicher/grauer Hintergrund */
+    --color-background: #F3F4F6;
     --color-sidebar: #FFFFFF;
     --color-topbar: #FFFFFF;
     --color-card: #FFFFFF;
@@ -599,7 +599,6 @@ body {
 .recommendation-card { border-left-color: var(--success); }
 .alert-card { border-left-color: var(--warning); }
 .warning-card { border-left-color: var(--danger); }
-.generator-card { border-left: none; }
 
 .action-button-secondary {
     background-color: transparent;
