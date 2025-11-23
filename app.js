@@ -51,7 +51,7 @@ const AppState = {
 // TODO: HIER deine echte Meta App-ID eintragen
 const META_OAUTH_CONFIG = {
     appId: "732040642590155",
-    redirectUri: "https://amaschine.vercel.app/",
+    redirectUri: "https://signalone-frontend.onrender.com",
     scopes: "ads_read,business_management"
 };
 
