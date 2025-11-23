@@ -94,7 +94,7 @@
     <!-- ========================================= -->
     <main class="main-content" id="mainContent">
 
-        <!-- META CONNECT STRIPE (jetzt im Main, nicht mehr im Body-Flex) -->
+        <!-- META CONNECT STRIPE (im Main, nicht als Body-Flex) -->
         <div id="metaConnectStripe" class="meta-connect-stripe">
             <div class="meta-connect-inner">
                 <span><i class="fas fa-plug"></i> Nicht mit Meta Ads verbunden</span>
@@ -110,13 +110,8 @@
         <section class="view" id="dashboardView">
             <h2 class="elite-title">Dashboard Overview</h2>
 
-            <!-- DYNAMIC KPI RENDER TARGET -->
             <div id="dashboardKpiContainer"></div>
-
-            <!-- DYNAMIC CHART RENDER TARGET -->
             <div id="dashboardChartContainer"></div>
-
-            <!-- DYNAMIC HERO CREATIVES -->
             <div id="dashboardHeroCreativesContainer"></div>
         </section>
 
@@ -156,7 +151,6 @@
                 </div>
             </div>
 
-            <!-- DYNAMIC CREATIVE GRID -->
             <div class="creative-library-grid" id="creativeLibraryGrid"></div>
         </section>
 
@@ -211,10 +205,7 @@
                             <th>Aktionen</th>
                         </tr>
                     </thead>
-
-                    <!-- DYNAMIC TABLE BODY -->
                     <tbody id="campaignsTableBody"></tbody>
-
                 </table>
             </div>
         </section>
@@ -228,7 +219,6 @@
                 Intelligente, datengesteuerte Empfehlungen zur Optimierung Ihrer Werbekampagnen.
             </p>
 
-            <!-- Vorläufig statisch – später dynamisch -->
             <div class="strategy-grid">
                 <div class="card strategy-card recommendation-card">
                     <h3 class="strategy-title">💡 Creative Recommendation</h3>
@@ -261,7 +251,6 @@
 
     </main>
 
-    <!-- TOAST + MODAL -->
     <div class="toast-container" id="toastContainer"></div>
     
     <div class="modal-overlay" id="modalOverlay">
