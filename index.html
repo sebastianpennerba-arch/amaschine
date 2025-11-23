@@ -65,7 +65,7 @@
                 </div>
             </div>
             
-            <div class="kpi-grid">
+            <div class="kpi-grid" id="kpiGrid">
                 <div class="kpi-card">
                     <div class="kpi-icon icon-primary"><i class="fas fa-dollar-sign"></i></div>
                     <div class="kpi-details">
@@ -122,7 +122,7 @@
             <div class="creative-hero-section">
                 <h3>Top Performing Creatives (Last 7 Days)</h3>
                 <div class="creative-hero-grid" id="creativeHeroGrid">
-                    <p style="grid-column: 1 / -1; text-align: center; color: var(--text-secondary);">Lade Hero Creatives...</p>
+                    <p style="grid-column: 1 / -1; text-align: center; color: var(--text-secondary);">Wird geladen...</p>
                 </div>
             </div>
 
@@ -178,10 +178,10 @@
             
             <div class="content-card">
                 <h3><i class="fas fa-plug"></i> Plattform-Integrationen</h3>
-                <p>Verbinden Sie Ihr **Meta Ads Konto** über den sicheren OAuth-Prozess, um Performance-Daten abzurufen.</p>
+                <p>Verbinden Sie Ihr **Meta Ads Konto** (Facebook / Instagram) über den sicheren OAuth-Prozess, um Performance-Daten abzurufen.</p>
                 <div style="margin-top: 20px;">
                     <button class="action-button" id="metaConnectButton" onclick="startMetaOAuthFlow()">
-                        <i class="fab fa-facebook-f"></i> Meta Ads verbinden (OAuth)
+                        <i class="fab fa-facebook-f"></i> Meta Ads verbinden (FB Login)
                     </button>
                     <div id="metaStatus" style="margin-top: 15px; font-weight: 600;">Status: Nicht verbunden</div>
                 </div>
