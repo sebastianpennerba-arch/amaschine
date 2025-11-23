@@ -1,320 +1,502 @@
-// creativeLibrary.js – Creative Library (P2)
+// creativeLibrary.js – Creative Library (P2) – überarbeitete Version
+// -----------------------------------------------------------------
+// Ziele dieser Version:
+// 1) Creative-Cards im DatAds-Style (vertikal, großes Thumbnail,
+//    KPIs in Balkenform), aber mit SignalOne-Look.
+// 2) Skaliert sauber von 0 bis 1000+ Creatives.
+// 3) Klick auf Card öffnet ein hochwertiges Detail-Modal.
 
 import { AppState } from "./state.js";
-import { fetchMetaAdAccounts, fetchMetaAds } from "./metaApi.js";
 import { openModal } from "./uiCore.js";
 
-function mapObjectTypeToCreativeType(objectType) {
-    if (!objectType) return "static";
-    const t = String(objectType).toLowerCase();
-    if (t.includes("video")) return "video";
-    if (t.includes("carousel")) return "carousel";
-    return "static";
-}
+function getCreativesForCurrentSelection() {
+  const meta = AppState.meta || {};
+  let creatives = meta.creatives || meta.ads || [];
 
-export async function updateCreativeLibraryView(connected) {
-    const grid = document.getElementById("creativeLibraryGrid");
-    if (!grid) return;
+  if (!Array.isArray(creatives)) return [];
 
-    if (!connected) {
-        grid.innerHTML = `
-            <div class="card">
-                <p style="color: var(--text-secondary); font-size:14px;">
-                    Verbinde dein Meta-Konto, um deine Creatives zu sehen.
-                </p>
-            </div>
-        `;
-        return;
-    }
-
-    if (AppState.creativesLoaded && AppState.meta.creatives?.length) {
-        renderCreativeLibrary();
-        return;
-    }
-
-    await loadCreativeLibraryMetaData();
-}
-
-async function loadCreativeLibraryMetaData() {
-    const grid = document.getElementById("creativeLibraryGrid");
-    if (!grid) return;
-
-    try {
-        let accountId = AppState.selectedAccountId;
-
-        if (!accountId) {
-            const accounts = await fetchMetaAdAccounts();
-            if (
-                !accounts.success ||
-                !accounts.data ||
-                !Array.isArray(accounts.data.data) ||
-                accounts.data.data.length === 0
-            ) {
-                grid.innerHTML = `
-                    <div class="card">
-                        <p style="color: var(--text-secondary); font-size:14px;">
-                            Kein Ad-Konto gefunden. Bitte prüfe deine Meta-Verbindung.
-                        </p>
-                    </div>
-                `;
-                AppState.creativesLoaded = true;
-                return;
-            }
-            accountId = accounts.data.data[0].id;
-            AppState.selectedAccountId = accountId;
-            AppState.meta.adAccounts = accounts.data.data;
-        }
-
-        grid.innerHTML = `
-            <div class="card">
-                <p style="color: var(--text-secondary); font-size:14px;">
-                    Lade Creatives & Anzeigen aus Meta...
-                </p>
-            </div>
-        `;
-
-        const adsResult = await fetchMetaAds(accountId);
-
-        if (
-            !adsResult.success ||
-            !adsResult.data ||
-            !Array.isArray(adsResult.data.data) ||
-            adsResult.data.data.length === 0
-        ) {
-            AppState.meta.ads = [];
-            AppState.meta.creatives = [];
-            AppState.creativesLoaded = true;
-            grid.innerHTML = `
-                <div class="card">
-                    <p style="color: var(--text-secondary); font-size:14px;">
-                        Im ausgewählten Zeitraum liegen keine aktiven Anzeigen / Creatives vor.
-                    </p>
-                </div>
-            `;
-            return;
-        }
-
-        const ads = adsResult.data.data;
-        AppState.meta.ads = ads;
-
-        const creatives = ads.map((ad) => {
-            const creative = ad.creative || {};
-            const insightsArr =
-                ad.insights && Array.isArray(ad.insights.data) ? ad.insights.data : [];
-            const insight = insightsArr.length ? insightsArr[0] : {};
-
-            const spend = parseFloat(insight.spend || "0") || 0;
-            const impressions = parseFloat(insight.impressions || "0") || 0;
-            const clicks = parseFloat(insight.clicks || "0") || 0;
-            const ctr = parseFloat(insight.ctr || "0") || 0;
-            const cpm = parseFloat(insight.cpm || "0") || 0;
-
-            let roas = 0;
-            if (
-                Array.isArray(insight.website_purchase_roas) &&
-                insight.website_purchase_roas.length > 0
-            ) {
-                roas = parseFloat(
-                    insight.website_purchase_roas[0].value || "0"
-                ) || 0;
-            }
-
-            return {
-                id: ad.id,
-                name: ad.name || creative.title || `Ad ${ad.id}`,
-                campaignId: ad.campaign_id || null,
-                adsetId: ad.adset_id || null,
-                status: ad.status || "-",
-                creativeId: creative.id || null,
-                thumbnailUrl: creative.thumbnail_url || "",
-                objectType: creative.object_type || "",
-                type: mapObjectTypeToCreativeType(creative.object_type),
-                spend,
-                impressions,
-                clicks,
-                ctr,
-                cpm,
-                roas
-            };
-        });
-
-        AppState.meta.creatives = creatives;
-        AppState.creativesLoaded = true;
-        renderCreativeLibrary();
-    } catch (e) {
-        console.error("loadCreativeLibraryMetaData error:", e);
-        const grid = document.getElementById("creativeLibraryGrid");
-        if (grid) {
-            grid.innerHTML = `
-                <div class="card">
-                    <p style="color: var(--text-secondary); font-size:14px;">
-                        Fehler beim Laden der Creatives. Bitte versuche es später erneut.
-                    </p>
-                </div>
-            `;
-        }
-        AppState.creativesLoaded = true;
-    }
-}
-
-export function renderCreativeLibrary() {
-    const grid = document.getElementById("creativeLibraryGrid");
-    if (!grid) return;
-
-    const creatives = AppState.meta.creatives || [];
-
-    if (!creatives.length) {
-        grid.innerHTML = `
-            <div class="card">
-                <p style="color: var(--text-secondary); font-size:14px;">
-                    Noch keine Creatives geladen oder keine Daten im aktuellen Zeitraum.
-                </p>
-            </div>
-        `;
-        return;
-    }
-
-    const searchInput = document.getElementById("creativeSearch");
-    const sortSelect = document.getElementById("creativeSort");
-    const typeSelect = document.getElementById("creativeType");
-
-    const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : "";
-    const sortValue = sortSelect ? sortSelect.value : "roas_desc";
-    const typeValue = typeSelect ? typeSelect.value : "all";
-
-    let filtered = creatives.slice();
-
-    if (searchTerm) {
-        filtered = filtered.filter((c) =>
-            (c.name || "").toLowerCase().includes(searchTerm) ||
-            (c.campaignId || "").toLowerCase().includes(searchTerm) ||
-            (c.adsetId || "").toLowerCase().includes(searchTerm)
-        );
-    }
-
-    if (typeValue !== "all") {
-        filtered = filtered.filter((c) => c.type === typeValue);
-    }
-
-    if (sortValue === "roas_desc") {
-        filtered.sort((a, b) => (b.roas || 0) - (a.roas || 0));
-    } else if (sortValue === "spend_asc") {
-        filtered.sort((a, b) => (a.spend || 0) - (b.spend || 0));
-    }
-
-    const maxSpend = Math.max(...filtered.map((c) => c.spend || 0), 1);
-
-    const renderBar = (value, max, type) => {
-        const safeVal = Number(value) || 0;
-        const clamped = Math.max(
-            0,
-            Math.min(100, max > 0 ? (safeVal / max) * 100 : 0)
-        );
-        const fillClass =
-            type === "roas" ? "fill-positive" : type === "spend" ? "fill-spend" : "";
-        return `
-            <div class="kpi-bar-visual">
-                <div class="kpi-slider-track">
-                    <div class="kpi-slider-fill ${fillClass}" style="width:${clamped}%;"></div>
-                </div>
-            </div>
-        `;
-    };
-
-    grid.innerHTML = filtered
-        .map((c) => {
-            const spendLabel =
-                c.spend > 0 ? `€ ${c.spend.toLocaleString("de-DE")}` : "0";
-            const roasLabel = c.roas > 0 ? `${c.roas.toFixed(2)}x` : "0";
-            const ctrLabel = c.ctr > 0 ? `${c.ctr.toFixed(2)}%` : "0";
-            const cpmLabel = c.cpm > 0 ? `€ ${c.cpm.toFixed(2)}` : "0";
-
-            const roasBar = renderBar(c.roas, 5, "roas");
-            const spendBar = renderBar(c.spend, maxSpend, "spend");
-
-            return `
-            <div class="creative-library-item" data-ad-id="${c.id}">
-                <div class="creative-media-container-library">
-                    ${
-                        c.thumbnailUrl
-                            ? `<img src="${c.thumbnailUrl}" alt="Creative Preview">`
-                            : `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:12px;color:var(--text-secondary);background:rgba(15,23,42,0.8);">Kein Preview</div>`
-                    }
-                    <div class="platform-badge">Meta</div>
-                </div>
-                <div class="creative-stats">
-                    <div class="creative-name-library">${c.name}</div>
-                    <div class="creative-meta">
-                        Status: ${c.status} • Typ: ${c.type.toUpperCase()}
-                    </div>
-                    <div class="kpi-bar-visual-row">
-                        <span class="kpi-label-small">ROAS</span>
-                        ${roasBar}
-                        <span class="kpi-value-mini">${roasLabel}</span>
-                    </div>
-                    <div class="kpi-bar-visual-row">
-                        <span class="kpi-label-small">Spend</span>
-                        ${spendBar}
-                        <span class="kpi-value-mini">${spendLabel}</span>
-                    </div>
-                    <div class="creative-footer-kpis">
-                        <div class="kpi-footer-item">Impr: ${c.impressions.toLocaleString(
-                            "de-DE"
-                        )}</div>
-                        <div class="kpi-footer-item">Clicks: ${c.clicks.toLocaleString(
-                            "de-DE"
-                        )}</div>
-                        <div class="kpi-footer-item">CTR: ${ctrLabel}</div>
-                        <div class="kpi-footer-item">CPM: ${cpmLabel}</div>
-                    </div>
-                </div>
-            </div>
-        `;
-        })
-        .join("");
-
-    grid.querySelectorAll(".creative-library-item").forEach((card) => {
-        card.addEventListener("click", () => {
-            const adId = card.getAttribute("data-ad-id");
-            openCreativeDetails(adId);
-        });
+  if (AppState.selectedCampaignId) {
+    creatives = creatives.filter((c) => {
+      const cid = c.campaign_id || c.campaignId;
+      return cid === AppState.selectedCampaignId;
     });
+  }
+
+  return creatives;
 }
 
-function openCreativeDetails(adId) {
-    if (!adId) return;
+function renderLibraryPlaceholder(
+  text = "Verbinde Meta und wähle ein Werbekonto, um Creatives zu sehen."
+) {
+  const grid = document.getElementById("creativeLibraryGrid");
+  if (!grid) return;
 
-    const creatives = AppState.meta.creatives || [];
-    const c = creatives.find((x) => x.id === adId);
-    if (!c) return;
+  grid.innerHTML = `
+    <div style="
+      grid-column: 1 / -1;
+      padding:24px;
+      border-radius:16px;
+      background:var(--card-bg, #ffffff);
+      box-shadow:0 10px 30px rgba(15,23,42,0.06);
+      text-align:center;
+      font-size:14px;
+      color:var(--text-secondary);
+    ">
+      ${text}
+    </div>
+  `;
+}
 
-    const html = `
-        <div style="display:flex; flex-direction:column; gap:8px;">
-            <div><strong>Ad ID:</strong> ${c.id}</div>
-            <div><strong>Status:</strong> ${c.status}</div>
-            <div><strong>Typ:</strong> ${c.type.toUpperCase()}</div>
-            <div><strong>Kampagne:</strong> ${c.campaignId || "-"}</div>
-            <div><strong>Ad Set:</strong> ${c.adsetId || "-"}</div>
-            <div><strong>Spend (30D):</strong> € ${c.spend.toLocaleString(
-                "de-DE"
-            )}</div>
-            <div><strong>ROAS (30D):</strong> ${
-                c.roas > 0 ? c.roas.toFixed(2) + "x" : "0"
-            }</div>
-            <div><strong>CTR (30D):</strong> ${
-                c.ctr > 0 ? c.ctr.toFixed(2) + "%" : "0"
-            }</div>
-            <div><strong>CPM (30D):</strong> ${
-                c.cpm > 0 ? "€ " + c.cpm.toFixed(2) : "0"
-            }</div>
-            <div><strong>Impressions (30D):</strong> ${c.impressions.toLocaleString(
-                "de-DE"
-            )}</div>
-            <div><strong>Clicks (30D):</strong> ${c.clicks.toLocaleString(
-                "de-DE"
-            )}</div>
+function renderLibraryLoading() {
+  renderLibraryPlaceholder("Lade Creatives & Performance-Metriken…");
+}
+
+function asNumber(val) {
+  const n = Number(val);
+  return isFinite(n) ? n : 0;
+}
+
+function buildKpiBar(label, valueFormatted, normalized, suffix = "") {
+  const width = Math.min(100, Math.max(0, normalized * 100));
+  return `
+    <div style="display:flex; flex-direction:column; gap:4px;">
+      <div style="display:flex; justify-content:space-between; font-size:11px;">
+        <span style="color:var(--text-secondary);">${label}</span>
+        <span style="font-weight:500;">${valueFormatted}${suffix}</span>
+      </div>
+      <div style="
+        position:relative;
+        width:100%;
+        height:6px;
+        border-radius:999px;
+        background:rgba(15,23,42,0.06);
+        overflow:hidden;
+      ">
+        <div style="
+          position:absolute;
+          inset:0;
+          transform-origin:left center;
+          transform:scaleX(${width / 100 || 0});
+          background:linear-gradient(90deg, #6366F1, #06B6D4);
+        "></div>
+      </div>
+    </div>
+  `;
+}
+
+// ---------------------------------------------------------
+// Public API – von app.js aufgerufen
+// ---------------------------------------------------------
+
+export function updateCreativeLibraryView(connected) {
+  const grid = document.getElementById("creativeLibraryGrid");
+  if (!grid) return;
+
+  if (!connected) {
+    renderLibraryPlaceholder();
+    return;
+  }
+
+  renderLibraryLoading();
+
+  const creatives = getCreativesForCurrentSelection();
+
+  if (!creatives.length) {
+    renderLibraryPlaceholder(
+      AppState.selectedCampaignId
+        ? "Für diese Kampagne wurden keine Creatives gefunden."
+        : "Keine Creatives gefunden. Prüfe Filter oder Kampagnenauswahl."
+    );
+    return;
+  }
+
+  // Grid optisch auf Links ausrichten, egal ob 1 oder 50 Cards
+  grid.style.maxWidth = "100%";
+  grid.style.margin = "0";
+  grid.style.justifyItems = "stretch";
+
+  const maxRoas = Math.max(
+    ...creatives.map((c) => asNumber(c.metrics?.roas || c.metrics?.purchase_roas))
+  );
+  const maxSpend = Math.max(
+    ...creatives.map((c) => asNumber(c.metrics?.spend || c.metrics?.spend_30d))
+  );
+  const maxCtr = Math.max(
+    ...creatives.map((c) => asNumber(c.metrics?.ctr || c.metrics?.ctr_30d))
+  );
+
+  grid.innerHTML = creatives
+    .map((creative) => {
+      const metrics = creative.metrics || {};
+      const name =
+        creative.name ||
+        creative.ad_name ||
+        creative.headline ||
+        "Unbenanntes Creative";
+
+      const thumbnail =
+        creative.thumbnail_url ||
+        creative.preview_url ||
+        creative.image_url ||
+        null;
+
+      const roas = asNumber(metrics.roas || metrics.purchase_roas);
+      const spend = asNumber(metrics.spend || metrics.spend_30d);
+      const ctr = asNumber(metrics.ctr || metrics.ctr_30d);
+
+      const normalizedRoas = maxRoas ? roas / maxRoas : 0;
+      const normalizedSpend = maxSpend ? spend / maxSpend : 0;
+      const normalizedCtr = maxCtr ? ctr / maxCtr : 0;
+
+      const roasFormatted = roas ? `${roas.toFixed(2)}x` : "0x";
+      const spendFormatted = spend
+        ? `€ ${spend.toLocaleString("de-DE", { maximumFractionDigits: 0 })}`
+        : "€ 0";
+      const ctrFormatted = ctr ? `${ctr.toFixed(2)}%` : "0%";
+
+      const impressions = metrics.impressions || metrics.impressions_30d || 0;
+      const clicks = metrics.clicks || metrics.clicks_30d || 0;
+
+      return `
+        <article
+          class="creative-library-item"
+          data-ad-id="${creative.id}"
+          style="
+            display:flex;
+            flex-direction:column;
+            gap:12px;
+            border-radius:18px;
+            background:#ffffff;
+            box-shadow:0 16px 40px rgba(15,23,42,0.10);
+            padding:14px;
+            cursor:pointer;
+            transition:transform 120ms ease-out, box-shadow 120ms ease-out;
+          "
+        >
+          <div
+            style="
+              position:relative;
+              width:100%;
+              padding-top:75%;
+              border-radius:14px;
+              overflow:hidden;
+              background:linear-gradient(145deg,#E5E7EB,#F9FAFB);
+            "
+          >
+            ${
+              thumbnail
+                ? `
+              <img
+                src="${thumbnail}"
+                alt="${name}"
+                style="
+                  position:absolute;
+                  inset:0;
+                  width:100%;
+                  height:100%;
+                  object-fit:cover;
+                "
+              />
+            `
+                : `
+              <div style="
+                position:absolute;
+                inset:0;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                font-size:12px;
+                color:var(--text-secondary);
+              ">
+                Kein Preview verfügbar
+              </div>
+            `
+            }
+            <div style="
+              position:absolute;
+              top:8px;
+              left:8px;
+              padding:3px 9px;
+              border-radius:999px;
+              font-size:10px;
+              font-weight:600;
+              background:rgba(0,0,0,0.6);
+              color:#ffffff;
+              display:flex;
+              align-items:center;
+              gap:4px;
+            ">
+              <span style="
+                display:inline-flex;
+                width:14px;
+                height:14px;
+                border-radius:4px;
+                background:#ffffff;
+                align-items:center;
+                justify-content:center;
+                font-size:9px;
+                font-weight:700;
+                color:#000;
+              ">
+                M
+              </span>
+              Meta Creative
+            </div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <div style="display:flex; justify-content:space-between; gap:10px;">
+              <div style="
+                font-size:13px;
+                font-weight:600;
+                white-space:nowrap;
+                overflow:hidden;
+                text-overflow:ellipsis;
+                max-width:260px;
+              ">
+                ${name}
+              </div>
+              <div style="font-size:11px; color:var(--text-secondary); text-align:right;">
+                Ad ID: ${creative.id}
+              </div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              ${buildKpiBar("ROAS (30D)", roasFormatted, normalizedRoas)}
+              ${buildKpiBar("Spend (30D)", spendFormatted, normalizedSpend)}
+              ${buildKpiBar("CTR (30D)", ctrFormatted, normalizedCtr)}
+            </div>
+
+            <div style="
+              display:flex;
+              justify-content:space-between;
+              align-items:center;
+              font-size:11px;
+              color:var(--text-secondary);
+            ">
+              <span>Impr: <strong>${impressions.toLocaleString("de-DE")}</strong></span>
+              <span>Clicks: <strong>${clicks.toLocaleString("de-DE")}</strong></span>
+            </div>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+
+  // Card-Click → Detail-Modal
+  grid.querySelectorAll(".creative-library-item").forEach((card) => {
+    const adId = card.getAttribute("data-ad-id");
+    const creative = creatives.find((c) => String(c.id) === String(adId));
+    if (!creative) return;
+
+    card.addEventListener("click", () => {
+      openCreativeDetails(creative);
+    });
+
+    // Hover-Effekt
+    card.addEventListener("mouseenter", () => {
+      card.style.transform = "translateY(-4px)";
+      card.style.boxShadow = "0 22px 50px rgba(15,23,42,0.18)";
+    });
+    card.addEventListener("mouseleave", () => {
+      card.style.transform = "translateY(0)";
+      card.style.boxShadow = "0 16px 40px rgba(15,23,42,0.10)";
+    });
+  });
+}
+
+// ---------------------------------------------------------
+// Detail-Modal für ein einzelnes Creative
+// ---------------------------------------------------------
+
+function openCreativeDetails(creative) {
+  const metrics = creative.metrics || {};
+  const name =
+    creative.name ||
+    creative.ad_name ||
+    creative.headline ||
+    "Unbenanntes Creative";
+
+  const thumbnail =
+    creative.thumbnail_url ||
+    creative.preview_url ||
+    creative.image_url ||
+    null;
+
+  const roas = asNumber(metrics.roas || metrics.purchase_roas);
+  const spend = asNumber(metrics.spend || metrics.spend_30d);
+  const ctr = asNumber(metrics.ctr || metrics.ctr_30d);
+  const impressions = metrics.impressions || metrics.impressions_30d || 0;
+  const clicks = metrics.clicks || metrics.clicks_30d || 0;
+  const cpm = asNumber(metrics.cpm || metrics.cpm_30d || 0);
+  const cpc = clicks ? spend / clicks : 0;
+
+  const html = `
+    <div style="display:flex; flex-direction:column; gap:20px; max-width:720px;">
+      <header style="display:flex; gap:20px; align-items:flex-start;">
+        <div style="
+          position:relative;
+          width:180px;
+          padding-top:120px;
+          border-radius:14px;
+          overflow:hidden;
+          background:linear-gradient(145deg,#E5E7EB,#F9FAFB);
+          flex-shrink:0;
+        ">
+          ${
+            thumbnail
+              ? `
+            <img
+              src="${thumbnail}"
+              alt="${name}"
+              style="
+                position:absolute;
+                inset:0;
+                width:100%;
+                height:100%;
+                object-fit:cover;
+              "
+            />
+          `
+              : `
+            <div style="
+              position:absolute;
+              inset:0;
+              display:flex;
+              align-items:center;
+              justify-content:center;
+              font-size:12px;
+              color:var(--text-secondary);
+            ">
+              Kein Preview verfügbar
+            </div>
+          `
+          }
+          <div style="
+            position:absolute;
+            top:8px;
+            left:8px;
+            padding:3px 9px;
+            border-radius:999px;
+            font-size:10px;
+            font-weight:600;
+            background:rgba(0,0,0,0.65);
+            color:#ffffff;
+            display:flex;
+            align-items:center;
+            gap:4px;
+          ">
+            <span style="
+              display:inline-flex;
+              width:14px;
+              height:14px;
+              border-radius:4px;
+              background:#ffffff;
+              align-items:center;
+              justify-content:center;
+              font-size:9px;
+              font-weight:700;
+              color:#000;
+            ">
+              M
+            </span>
+            Meta Creative
+          </div>
         </div>
-    `;
 
-    openModal(`Creative / Ad: ${c.name}`, html);
+        <div style="flex:1; display:flex; flex-direction:column; gap:10px;">
+          <div>
+            <h3 style="margin:0 0 4px 0; font-size:20px; font-weight:600;">
+              ${name}
+            </h3>
+            <p style="margin:0; font-size:13px; color:var(--text-secondary);">
+              Ad ID: <strong>${creative.id}</strong>
+              ${
+                creative.campaign_id || creative.campaignId
+                  ? ` · Kampagne: <strong>${
+                      creative.campaign_name || creative.campaignId || creative.campaign_id
+                    }</strong>`
+                  : ""
+              }
+            </p>
+          </div>
+
+          <div style="display:flex; flex-wrap:wrap; gap:8px; font-size:11px;">
+            <span style="
+              padding:4px 10px;
+              border-radius:999px;
+              background:rgba(99,102,241,0.08);
+              color:var(--primary);
+              font-weight:600;
+              text-transform:uppercase;
+            ">
+              ${creative.status || "STATUS UNBEKANNT"}
+            </span>
+            ${
+              creative.objective
+                ? `<span style="padding:4px 10px; border-radius:999px; background:rgba(15,23,42,0.04);">
+                     Ziel: ${creative.objective}
+                   </span>`
+                : ""
+            }
+          </div>
+        </div>
+      </header>
+
+      <section style="display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px;">
+        <div class="metric-chip">
+          <div class="metric-label">ROAS (30D)</div>
+          <div class="metric-value">${roas ? `${roas.toFixed(2)}x` : "0x"}</div>
+        </div>
+        <div class="metric-chip">
+          <div class="metric-label">Spend (30D)</div>
+          <div class="metric-value">
+            ${
+              spend
+                ? `€ ${spend.toLocaleString("de-DE", { maximumFractionDigits: 0 })}`
+                : "€ 0"
+            }
+          </div>
+        </div>
+        <div class="metric-chip">
+          <div class="metric-label">CTR (30D)</div>
+          <div class="metric-value">${ctr ? `${ctr.toFixed(2)}%` : "0%"}</div>
+        </div>
+        <div class="metric-chip">
+          <div class="metric-label">Impressions (30D)</div>
+          <div class="metric-value">${impressions.toLocaleString("de-DE")}</div>
+        </div>
+        <div class="metric-chip">
+          <div class="metric-label">Clicks (30D)</div>
+          <div class="metric-value">${clicks.toLocaleString("de-DE")}</div>
+        </div>
+        <div class="metric-chip">
+          <div class="metric-label">CPM / CPC (30D)</div>
+          <div class="metric-value">
+            ${
+              cpm
+                ? `CPM: € ${cpm.toFixed(2)}`
+                : "CPM: –"
+            }
+            ${
+              cpc
+                ? ` · CPC: € ${cpc.toFixed(2)}`
+                : ""
+            }
+          </div>
+        </div>
+      </section>
+
+      <section style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:13px; font-weight:600;">Geplante Sensei-Features (Placeholder)</div>
+        <ul style="margin:0; padding-left:18px; font-size:13px; color:var(--text-secondary);">
+          <li>„AdSensei Score“ für dieses Creative (0–100) basierend auf Performance & Konsistenz.</li>
+          <li>Hook-, Angle- und Offer-Breakdown inkl. Vorschlägen für neue Varianten.</li>
+          <li>Button: „Neue Variation mit Sensei erzeugen“ (später: AI-Text & -Briefing).</li>
+        </ul>
+      </section>
+    </div>
+  `;
+
+  openModal("Creative / Ad Details", html);
 }
