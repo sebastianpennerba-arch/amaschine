@@ -113,7 +113,7 @@
                 <i class="fas fa-user-circle"></i>
                 <span class="icon-tooltip">Profil</span>
             </button>
-            <button class="header-action-button">
+            <button class="header-action-button" id="notificationsButton">
                 <i class="fas fa-bell"></i>
                 <span class="icon-tooltip">Benachrichtigungen</span>
             </button>
@@ -142,7 +142,21 @@
 
         <!-- DASHBOARD VIEW -->
         <section class="view" id="dashboardView">
-            <h2 class="elite-title">Meta Performance Dashboard</h2>
+            <div class="view-header">
+                <h2 class="elite-title">Meta Performance Dashboard</h2>
+                <div class="time-range-select">
+                    <label for="dashboardTimeRange">Zeitraum:</label>
+                    <select id="dashboardTimeRange">
+                        <option value="today">Heute</option>
+                        <option value="yesterday">Gestern</option>
+                        <option value="today_yesterday">Heute + Gestern</option>
+                        <option value="last_7d">Letzte 7 Tage</option>
+                        <option value="last_30d" selected>Letzte 30 Tage</option>
+                        <option value="this_month">Aktueller Monat</option>
+                        <option value="last_month">Letzter Monat</option>
+                    </select>
+                </div>
+            </div>
 
             <div id="dashboardMetaSummary" style="margin-bottom: 16px; color: var(--text-secondary); font-size: 14px;">
                 Noch keine Daten geladen.
@@ -150,26 +164,6 @@
 
             <div id="dashboardKpiContainer"></div>
             <div id="dashboardChartContainer"></div>
-
-            <div class="card">
-                <div class="performance-card">
-                    <div class="card-header">
-                        <h3>Zeitraum</h3>
-                        <div>
-                            <select id="dashboardTimeRange">
-                                <option value="today">Heute</option>
-                                <option value="yesterday">Gestern</option>
-                                <option value="today_yesterday">Heute + Gestern</option>
-                                <option value="last_7d">Letzte 7 Tage</option>
-                                <option value="last_30d" selected>Letzte 30 Tage</option>
-                                <option value="this_month">Aktueller Monat</option>
-                                <option value="last_month">Letzter Monat</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <div id="dashboardHeroCreativesContainer"></div>
         </section>
 
@@ -289,7 +283,7 @@
         <div class="modal-content">
             <h3 id="modalTitle"></h3>
             <div id="modalBody"></div>
-            <button id="modalCloseButton">Schließen</button>
+            <button id="modalCloseButton" class="primary-btn">Schließen</button>
         </div>
     </div>
 
