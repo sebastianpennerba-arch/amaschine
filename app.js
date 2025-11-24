@@ -1,4 +1,4 @@
-// app.js – Premium Orchestrator (Final Version, mit aktiven Dropdowns)
+// app.js – Orchestrator mit Meta-Caching & Creative-Loader
 // SignalOne.cloud – Frontend Engine
 
 import { AppState, META_OAUTH_CONFIG } from "./state.js";
@@ -33,6 +33,48 @@ import { initSettings } from "./settings.js";
 
 const META_TOKEN_STORAGE_KEY = "signalone_meta_token_v1";
 
+// Default Cache-TTL (kann später über Settings angepasst werden)
+const DEFAULT_CACHE_TTL_MS = 15 * 60 * 1000; // 15 Minuten
+
+/* -------------------------------------------------------
+    Hilfsfunktionen: Cache
+---------------------------------------------------------*/
+
+function ensureMetaCache() {
+    if (!AppState.metaCache) {
+        AppState.metaCache = {
+            adAccounts: null, // { data, fetchedAt }
+            campaignsByAccount: {}, // { [accountId]: { data, fetchedAt } }
+            adsByAccount: {} // { [accountId]: { data, fetchedAt } }
+        };
+    }
+    return AppState.metaCache;
+}
+
+function getCacheTtlMs() {
+    // optional: aus Settings lesen, falls du es später konfigurierbar machst
+    const override = AppState.settings?.metaCacheTtlMinutes;
+    if (typeof override === "number" && override > 0) {
+        return override * 60 * 1000;
+    }
+    return DEFAULT_CACHE_TTL_MS;
+}
+
+function isCacheValid(entry) {
+    if (!entry || !entry.fetchedAt) return false;
+    const ttl = getCacheTtlMs();
+    const age = Date.now() - entry.fetchedAt;
+    return age < ttl;
+}
+
+function clearMetaCache() {
+    AppState.metaCache = {
+        adAccounts: null,
+        campaignsByAccount: {},
+        adsByAccount: {}
+    };
+}
+
 /* -------------------------------------------------------
     VIEW HANDLING
 ---------------------------------------------------------*/
@@ -50,7 +92,7 @@ function showView(viewId) {
 }
 
 /* -------------------------------------------------------
-    META CONNECT
+    META CONNECT (aktuell klassisch per Redirect)
 ---------------------------------------------------------*/
 
 function handleMetaConnectClick() {
@@ -70,6 +112,7 @@ function handleMetaConnectClick() {
             scope: META_OAUTH_CONFIG.scopes
         });
 
+    // TODO: Später auf Popup-Flow umstellen – aktuell klassischer Redirect:
     window.location.href = url;
 }
 
@@ -107,6 +150,8 @@ function disconnectMeta() {
     AppState.creativesLoaded = false;
     AppState.dashboardMetrics = null;
 
+    clearMetaCache();
+
     persistMetaToken(null);
     showToast("Meta getrennt", "info");
     updateUI();
@@ -139,6 +184,7 @@ async function handleMetaOAuthRedirectIfPresent() {
         AppState.metaConnected = true;
 
         persistMetaToken(res.accessToken);
+        clearMetaCache();
 
         await fetchMetaUser();
         await loadAdAccountsAndCampaigns();
@@ -152,7 +198,7 @@ async function handleMetaOAuthRedirectIfPresent() {
 }
 
 /* -------------------------------------------------------
-    TOKEN LOAD
+    TOKEN LOAD (Auto-Reconnect + erster Cache-Aufbau)
 ---------------------------------------------------------*/
 
 function loadMetaTokenFromStorage() {
@@ -164,6 +210,8 @@ function loadMetaTokenFromStorage() {
         AppState.metaConnected = true;
 
         showToast("Meta-Token aus Speicher geladen", "info");
+        clearMetaCache();
+
         fetchMetaUser()
             .then(() => loadAdAccountsAndCampaigns())
             .then(() => {
@@ -171,7 +219,10 @@ function loadMetaTokenFromStorage() {
             })
             .catch((err) => {
                 console.error(err);
-                showToast("Fehler beim Wiederherstellen der Meta-Verbindung", "error");
+                showToast(
+                    "Fehler beim Wiederherstellen der Meta-Verbindung",
+                    "error"
+                );
             });
     } catch (e) {
         console.warn("LocalStorage read failed:", e);
@@ -179,23 +230,59 @@ function loadMetaTokenFromStorage() {
 }
 
 /* -------------------------------------------------------
-    ACCOUNT & CAMPAIGNS (LIVE DROPDOWNS)
+    ACCOUNT & CAMPAIGNS (mit Cache)
 ---------------------------------------------------------*/
 
 async function loadAdAccountsAndCampaigns() {
-    const accRes = await fetchMetaAdAccounts();
-    if (accRes?.success) {
-        AppState.meta.adAccounts = accRes.data?.data || [];
+    ensureMetaCache();
+
+    // 1) AdAccounts – erst Cache prüfen
+    if (isCacheValid(AppState.metaCache.adAccounts)) {
+        AppState.meta.adAccounts = AppState.metaCache.adAccounts.data;
+    } else {
+        const accRes = await fetchMetaAdAccounts();
+        if (accRes?.success) {
+            const data = accRes.data?.data || [];
+            AppState.meta.adAccounts = data;
+            AppState.metaCache.adAccounts = {
+                data,
+                fetchedAt: Date.now()
+            };
+        } else {
+            AppState.meta.adAccounts = [];
+            AppState.metaCache.adAccounts = null;
+        }
     }
 
+    // 2) Default Account setzen
     if (AppState.meta.adAccounts.length > 0 && !AppState.selectedAccountId) {
         AppState.selectedAccountId = AppState.meta.adAccounts[0].id;
     }
 
+    // 3) Kampagnen für ausgewählten Account – Cache prüfen
     if (AppState.selectedAccountId) {
-        const campRes = await fetchMetaCampaigns(AppState.selectedAccountId);
-        if (campRes?.success) {
-            AppState.meta.campaigns = campRes.data?.data || [];
+        const accId = AppState.selectedAccountId;
+        const cacheEntry =
+            AppState.metaCache.campaignsByAccount[accId] || null;
+
+        if (isCacheValid(cacheEntry)) {
+            AppState.meta.campaigns = cacheEntry.data;
+        } else {
+            const campRes = await fetchMetaCampaigns(accId);
+            if (campRes?.success) {
+                const data = campRes.data?.data || [];
+                AppState.meta.campaigns = data;
+                AppState.metaCache.campaignsByAccount[accId] = {
+                    data,
+                    fetchedAt: Date.now()
+                };
+            } else {
+                AppState.meta.campaigns = [];
+                AppState.metaCache.campaignsByAccount[accId] = {
+                    data: [],
+                    fetchedAt: Date.now()
+                };
+            }
         }
     }
 
@@ -237,31 +324,56 @@ function updateAccountAndCampaignSelectors() {
 }
 
 /* -------------------------------------------------------
-    CREATIVES LADEN (für Creative Library)
+    CREATIVES LADEN (mit Cache)
 ---------------------------------------------------------*/
 
 async function loadCreativesForCurrentSelection() {
+    ensureMetaCache();
+
     if (!AppState.selectedAccountId) {
         AppState.meta.ads = [];
         AppState.creativesLoaded = false;
         return;
     }
 
+    const accId = AppState.selectedAccountId;
+    const cacheEntry = AppState.metaCache.adsByAccount[accId] || null;
+
+    if (isCacheValid(cacheEntry)) {
+        AppState.meta.ads = cacheEntry.data;
+        AppState.creativesLoaded = true;
+        return;
+    }
+
     try {
-        const res = await fetchMetaAds(AppState.selectedAccountId);
+        const res = await fetchMetaAds(accId);
         if (res?.success) {
             const arr = res.data?.data || res.data || [];
-            AppState.meta.ads = Array.isArray(arr) ? arr : [];
+            const data = Array.isArray(arr) ? arr : [];
+            AppState.meta.ads = data;
             AppState.creativesLoaded = true;
+
+            AppState.metaCache.adsByAccount[accId] = {
+                data,
+                fetchedAt: Date.now()
+            };
         } else {
             AppState.meta.ads = [];
             AppState.creativesLoaded = false;
+            AppState.metaCache.adsByAccount[accId] = {
+                data: [],
+                fetchedAt: Date.now()
+            };
             showToast("Creatives konnten nicht geladen werden.", "error");
         }
     } catch (err) {
         console.error(err);
         AppState.meta.ads = [];
         AppState.creativesLoaded = false;
+        AppState.metaCache.adsByAccount[accId] = {
+            data: [],
+            fetchedAt: Date.now()
+        };
         showToast("Fehler beim Laden der Creatives.", "error");
     }
 }
@@ -311,7 +423,6 @@ function updateUI() {
         updateTestingLogView(connected);
     }
 
-    // Health-Ampeln (System + Kampagne) aktualisieren
     updateHealthStatus();
 }
 
@@ -437,7 +548,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     /* ---------------------------------------------------
         AKTIVE DROPDOWNS: ACCOUNT & KAMPAGNE
-        -> beeinflussen Dashboard, Library, Campaigns, Sensei
     ----------------------------------------------------*/
 
     const accountSelect = document.getElementById("brandSelect");
@@ -447,7 +557,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             AppState.selectedAccountId = newAccountId;
             AppState.selectedCampaignId = null;
 
-            // Caches & Daten zurücksetzen, damit alles frisch geladen wird
             AppState.dashboardLoaded = false;
             AppState.campaignsLoaded = false;
             AppState.creativesLoaded = false;
@@ -457,10 +566,21 @@ document.addEventListener("DOMContentLoaded", async () => {
             AppState.meta.creatives = [];
             AppState.meta.ads = [];
 
+            // Cache für diesen Account (Kampagnen & Ads) leeren,
+            // Accounts-Cache kann bleiben
+            ensureMetaCache();
             if (newAccountId) {
+                delete AppState.metaCache.campaignsByAccount[newAccountId];
+                delete AppState.metaCache.adsByAccount[newAccountId];
+
                 const campRes = await fetchMetaCampaigns(newAccountId);
                 if (campRes?.success) {
-                    AppState.meta.campaigns = campRes.data?.data || [];
+                    const data = campRes.data?.data || [];
+                    AppState.meta.campaigns = data;
+                    AppState.metaCache.campaignsByAccount[newAccountId] = {
+                        data,
+                        fetchedAt: Date.now()
+                    };
                 }
             }
 
@@ -475,7 +595,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             const newCampaignId = e.target.value || null;
             AppState.selectedCampaignId = newCampaignId;
 
-            // Views neu berechnen, da sich Fokus geändert hat
             AppState.dashboardLoaded = false;
             AppState.creativesLoaded = false;
             AppState.dashboardMetrics = null;
