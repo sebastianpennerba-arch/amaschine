@@ -53,6 +53,22 @@
                 <span id="sidebarMetaStatusLabel">Meta Ads (Offline)</span>
             </div>
 
+            <div class="menu-status">
+                <span
+                    class="status-indicator status-green"
+                    id="sidebarSystemHealthIndicator"
+                ></span>
+                <span id="sidebarSystemHealthLabel">System Health (OK)</span>
+            </div>
+
+            <div class="menu-status">
+                <span
+                    class="status-indicator status-yellow"
+                    id="sidebarCampaignHealthIndicator"
+                ></span>
+                <span id="sidebarCampaignHealthLabel">Campaign Health (n/a)</span>
+            </div>
+
             <!-- SETTINGS BUTTON (unten links) -->
             <button class="menu-settings-button" id="openSettingsButton">
                 <i class="fas fa-cog"></i>
@@ -71,9 +87,8 @@
             <span class="header-date-time">
                 Datum: <span id="currentDate"></span> | Zeit:
                 <span id="currentTime"></span>
+                <span class="app-version-label">Version: S1-0.9-b</span>
             </span>
-
-            <span class="system-health system-optimal">SYSTEM HEALTH: OPTIMAL</span>
         </div>
 
         <div class="account-selection">
@@ -94,7 +109,7 @@
                 <span id="topbarMetaStatusLabel">Meta: Getrennt</span>
             </div>
 
-            <button class="header-action-button">
+            <button class="header-action-button" id="profileButton">
                 <i class="fas fa-user-circle"></i>
                 <span class="icon-tooltip">Profil</span>
             </button>
@@ -142,6 +157,9 @@
                         <h3>Zeitraum</h3>
                         <div>
                             <select id="dashboardTimeRange">
+                                <option value="today">Heute</option>
+                                <option value="yesterday">Gestern</option>
+                                <option value="today_yesterday">Heute + Gestern</option>
                                 <option value="last_7d">Letzte 7 Tage</option>
                                 <option value="last_30d" selected>Letzte 30 Tage</option>
                                 <option value="this_month">Aktueller Monat</option>
