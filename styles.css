@@ -213,6 +213,11 @@ body {
     margin-right: 15px;
 }
 
+.app-version-label {
+    margin-left: 8px;
+    opacity: 0.8;
+}
+
 .system-health {
     padding: 3px 8px;
     border-radius: 4px;
@@ -797,7 +802,7 @@ body {
     min-width: 300px;
     border-left: 5px solid var(--color-primary);
     animation: slideIn 0.3s ease-out;
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transition: opacity 0.3s.ease, transform 0.3s ease;
 }
 
 /* sanfter Fade-Out */
