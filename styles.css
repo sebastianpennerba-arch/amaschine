@@ -89,7 +89,7 @@ body {
     color: var(--text-secondary);
     text-decoration: none;
     font-size: 14px;
-    transition: background-color 0.2s, color 0.2s;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
     border-left: 4px solid transparent;
 }
 
@@ -282,7 +282,7 @@ body {
     padding: 8px;
     border-radius: 50%;
     transition: background-color 0.2s, color 0.2s;
-    position: relative; /* für Tooltip */
+    position: relative;
 }
 
 .header-action-button:hover {
@@ -314,43 +314,22 @@ body {
     transform: translateX(-50%) translateY(4px);
 }
 
-/* --- META CONNECT STATUS PILL (TOP BAR) ---
-   (Fallback) */
-.meta-connection-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
+/* Notification Badge */
+.notification-badge {
+    position: absolute;
+    top: 4px;
+    right: 2px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
     border-radius: 999px;
-    font-size: 12px;
-    font-weight: 600;
-    border: 1px solid var(--border);
-    margin-top: 6px;
-}
-
-.meta-connection-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: var(--danger);
-}
-
-.meta-connected {
-    border-color: rgba(16, 185, 129, 0.6);
-    color: var(--success);
-}
-
-.meta-connected .meta-connection-dot {
-    background-color: var(--success);
-}
-
-.meta-disconnected {
-    border-color: rgba(239, 68, 68, 0.6);
-    color: var(--danger);
-}
-
-.meta-disconnected .meta-connection-dot {
-    background-color: var(--danger);
+    background: var(--danger);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* --- META CONNECT STRIPE --- */
@@ -427,13 +406,32 @@ body {
     margin-bottom: var(--spacing-main);
 }
 
+.time-range-select {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.time-range-select select {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background-color: var(--color-card);
+    font-size: 13px;
+    cursor: pointer;
+}
+
 .time-range-select.mini select {
     padding: 4px 8px;
     font-size: 13px;
     height: 30px;
 }
+
 .time-range-select.mini label {
     font-size: 12px;
+    color: var(--text-secondary);
 }
 
 /* --- CARD --- */
@@ -461,6 +459,14 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    transition: transform 0.15s ease-out, box-shadow 0.2s ease, border-color 0.2s ease;
+    border: 1px solid var(--border);
+}
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+    border-color: rgba(99, 102, 241, 0.4);
 }
 
 .kpi-label {
@@ -478,11 +484,11 @@ body {
 }
 
 .kpi-value {
-    font-size: 36px;
+    font-size: 32px;
     font-weight: 800;
     color: var(--text-primary);
     line-height: 1.1;
-    margin: 5px 0 10px 0;
+    margin: 5px 0 4px 0;
 }
 
 .kpi-trend {
@@ -823,7 +829,7 @@ body {
     min-width: 300px;
     border-left: 5px solid var(--color-primary);
     animation: slideIn 0.3s ease-out;
-    transition: opacity 0.3s.ease, transform 0.3s ease;
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 /* sanfter Fade-Out */
@@ -881,7 +887,7 @@ body {
     padding: var(--spacing-main);
     border-radius: var(--radius);
     width: 90%;
-    max-width: 500px;
+    max-width: 560px;
     transform: translateY(-50px);
     transition: transform 0.3s;
 }
@@ -894,7 +900,7 @@ body {
     margin-bottom: var(--spacing-inner);
 }
 
-/* Moderner Primary-Button im Modal (kein MS-DOS-Button mehr 😄) */
+/* Moderner Primary-Button im Modal */
 .primary-btn {
     margin-top: var(--spacing-inner);
     float: right;
@@ -914,6 +920,63 @@ body {
     background-color: var(--color-primary-dark);
     transform: translateY(-1px);
     box-shadow: 0 8px 20px rgba(99, 102, 241, 0.25);
+}
+
+/* --- SETTINGS FORM --- */
+.settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    font-size: 13px;
+}
+
+.settings-group {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+}
+
+.settings-group-title {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+
+.settings-row label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    flex: 1;
+}
+
+.settings-row .settings-control {
+    flex: 1;
+    text-align: right;
+}
+
+.settings-row select,
+.settings-row input[type="number"] {
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    font-size: 13px;
+    background: var(--color-card);
+}
+
+.settings-radio-group {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    align-items: center;
+    font-size: 12px;
 }
 
 /* --- METRIC CHIPS (Campaign / Creative / Sensei) --- */
