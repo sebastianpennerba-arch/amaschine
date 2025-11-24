@@ -159,6 +159,73 @@ export function checkMetaConnection() {
     }
 }
 
+/**
+ * Health-Ampeln unten links aktualisieren:
+ * - System Health (basiert auf Meta-Verbindung)
+ * - Campaign Health (basiert auf ROAS/CTR der gewählten Kampagne)
+ */
+export function updateHealthStatus() {
+    const systemIndicator = document.getElementById("sidebarSystemHealthIndicator");
+    const systemLabel = document.getElementById("sidebarSystemHealthLabel");
+    const campaignIndicator = document.getElementById("sidebarCampaignHealthIndicator");
+    const campaignLabel = document.getElementById("sidebarCampaignHealthLabel");
+
+    // System Health: einfach – Meta verbunden = optimal, sonst Standby
+    if (systemIndicator && systemLabel) {
+        systemIndicator.classList.remove("status-green", "status-yellow", "status-red");
+
+        if (AppState.metaConnected && AppState.meta.accessToken) {
+            systemIndicator.classList.add("status-green");
+            systemLabel.textContent = "System Health (Optimal)";
+        } else {
+            systemIndicator.classList.add("status-yellow");
+            systemLabel.textContent = "System Health (Standby)";
+        }
+    }
+
+    // Campaign Health: basierend auf Dashboard-/Campaign-Metriken
+    if (campaignIndicator && campaignLabel) {
+        campaignIndicator.classList.remove("status-green", "status-yellow", "status-red");
+
+        let metrics = AppState.dashboardMetrics || null;
+        const selectedId = AppState.selectedCampaignId;
+
+        // Wenn es gezielte Kampagnen-Insights gibt, diese bevorzugen
+        if (
+            selectedId &&
+            AppState.meta &&
+            AppState.meta.insightsByCampaign &&
+            AppState.meta.insightsByCampaign[selectedId]
+        ) {
+            const im = AppState.meta.insightsByCampaign[selectedId];
+            metrics = {
+                roas: im.roas,
+                ctr: im.ctr
+            };
+        }
+
+        if (!metrics) {
+            campaignIndicator.classList.add("status-yellow");
+            campaignLabel.textContent = "Campaign Health (n/a)";
+            return;
+        }
+
+        const roas = Number(metrics.roas || 0);
+        const ctr = Number(metrics.ctr || 0);
+
+        if (roas >= 3 && ctr >= 2) {
+            campaignIndicator.classList.add("status-green");
+            campaignLabel.textContent = "Campaign Health (Strong)";
+        } else if (roas >= 2 || ctr >= 1) {
+            campaignIndicator.classList.add("status-yellow");
+            campaignLabel.textContent = "Campaign Health (OK)";
+        } else {
+            campaignIndicator.classList.add("status-red");
+            campaignLabel.textContent = "Campaign Health (Critical)";
+        }
+    }
+}
+
 export function initSidebarNavigation(onViewChange) {
     const items = document.querySelectorAll(".menu-item[data-view]");
     items.forEach((item) => {
