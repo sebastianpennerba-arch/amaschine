@@ -328,13 +328,13 @@ body {
 .main-content {
     margin-left: 250px;
     margin-top: 70px;
-    padding: var(--spacing-main);
+    padding: 0 var(--spacing-main) var(--spacing-main); /* TOP-PADDING ENTFERNT, damit Stripe direkt unter Header sitzt */
     max-width: 1600px;
     width: calc(100% - 250px);
 }
 
 .view {
-    padding: var(--spacing-main) 0;
+    padding: 16px 0; /* schlankere Top-Abstände innerhalb der Views */
 }
 
 .hidden { display: none; }
@@ -786,7 +786,7 @@ body {
     }
 
     .main-content {
-        padding-top: 80px;
+        padding-top: 0;
     }
 }
 
