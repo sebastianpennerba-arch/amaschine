@@ -1,12 +1,19 @@
-// sensei.js – Sensei Strategy (AI Layer über Live-Daten)
-// ------------------------------------------------------
-// Liest NUR aus AppState (Meta-Daten, Dashboard-Metrics) und
-// baut daraus einfache, aber echte Empfehlungen.
-// Kein extra API-Call, kein Mock, alles basiert auf den
-// bereits geladenen Kampagnen / Creatives / KPIs.
+// sensei.js – Sensei Strategy (AI Layer über Live-Daten, Advanced)
+// ---------------------------------------------------------------
+// Nutzt AppState (Dashboard-Metriken, Kampagnen, Creatives) und
+// gibt konkrete Empfehlungen zu:
+// - Scaling
+// - Risiko
+// - Creative-Fatigue
+//
+// Neu in dieser Version:
+// - Sensei bezieht sich explizit auf das aktuell gewählte Werbekonto / Kampagne
+// - Kleine Scope-Auswahl (Auto / Account / Campaign)
+// - Die 3 Buttons öffnen echte Detail-Overlays (Modals) statt nur Textplatzhalter
+// - showToast Signature gefixt (msg, type)
 
 import { AppState } from "./state.js";
-import { showToast } from "./uiCore.js";
+import { showToast, openModal } from "./uiCore.js";
 
 function formatEuro(value) {
     const num = Number(value || 0);
@@ -24,14 +31,51 @@ function formatRoas(value) {
     return `${num.toFixed(2)}x`;
 }
 
+function getSenseiScope() {
+    const sel = document.getElementById("senseiScopeSelect");
+    const val = (sel?.value || "auto").toLowerCase();
+    if (val !== "account" && val !== "campaign" && val !== "auto") return "auto";
+    return val;
+}
+
 function buildSenseiLayout() {
     const view = document.getElementById("senseiView");
     if (!view) return null;
 
-    // Wir überschreiben bewusst den Platzhalter-Content,
-    // behalten aber die Titel- und Card-Struktur bei.
     view.innerHTML = `
-        <h2 class="elite-title">Sensei Strategy (AI Layer)</h2>
+        <div style="
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            gap:12px;
+            margin-bottom:12px;
+        ">
+            <h2 class="elite-title" style="margin:0;">
+                Sensei Strategy (AI Layer)
+            </h2>
+            <div class="sensei-toolbar" style="
+                display:flex;
+                gap:8px;
+                align-items:center;
+                font-size:12px;
+                color:var(--text-secondary);
+            ">
+                <label style="display:flex; align-items:center; gap:6px;">
+                    Quelle:
+                    <select id="senseiScopeSelect" style="
+                        padding:4px 8px;
+                        border-radius:999px;
+                        border:1px solid var(--border);
+                        background:var(--surface-elevated);
+                        font-size:12px;
+                    ">
+                        <option value="auto">Auto (Werbekonto / Kampagne)</option>
+                        <option value="account">Werbekonto</option>
+                        <option value="campaign">Ausgewählte Kampagne</option>
+                    </select>
+                </label>
+            </div>
+        </div>
 
         <div class="card" id="senseiSummaryCard">
             <p id="senseiSummaryText" style="color: var(--text-secondary); font-size: 14px;">
@@ -50,7 +94,7 @@ function buildSenseiLayout() {
     return { summaryCard, recList };
 }
 
-function deriveInsightsFromState() {
+function deriveInsightsFromState(scope) {
     const metrics = AppState.dashboardMetrics || {};
     const campaigns = Array.isArray(AppState.meta?.campaigns)
         ? AppState.meta.campaigns
@@ -64,6 +108,21 @@ function deriveInsightsFromState() {
     const ctr = Number(metrics.ctr || 0);
     const cpm = Number(metrics.cpm || 0);
 
+    // Scope-Label: was genau analysiert Sensei?
+    let scopeLabel = metrics.scopeLabel;
+    if (!scopeLabel) {
+        if (scope === "campaign" && AppState.selectedCampaignId) {
+            scopeLabel = "Ausgewählte Kampagne";
+        } else if (scope === "account" || AppState.selectedAccountId) {
+            scopeLabel = "Werbekonto";
+        } else {
+            scopeLabel = "Gesamtübersicht";
+        }
+    }
+
+    const timeRangeLabel =
+        metrics.timeRangeLabel || AppState.timeRangePreset || "letzte 30 Tage";
+
     // Baseline für einfache „Ampel“-Logik
     const thresholds = {
         lowSpend: 50,
@@ -73,7 +132,7 @@ function deriveInsightsFromState() {
         lowRoas: 1.5,
         greatCtr: 3,
         lowCtr: 1,
-        highCpm: 25,
+        highCpm: 25
     };
 
     // 1) Scaling / Budget
@@ -83,17 +142,20 @@ function deriveInsightsFromState() {
 
     if (spend > thresholds.highSpend && roas >= thresholds.okRoas) {
         scalingMood = "bullish";
-        scalingText = "Starke Performance bei relevantem Spend – hier kannst du skalieren.";
+        scalingText =
+            "Starke Performance bei relevantem Spend – hier kannst du skalieren.";
         scalingAction =
             "Erhöhe das Budget der Top-Kampagnen schrittweise (z.B. +15–20 %) und beobachte ROAS & CTR.";
     } else if (spend > thresholds.lowSpend && roas < thresholds.lowRoas) {
         scalingMood = "bearish";
-        scalingText = "Du gibst bereits Budget aus, aber ROAS ist schwach.";
+        scalingText =
+            "Du gibst bereits Budget aus, aber ROAS ist schwach – hier verlierst du Effizienz.";
         scalingAction =
             "Reduziere Budgets schwacher Kampagnen und verlagere Spend in die Top-Performer.";
     } else if (spend <= thresholds.lowSpend) {
         scalingMood = "testing";
-        scalingText = "Wenig Spend – perfekter Zeitpunkt für strukturiertes Creative-Testing.";
+        scalingText =
+            "Wenig Spend – perfekter Zeitpunkt für strukturiertes Creative-Testing.";
         scalingAction =
             "Definiere 3–5 neue Creatives und teste klare Hooks/Angles, bevor du das Budget hochziehst.";
     }
@@ -101,8 +163,10 @@ function deriveInsightsFromState() {
     // 2) Risiko / Anomalien
     let riskLevel = "low";
     let riskTitle = "Alles im grünen Bereich.";
-    let riskText = "Keine offensichtlichen Anomalien – Monitoring reicht aktuell aus.";
-    let riskAction = "Behalte ROAS, CPM und CTR im Blick, aber es besteht kein akuter Handlungsbedarf.";
+    let riskText =
+        "Keine offensichtlichen Anomalien – Monitoring reicht aktuell aus.";
+    let riskAction =
+        "Behalte ROAS, CPM und CTR im Blick, aber es besteht kein akuter Handlungsbedarf.";
 
     if (cpm > thresholds.highCpm && ctr < thresholds.lowCtr) {
         riskLevel = "critical";
@@ -121,7 +185,6 @@ function deriveInsightsFromState() {
     }
 
     // 3) Creative-Fatigue (sehr grobe Heuristik)
-    // Wir schauen nur, ob genügend Creatives existieren und ob CTR ok ist.
     let fatigueLevel = "ok";
     let fatigueTitle = "Creative-Frequenz wirkt solide.";
     let fatigueText =
@@ -153,6 +216,8 @@ function deriveInsightsFromState() {
             cpm,
             campaignsCount: campaigns.length,
             creativesCount: creatives.length,
+            scopeLabel,
+            timeRangeLabel
         },
         scaling: { mood: scalingMood, text: scalingText, action: scalingAction },
         risk: { level: riskLevel, title: riskTitle, text: riskText, action: riskAction },
@@ -160,8 +225,8 @@ function deriveInsightsFromState() {
             level: fatigueLevel,
             title: fatigueTitle,
             text: fatigueText,
-            action: fatigueAction,
-        },
+            action: fatigueAction
+        }
     };
 }
 
@@ -176,6 +241,8 @@ function renderSenseiSummary(summary) {
         cpm,
         campaignsCount,
         creativesCount,
+        scopeLabel,
+        timeRangeLabel
     } = summary;
 
     if (!campaignsCount && !creativesCount) {
@@ -189,6 +256,9 @@ function renderSenseiSummary(summary) {
 
     el.innerHTML = `
         Sensei arbeitet auf Basis deiner aktuellen Meta-Daten.<br />
+        <br />
+        <strong>Fokus:</strong> ${scopeLabel || "Gesamt"}<br />
+        <strong>Zeitraum:</strong> ${timeRangeLabel}<br />
         <br />
         <strong>Überblick:</strong><br />
         • Kampagnen: <strong>${campaignsCount}</strong><br />
@@ -250,32 +320,145 @@ function renderRecommendationCards(recList, insights) {
         .forEach((btn) => {
             btn.addEventListener("click", () => {
                 const type = btn.getAttribute("data-sensei-action");
-                let msg = "";
-
                 if (type === "scaling") {
-                    msg = insights.scaling.action;
+                    openScalingModal(insights);
                 } else if (type === "risk") {
-                    msg = insights.risk.action;
+                    openRiskModal(insights);
                 } else if (type === "fatigue") {
-                    msg = insights.fatigue.action;
+                    openFatigueModal(insights);
                 }
-
-                showToast("info", msg || "Sensei-Hinweis noch in Arbeit.");
             });
         });
+
+    const scopeSelect = document.getElementById("senseiScopeSelect");
+    if (scopeSelect) {
+        scopeSelect.addEventListener("change", () => {
+            // Scope-Wechsel → UI neu berechnen
+            updateSenseiView(AppState.metaConnected);
+            showToast("Sensei hat die Analyse Quelle aktualisiert.", "info");
+        });
+    }
 }
 
-// Public API – wird aus app.js aufgerufen
-// --------------------------------------
+/* -------------------------------------------------------
+   Detail-Overlays für die 3 Sensei-Aktionen
+---------------------------------------------------------*/
+
+function openScalingModal(insights) {
+    const { summary, scaling } = insights;
+    const html = `
+        <div style="display:flex; flex-direction:column; gap:16px; max-width:640px;">
+            <p style="font-size:13px; color:var(--text-secondary); margin:0;">
+                Basierend auf <strong>${summary.scopeLabel}</strong> im Zeitraum
+                <strong>${summary.timeRangeLabel}</strong>:
+            </p>
+
+            <div class="metric-chip">
+                <div class="metric-label">Spend</div>
+                <div class="metric-value">${formatEuro(summary.spend)}</div>
+            </div>
+            <div class="metric-chip">
+                <div class="metric-label">ROAS (gewichtet)</div>
+                <div class="metric-value">${formatRoas(summary.roas)}</div>
+            </div>
+            <div class="metric-chip">
+                <div class="metric-label">CTR</div>
+                <div class="metric-value">${formatPct(summary.ctr)}</div>
+            </div>
+
+            <div style="font-size:13px; color:var(--text-secondary);">
+                <strong>Scaling-Interpretation:</strong><br />
+                ${scaling.text}
+            </div>
+
+            <div style="font-size:13px; color:var(--text-primary);">
+                <strong>Konkreter nächster Schritt:</strong><br />
+                ${scaling.action}
+            </div>
+        </div>
+    `;
+    openModal("Sensei – Scaling-Empfehlung", html);
+}
+
+function openRiskModal(insights) {
+    const { summary, risk } = insights;
+    const html = `
+        <div style="display:flex; flex-direction:column; gap:16px; max-width:640px;">
+            <p style="font-size:13px; color:var(--text-secondary); margin:0;">
+                Sensei prüft deine Risiken für <strong>${summary.scopeLabel}</strong>.
+            </p>
+
+            <div class="metric-chip">
+                <div class="metric-label">CPM</div>
+                <div class="metric-value">${formatEuro(summary.cpm)}</div>
+            </div>
+            <div class="metric-chip">
+                <div class="metric-label">CTR</div>
+                <div class="metric-value">${formatPct(summary.ctr)}</div>
+            </div>
+
+            <div style="font-size:13px; color:var(--text-primary);">
+                <strong>Risiko-Einschätzung:</strong><br />
+                ${risk.title}<br/>
+                <span style="font-size:13px; color:var(--text-secondary);">
+                    ${risk.text}
+                </span>
+            </div>
+
+            <div style="font-size:13px; color:var(--text-primary);">
+                <strong>Handlungsempfehlung:</strong><br />
+                ${risk.action}
+            </div>
+        </div>
+    `;
+    openModal("Sensei – Risiko-Alert", html);
+}
+
+function openFatigueModal(insights) {
+    const { summary, fatigue } = insights;
+    const html = `
+        <div style="display:flex; flex-direction:column; gap:16px; max-width:640px;">
+            <p style="font-size:13px; color:var(--text-secondary); margin:0;">
+                Creative-Fatigue Analyse auf Basis von <strong>${summary.creativesCount}</strong> Creatives
+                und einem Spend von <strong>${formatEuro(summary.spend)}</strong>.
+            </p>
+
+            <div class="metric-chip">
+                <div class="metric-label">Creatives im Account</div>
+                <div class="metric-value">${summary.creativesCount}</div>
+            </div>
+
+            <div style="font-size:13px; color:var(--text-primary);">
+                <strong>Bewertung:</strong><br />
+                ${fatigue.title}<br/>
+                <span style="font-size:13px; color:var(--text-secondary);">
+                    ${fatigue.text}
+                </span>
+            </div>
+
+            <div style="font-size:13px; color:var(--text-primary);">
+                <strong>Sensei-Plan:</strong><br />
+                ${fatigue.action}
+            </div>
+        </div>
+    `;
+    openModal("Sensei – Creative-Fatigue", html);
+}
+
+/* -------------------------------------------------------
+   Public API – wird aus app.js aufgerufen
+---------------------------------------------------------*/
+
 export function updateSenseiView(connected) {
     const view = document.getElementById("senseiView");
     if (!view) return;
 
-    const { summaryCard, recList } = buildSenseiLayout() || {};
-    if (!summaryCard || !recList) return;
+    const layout = buildSenseiLayout();
+    if (!layout) return;
+
+    const { summaryCard, recList } = layout;
 
     if (!connected || !AppState.metaConnected) {
-        // Wenn Meta nicht verbunden ist, bleiben wir soft.
         const summary = {
             spend: 0,
             roas: 0,
@@ -283,6 +466,8 @@ export function updateSenseiView(connected) {
             cpm: 0,
             campaignsCount: 0,
             creativesCount: 0,
+            scopeLabel: "Keine Verbindung",
+            timeRangeLabel: "-"
         };
         renderSenseiSummary(summary);
         recList.innerHTML = `
@@ -297,7 +482,8 @@ export function updateSenseiView(connected) {
         return;
     }
 
-    const insights = deriveInsightsFromState();
+    const scope = getSenseiScope();
+    const insights = deriveInsightsFromState(scope);
     renderSenseiSummary(insights.summary);
     renderRecommendationCards(recList, insights);
 }
