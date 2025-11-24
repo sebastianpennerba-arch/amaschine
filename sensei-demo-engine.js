@@ -9,152 +9,97 @@ import {
   demoHookAnalysis,
   demoTestingLog,
   demoForecast
-} from "./data/demo/demoData.js";
+} from "./demoData.js";
 
 // Haupt-Funktion: liefert eine komplette Analyse zurück
 export function runSenseiDemoAnalysis() {
 
-  const actions = [];
-  const risks = [];
-  const opportunities = [];
-  const testing = [];
-  const funnel = [];
+  // 1) Dashboard-Level / Gesamt-Performance
+  const totalSpend = demoCampaigns.reduce((sum, c) => sum + (c.spend || 0), 0);
+  const totalRevenue = demoCampaigns.reduce(
+    (sum, c) => sum + (c.revenue || 0),
+    0
+  );
+  const totalImpressions = demoCampaigns.reduce(
+    (sum, c) => sum + (c.impressions || 0),
+    0
+  );
+  const totalClicks = demoCampaigns.reduce(
+    (sum, c) => sum + (c.clicks || 0),
+    0
+  );
 
-  /* ---------------------------------------------------------
-     1) Creative Fatigue Erkennung
-  --------------------------------------------------------- */
-  demoAlerts.forEach(alert => {
-    if (alert.title.includes("Fatigue")) {
-      risks.push({
-        title: "Creative Müdigkeit erkannt",
-        message: alert.message,
-        priority: "Hoch"
-      });
+  const roas = totalSpend > 0 ? totalRevenue / totalSpend : 0;
+  const ctr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
+  const cpm = totalImpressions > 0 ? (totalSpend / totalImpressions) * 1000 : 0;
 
-      actions.push({
-        title: "Neues Creative entwickeln",
-        message: "UGC Vol.3 läuft aus. Neue Hook-Variante erstellen.",
-        priority: "Hoch"
-      });
-    }
-  });
-
-  /* ---------------------------------------------------------
-     2) Top Creatives → Chancen
-  --------------------------------------------------------- */
-  demoCreatives
-    .filter(c => c.performance === "Winner")
-    .forEach(c => {
-      opportunities.push({
-        title: `Creative Winner: ${c.name}`,
-        message: "Dieses Creative outperformt den Account-Schnitt. Skalieren empfohlen.",
-        ctr: c.ctr,
-        roas: c.roas,
-        priority: "Mittel"
-      });
-    });
-
-  /* ---------------------------------------------------------
-     3) Weak Creatives → Risiken
-  --------------------------------------------------------- */
-  demoCreatives
-    .filter(c => c.performance === "Schwach")
-    .forEach(c => {
-      risks.push({
-        title: `Schwaches Creative: ${c.name}`,
-        message: "CTR, ROAS und CPM unter Benchmark. Pausieren empfohlen.",
-        priority: "Mittel"
-      });
-
-      actions.push({
-        title: "Creative pausieren",
-        message: `${c.name} performt unter Durchschnitt. Sofort pausieren.`,
-        priority: "Mittel"
-      });
-    });
-
-  /* ---------------------------------------------------------
-     4) Funnel Health Auswertung
-  --------------------------------------------------------- */
-  const funnelData = demoFunnel;
-
-  if (funnelData.tof.score < 80) {
-    risks.push({ 
-      title: "Top Funnel Potential",
-      message: "CTR und Scrollstop gut – aber noch nicht maximal ausgenutzt.",
-      priority: "Mittel"
-    });
-  }
-
-  if (funnelData.mof.score < 70) {
-    risks.push({ 
-      title: "Middle Funnel Schwäche",
-      message: "Video-View-Rate könnte verbessert werden.",
-      priority: "Hoch"
-    });
-
-    actions.push({
-      title: "Retargeting erweitern",
-      message: "2 neue Video-Varianten für MoF hinzufügen.",
-      priority: "Hoch"
-    });
-  }
-
-  if (funnelData.bof.score < 70) {
-    risks.push({ 
-      title: "Bottom Funnel Problem",
-      message: "Checkout Abbrüche hoch. Landing Page inspizieren.",
-      priority: "Hoch"
-    });
-  }
-
-  /* ---------------------------------------------------------
-     5) Hook Analyse → Chancen
-  --------------------------------------------------------- */
-  demoHookAnalysis.forEach(hook => {
-    if (hook.roas > 4) {
-      opportunities.push({
-        title: `Starker Hook: ${hook.hook}`,
-        message: hook.message,
-        ctr: hook.ctr,
-        priority: "Hoch"
-      });
-    }
-  });
-
-  /* ---------------------------------------------------------
-     6) Testing Log Integration
-  --------------------------------------------------------- */
-  demoTestingLog.forEach(t => {
-    testing.push({
-      title: t.title,
-      status: t.status,
-      findings: t.findings,
-      next: t.next_step,
-      priority: t.status === "Laufend" ? "Hoch" : "Mittel"
-    });
-  });
-
-  /* ---------------------------------------------------------
-     7) Forecast Empfehlungen
-  --------------------------------------------------------- */
-
-  const forecast = {
-    spend: demoForecast.next7days.projected_spend,
-    revenue: demoForecast.next7days.projected_revenue,
-    roas: demoForecast.next7days.projected_roas,
-    confidence: demoForecast.next7days.confidence,
-    message: demoForecast.message
+  const dashboard = {
+    spend: totalSpend,
+    revenue: totalRevenue,
+    roas,
+    ctr,
+    cpm,
+    impressions: totalImpressions,
+    clicks: totalClicks
   };
 
+  // 2) Alerts aus Demo-Config
+  const alerts = demoAlerts.slice();
+
+  // 3) Hook-Analyse
+  const hookAnalysis = demoHookAnalysis;
+
+  // 4) Testing Log
+  const testing = demoTestingLog.slice();
+
+  // 5) Forecast
+  const forecast = demoForecast;
+
+  // 6) Aktionen / Empfehlungen
+  const actions = [
+    {
+      title: "Skaliere Gewinner-Kampagne",
+      message:
+        "Kampagne 'UGC SCALE – Evergreen Vol. 3' hat stabilen ROAS > 4.0. Empfohlen: Budget +20–30% in den nächsten 3 Tagen.",
+      priority: "Hoch"
+    },
+    {
+      title: "Testing für Retargeting ausbauen",
+      message:
+        "Retargeting-Kampagne zeigt solide CTR, aber schwachen ROAS. Empfohlen: Neue Hooks testen, Landingpage-Varianten prüfen.",
+      priority: "Mittel"
+    }
+  ];
+
+  const risks = [
+    {
+      title: "Abfallender ROAS in Broad-Kampagne",
+      message:
+        "Die Broad-Kampagne 'TOP – Prospecting Broad' verliert in den letzten 7 Tagen an Effizienz. Achte auf steigenden CPM.",
+      priority: "Hoch"
+    }
+  ];
+
+  const opportunities = [
+    {
+      title: "Starke Performance bei UGC Creatives",
+      message:
+        "UGC-Video-Creatives haben im Schnitt 25–40% bessere CTR. Nutze dies stärker in deinen Hauptkampagnen.",
+      priority: "Mittel"
+    }
+  ];
+
   /* ---------------------------------------------------------
-     FINAL RETURN OBJEKT
+     RETURN – Komplettes Objekt für Sensei-Frontend
   --------------------------------------------------------- */
 
   return {
     date: new Date().toISOString(),
     summary: "Sensei Analyse erfolgreich abgeschlossen.",
 
+    dashboard,
+    hooks: hookAnalysis,
+    alerts,
     actions,
     risks,
     opportunities,
