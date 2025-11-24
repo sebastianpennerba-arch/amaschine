@@ -1,6 +1,5 @@
-// app.js – Orchestrator mit Meta-Caching, Creative-Loader,
-// Dashboard-CleanState, Settings & Notifications
-// SignalOne.cloud – Frontend Engine
+// app.js – Orchestrator mit Demo-Mode (Option C)
+// SignalOne.cloud Frontend Engine
 
 import { AppState, META_OAUTH_CONFIG } from "./state.js";
 import {
@@ -32,113 +31,241 @@ import { updateReportsView } from "./reports.js";
 import { updateTestingLogView } from "./testingLog.js";
 import { initSettings } from "./settings.js";
 
-const META_TOKEN_STORAGE_KEY = "signalone_meta_token_v1";
+/* -------------------------------------------------------
+    CONSTANTS
+---------------------------------------------------------*/
 
-// Default Cache-TTL (kann später über Settings angepasst werden)
-const DEFAULT_CACHE_TTL_MS = 15 * 60 * 1000; // 15 Minuten
+const META_TOKEN_STORAGE_KEY = "signalone_meta_token_v1";
+const SETTINGS_STORAGE_KEY = "signalone_settings_v1";
+const DEFAULT_CACHE_TTL_MS = 30 * 60 * 1000; // 30min
 
 /* -------------------------------------------------------
-    Hilfsfunktionen: Settings & Notifications
+    DEMO DATA (Mode C)
+---------------------------------------------------------*/
+
+const DEMO_DATA = {
+    selectedAccountId: "act_demo_001",
+    meta: {
+        user: {
+            id: "demo-user-1",
+            name: "Demo Brand GmbH"
+        },
+        adAccounts: [
+            {
+                id: "act_demo_001",
+                name: "Demo Brand – Main Account",
+                currency: "EUR"
+            }
+        ],
+        campaigns: [
+            {
+                id: "cmp_demo_1",
+                name: "PERF – Evergreen UGC",
+                status: "ACTIVE",
+                objective: "CONVERSIONS"
+            },
+            {
+                id: "cmp_demo_2",
+                name: "RET – Remarketing 30d",
+                status: "ACTIVE",
+                objective: "CONVERSIONS"
+            },
+            {
+                id: "cmp_demo_3",
+                name: "TOP – Prospecting Broad",
+                status: "PAUSED",
+                objective: "CONVERSIONS"
+            }
+        ],
+        // Wir nutzen Ads als Creatives-Quelle
+        ads: [
+            {
+                id: "ad_demo_1",
+                name: "UGC Hook A",
+                campaign_id: "cmp_demo_1",
+                configured_status: "ACTIVE",
+                effective_status: "ACTIVE",
+                spend: 320.5,
+                impressions: 18500,
+                clicks: 720,
+                website_purchase_roas: [{ value: 4.1 }],
+                creative: {
+                    object_story_spec: {
+                        video_data: {
+                            thumbnail_url:
+                                "https://via.placeholder.com/320x180?text=Demo+Video+1"
+                        }
+                    }
+                }
+            },
+            {
+                id: "ad_demo_2",
+                name: "UGC Hook B",
+                campaign_id: "cmp_demo_1",
+                configured_status: "ACTIVE",
+                effective_status: "ACTIVE",
+                spend: 210.2,
+                impressions: 14200,
+                clicks: 520,
+                website_purchase_roas: [{ value: 3.7 }],
+                creative: {
+                    object_story_spec: {
+                        link_data: {
+                            image_hash: "demo_hash_1",
+                            picture:
+                                "https://via.placeholder.com/320x180?text=Demo+Image+1"
+                        }
+                    }
+                }
+            },
+            {
+                id: "ad_demo_3",
+                name: "REM – DPA 30d",
+                campaign_id: "cmp_demo_2",
+                configured_status: "ACTIVE",
+                effective_status: "ACTIVE",
+                spend: 180.0,
+                impressions: 9600,
+                clicks: 410,
+                website_purchase_roas: [{ value: 5.2 }]
+            },
+            {
+                id: "ad_demo_4",
+                name: "RET – Static Offer",
+                campaign_id: "cmp_demo_2",
+                configured_status: "ACTIVE",
+                effective_status: "ACTIVE",
+                spend: 95.3,
+                impressions: 5400,
+                clicks: 210,
+                website_purchase_roas: [{ value: 3.3 }]
+            },
+            {
+                id: "ad_demo_5",
+                name: "TOP – Broad 1",
+                campaign_id: "cmp_demo_3",
+                configured_status: "PAUSED",
+                effective_status: "PAUSED",
+                spend: 140.0,
+                impressions: 12000,
+                clicks: 260,
+                website_purchase_roas: [{ value: 1.4 }]
+            },
+            {
+                id: "ad_demo_6",
+                name: "TOP – Broad 2",
+                campaign_id: "cmp_demo_3",
+                configured_status: "PAUSED",
+                effective_status: "PAUSED",
+                spend: 60.0,
+                impressions: 7000,
+                clicks: 120,
+                website_purchase_roas: [{ value: 1.1 }]
+            }
+        ],
+        insightsByCampaign: {
+            cmp_demo_1: {
+                spend: 530.7,
+                impressions: 32700,
+                clicks: 1240,
+                ctr: (1240 / 32700) * 100,
+                roas: 3.9
+            },
+            cmp_demo_2: {
+                spend: 275.3,
+                impressions: 15000,
+                clicks: 620,
+                ctr: (620 / 15000) * 100,
+                roas: 4.4
+            },
+            cmp_demo_3: {
+                spend: 200.0,
+                impressions: 19000,
+                clicks: 380,
+                ctr: (380 / 19000) * 100,
+                roas: 1.25
+            }
+        }
+    },
+    dashboardMetrics: {
+        spend: 530.7 + 275.3 + 200,
+        impressions: 32700 + 15000 + 19000,
+        clicks: 1240 + 620 + 380,
+        ctr:
+            ((1240 + 620 + 380) /
+                (32700 + 15000 + 19000)) *
+            100,
+        cpm:
+            ((530.7 + 275.3 + 200) /
+                (32700 + 15000 + 19000)) *
+            1000,
+        roas:
+            (3.9 * 530.7 + 4.4 * 275.3 + 1.25 * 200) /
+            (530.7 + 275.3 + 200),
+        scopeLabel: "Demo Account – Alle Kampagnen (3)",
+        timeRangeLabel: "Letzte 30 Tage"
+    }
+};
+
+/* -------------------------------------------------------
+    SETTINGS & CACHE
 ---------------------------------------------------------*/
 
 function ensureSettings() {
     if (!AppState.settings) {
         AppState.settings = {
-            theme: "light",
-            currency: "EUR",
-            metaCacheTtlMinutes: 15,
-            defaultTimeRange: "last_30d",
-            creativeLayout: "grid"
+            theme: "auto",
+            preferredCurrency: "EUR",
+            defaultTimeRange: "last_7d",
+            creativeLayout: "grid",
+            metaCacheTtlMinutes: 30,
+            demoMode: false
         };
+    } else {
+        if (!AppState.settings.defaultTimeRange) {
+            AppState.settings.defaultTimeRange = "last_7d";
+        }
+        if (typeof AppState.settings.metaCacheTtlMinutes !== "number") {
+            AppState.settings.metaCacheTtlMinutes = 30;
+        }
+        if (typeof AppState.settings.demoMode !== "boolean") {
+            AppState.settings.demoMode = false;
+        }
     }
     return AppState.settings;
 }
 
-function ensureNotifications() {
-    if (!Array.isArray(AppState.notifications)) {
-        AppState.notifications = [];
+function loadSettingsFromStorage() {
+    try {
+        const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+        if (!raw) {
+            ensureSettings();
+            return;
+        }
+        const parsed = JSON.parse(raw);
+        AppState.settings = {
+            ...ensureSettings(),
+            ...parsed
+        };
+    } catch (e) {
+        console.warn("Settings load failed:", e);
+        ensureSettings();
     }
-    return AppState.notifications;
 }
 
 function saveSettingsToStorage() {
     try {
-        const settings = ensureSettings();
+        ensureSettings();
         localStorage.setItem(
-            "signalone_settings_v1",
-            JSON.stringify(settings)
+            SETTINGS_STORAGE_KEY,
+            JSON.stringify(AppState.settings)
         );
     } catch (e) {
-        console.warn("Settings speichern fehlgeschlagen:", e);
+        console.warn("Settings save failed:", e);
     }
 }
 
-function loadSettingsFromStorage() {
-    ensureSettings();
-    try {
-        const raw = localStorage.getItem("signalone_settings_v1");
-        if (!raw) return;
-        const parsed = JSON.parse(raw);
-        AppState.settings = {
-            ...AppState.settings,
-            ...parsed
-        };
-    } catch (e) {
-        console.warn("Settings laden fehlgeschlagen:", e);
-    }
-}
-
-function applyThemeFromSettings() {
-    const settings = ensureSettings();
-    const root = document.documentElement;
-    root.dataset.theme = settings.theme === "dark" ? "dark" : "light";
-}
-
-function applyDashboardTimeRangeFromSettings() {
-    const settings = ensureSettings();
-    const timeRange = settings.defaultTimeRange || "last_30d";
-    const select = document.getElementById("dashboardTimeRange");
-    if (select) {
-        select.value = timeRange;
-    }
-    AppState.timeRangePreset = timeRange;
-}
-
-function updateNotificationsBadge() {
-    const badge = document.getElementById("notificationsBadge");
-    const list = ensureNotifications();
-    if (!badge) return;
-    const count = list.length;
-    if (count <= 0) {
-        badge.classList.add("hidden");
-        badge.textContent = "0";
-    } else {
-        badge.classList.remove("hidden");
-        badge.textContent = String(count > 99 ? "99+" : count);
-    }
-}
-
-function addNotification(type, title, message) {
-    const list = ensureNotifications();
-    const entry = {
-        id: Date.now(),
-        type: type || "info",
-        title: title || "",
-        message: message || "",
-        timestamp: new Date().toISOString()
-    };
-    list.unshift(entry);
-    // Max 50 Einträge halten
-    if (list.length > 50) {
-        list.length = 50;
-    }
-    updateNotificationsBadge();
-}
-
-/* -------------------------------------------------------
-    Hilfsfunktionen: Cache
----------------------------------------------------------*/
-
+// Cache für Meta-Listen (AdAccounts, Kampagnen, Ads)
 function ensureMetaCache() {
     if (!AppState.metaCache) {
         AppState.metaCache = {
@@ -175,38 +302,81 @@ function clearMetaCache() {
 }
 
 /* -------------------------------------------------------
-    VIEW HANDLING
+    DEMO MODE HELPERS
 ---------------------------------------------------------*/
 
-function showView(viewId) {
-    document.querySelectorAll(".view").forEach((v) =>
-        v.classList.add("hidden")
-    );
+function isDemoMode() {
+    const settings = ensureSettings();
+    return !!settings.demoMode;
+}
 
-    const view = document.getElementById(viewId);
-    if (view) view.classList.remove("hidden");
+function applyDemoData() {
+    // Basisstruktur für Meta sicherstellen
+    if (!AppState.meta) {
+        AppState.meta = {
+            accessToken: null,
+            adAccounts: [],
+            campaigns: [],
+            insightsByCampaign: {},
+            user: null,
+            ads: [],
+            creatives: []
+        };
+    }
 
-    AppState.currentView = viewId;
-    updateUI();
+    // Hard overwrite mit Demo-Daten
+    AppState.meta.user = DEMO_DATA.meta.user;
+    AppState.meta.adAccounts = DEMO_DATA.meta.adAccounts;
+    AppState.meta.campaigns = DEMO_DATA.meta.campaigns;
+    AppState.meta.ads = DEMO_DATA.meta.ads;
+    AppState.meta.creatives = DEMO_DATA.meta.ads;
+    AppState.meta.insightsByCampaign =
+        DEMO_DATA.meta.insightsByCampaign;
+
+    AppState.selectedAccountId = DEMO_DATA.selectedAccountId;
+    AppState.selectedCampaignId = null;
+
+    AppState.dashboardMetrics = DEMO_DATA.dashboardMetrics;
+    AppState.dashboardLoaded = true;
+    AppState.campaignsLoaded = true;
+    AppState.creativesLoaded = true;
+
+    // Cache löschen, damit nichts Altes rumliegt
+    clearMetaCache();
+
+    // Wichtig: Live-Verbindung nicht als "connected" markieren,
+    // damit klar bleibt: es sind Demo-Daten.
+    AppState.metaConnected = false;
+}
+
+function clearDemoData() {
+    // Demo-Daten aus Views entfernen, aber Live-Token NICHT löschen
+    if (!AppState.meta) return;
+
+    AppState.meta.campaigns = [];
+    AppState.meta.ads = [];
+    AppState.meta.creatives = [];
+    AppState.meta.insightsByCampaign = {};
+
+    AppState.dashboardLoaded = false;
+    AppState.dashboardMetrics = null;
+    AppState.campaignsLoaded = false;
+    AppState.creativesLoaded = false;
+
+    clearMetaCache();
 }
 
 /* -------------------------------------------------------
-    META CONNECT (aktuell klassisch per Redirect)
+    META CONNECT & TOKEN
 ---------------------------------------------------------*/
 
 function handleMetaConnectClick() {
     if (!META_OAUTH_CONFIG?.appId || !META_OAUTH_CONFIG?.redirectUri) {
         showToast("Meta-Konfiguration fehlt. Bitte Backend prüfen.", "error");
-        addNotification(
-            "error",
-            "Meta-Konfiguration",
-            "Meta-Konfiguration fehlt. Bitte Backend prüfen."
-        );
         return;
     }
 
     showToast("Meta Login wird geöffnet…", "info");
-    addNotification("info", "Meta Login", "Meta Login Dialog geöffnet.");
 
     const url =
         "https://www.facebook.com/v21.0/dialog/oauth?" +
@@ -229,48 +399,12 @@ function persistMetaToken(token) {
     }
 }
 
-/* -------------------------------------------------------
-    DISCONNECT
----------------------------------------------------------*/
-
-function disconnectMeta() {
-    AppState.metaConnected = false;
-
-    AppState.meta = {
-        accessToken: null,
-        adAccounts: [],
-        campaigns: [],
-        insightsByCampaign: {},
-        user: null,
-        ads: [],
-        creatives: []
-    };
-
-    AppState.selectedAccountId = null;
-    AppState.selectedCampaignId = null;
-
-    AppState.dashboardLoaded = false;
-    AppState.campaignsLoaded = false;
-    AppState.creativesLoaded = false;
-    AppState.dashboardMetrics = null;
-
-    clearMetaCache();
-
-    persistMetaToken(null);
-    showToast("Meta getrennt", "info");
-    addNotification("info", "Meta getrennt", "Die Verbindung zu Meta wurde getrennt.");
-    updateUI();
-}
-
-/* -------------------------------------------------------
-    OAuth Redirect
----------------------------------------------------------*/
-
 async function handleMetaOAuthRedirectIfPresent() {
     const url = new URL(window.location.href);
     const code = url.searchParams.get("code");
     if (!code) return;
 
+    // URL aufräumen
     window.history.replaceState({}, "", META_OAUTH_CONFIG.redirectUri);
     showToast("Token wird abgeholt…", "info");
 
@@ -282,11 +416,6 @@ async function handleMetaOAuthRedirectIfPresent() {
 
         if (!res?.success || !res.accessToken) {
             showToast("Meta-Verbindung fehlgeschlagen", "error");
-            addNotification(
-                "error",
-                "Meta OAuth",
-                "Meta-Verbindung fehlgeschlagen."
-            );
             return;
         }
 
@@ -297,168 +426,152 @@ async function handleMetaOAuthRedirectIfPresent() {
         clearMetaCache();
 
         await fetchMetaUser();
-        await loadAdAccountsAndCampaigns();
+        if (!isDemoMode()) {
+            await loadAdAccountsAndCampaigns();
+        }
 
         updateUI();
         showToast("Erfolgreich mit Meta verbunden!", "success");
-        addNotification(
-            "success",
-            "Meta verbunden",
-            "SignalOne ist erfolgreich mit Meta verbunden."
-        );
     } catch (err) {
         console.error(err);
         showToast("Verbindungsfehler", "error");
-        addNotification(
-            "error",
-            "Verbindungsfehler",
-            "Beim Verbinden mit Meta ist ein Fehler aufgetreten."
-        );
     }
 }
-
-/* -------------------------------------------------------
-    TOKEN LOAD (Auto-Reconnect + erster Cache-Aufbau)
----------------------------------------------------------*/
 
 function loadMetaTokenFromStorage() {
     try {
         const stored = localStorage.getItem(META_TOKEN_STORAGE_KEY);
         if (!stored) return;
 
+        if (!AppState.meta) {
+            AppState.meta = {
+                accessToken: null,
+                adAccounts: [],
+                campaigns: [],
+                insightsByCampaign: {},
+                user: null,
+                ads: [],
+                creatives: []
+            };
+        }
+
         AppState.meta.accessToken = stored;
         AppState.metaConnected = true;
 
-        showToast("Meta-Token aus Speicher geladen", "info");
-        addNotification(
-            "info",
-            "Meta-Token geladen",
-            "Token wurde aus dem lokalen Speicher geladen."
-        );
         clearMetaCache();
-
-        fetchMetaUser()
-            .then(() => loadAdAccountsAndCampaigns())
-            .then(() => {
-                updateUI();
-            })
-            .catch((err) => {
-                console.error(err);
-                showToast(
-                    "Fehler beim Wiederherstellen der Meta-Verbindung",
-                    "error"
-                );
-                addNotification(
-                    "error",
-                    "Wiederherstellung fehlgeschlagen",
-                    "Meta-Verbindung konnte nicht wiederhergestellt werden."
-                );
-            });
     } catch (e) {
-        console.warn("LocalStorage read failed:", e);
+        console.warn("Token load failed:", e);
     }
 }
 
-/* -------------------------------------------------------
-    ACCOUNT & CAMPAIGNS (mit Cache)
----------------------------------------------------------*/
+function disconnectMeta() {
+    // Demo-Mode unangetastet – hier geht es nur um Live-Verbindung
+    AppState.metaConnected = false;
 
-async function loadAdAccountsAndCampaigns() {
-    ensureMetaCache();
-
-    // 1) AdAccounts – erst Cache prüfen
-    if (isCacheValid(AppState.metaCache.adAccounts)) {
-        AppState.meta.adAccounts = AppState.metaCache.adAccounts.data;
+    if (!isDemoMode()) {
+        AppState.meta = {
+            accessToken: null,
+            adAccounts: [],
+            campaigns: [],
+            insightsByCampaign: {},
+            user: null,
+            ads: [],
+            creatives: []
+        };
+        AppState.selectedAccountId = null;
+        AppState.selectedCampaignId = null;
+        AppState.dashboardLoaded = false;
+        AppState.campaignsLoaded = false;
+        AppState.creativesLoaded = false;
+        AppState.dashboardMetrics = null;
     } else {
-        const accRes = await fetchMetaAdAccounts();
-        if (accRes?.success) {
-            const data = accRes.data?.data || [];
-            AppState.meta.adAccounts = data;
-            AppState.metaCache.adAccounts = {
-                data,
-                fetchedAt: Date.now()
-            };
-        } else {
-            AppState.meta.adAccounts = [];
-            AppState.metaCache.adAccounts = null;
+        // im Demo-Modus nur Token killen
+        if (AppState.meta) {
+            AppState.meta.accessToken = null;
         }
     }
 
-    // 2) Default Account setzen
-    if (AppState.meta.adAccounts.length > 0 && !AppState.selectedAccountId) {
-        AppState.selectedAccountId = AppState.meta.adAccounts[0].id;
+    persistMetaToken(null);
+    clearMetaCache();
+    showToast("Meta getrennt", "info");
+    updateUI();
+}
+
+/* -------------------------------------------------------
+    META LISTS (AdAccounts, Kampagnen, Ads)
+---------------------------------------------------------*/
+
+async function loadAdAccountsAndCampaigns() {
+    if (isDemoMode()) {
+        // Im Demo-Modus keine Live-Calls
+        return;
     }
 
-    // 3) Kampagnen für ausgewählten Account – Cache prüfen
-    if (AppState.selectedAccountId) {
-        const accId = AppState.selectedAccountId;
-        const cacheEntry =
-            AppState.metaCache.campaignsByAccount[accId] || null;
+    if (!AppState.meta?.accessToken) return;
 
-        if (isCacheValid(cacheEntry)) {
-            AppState.meta.campaigns = cacheEntry.data;
-        } else {
-            const campRes = await fetchMetaCampaigns(accId);
-            if (campRes?.success) {
-                const data = campRes.data?.data || [];
-                AppState.meta.campaigns = data;
-                AppState.metaCache.campaignsByAccount[accId] = {
+    ensureMetaCache();
+
+    // AdAccounts
+    if (
+        !AppState.metaCache.adAccounts ||
+        !isCacheValid(AppState.metaCache.adAccounts)
+    ) {
+        try {
+            const accRes = await fetchMetaAdAccounts();
+            if (accRes?.success) {
+                const data = accRes.data?.data || [];
+                AppState.meta.adAccounts = data;
+                AppState.metaCache.adAccounts = {
                     data,
                     fetchedAt: Date.now()
                 };
             } else {
+                AppState.meta.adAccounts = [];
+            }
+        } catch (e) {
+            console.error("AdAccounts Error:", e);
+            AppState.meta.adAccounts = [];
+        }
+    } else {
+        AppState.meta.adAccounts =
+            AppState.metaCache.adAccounts.data || [];
+    }
+
+    // Kampagnen für gewähltes Konto
+    if (AppState.selectedAccountId) {
+        const accId = AppState.selectedAccountId;
+        const cached =
+            AppState.metaCache.campaignsByAccount[accId];
+        if (cached && isCacheValid(cached)) {
+            AppState.meta.campaigns = cached.data;
+        } else {
+            try {
+                const campRes = await fetchMetaCampaigns(accId);
+                if (campRes?.success) {
+                    const data = campRes.data?.data || [];
+                    AppState.meta.campaigns = data;
+                    AppState.metaCache.campaignsByAccount[accId] = {
+                        data,
+                        fetchedAt: Date.now()
+                    };
+                } else {
+                    AppState.meta.campaigns = [];
+                }
+            } catch (e) {
+                console.error("Campaigns Error:", e);
                 AppState.meta.campaigns = [];
-                AppState.metaCache.campaignsByAccount[accId] = {
-                    data: [],
-                    fetchedAt: Date.now()
-                };
             }
         }
     }
 
-    updateAccountAndCampaignSelectors();
+    AppState.campaignsLoaded = true;
 }
-
-function updateAccountAndCampaignSelectors() {
-    const accSel = document.getElementById("brandSelect");
-    const campSel = document.getElementById("campaignGroupSelect");
-
-    if (!accSel || !campSel) return;
-
-    // Accounts
-    accSel.innerHTML = AppState.meta.adAccounts.length
-        ? AppState.meta.adAccounts
-              .map(
-                  (acc) => `
-            <option value="${acc.id}" ${
-                      acc.id === AppState.selectedAccountId ? "selected" : ""
-                  }>
-                ${acc.name || acc.id}
-            </option>`
-              )
-              .join("")
-        : '<option value="">Kein Werbekonto gefunden</option>';
-
-    // Campaigns
-    const options = [`<option value="">Alle Kampagnen</option>`];
-
-    (AppState.meta.campaigns || []).forEach((c) => {
-        options.push(
-            `<option value="${c.id}" ${
-                c.id === AppState.selectedCampaignId ? "selected" : ""
-            }>${c.name}</option>`
-        );
-    });
-
-    campSel.innerHTML = options.join("");
-}
-
-/* -------------------------------------------------------
-    CREATIVES LADEN (mit Cache)
----------------------------------------------------------*/
 
 async function loadCreativesForCurrentSelection() {
-    ensureMetaCache();
+    if (isDemoMode()) {
+        // Demo-Daten kommen aus applyDemoData
+        return;
+    }
 
     if (!AppState.selectedAccountId) {
         AppState.meta.ads = [];
@@ -466,11 +579,12 @@ async function loadCreativesForCurrentSelection() {
         return;
     }
 
+    ensureMetaCache();
     const accId = AppState.selectedAccountId;
-    const cacheEntry = AppState.metaCache.adsByAccount[accId] || null;
+    const cached = AppState.metaCache.adsByAccount[accId];
 
-    if (isCacheValid(cacheEntry)) {
-        AppState.meta.ads = cacheEntry.data;
+    if (cached && isCacheValid(cached)) {
+        AppState.meta.ads = cached.data;
         AppState.creativesLoaded = true;
         return;
     }
@@ -495,11 +609,6 @@ async function loadCreativesForCurrentSelection() {
                 fetchedAt: Date.now()
             };
             showToast("Creatives konnten nicht geladen werden.", "error");
-            addNotification(
-                "error",
-                "Creatives Fehler",
-                "Creatives konnten nicht geladen werden."
-            );
         }
     } catch (err) {
         console.error(err);
@@ -510,11 +619,6 @@ async function loadCreativesForCurrentSelection() {
             fetchedAt: Date.now()
         };
         showToast("Fehler beim Laden der Creatives.", "error");
-        addNotification(
-            "error",
-            "Creatives Fehler",
-            "Fehler beim Laden der Creatives."
-        );
     }
 }
 
@@ -522,23 +626,76 @@ async function ensureCreativesLoadedAndRender() {
     if (!AppState.creativesLoaded) {
         await loadCreativesForCurrentSelection();
     }
+    // Hier: immer "connected" für die Library, da DemoMode und Live beide
+    // echte Creatives im State haben
     updateCreativeLibraryView(true);
 }
 
 /* -------------------------------------------------------
-    UI UPDATE
+    VIEW HANDLING
+---------------------------------------------------------*/
+
+function showView(viewId) {
+    document
+        .querySelectorAll(".view")
+        .forEach((v) => v.classList.add("hidden"));
+
+    const view = document.getElementById(viewId);
+    if (view) view.classList.remove("hidden");
+
+    AppState.currentView = viewId;
+    updateUI();
+}
+
+/* -------------------------------------------------------
+    ACCOUNT / CAMPAIGN DROPDOWNS
+---------------------------------------------------------*/
+
+function updateAccountAndCampaignSelectors() {
+    const accSel = document.getElementById("brandSelect");
+    const campSel = document.getElementById("campaignGroupSelect");
+
+    if (accSel) {
+        let options = ['<option value="">Alle Konten</option>'];
+        (AppState.meta.adAccounts || []).forEach((acc) => {
+            options.push(
+                `<option value="${acc.id}" ${
+                    acc.id === AppState.selectedAccountId ? "selected" : ""
+                }>${acc.name}</option>`
+            );
+        });
+        accSel.innerHTML = options.join("");
+    }
+
+    if (campSel) {
+        let options = ['<option value="">Alle Kampagnen</option>'];
+        (AppState.meta.campaigns || []).forEach((c) => {
+            options.push(
+                `<option value="${c.id}" ${
+                    c.id === AppState.selectedCampaignId ? "selected" : ""
+                }>${c.name}</option>`
+            );
+        });
+        campSel.innerHTML = options.join("");
+    }
+}
+
+/* -------------------------------------------------------
+    DASHBOARD NO-DATA STATE
 ---------------------------------------------------------*/
 
 function applyDashboardNoDataState() {
     const kpiContainer = document.getElementById("dashboardKpiContainer");
-    const chartContainer = document.getElementById("dashboardChartContainer");
+    const chartContainer = document.getElementById(
+        "dashboardChartContainer"
+    );
     const heroContainer = document.getElementById(
         "dashboardHeroCreativesContainer"
     );
 
     if (kpiContainer) {
         kpiContainer.innerHTML =
-            "<p style='color:var(--text-secondary);font-size:13px;'>Verbinde Meta, um Performance-KPIs zu sehen.</p>";
+            "<p style='color:var(--text-secondary);font-size:13px;'>Verbinde Meta oder aktiviere den Demo-Modus, um Performance-KPIs zu sehen.</p>";
     }
     if (chartContainer) {
         chartContainer.innerHTML =
@@ -549,8 +706,273 @@ function applyDashboardNoDataState() {
     }
 }
 
+/* -------------------------------------------------------
+    SETTINGS UI (inkl. Demo-Mode)
+---------------------------------------------------------*/
+
+function openSettingsModal() {
+    const settings = ensureSettings();
+
+    const html = `
+        <form id="settingsForm" class="settings-form">
+            <div class="settings-group">
+                <div class="settings-group-title">Allgemein</div>
+                <div class="settings-row">
+                    <label for="settingsCurrency">Währung</label>
+                    <div class="settings-control">
+                        <select id="settingsCurrency">
+                            <option value="EUR" ${
+                                settings.preferredCurrency === "EUR"
+                                    ? "selected"
+                                    : ""
+                            }>EUR</option>
+                            <option value="USD" ${
+                                settings.preferredCurrency === "USD"
+                                    ? "selected"
+                                    : ""
+                            }>USD</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <label for="settingsTimeRange">Standard-Zeitraum</label>
+                    <div class="settings-control">
+                        <select id="settingsTimeRange">
+                            <option value="today" ${
+                                settings.defaultTimeRange === "today"
+                                    ? "selected"
+                                    : ""
+                            }>Heute</option>
+                            <option value="yesterday" ${
+                                settings.defaultTimeRange === "yesterday"
+                                    ? "selected"
+                                    : ""
+                            }>Gestern</option>
+                            <option value="last_7d" ${
+                                settings.defaultTimeRange === "last_7d"
+                                    ? "selected"
+                                    : ""
+                            }>Letzte 7 Tage</option>
+                            <option value="last_30d" ${
+                                settings.defaultTimeRange === "last_30d"
+                                    ? "selected"
+                                    : ""
+                            }>Letzte 30 Tage</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-group-title">Datenquelle</div>
+                <div class="settings-row">
+                    <label for="settingsDemoMode">Demo-Modus (Mock-Daten)</label>
+                    <div class="settings-control">
+                        <input type="checkbox" id="settingsDemoMode" ${
+                            settings.demoMode ? "checked" : ""
+                        } />
+                    </div>
+                </div>
+                <p style="font-size:11px;color:var(--text-secondary);margin-top:4px;">
+                    Im Demo-Modus verwendet SignalOne vordefinierte Performance-Daten.
+                    Es werden <strong>keine Live-API-Calls</strong> zu Meta ausgeführt.
+                </p>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-group-title">Darstellung</div>
+                <div class="settings-row">
+                    <label for="settingsTheme">Theme</label>
+                    <div class="settings-control">
+                        <select id="settingsTheme">
+                            <option value="auto" ${
+                                settings.theme === "auto" ? "selected" : ""
+                            }>System</option>
+                            <option value="light" ${
+                                settings.theme === "light" ? "selected" : ""
+                            }>Hell</option>
+                            <option value="dark" ${
+                                settings.theme === "dark" ? "selected" : ""
+                            }>Dunkel</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <label for="settingsCreativeLayout">Creative-Layout</label>
+                    <div class="settings-control">
+                        <select id="settingsCreativeLayout">
+                            <option value="grid" ${
+                                settings.creativeLayout === "grid"
+                                    ? "selected"
+                                    : ""
+                            }>Grid</option>
+                            <option value="list" ${
+                                settings.creativeLayout === "list"
+                                    ? "selected"
+                                    : ""
+                            }>Liste</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-group-title">Performance & Cache</div>
+                <div class="settings-row">
+                    <label for="settingsMetaCacheTtl">Meta-Cache (Minuten)</label>
+                    <div class="settings-control">
+                        <input
+                            type="number"
+                            id="settingsMetaCacheTtl"
+                            min="1"
+                            max="240"
+                            value="${settings.metaCacheTtlMinutes || 30}"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-actions">
+                <button type="button" class="btn-secondary" id="settingsCancelBtn">
+                    Abbrechen
+                </button>
+                <button type="submit" class="btn-primary">
+                    Speichern
+                </button>
+            </div>
+        </form>
+    `;
+
+    openModal("Einstellungen", html);
+
+    const form = document.getElementById("settingsForm");
+    const cancelBtn = document.getElementById("settingsCancelBtn");
+
+    if (cancelBtn) {
+        cancelBtn.addEventListener("click", () => {
+            const modal = document.querySelector(".modal-overlay");
+            if (modal) modal.remove();
+        });
+    }
+
+    if (form) {
+        form.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const s = ensureSettings();
+
+            const currency = document.getElementById("settingsCurrency");
+            const timeRange = document.getElementById("settingsTimeRange");
+            const theme = document.getElementById("settingsTheme");
+            const layout = document.getElementById("settingsCreativeLayout");
+            const cacheTtl = document.getElementById(
+                "settingsMetaCacheTtl"
+            );
+            const demoCheckbox = document.getElementById(
+                "settingsDemoMode"
+            );
+
+            s.preferredCurrency =
+                currency?.value || s.preferredCurrency;
+            s.defaultTimeRange =
+                timeRange?.value || s.defaultTimeRange;
+            s.theme = theme?.value || s.theme;
+            s.creativeLayout = layout?.value || s.creativeLayout;
+
+            const ttlVal = Number(cacheTtl?.value || 30);
+            if (!Number.isNaN(ttlVal) && ttlVal > 0) {
+                s.metaCacheTtlMinutes = ttlVal;
+            }
+
+            const newDemoMode = !!demoCheckbox?.checked;
+            const oldDemoMode = !!s.demoMode;
+
+            s.demoMode = newDemoMode;
+
+            saveSettingsToStorage();
+
+            // Demo-Mode Umschalten
+            if (newDemoMode && !oldDemoMode) {
+                applyDemoData();
+            } else if (!newDemoMode && oldDemoMode) {
+                clearDemoData();
+            }
+
+            // Modal schließen
+            const modal = document.querySelector(".modal-overlay");
+            if (modal) modal.remove();
+
+            showToast("Einstellungen gespeichert", "success");
+            updateUI();
+        });
+    }
+}
+
+/* -------------------------------------------------------
+    PROFILE & SYSTEM BUTTONS (Preview-Content)
+---------------------------------------------------------*/
+
+function initSystemButtons() {
+    const profileBtn = document.getElementById("profileButton");
+    if (profileBtn) {
+        profileBtn.addEventListener("click", () => {
+            const html = `
+                <div style="display:flex; flex-direction:column; gap:12px; font-size:13px;">
+                    <p><strong>Profil & Account (Preview)</strong></p>
+                    <p style="color:var(--text-secondary);">
+                        Hier werden später deine Profil-, Team- und Account-Daten aus der SignalOne-Datenbank geladen.
+                    </p>
+                    <ul style="margin-left:18px;margin-top:6px;">
+                        <li>Verknüpfte Werbekonten & Rollen</li>
+                        <li>Benachrichtigungs-Einstellungen & E-Mail-Reports</li>
+                        <li>Fehler- & Aktivitätslog für dieses Profil</li>
+                    </ul>
+                    <p style="font-size:11px;color:var(--text-secondary);margin-top:6px;">
+                        Aktuelle Version: <strong>S1-0.9-demo</strong>
+                    </p>
+                </div>
+            `;
+            openModal("Profil & Account", html);
+        });
+    }
+
+    const notificationsBtn = document.getElementById(
+        "notificationsButton"
+    );
+    if (notificationsBtn) {
+        notificationsBtn.addEventListener("click", () => {
+            const html = `
+                <div style="display:flex; flex-direction:column; gap:12px; font-size:13px;">
+                    <p><strong>Benachrichtigungen (Preview)</strong></p>
+                    <p style="color:var(--text-secondary);">
+                        Hier folgt später das echte Notification-Center mit System- und Kampagnen-Alerts.
+                    </p>
+                    <ul style="margin-left:18px;margin-top:6px;">
+                        <li>Meta-Verbindungsfehler & Token-Expiry</li>
+                        <li>Kampagnen-Performance Alerts (ROAS, Spend, CTR)</li>
+                        <li>Sensei-Empfehlungen & Prüfungen</li>
+                    </ul>
+                </div>
+            `;
+            openModal("Benachrichtigungen", html);
+        });
+    }
+
+    const settingsBtn = document.getElementById("openSettingsButton");
+    if (settingsBtn) {
+        settingsBtn.addEventListener("click", () => {
+            openSettingsModal();
+        });
+    }
+}
+
+/* -------------------------------------------------------
+    UI UPDATE
+---------------------------------------------------------*/
+
 function updateUI() {
-    const connected = checkMetaConnection();
+    const demoMode = isDemoMode();
+    const liveConnected = checkMetaConnection();
+    const connected = demoMode ? true : liveConnected;
 
     updateGreeting();
     updateAccountAndCampaignSelectors();
@@ -588,194 +1010,6 @@ function updateUI() {
     }
 
     updateHealthStatus();
-    updateNotificationsBadge();
-}
-
-/* -------------------------------------------------------
-    SETTINGS UI
----------------------------------------------------------*/
-
-function openSettingsModal() {
-    const settings = ensureSettings();
-
-    const html = `
-        <form id="settingsForm" class="settings-form">
-            <div class="settings-group">
-                <div class="settings-group-title">Allgemein</div>
-                <div class="settings-row">
-                    <label for="settingsCurrency">Währung</label>
-                    <div class="settings-control">
-                        <select id="settingsCurrency">
-                            <option value="EUR" ${settings.currency === "EUR" ? "selected" : ""}>EUR (€)</option>
-                            <option value="USD" ${settings.currency === "USD" ? "selected" : ""}>USD ($)</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="settings-row">
-                    <label for="settingsDefaultRange">Standard-Zeitraum Dashboard</label>
-                    <div class="settings-control">
-                        <select id="settingsDefaultRange">
-                            <option value="today" ${settings.defaultTimeRange === "today" ? "selected" : ""}>Heute</option>
-                            <option value="yesterday" ${settings.defaultTimeRange === "yesterday" ? "selected" : ""}>Gestern</option>
-                            <option value="today_yesterday" ${settings.defaultTimeRange === "today_yesterday" ? "selected" : ""}>Heute + Gestern</option>
-                            <option value="last_7d" ${settings.defaultTimeRange === "last_7d" ? "selected" : ""}>Letzte 7 Tage</option>
-                            <option value="last_30d" ${settings.defaultTimeRange === "last_30d" ? "selected" : ""}>Letzte 30 Tage</option>
-                            <option value="this_month" ${settings.defaultTimeRange === "this_month" ? "selected" : ""}>Aktueller Monat</option>
-                            <option value="last_month" ${settings.defaultTimeRange === "last_month" ? "selected" : ""}>Letzter Monat</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="settings-group">
-                <div class="settings-group-title">Darstellung</div>
-                <div class="settings-row">
-                    <label>Theme</label>
-                    <div class="settings-control">
-                        <div class="settings-radio-group">
-                            <label>
-                                <input type="radio" name="theme" value="light" ${settings.theme !== "dark" ? "checked" : ""} />
-                                Light
-                            </label>
-                            <label>
-                                <input type="radio" name="theme" value="dark" ${settings.theme === "dark" ? "checked" : ""} />
-                                Dark
-                            </label>
-                        </div>
-                    </div>
-                </div>
-                <div class="settings-row">
-                    <label for="settingsCreativeLayout">Creative Layout</label>
-                    <div class="settings-control">
-                        <select id="settingsCreativeLayout">
-                            <option value="grid" ${settings.creativeLayout === "grid" ? "selected" : ""}>Grid</option>
-                            <option value="list" ${settings.creativeLayout === "list" ? "selected" : ""}>Liste</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="settings-group">
-                <div class="settings-group-title">Meta / Cache</div>
-                <div class="settings-row">
-                    <label for="settingsCacheTtl">Cache-Dauer für Meta-Daten (Minuten)</label>
-                    <div class="settings-control">
-                        <input
-                            type="number"
-                            id="settingsCacheTtl"
-                            min="5"
-                            max="120"
-                            step="5"
-                            value="${settings.metaCacheTtlMinutes || 15}"
-                        />
-                    </div>
-                </div>
-                <p style="font-size:11px;color:var(--text-secondary);margin-top:4px;">
-                    Je höher die Dauer, desto weniger API-Calls – aber Daten sind weniger „frisch“.
-                </p>
-            </div>
-
-            <button type="submit" class="primary-btn" id="settingsSaveButton">Speichern</button>
-        </form>
-    `;
-
-    openModal("Settings", html);
-
-    const form = document.getElementById("settingsForm");
-    if (form) {
-        form.addEventListener("submit", (e) => {
-            e.preventDefault();
-            const currencyEl = document.getElementById("settingsCurrency");
-            const rangeEl = document.getElementById("settingsDefaultRange");
-            const layoutEl = document.getElementById("settingsCreativeLayout");
-            const cacheEl = document.getElementById("settingsCacheTtl");
-            const themeRadio = form.querySelector(
-                'input[name="theme"]:checked'
-            );
-
-            const currency = currencyEl?.value || "EUR";
-            const defaultRange = rangeEl?.value || "last_30d";
-            const creativeLayout = layoutEl?.value || "grid";
-            const cacheMinutes = parseInt(cacheEl?.value || "15", 10);
-            const theme = themeRadio?.value === "dark" ? "dark" : "light";
-
-            const settings = ensureSettings();
-            settings.currency = currency;
-            settings.defaultTimeRange = defaultRange;
-            settings.creativeLayout = creativeLayout;
-            settings.metaCacheTtlMinutes = isNaN(cacheMinutes)
-                ? 15
-                : Math.min(Math.max(cacheMinutes, 5), 120);
-            settings.theme = theme;
-
-            saveSettingsToStorage();
-            applyThemeFromSettings();
-            applyDashboardTimeRangeFromSettings();
-
-            showToast("Settings gespeichert.", "success");
-            addNotification(
-                "success",
-                "Settings gespeichert",
-                "Deine Einstellungen wurden aktualisiert."
-            );
-        });
-    }
-}
-
-/* -------------------------------------------------------
-    NOTIFICATION UI
----------------------------------------------------------*/
-
-function openNotificationsModal() {
-    const list = ensureNotifications();
-    if (!list.length) {
-        openModal(
-            "Benachrichtigungen",
-            "<p style='font-size:13px;color:var(--text-secondary);'>Keine Benachrichtigungen.</p>"
-        );
-        return;
-    }
-
-    const itemsHtml = list
-        .map((n) => {
-            const d = new Date(n.timestamp);
-            const ts = isNaN(d.getTime())
-                ? ""
-                : d.toLocaleString("de-DE", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      hour: "2-digit",
-                      minute: "2-digit"
-                  });
-            let badgeClass = "badge-green";
-            if (n.type === "error") badgeClass = "badge-red";
-            else if (n.type === "warning") badgeClass = "badge-yellow";
-
-            return `
-                <div style="border-bottom:1px solid var(--border);padding:8px 0;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;">
-                        <span style="font-size:13px;font-weight:600;">${n.title ||
-                            "System"}</span>
-                        <span class="badge ${badgeClass}">${n.type.toUpperCase()}</span>
-                    </div>
-                    <p style="font-size:12px;color:var(--text-secondary);margin-top:2px;">
-                        ${n.message || ""}
-                    </p>
-                    <p style="font-size:11px;color:var(--text-secondary);margin-top:2px;">
-                        ${ts}
-                    </p>
-                </div>
-            `;
-        })
-        .join("");
-
-    const html = `
-        <div style="max-height:360px;overflow-y:auto;font-size:13px;">
-            ${itemsHtml}
-        </div>
-    `;
-
-    openModal("Benachrichtigungen", html);
 }
 
 /* -------------------------------------------------------
@@ -783,25 +1017,43 @@ function openNotificationsModal() {
 ---------------------------------------------------------*/
 
 document.addEventListener("DOMContentLoaded", async () => {
-    ensureSettings();
-    ensureNotifications();
+    // Settings & Theme
     loadSettingsFromStorage();
-    applyThemeFromSettings();
+    ensureSettings();
 
+    // ggf. Default-Zeitraum auf Dashboard-Select anwenden
+    const settings = ensureSettings();
+    if (settings.defaultTimeRange) {
+        AppState.timeRangePreset = settings.defaultTimeRange;
+        const sel = document.getElementById("dashboardTimeRange");
+        if (sel) {
+            sel.value = settings.defaultTimeRange;
+        }
+    }
+
+    // Meta-Token aus Storage laden (Live-Verbindung)
     loadMetaTokenFromStorage();
 
-    // Dashboard Default Range setzen
-    applyDashboardTimeRangeFromSettings();
+    // DemoMode ggf. initial aktivieren (Daten in State pushen)
+    if (isDemoMode()) {
+        applyDemoData();
+    }
 
-    showView(AppState.currentView);
+    // Grund-Init
+    showView(AppState.currentView || "dashboardView");
     initSidebarNavigation(showView);
-    initSettings(); // vorhandenes Modul bleibt eingebunden
+    initSettings();
     initDateTime();
     updateGreeting();
-    updateNotificationsBadge();
+    initSystemButtons();
 
+    // Meta Buttons
     const metaBtn = document.getElementById("connectMetaButton");
-    if (metaBtn) metaBtn.addEventListener("click", handleMetaConnectClick);
+    if (metaBtn)
+        metaBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            handleMetaConnectClick();
+        });
 
     const discBtn = document.getElementById("disconnectMetaButton");
     if (discBtn)
@@ -810,66 +1062,24 @@ document.addEventListener("DOMContentLoaded", async () => {
             disconnectMeta();
         });
 
-    const profileBtn = document.getElementById("profileButton");
-    if (profileBtn) {
-        profileBtn.addEventListener("click", () => {
-            const user = AppState.meta?.user || {};
-            const name = user.name || "SignalOne User";
-            const id = user.id || "n/a";
+    // Dashboard TimeRange
+    const dashboardTimeRange =
+        document.getElementById("dashboardTimeRange");
+    if (dashboardTimeRange) {
+        dashboardTimeRange.addEventListener("change", (e) => {
+            AppState.timeRangePreset = e.target.value;
+            AppState.dashboardLoaded = false;
+            AppState.meta.insightsByCampaign = {};
 
-            const html = `
-                <div style="display:flex; flex-direction:column; gap:12px; font-size:13px;">
-                    <div style="display:flex;align-items:center;gap:10px;">
-                        <div style="width:38px;height:38px;border-radius:999px;background:linear-gradient(135deg,#6366F1,#4F46E5);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;">
-                            ${name
-                                .split(" ")
-                                .map((p) => p[0])
-                                .join("")
-                                .slice(0, 2)
-                                .toUpperCase()}
-                        </div>
-                        <div>
-                            <div style="font-weight:700;">${name}</div>
-                            <div style="font-size:12px;color:var(--text-secondary);">Meta ID: ${id}</div>
-                        </div>
-                    </div>
-                    <div style="font-size:12px;color:var(--text-secondary);">
-                        <p>In der finalen Version werden hier deine Team- und Account-Daten aus der SignalOne-Datenbank angezeigt.</p>
-                        <ul style="margin-left:18px;margin-top:6px;">
-                            <li>Verknüpfte Werbekonten & Rollen</li>
-                            <li>Benachrichtigungs-Einstellungen & E-Mail-Reports</li>
-                            <li>Fehler- & Aktivitätslog für dieses Profil</li>
-                        </ul>
-                    </div>
-                    <p style="font-size:11px;color:var(--text-secondary);margin-top:6px;">
-                        Aktuelle Version: <strong>S1-0.9-b</strong>
-                    </p>
-                </div>
-            `;
-            openModal("Profil & Account (Preview)", html);
+            const s = ensureSettings();
+            s.defaultTimeRange = e.target.value;
+            saveSettingsToStorage();
+
+            updateDashboardView(checkMetaConnection() || isDemoMode());
         });
     }
 
-    const notificationsBtn = document.getElementById("notificationsButton");
-    if (notificationsBtn) {
-        notificationsBtn.addEventListener("click", () => {
-            openNotificationsModal();
-        });
-    }
-
-    const settingsBtn = document.getElementById("openSettingsButton");
-    if (settingsBtn) {
-        settingsBtn.addEventListener("click", () => {
-            openSettingsModal();
-        });
-    }
-
-    await handleMetaOAuthRedirectIfPresent();
-
-    /* ---------------------------------------------------
-        SEARCH / FILTER EVENTS – CAMPAIGNS
-    ----------------------------------------------------*/
-
+    // Campaign Search/Filter
     const searchInput = document.getElementById("campaignSearch");
     if (searchInput)
         searchInput.addEventListener("input", () =>
@@ -882,26 +1092,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             updateCampaignsView(true)
         );
 
-    /* ---------------------------------------------------
-        DASHBOARD TIME RANGE
-    ----------------------------------------------------*/
-
-    const dashboardTimeRange = document.getElementById("dashboardTimeRange");
-    if (dashboardTimeRange)
-        dashboardTimeRange.addEventListener("change", (e) => {
-            AppState.timeRangePreset = e.target.value;
-            AppState.dashboardLoaded = false;
-            AppState.meta.insightsByCampaign = {};
-            const settings = ensureSettings();
-            settings.defaultTimeRange = e.target.value;
-            saveSettingsToStorage();
-            updateDashboardView(AppState.metaConnected);
-        });
-
-    /* ---------------------------------------------------
-        CREATIVE LIBRARY FILTERS
-    ----------------------------------------------------*/
-
+    // Creative Library Filter
     const creativeSearch = document.getElementById("creativeSearch");
     const creativeSort = document.getElementById("creativeSort");
     const creativeType = document.getElementById("creativeType");
@@ -916,10 +1107,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     });
 
-    /* ---------------------------------------------------
-        AKTIVE DROPDOWNS: ACCOUNT & KAMPAGNE
-    ----------------------------------------------------*/
-
+    // Account / Campaign Dropdowns
     const accountSelect = document.getElementById("brandSelect");
     if (accountSelect) {
         accountSelect.addEventListener("change", async (e) => {
@@ -936,20 +1124,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             AppState.meta.creatives = [];
             AppState.meta.ads = [];
 
-            ensureMetaCache();
-            if (newAccountId) {
-                delete AppState.metaCache.campaignsByAccount[newAccountId];
-                delete AppState.metaCache.adsByAccount[newAccountId];
+            clearMetaCache();
 
-                const campRes = await fetchMetaCampaigns(newAccountId);
-                if (campRes?.success) {
-                    const data = campRes.data?.data || [];
-                    AppState.meta.campaigns = data;
-                    AppState.metaCache.campaignsByAccount[newAccountId] = {
-                        data,
-                        fetchedAt: Date.now()
-                    };
-                }
+            if (newAccountId && !isDemoMode()) {
+                await loadAdAccountsAndCampaigns();
             }
 
             updateAccountAndCampaignSelectors();
@@ -970,4 +1148,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             updateUI();
         });
     }
+
+    // OAuth Redirect ggf. abholen (nur Live-Mode)
+    await handleMetaOAuthRedirectIfPresent();
 });
