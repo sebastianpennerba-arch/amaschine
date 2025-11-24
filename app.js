@@ -1,4 +1,4 @@
-// app.js – Premium Orchestrator (Final Version, mit aktiven Dropdowns)
+// app.js – Premium Orchestrator (Final Version, mit aktiven Dropdowns & Popup-OAuth)
 // SignalOne.cloud – Frontend Engine
 
 import { AppState, META_OAUTH_CONFIG } from "./state.js";
@@ -50,10 +50,16 @@ function showView(viewId) {
 
 /* -------------------------------------------------------
     META CONNECT
+    (kein Auto-Connect mehr, nur auf Button-Klick; Login im Popup)
 ---------------------------------------------------------*/
 
 function handleMetaConnectClick() {
-    showToast("Verbinde mit Meta…", "info");
+    if (!META_OAUTH_CONFIG?.appId || !META_OAUTH_CONFIG?.redirectUri) {
+        showToast("Meta-Konfiguration fehlt. Bitte Backend prüfen.", "error");
+        return;
+    }
+
+    showToast("Meta Login wird geöffnet…", "info");
 
     const url =
         "https://www.facebook.com/v21.0/dialog/oauth?" +
@@ -64,7 +70,18 @@ function handleMetaConnectClick() {
             scope: META_OAUTH_CONFIG.scopes
         });
 
-    window.location.href = url;
+    const popup = window.open(
+        url,
+        "signalone_meta_login",
+        "width=500,height=800"
+    );
+
+    if (!popup) {
+        showToast(
+            "Popup konnte nicht geöffnet werden. Bitte Popups für SignalOne erlauben.",
+            "error"
+        );
+    }
 }
 
 function persistMetaToken(token) {
@@ -73,18 +90,6 @@ function persistMetaToken(token) {
         else localStorage.removeItem(META_TOKEN_STORAGE_KEY);
     } catch (e) {
         console.warn("LocalStorage not available:", e);
-    }
-}
-
-function loadMetaTokenFromStorage() {
-    try {
-        const stored = localStorage.getItem(META_TOKEN_STORAGE_KEY);
-        if (stored) {
-            AppState.meta.accessToken = stored;
-            AppState.metaConnected = true;
-        }
-    } catch (e) {
-        console.warn(e);
     }
 }
 
@@ -120,6 +125,8 @@ function disconnectMeta() {
 
 /* -------------------------------------------------------
     OAuth Redirect
+    - funktioniert weiter klassisch
+    - zusätzlich: Popup-Szenario (code in Popup, Daten in Main-Window)
 ---------------------------------------------------------*/
 
 async function handleMetaOAuthRedirectIfPresent() {
@@ -127,6 +134,7 @@ async function handleMetaOAuthRedirectIfPresent() {
     const code = url.searchParams.get("code");
     if (!code) return;
 
+    // URL säubern
     window.history.replaceState({}, "", META_OAUTH_CONFIG.redirectUri);
     showToast("Token wird abgeholt…", "info");
 
@@ -136,11 +144,29 @@ async function handleMetaOAuthRedirectIfPresent() {
             META_OAUTH_CONFIG.redirectUri
         );
 
-        if (!res.success) {
+        if (!res?.success || !res.accessToken) {
             showToast("Meta-Verbindung fehlgeschlagen", "error");
             return;
         }
 
+        // Falls wir aus einem Popup kamen: Token an das Hauptfenster schicken und Popup schließen
+        if (window.opener && !window.opener.closed) {
+            window.opener.postMessage(
+                {
+                    type: "SIGNALONE_META_CONNECTED",
+                    payload: {
+                        accessToken: res.accessToken
+                    }
+                },
+                window.location.origin
+            );
+
+            // Popup kann sich danach schließen
+            window.close();
+            return;
+        }
+
+        // Fallback: klassischer Redirect-Flow (ohne Popup)
         AppState.meta.accessToken = res.accessToken;
         AppState.metaConnected = true;
 
@@ -154,6 +180,36 @@ async function handleMetaOAuthRedirectIfPresent() {
     } catch (err) {
         console.error(err);
         showToast("Verbindungsfehler", "error");
+    }
+}
+
+/* -------------------------------------------------------
+    RECEIVE TOKEN FROM POPUP (Main Window)
+---------------------------------------------------------*/
+
+async function handlePopupMessages(event) {
+    // nur eigene Origin akzeptieren
+    if (event.origin !== window.location.origin) return;
+    const data = event.data;
+    if (!data || typeof data !== "object") return;
+
+    if (data.type === "SIGNALONE_META_CONNECTED") {
+        const accessToken = data.payload?.accessToken;
+        if (!accessToken) return;
+
+        AppState.meta.accessToken = accessToken;
+        AppState.metaConnected = true;
+        persistMetaToken(accessToken);
+
+        try {
+            await fetchMetaUser();
+            await loadAdAccountsAndCampaigns();
+            updateUI();
+            showToast("Erfolgreich mit Meta verbunden!", "success");
+        } catch (err) {
+            console.error(err);
+            showToast("Verbindungsfehler nach OAuth", "error");
+        }
     }
 }
 
@@ -258,13 +314,16 @@ function updateUI() {
 ---------------------------------------------------------*/
 
 document.addEventListener("DOMContentLoaded", async () => {
-    loadMetaTokenFromStorage();
+    // KEIN Auto-Connect mehr via LocalStorage – dauerhafte Verbindung wird vermieden
+    // Token kann zwar gespeichert werden, wird aber nur via Popup-Flow aktiv benutzt
 
     showView(AppState.currentView);
     initSidebarNavigation(showView);
     initSettings();
     initDateTime();
     updateGreeting();
+
+    window.addEventListener("message", handlePopupMessages);
 
     const metaBtn = document.getElementById("connectMetaButton");
     if (metaBtn) metaBtn.addEventListener("click", handleMetaConnectClick);
@@ -288,8 +347,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                         Geplant:
                     </p>
                     <ul style="margin-left:18px; color:var(--text-secondary); font-size:13px;">
-                        <li>Verknüpfte Werbekonten & Rollen</li>
-                        <li>Benachrichtigungs-Einstellungen</li>
+                        <li>Verknüpfte Werbekonten & Rollen (Owner / Admin / Viewer)</li>
+                        <li>Benachrichtigungs-Einstellungen & E-Mail-Reports</li>
                         <li>Fehler- & Aktivitätslog für dieses Profil</li>
                     </ul>
                     <p style="font-size:12px; color:var(--text-secondary);">
@@ -301,13 +360,31 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    await handleMetaOAuthRedirectIfPresent();
-
-    if (AppState.metaConnected && AppState.meta.accessToken) {
-        await fetchMetaUser();
-        await loadAdAccountsAndCampaigns();
-        updateUI();
+    const notificationsBtn = document.getElementById("notificationsButton");
+    if (notificationsBtn) {
+        notificationsBtn.addEventListener("click", () => {
+            const html = `
+                <div style="display:flex; flex-direction:column; gap:10px; font-size:13px;">
+                    <p>
+                        Hier werden später System- und Produkt-Benachrichtigungen angezeigt:
+                    </p>
+                    <ul style="margin-left:18px; color:var(--text-secondary); font-size:13px;">
+                        <li>Meta-Verbindungsstatus & API-Fehler</li>
+                        <li>Neue Reports & Exporte bereit</li>
+                        <li>Sensei-Warnungen & Chancen</li>
+                        <li>Testing-Log Updates</li>
+                    </ul>
+                    <p style="font-size:12px; color:var(--text-secondary);">
+                        In der finalen Version werden diese Einträge aus der Datenbank (error_logs & notifications) geladen.
+                    </p>
+                </div>
+            `;
+            openModal("Benachrichtigungen (Preview)", html);
+        });
     }
+
+    // Wenn diese Instanz im Popup läuft und einen ?code hat, wird nur der Popup-Flow benutzt
+    await handleMetaOAuthRedirectIfPresent();
 
     /* ---------------------------------------------------
         SEARCH / FILTER EVENTS – CAMPAIGNS
