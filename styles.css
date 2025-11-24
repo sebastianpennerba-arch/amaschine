@@ -427,21 +427,13 @@ body {
     margin-bottom: var(--spacing-main);
 }
 
-.time-range-select {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
+.time-range-select.mini select {
+    padding: 4px 8px;
     font-size: 13px;
-    color: var(--text-secondary);
+    height: 30px;
 }
-
-.time-range-select select {
-    padding: 6px 10px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    background-color: var(--color-card);
-    font-size: 13px;
-    cursor: pointer;
+.time-range-select.mini label {
+    font-size: 12px;
 }
 
 /* --- CARD --- */
