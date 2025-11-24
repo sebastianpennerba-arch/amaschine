@@ -1,231 +1,234 @@
-// reports.js – Reports & Exports (P6 – Frontend-MVP)
-// ---------------------------------------------------
-// Exportiert einfache CSV/JSON-Snapshots direkt aus dem Frontend.
+// reports.js – Reports & Exports (Frontend P6 Basis)
+// --------------------------------------------------
+// Dieses Modul baut eine simple Reporting-Oberfläche, die auf
+// AppState basiert und zwei Dinge ermöglicht:
+// 1) Snapshot-Report direkt im UI
+// 2) Export der aktuellen Daten als JSON (Copy & Download)
+//
+// Später kann man das auf CSV/XLSX/PDF erweitern, ohne das
+// Grundgerüst zu ändern.
 
 import { AppState } from "./state.js";
-import { showToast } from "./uiCore.js";
+import { showToast, openModal } from "./uiCore.js";
 
-function triggerDownload(filename, mimeType, content) {
-    const blob = new Blob([content], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+function formatEuro(value) {
+    const num = Number(value || 0);
+    return `€ ${num.toLocaleString("de-DE", { maximumFractionDigits: 0 })}`;
 }
 
-function toCsvRow(values) {
-    return values
-        .map((v) => {
-            if (v === null || typeof v === "undefined") return "";
-            const s = String(v).replace(/"/g, '""');
-            return `"${s}"`;
-        })
-        .join(",");
+function formatPct(value) {
+    const num = Number(value || 0);
+    return `${num.toFixed(2)}%`;
 }
 
-function exportCampaignsCsv() {
-    const campaigns = AppState.meta.campaigns || [];
-    if (!campaigns.length) {
-        showToast("Keine Kampagnendaten zum Export vorhanden.", "info");
-        return;
-    }
-
-    const headers = [
-        "id",
-        "name",
-        "status",
-        "objective",
-        "daily_budget",
-        "spend_30d",
-        "roas_30d",
-        "ctr_30d",
-        "impressions_30d",
-        "clicks_30d",
-        "cpm_30d"
-    ];
-
-    const rows = campaigns.map((c) => {
-        const m = c.metrics || {};
-        const roas =
-            m.purchase_roas ||
-            (Array.isArray(m.website_purchase_roas) && m.website_purchase_roas.length
-                ? m.website_purchase_roas[0].value
-                : m.roas || 0);
-
-        return toCsvRow([
-            c.id,
-            c.name || "",
-            c.status || "",
-            c.objective || "",
-            c.daily_budget || "",
-            m.spend || "",
-            roas || "",
-            m.ctr || "",
-            m.impressions || "",
-            m.clicks || "",
-            m.cpm || ""
-        ]);
-    });
-
-    const csv = [toCsvRow(headers), ...rows].join("\n");
-    const ts = new Date().toISOString().replace(/[:.]/g, "-");
-    triggerDownload(`signalone_campaigns_${ts}.csv`, "text/csv;charset=utf-8;", csv);
-    showToast("Kampagnen-CSV wurde exportiert.", "success");
+function formatRoas(value) {
+    const num = Number(value || 0);
+    if (!num) return "0,00x";
+    return `${num.toFixed(2)}x`;
 }
 
-function exportCreativesCsv() {
-    const meta = AppState.meta || {};
-    const list = (meta.creatives && meta.creatives.length ? meta.creatives : meta.ads) || [];
+function getReportPayload() {
+    const metrics = AppState.dashboardMetrics || {};
+    const campaigns = Array.isArray(AppState.meta?.campaigns)
+        ? AppState.meta.campaigns
+        : [];
+    const creatives = Array.isArray(AppState.meta?.creatives)
+        ? AppState.meta.creatives
+        : [];
 
-    if (!Array.isArray(list) || !list.length) {
-        showToast("Keine Creatives zum Export vorhanden.", "info");
-        return;
-    }
-
-    const headers = [
-        "id",
-        "name",
-        "campaign_id",
-        "status",
-        "spend_30d",
-        "roas_30d",
-        "ctr_30d",
-        "impressions_30d",
-        "clicks_30d",
-        "cpm_30d"
-    ];
-
-    const rows = list.map((ad) => {
-        const base = ad || {};
-        const insights =
-            base.insights?.data?.[0] ||
-            base.insights?.[0] ||
-            base.metrics ||
-            {};
-
-        const roasArr =
-            insights.website_purchase_roas ||
-            insights.purchase_roas ||
-            (base.metrics && base.metrics.website_purchase_roas);
-
-        let roas = 0;
-        if (Array.isArray(roasArr) && roasArr.length) {
-            roas = Number(roasArr[0].value || 0);
-        } else if (typeof insights.roas !== "undefined") {
-            roas = Number(insights.roas || 0);
-        }
-
-        return toCsvRow([
-            base.id,
-            base.name || "",
-            base.campaign_id || "",
-            base.status || "",
-            insights.spend || "",
-            roas || "",
-            insights.ctr || "",
-            insights.impressions || "",
-            insights.clicks || "",
-            insights.cpm || ""
-        ]);
-    });
-
-    const csv = [toCsvRow(headers), ...rows].join("\n");
-    const ts = new Date().toISOString().replace(/[:.]/g, "-");
-    triggerDownload(`signalone_creatives_${ts}.csv`, "text/csv;charset=utf-8;", csv);
-    showToast("Creative-CSV wurde exportiert.", "success");
-}
-
-function exportJsonSnapshot() {
-    const snapshot = {
-        createdAt: new Date().toISOString(),
-        selectedAccountId: AppState.selectedAccountId,
-        selectedCampaignId: AppState.selectedCampaignId,
-        timeRangePreset: AppState.timeRangePreset,
-        dashboardMetrics: AppState.dashboardMetrics,
-        meta: {
-            adAccounts: AppState.meta.adAccounts,
-            campaigns: AppState.meta.campaigns,
-            insightsByCampaign: AppState.meta.insightsByCampaign,
-            creatives: AppState.meta.creatives,
-            ads: AppState.meta.ads
-        }
+    return {
+        generatedAt: new Date().toISOString(),
+        metaConnected: AppState.metaConnected,
+        selectedAccountId: AppState.selectedAccountId || null,
+        selectedCampaignId: AppState.selectedCampaignId || null,
+        timeRangePreset: AppState.timeRangePreset || "last_30d",
+        summary: {
+            spend: Number(metrics.spend || 0),
+            roas: Number(metrics.roas || 0),
+            ctr: Number(metrics.ctr || 0),
+            cpm: Number(metrics.cpm || 0),
+        },
+        counters: {
+            campaigns: campaigns.length,
+            creatives: creatives.length,
+        },
+        campaigns,
+        creatives,
     };
-
-    const json = JSON.stringify(snapshot, null, 2);
-    const ts = new Date().toISOString().replace(/[:.]/g, "-");
-    triggerDownload(`signalone_snapshot_${ts}.json`, "application/json", json);
-    showToast("JSON Snapshot wurde exportiert.", "success");
 }
 
-function attachHandlers(connected) {
-    const btnCampaigns = document.getElementById("btnExportCampaignsCsv");
-    const btnCreatives = document.getElementById("btnExportCreativesCsv");
-    const btnJson = document.getElementById("btnExportJsonSnapshot");
+function buildReportsLayout() {
+    const view = document.getElementById("reportsView");
+    if (!view) return null;
 
-    if (!btnCampaigns || !btnCreatives || !btnJson) return;
+    view.innerHTML = `
+        <h2 class="elite-title">Reports & Exports</h2>
 
-    const disable = !connected;
+        <div class="card" id="reportsIntroCard">
+            <p style="color: var(--text-secondary); font-size:14px;">
+                Hier kannst du schnell einen Snapshot deiner aktuellen Meta-Performance
+                erzeugen und als JSON exportieren. Später kommen CSV/Excel/PDF-Exports dazu.
+            </p>
+        </div>
 
-    btnCampaigns.disabled = disable;
-    btnCreatives.disabled = disable;
-    btnJson.disabled = disable;
+        <div class="card" id="reportsSummaryCard">
+            <!-- Summary-Table wird dynamisch gesetzt -->
+        </div>
 
-    if (disable) return;
-
-    btnCampaigns.addEventListener("click", (e) => {
-        e.preventDefault();
-        exportCampaignsCsv();
-    });
-
-    btnCreatives.addEventListener("click", (e) => {
-        e.preventDefault();
-        exportCreativesCsv();
-    });
-
-    btnJson.addEventListener("click", (e) => {
-        e.preventDefault();
-        exportJsonSnapshot();
-    });
-}
-
-/* -------------------------------------------------------
-   Public API
----------------------------------------------------------*/
-
-export function updateReportsView(connected) {
-    const root = document.getElementById("reportsContent");
-    if (!root) return;
-
-    root.innerHTML = `
-        <div class="card">
-            <div class="reports-actions">
-                <button id="btnExportCampaignsCsv" class="action-button">
-                    <i class="fas fa-file-csv"></i> Kampagnen als CSV
+        <div class="card" id="reportsActionsCard">
+            <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+                <button class="action-button-primary" id="exportJsonButton">
+                    <i class="fas fa-file-code"></i> JSON kopieren
                 </button>
-                <button id="btnExportCreativesCsv" class="action-button">
-                    <i class="fas fa-file-csv"></i> Creatives als CSV
+                <button class="action-button-secondary" id="downloadJsonButton">
+                    <i class="fas fa-download"></i> JSON herunterladen
                 </button>
-                <button id="btnExportJsonSnapshot" class="action-button-secondary">
-                    <i class="fas fa-database"></i> JSON Snapshot
+                <button class="action-button-secondary" id="openPreviewButton">
+                    <i class="fas fa-eye"></i> Snapshot im Modal anzeigen
                 </button>
             </div>
-            <p class="reports-hint">
-                Die Exporte berücksichtigen den aktuellen State im Frontend (ausgewähltes Werbekonto, Kampagnen, bereits geladene Creatives).
-                In späteren Phasen kann hier ein Backend-basiertes Reporting (inkl. PDF, E-Mail-Reports und Historie) ergänzt werden.
+            <p style="margin-top:8px; color: var(--text-secondary); font-size:12px;">
+                Exporte respektieren deinen aktuellen Zeitrange und die geladenen Meta-Daten.
             </p>
-            ${
-                !connected
-                    ? `<p class="reports-hint">
-                        <strong>Hinweis:</strong> Aktuell nicht mit Meta verbunden. Verbinde ein Werbekonto, um Live-Daten zu exportieren.
-                    </p>`
-                    : ""
-            }
         </div>
     `;
 
-    attachHandlers(connected);
+    return {
+        summaryCard: document.getElementById("reportsSummaryCard"),
+        actionsCard: document.getElementById("reportsActionsCard"),
+    };
+}
+
+function renderSummary(summaryCard, payload) {
+    if (!summaryCard) return;
+
+    const { summary, counters, metaConnected, timeRangePreset } = payload;
+
+    if (!metaConnected) {
+        summaryCard.innerHTML = `
+            <p style="color: var(--text-secondary); font-size:14px;">
+                Noch keine Verbindung zu Meta. Verbinde dein Konto im Dashboard,
+                um Reports zu generieren.
+            </p>
+        `;
+        return;
+    }
+
+    summaryCard.innerHTML = `
+        <h3 style="margin-bottom:8px;">Report Snapshot</h3>
+        <p style="color: var(--text-secondary); font-size:13px; margin-bottom:8px;">
+            Zeitraum: <strong>${timeRangePreset}</strong><br />
+            Generiert am: <strong>${new Date(payload.generatedAt).toLocaleString("de-DE")}</strong>
+        </p>
+
+        <table style="width:100%; border-collapse:collapse; font-size:13px;">
+            <tbody>
+                <tr>
+                    <td style="padding:4px 0; color:var(--text-secondary);">Kampagnen</td>
+                    <td style="padding:4px 0; text-align:right;"><strong>${counters.campaigns}</strong></td>
+                </tr>
+                <tr>
+                    <td style="padding:4px 0; color:var(--text-secondary);">Creatives</td>
+                    <td style="padding:4px 0; text-align:right;"><strong>${counters.creatives}</strong></td>
+                </tr>
+                <tr>
+                    <td style="padding:4px 0; color:var(--text-secondary);">Spend (Zeitraum)</td>
+                    <td style="padding:4px 0; text-align:right;"><strong>${formatEuro(summary.spend)}</strong></td>
+                </tr>
+                <tr>
+                    <td style="padding:4px 0; color:var(--text-secondary);">ROAS (gewichtet)</td>
+                    <td style="padding:4px 0; text-align:right;"><strong>${formatRoas(summary.roas)}</strong></td>
+                </tr>
+                <tr>
+                    <td style="padding:4px 0; color:var(--text-secondary);">CTR</td>
+                    <td style="padding:4px 0; text-align:right;"><strong>${formatPct(summary.ctr)}</strong></td>
+                </tr>
+                <tr>
+                    <td style="padding:4px 0; color:var(--text-secondary);">CPM</td>
+                    <td style="padding:4px 0; text-align:right;"><strong>${formatEuro(summary.cpm)}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    `;
+}
+
+function attachExportHandlers(payload) {
+    const exportBtn = document.getElementById("exportJsonButton");
+    const downloadBtn = document.getElementById("downloadJsonButton");
+    const previewBtn = document.getElementById("openPreviewButton");
+
+    const json = JSON.stringify(payload, null, 2);
+
+    if (exportBtn) {
+        exportBtn.onclick = async () => {
+            try {
+                await navigator.clipboard.writeText(json);
+                showToast("success", "Report JSON wurde in die Zwischenablage kopiert.");
+            } catch (e) {
+                console.error("Clipboard Error", e);
+                showToast(
+                    "error",
+                    "Konnte JSON nicht kopieren. Bitte manuell aus der Preview kopieren."
+                );
+            }
+        };
+    }
+
+    if (downloadBtn) {
+        downloadBtn.onclick = () => {
+            try {
+                const blob = new Blob([json], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `signalone_report_${Date.now()}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast("success", "Report JSON wurde heruntergeladen.");
+            } catch (e) {
+                console.error("Download Error", e);
+                showToast("error", "Fehler beim Download des Reports.");
+            }
+        };
+    }
+
+    if (previewBtn) {
+        previewBtn.onclick = () => {
+            const safeJson = json
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+
+            openModal(
+                "Report Snapshot (JSON)",
+                `<pre style="
+                    max-height:60vh;
+                    overflow:auto;
+                    font-size:11px;
+                    background:#0f172a;
+                    color:#e5e7eb;
+                    padding:12px;
+                    border-radius:8px;
+                ">${safeJson}</pre>`
+            );
+        };
+    }
+}
+
+// Public API – wird von app.js aufgerufen
+// ---------------------------------------
+export function updateReportsView(connected) {
+    const view = document.getElementById("reportsView");
+    if (!view) return;
+
+    const layout = buildReportsLayout();
+    if (!layout) return;
+
+    const payload = getReportPayload();
+    renderSummary(layout.summaryCard, {
+        ...payload,
+        metaConnected: connected && AppState.metaConnected,
+    });
+    attachExportHandlers(payload);
 }
