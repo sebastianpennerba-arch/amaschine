@@ -84,12 +84,21 @@ function normalizeCreative(raw) {
         base.image_url ||
         base.preview_url ||
         base.creative?.thumbnail_url ||
+        // häufige Meta-Felder aus dem Backend:
+        base.creative?.object_story_spec?.video_data?.image_url ||
+        base.creative?.object_story_spec?.video_data?.thumbnail_url ||
+        base.creative?.object_story_spec?.link_data?.image_hash_url ||
+        base.creative?.object_story_spec?.link_data?.picture ||
         null;
 
-    const type =
+    const typeRaw =
         base.creative?.object_type ||
         base.object_type ||
+        base.creative?.object_story_spec?.video_data && "VIDEO" ||
+        base.creative?.object_story_spec?.image_hash && "IMAGE" ||
         inferCreativeTypeFromName(name);
+
+    const type = typeRaw || inferCreativeTypeFromName(name);
 
     return {
         ...base,
@@ -97,7 +106,7 @@ function normalizeCreative(raw) {
             // vereinheitlichte View-Properties
             id: base.id,
             name,
-            status: base.status || "UNKNOWN",
+            status: base.status || base.effective_status || "UNKNOWN",
             campaignId: base.campaign_id || base.campaignId || null,
             thumbnail,
             type
@@ -195,11 +204,22 @@ function buildKpiBar(label, valueFormatted, normalized, suffix = "") {
 
 function getCreativesForCurrentSelection() {
     const meta = AppState.meta || {};
-    let items = meta.creatives && meta.creatives.length
-        ? meta.creatives
-        : meta.ads || [];
+    let items = [];
 
-    if (!Array.isArray(items)) return [];
+    // Robust gegen verschiedene Backend-Shapes:
+    // - Array
+    // - { data: [...] }
+    if (Array.isArray(meta.creatives)) {
+        items = meta.creatives;
+    } else if (Array.isArray(meta.creatives?.data)) {
+        items = meta.creatives.data;
+    } else if (Array.isArray(meta.ads)) {
+        items = meta.ads;
+    } else if (Array.isArray(meta.ads?.data)) {
+        items = meta.ads.data;
+    }
+
+    if (!Array.isArray(items)) items = [];
 
     // Filtern nach Kampagne (falls ausgewählt)
     if (AppState.selectedCampaignId) {
