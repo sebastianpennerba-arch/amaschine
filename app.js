@@ -1,4 +1,4 @@
-// app.js – Premium Orchestrator (Final Version, mit aktiven Dropdowns & Popup-OAuth)
+// app.js – Orchestrator mit Popup-OAuth & Creative-Loader
 // SignalOne.cloud – Frontend Engine
 
 import { AppState, META_OAUTH_CONFIG } from "./state.js";
@@ -16,7 +16,8 @@ import {
     fetchMetaUser,
     exchangeMetaCodeForToken,
     fetchMetaAdAccounts,
-    fetchMetaCampaigns
+    fetchMetaCampaigns,
+    fetchMetaAds
 } from "./metaApi.js";
 
 import { updateDashboardView } from "./dashboard.js";
@@ -49,8 +50,7 @@ function showView(viewId) {
 }
 
 /* -------------------------------------------------------
-    META CONNECT
-    (kein Auto-Connect mehr, nur auf Button-Klick; Login im Popup)
+    META CONNECT (nur Button + Popup, kein Auto-Connect)
 ---------------------------------------------------------*/
 
 function handleMetaConnectClick() {
@@ -124,9 +124,7 @@ function disconnectMeta() {
 }
 
 /* -------------------------------------------------------
-    OAuth Redirect
-    - funktioniert weiter klassisch
-    - zusätzlich: Popup-Szenario (code in Popup, Daten in Main-Window)
+    OAuth Redirect – unterstützt Popup & klassischen Flow
 ---------------------------------------------------------*/
 
 async function handleMetaOAuthRedirectIfPresent() {
@@ -149,7 +147,7 @@ async function handleMetaOAuthRedirectIfPresent() {
             return;
         }
 
-        // Falls wir aus einem Popup kamen: Token an das Hauptfenster schicken und Popup schließen
+        // Popup-Fall: Token an Hauptfenster, dann schließen
         if (window.opener && !window.opener.closed) {
             window.opener.postMessage(
                 {
@@ -161,15 +159,13 @@ async function handleMetaOAuthRedirectIfPresent() {
                 window.location.origin
             );
 
-            // Popup kann sich danach schließen
             window.close();
             return;
         }
 
-        // Fallback: klassischer Redirect-Flow (ohne Popup)
+        // Klassischer Redirect (kein Popup)
         AppState.meta.accessToken = res.accessToken;
         AppState.metaConnected = true;
-
         persistMetaToken(res.accessToken);
 
         await fetchMetaUser();
@@ -188,7 +184,6 @@ async function handleMetaOAuthRedirectIfPresent() {
 ---------------------------------------------------------*/
 
 async function handlePopupMessages(event) {
-    // nur eigene Origin akzeptieren
     if (event.origin !== window.location.origin) return;
     const data = event.data;
     if (!data || typeof data !== "object") return;
@@ -272,6 +267,43 @@ function updateAccountAndCampaignSelectors() {
 }
 
 /* -------------------------------------------------------
+    CREATIVES LADEN (für Creative Library)
+---------------------------------------------------------*/
+
+async function loadCreativesForCurrentSelection() {
+    if (!AppState.selectedAccountId) {
+        AppState.meta.ads = [];
+        AppState.creativesLoaded = false;
+        return;
+    }
+
+    try {
+        const res = await fetchMetaAds(AppState.selectedAccountId);
+        if (res?.success) {
+            const arr = res.data?.data || res.data || [];
+            AppState.meta.ads = Array.isArray(arr) ? arr : [];
+            AppState.creativesLoaded = true;
+        } else {
+            AppState.meta.ads = [];
+            AppState.creativesLoaded = false;
+            showToast("Creatives konnten nicht geladen werden.", "error");
+        }
+    } catch (err) {
+        console.error(err);
+        AppState.meta.ads = [];
+        AppState.creativesLoaded = false;
+        showToast("Fehler beim Laden der Creatives.", "error");
+    }
+}
+
+async function ensureCreativesLoadedAndRender() {
+    if (!AppState.creativesLoaded) {
+        await loadCreativesForCurrentSelection();
+    }
+    updateCreativeLibraryView(AppState.metaConnected);
+}
+
+/* -------------------------------------------------------
     UI UPDATE
 ---------------------------------------------------------*/
 
@@ -290,7 +322,12 @@ function updateUI() {
     }
 
     if (AppState.currentView === "creativesView") {
-        updateCreativeLibraryView(connected);
+        if (connected) {
+            // async, aber wir warten hier nicht – UI bleibt responsiv
+            ensureCreativesLoadedAndRender();
+        } else {
+            updateCreativeLibraryView(false);
+        }
     }
 
     if (AppState.currentView === "senseiView") {
@@ -305,7 +342,6 @@ function updateUI() {
         updateTestingLogView(connected);
     }
 
-    // Health-Ampeln (System + Kampagne) aktualisieren
     updateHealthStatus();
 }
 
@@ -314,8 +350,7 @@ function updateUI() {
 ---------------------------------------------------------*/
 
 document.addEventListener("DOMContentLoaded", async () => {
-    // KEIN Auto-Connect mehr via LocalStorage – dauerhafte Verbindung wird vermieden
-    // Token kann zwar gespeichert werden, wird aber nur via Popup-Flow aktiv benutzt
+    // KEIN Auto-Connect mehr via LocalStorage – Verbindung nur per User-Klick / OAuth
 
     showView(AppState.currentView);
     initSidebarNavigation(showView);
@@ -347,8 +382,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                         Geplant:
                     </p>
                     <ul style="margin-left:18px; color:var(--text-secondary); font-size:13px;">
-                        <li>Verknüpfte Werbekonten & Rollen (Owner / Admin / Viewer)</li>
-                        <li>Benachrichtigungs-Einstellungen & E-Mail-Reports</li>
+                        <li>Verknüpfte Werbekonten & Rollen</li>
+                        <li>Benachrichtigungs-Einstellungen</li>
                         <li>Fehler- & Aktivitätslog für dieses Profil</li>
                     </ul>
                     <p style="font-size:12px; color:var(--text-secondary);">
@@ -383,7 +418,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // Wenn diese Instanz im Popup läuft und einen ?code hat, wird nur der Popup-Flow benutzt
+    // Falls diese Instanz gerade als OAuth-Redirect läuft:
     await handleMetaOAuthRedirectIfPresent();
 
     /* ---------------------------------------------------
