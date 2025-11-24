@@ -685,7 +685,25 @@ body {
     background-color: var(--color-primary-dark);
 }
 
-/* --- SENSEI STRATEGY --- */
+/* sekundäre Action-Buttons */
+.action-button-secondary {
+    background-color: transparent;
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 0;
+    transition: background-color 0.2s, color 0.2s;
+}
+.action-button-secondary:hover {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+/* --- SENSEI STRATEGY GRID (Basis) --- */
 .strategy-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -715,23 +733,6 @@ body {
 }
 .warning-card {
     border-left-color: var(--danger);
-}
-
-.action-button-secondary {
-    background-color: transparent;
-    color: var(--color-primary);
-    border: 1px solid var(--color-primary);
-    padding: 8px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    margin-top: 0;
-    transition: background-color 0.2s, color 0.2s;
-}
-.action-button-secondary:hover {
-    background-color: var(--color-primary);
-    color: white;
 }
 
 /* --- TOAST & MODAL --- */
@@ -825,4 +826,79 @@ body {
 .modal-content button {
     margin-top: var(--spacing-inner);
     float: right;
+}
+
+/* --- METRIC CHIPS (Campaign / Creative / Sensei) --- */
+.metric-chip {
+    background-color: #F9FAFB;
+    border-radius: 10px;
+    padding: 10px 12px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.metric-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.metric-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* --- REPORTS & TESTING LOG --- */
+.reports-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.reports-hint {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 8px;
+}
+
+.testing-log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.testing-log-meta {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.badge-green {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+}
+
+.badge-yellow {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: var(--warning);
+}
+
+.badge-red {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
 }
