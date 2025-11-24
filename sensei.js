@@ -1,226 +1,303 @@
-// sensei.js – Sensei Strategy Layer (P4 – Regelbasiertes MVP)
-// -----------------------------------------------------------
-// Nutzt vorhandene Kampagnen-Metriken, um einfache, aber
-// handlungsorientierte Empfehlungen abzuleiten.
+// sensei.js – Sensei Strategy (AI Layer über Live-Daten)
+// ------------------------------------------------------
+// Liest NUR aus AppState (Meta-Daten, Dashboard-Metrics) und
+// baut daraus einfache, aber echte Empfehlungen.
+// Kein extra API-Call, kein Mock, alles basiert auf den
+// bereits geladenen Kampagnen / Creatives / KPIs.
 
 import { AppState } from "./state.js";
-import { fetchMetaCampaignInsights } from "./metaApi.js";
+import { showToast } from "./uiCore.js";
 
-const nf = new Intl.NumberFormat("de-DE");
-
-const fEuro = (v) => {
-    const n = Number(v);
-    return !isFinite(n) || n === 0 ? "€ 0" : `€ ${nf.format(n)}`;
-};
-
-const fPct = (v) => {
-    const n = Number(v);
-    return !isFinite(n) || n === 0 ? "0%" : `${n.toFixed(2)}%`;
-};
-
-const fRoas = (v) => {
-    const n = Number(v);
-    return !isFinite(n) || n === 0 ? "0x" : `${n.toFixed(2)}x`;
-};
-
-function getCampaignsWithMetrics() {
-    const campaigns = AppState.meta.campaigns || [];
-    return campaigns.map((c) => {
-        const m = c.metrics || {};
-        const roas =
-            m.purchase_roas ||
-            (Array.isArray(m.website_purchase_roas) && m.website_purchase_roas.length
-                ? Number(m.website_purchase_roas[0].value || 0)
-                : m.roas || 0);
-        return {
-            ...c,
-            _metrics: {
-                spend: Number(m.spend || 0),
-                impressions: Number(m.impressions || 0),
-                clicks: Number(m.clicks || 0),
-                ctr: Number(m.ctr || 0),
-                cpm: Number(m.cpm || 0),
-                roas: Number(roas || 0)
-            }
-        };
-    });
+function formatEuro(value) {
+    const num = Number(value || 0);
+    return `€ ${num.toLocaleString("de-DE", { maximumFractionDigits: 0 })}`;
 }
 
-async function ensureCampaignMetrics() {
-    const campaigns = AppState.meta.campaigns || [];
-    if (!campaigns.length) return;
-
-    const needsFetch = campaigns.some((c) => !c.metrics);
-    if (!needsFetch) return;
-
-    const preset = AppState.timeRangePreset || "last_30d";
-
-    for (const camp of campaigns) {
-        try {
-            const ir = await fetchMetaCampaignInsights(camp.id, preset);
-            const d = ir?.success ? ir.data?.data?.[0] || {} : {};
-            camp.metrics = d;
-        } catch (e) {
-            console.warn("Sensei metrics fetch error", camp.id, e);
-        }
-    }
+function formatPct(value) {
+    const num = Number(value || 0);
+    return `${num.toFixed(2)}%`;
 }
 
-function buildSenseiCard(title, description, items, type = "neutral") {
-    const typeClass =
-        type === "positive"
-            ? "recommendation-card"
-            : type === "negative"
-            ? "warning-card"
-            : "alert-card";
-
-    return `
-        <div class="card strategy-card ${typeClass}">
-            <div>
-                <h3 class="strategy-title">${title}</h3>
-                <p style="color:var(--text-secondary); font-size:13px; margin-bottom:10px;">
-                    ${description}
-                </p>
-                <ul style="margin:0; padding-left:18px; font-size:13px; color:var(--text-secondary); display:flex; flex-direction:column; gap:4px;">
-                    ${
-                        items.length
-                            ? items
-                                  .map(
-                                      (t) =>
-                                          `<li>${t}</li>`
-                                  )
-                                  .join("")
-                            : '<li>Keine spezifischen Empfehlungen für den aktuellen Zeitraum.</li>'
-                    }
-                </ul>
-            </div>
-        </div>
-    `;
+function formatRoas(value) {
+    const num = Number(value || 0);
+    if (!num) return "0,00x";
+    return `${num.toFixed(2)}x`;
 }
 
-/* -------------------------------------------------------
-   Public API
----------------------------------------------------------*/
+function buildSenseiLayout() {
+    const view = document.getElementById("senseiView");
+    if (!view) return null;
 
-export async function updateSenseiView(connected) {
-    const root = document.getElementById("senseiContent");
-    if (!root) return;
+    // Wir überschreiben bewusst den Platzhalter-Content,
+    // behalten aber die Titel- und Card-Struktur bei.
+    view.innerHTML = `
+        <h2 class="elite-title">Sensei Strategy (AI Layer)</h2>
 
-    if (!connected) {
-        root.innerHTML = `
-            <div class="card">
-                <p style="font-size:14px; color:var(--text-secondary);">
-                    Verbinde dein Meta Werbekonto, damit Sensei echte Daten analysieren kann.
-                    Anschließend siehst du hier tägliche Empfehlungen für Scaling, Risiko-Alerts
-                    und Creative-Optimierung.
-                </p>
-            </div>
-        `;
-        return;
-    }
-
-    if (!AppState.meta.campaigns.length) {
-        root.innerHTML = `
-            <div class="card">
-                <p style="font-size:14px; color:var(--text-secondary);">
-                    Für das ausgewählte Werbekonto wurden keine Kampagnen gefunden.
-                    Lege Kampagnen im Meta Ads Manager an oder wechsle das Werbekonto in der Topbar.
-                </p>
-            </div>
-        `;
-        return;
-    }
-
-    // Metriken sicherstellen (einmalig)
-    await ensureCampaignMetrics();
-
-    const withMetrics = getCampaignsWithMetrics();
-    if (!withMetrics.length) {
-        root.innerHTML = `
-            <div class="card">
-                <p style="font-size:14px; color:var(--text-secondary);">
-                    Es liegen noch keine Insights für deine Kampagnen vor.
-                    Prüfe den ausgewählten Zeitraum oder versuche es später erneut.
-                </p>
-            </div>
-        `;
-        return;
-    }
-
-    // einfache Regel-Engine
-    const topByImpact = [...withMetrics]
-        .filter((c) => c._metrics.spend > 0 && c._metrics.roas > 0)
-        .sort((a, b) => b._metrics.spend * b._metrics.roas - a._metrics.spend * a._metrics.roas)
-        .slice(0, 3);
-
-    const underperformers = [...withMetrics]
-        .filter(
-            (c) =>
-                c._metrics.spend > 0 &&
-                c._metrics.roas > 0 &&
-                c._metrics.roas < 2
-        )
-        .sort((a, b) => a._metrics.roas - b._metrics.roas)
-        .slice(0, 5);
-
-    const lowSpend = [...withMetrics]
-        .filter(
-            (c) =>
-                c._metrics.spend > 0 &&
-                c._metrics.spend < 50 &&
-                c._metrics.roas >= 2
-        )
-        .slice(0, 5);
-
-    const scalingItems = topByImpact.map((c) => {
-        return `<strong>${c.name || c.id}</strong> – ROAS ${fRoas(
-            c._metrics.roas
-        )}, Spend ${fEuro(c._metrics.spend)}. Empfehlung: 
-        Budget behutsam um 20–30% erhöhen und Creative Library prüfen, welche Ads diese Kampagne treiben.`;
-    });
-
-    const riskItems = underperformers.map((c) => {
-        return `<strong>${c.name || c.id}</strong> – ROAS ${fRoas(
-            c._metrics.roas
-        )}, Spend ${fEuro(c._metrics.spend)}. Empfehlung:
-        Creatives überprüfen, Platzierungen testen und ggf. Kampagne pausieren, falls Trend anhält.`;
-    });
-
-    const testingItems = lowSpend.map((c) => {
-        return `<strong>${c.name || c.id}</strong> – solider ROAS bei niedrigem Spend (${fEuro(
-            c._metrics.spend
-        )}). Empfehlung: in den nächsten Tests höher priorisieren und zusätzliche Variationen planen.`;
-    });
-
-    root.innerHTML = `
-        <div class="card" style="margin-bottom:24px;">
-            <p style="font-size:14px; color:var(--text-secondary);">
-                Sensei analysiert deine Kampagnen basierend auf den letzten Insights und
-                schlägt dir handlungsorientierte Schritte vor. 
-                Die aktuelle Version ist regelbasiert; ein KI-Layer kann später nahtlos
-                an diese Struktur andocken.
+        <div class="card" id="senseiSummaryCard">
+            <p id="senseiSummaryText" style="color: var(--text-secondary); font-size: 14px;">
+                Sensei analysiert deine Meta-Daten und gibt dir konkrete Hinweise
+                zu Skalierung, Risiken und Creative-Fatigue.
             </p>
         </div>
 
-        <div class="strategy-grid">
-            ${buildSenseiCard(
-                "Scaling-Empfehlungen",
-                "Nutze dein Budget dort, wo ROAS und Spend bereits stark sind.",
-                scalingItems,
-                "positive"
-            )}
-            ${buildSenseiCard(
-                "Risiko-Alerts & Underperformer",
-                "Kampagnen mit niedrigem ROAS und relevantem Spend – hier droht Budgetverschwendung.",
-                riskItems,
-                "negative"
-            )}
-            ${buildSenseiCard(
-                "Testing-Potenzial",
-                "Kampagnen mit gutem ROAS aber niedrigem Spend: ideale Kandidaten für strukturierte Tests.",
-                testingItems,
-                "neutral"
-            )}
+        <div class="strategy-grid" id="senseiRecommendationList">
+            <!-- Dynamic Cards kommen hier rein -->
         </div>
     `;
+
+    const summaryCard = document.getElementById("senseiSummaryCard");
+    const recList = document.getElementById("senseiRecommendationList");
+    return { summaryCard, recList };
+}
+
+function deriveInsightsFromState() {
+    const metrics = AppState.dashboardMetrics || {};
+    const campaigns = Array.isArray(AppState.meta?.campaigns)
+        ? AppState.meta.campaigns
+        : [];
+    const creatives = Array.isArray(AppState.meta?.creatives)
+        ? AppState.meta.creatives
+        : [];
+
+    const spend = Number(metrics.spend || 0);
+    const roas = Number(metrics.roas || 0);
+    const ctr = Number(metrics.ctr || 0);
+    const cpm = Number(metrics.cpm || 0);
+
+    // Baseline für einfache „Ampel“-Logik
+    const thresholds = {
+        lowSpend: 50,
+        highSpend: 2000,
+        greatRoas: 3,
+        okRoas: 2,
+        lowRoas: 1.5,
+        greatCtr: 3,
+        lowCtr: 1,
+        highCpm: 25,
+    };
+
+    // 1) Scaling / Budget
+    let scalingMood = "neutral";
+    let scalingText = "Stabile Performance – Fokus auf konsistentes Testing.";
+    let scalingAction = "Plane 1–2 neue Tests für diese Woche ein.";
+
+    if (spend > thresholds.highSpend && roas >= thresholds.okRoas) {
+        scalingMood = "bullish";
+        scalingText = "Starke Performance bei relevantem Spend – hier kannst du skalieren.";
+        scalingAction =
+            "Erhöhe das Budget der Top-Kampagnen schrittweise (z.B. +15–20 %) und beobachte ROAS & CTR.";
+    } else if (spend > thresholds.lowSpend && roas < thresholds.lowRoas) {
+        scalingMood = "bearish";
+        scalingText = "Du gibst bereits Budget aus, aber ROAS ist schwach.";
+        scalingAction =
+            "Reduziere Budgets schwacher Kampagnen und verlagere Spend in die Top-Performer.";
+    } else if (spend <= thresholds.lowSpend) {
+        scalingMood = "testing";
+        scalingText = "Wenig Spend – perfekter Zeitpunkt für strukturiertes Creative-Testing.";
+        scalingAction =
+            "Definiere 3–5 neue Creatives und teste klare Hooks/Angles, bevor du das Budget hochziehst.";
+    }
+
+    // 2) Risiko / Anomalien
+    let riskLevel = "low";
+    let riskTitle = "Alles im grünen Bereich.";
+    let riskText = "Keine offensichtlichen Anomalien – Monitoring reicht aktuell aus.";
+    let riskAction = "Behalte ROAS, CPM und CTR im Blick, aber es besteht kein akuter Handlungsbedarf.";
+
+    if (cpm > thresholds.highCpm && ctr < thresholds.lowCtr) {
+        riskLevel = "critical";
+        riskTitle = "Hoher CPM und schwache CTR.";
+        riskText =
+            "Du zahlst viel für Impressionen, aber kaum jemand klickt – Anzeigen wirken nicht relevant.";
+        riskAction =
+            "Überarbeite Hooks, Thumbnails und Zielgruppen. Teste neue Angles oder breitere Zielgruppen.";
+    } else if (roas < thresholds.lowRoas && spend > thresholds.lowSpend) {
+        riskLevel = "medium";
+        riskTitle = "ROAS unter deinem Sweet-Spot.";
+        riskText =
+            "Deine Kampagnen arbeiten aktuell nicht effizient genug. Hier entsteht Risiko für Profitabilität.";
+        riskAction =
+            "Identifiziere Bottom-20 % Kampagnen und pausiere/verändere diese zuerst.";
+    }
+
+    // 3) Creative-Fatigue (sehr grobe Heuristik)
+    // Wir schauen nur, ob genügend Creatives existieren und ob CTR ok ist.
+    let fatigueLevel = "ok";
+    let fatigueTitle = "Creative-Frequenz wirkt solide.";
+    let fatigueText =
+        "Du hast eine gesunde Anzahl an Creatives – kein direkter Fatigue-Alarm, aber weiter testen.";
+    let fatigueAction =
+        "Plane jede Woche 1–2 neue Varianten für deine Gewinner-Kampagnen ein.";
+
+    if (creatives.length <= 5 && spend > thresholds.lowSpend) {
+        fatigueLevel = "risk";
+        fatigueTitle = "Zu wenige Creatives für dein aktuelles Budget.";
+        fatigueText =
+            "Mit wenigen Creatives steigt das Risiko, dass deine Zielgruppe „blind“ wird und CTR fällt.";
+        fatigueAction =
+            "Erstelle mindestens 3–5 neue Varianten (neue Hooks, Thumbnails, UGC-Angles) und teste diese.";
+    } else if (ctr < thresholds.lowCtr && creatives.length > 0) {
+        fatigueLevel = "medium";
+        fatigueTitle = "CTR flacht ab – Hinweise auf Fatigue.";
+        fatigueText =
+            "CTR ist eher schwach – das kann auf Creative-Fatigue hinweisen, besonders bei hoher Frequency.";
+        fatigueAction =
+            "Analysiere deine Top-Creatives und erneuere Aufbau, Hook und visuelle Elemente.";
+    }
+
+    return {
+        summary: {
+            spend,
+            roas,
+            ctr,
+            cpm,
+            campaignsCount: campaigns.length,
+            creativesCount: creatives.length,
+        },
+        scaling: { mood: scalingMood, text: scalingText, action: scalingAction },
+        risk: { level: riskLevel, title: riskTitle, text: riskText, action: riskAction },
+        fatigue: {
+            level: fatigueLevel,
+            title: fatigueTitle,
+            text: fatigueText,
+            action: fatigueAction,
+        },
+    };
+}
+
+function renderSenseiSummary(summary) {
+    const el = document.getElementById("senseiSummaryText");
+    if (!el) return;
+
+    const {
+        spend,
+        roas,
+        ctr,
+        cpm,
+        campaignsCount,
+        creativesCount,
+    } = summary;
+
+    if (!campaignsCount && !creativesCount) {
+        el.innerHTML = `
+            Noch keine Meta-Daten geladen.<br />
+            <strong>Check:</strong> Verbinde dein Meta-Konto über den roten Stripe im Dashboard.
+            Danach lädt Sensei automatisch deine Kampagnen & Creatives.
+        `;
+        return;
+    }
+
+    el.innerHTML = `
+        Sensei arbeitet auf Basis deiner aktuellen Meta-Daten.<br />
+        <br />
+        <strong>Überblick:</strong><br />
+        • Kampagnen: <strong>${campaignsCount}</strong><br />
+        • Creatives: <strong>${creativesCount}</strong><br />
+        • Spend (Zeitraum): <strong>${formatEuro(spend)}</strong><br />
+        • ROAS (gewichtet): <strong>${formatRoas(roas)}</strong><br />
+        • CTR: <strong>${formatPct(ctr)}</strong> &nbsp; | &nbsp;
+          CPM: <strong>${formatEuro(cpm)}</strong>
+    `;
+}
+
+function renderRecommendationCards(recList, insights) {
+    if (!recList) return;
+
+    const { scaling, risk, fatigue } = insights;
+
+    recList.innerHTML = `
+        <div class="card strategy-card recommendation-card">
+            <div>
+                <h3 class="strategy-title">Scaling-Empfehlung</h3>
+                <p style="color: var(--text-secondary); font-size:14px;">
+                    ${scaling.text}
+                </p>
+            </div>
+            <button class="action-button-secondary" data-sensei-action="scaling">
+                Nächster Schritt anzeigen
+            </button>
+        </div>
+
+        <div class="card strategy-card alert-card">
+            <div>
+                <h3 class="strategy-title">Risiko-Alert</h3>
+                <p style="color: var(--text-secondary); font-size:14px;">
+                    ${risk.title}<br />
+                    <span style="font-size:13px;">${risk.text}</span>
+                </p>
+            </div>
+            <button class="action-button-secondary" data-sensei-action="risk">
+                Handlungsempfehlung
+            </button>
+        </div>
+
+        <div class="card strategy-card warning-card">
+            <div>
+                <h3 class="strategy-title">Creative-Fatigue</h3>
+                <p style="color: var(--text-secondary); font-size:14px;">
+                    ${fatigue.title}<br />
+                    <span style="font-size:13px;">${fatigue.text}</span>
+                </p>
+            </div>
+            <button class="action-button-secondary" data-sensei-action="fatigue">
+                Creative-Plan anzeigen
+            </button>
+        </div>
+    `;
+
+    recList
+        .querySelectorAll("[data-sensei-action]")
+        .forEach((btn) => {
+            btn.addEventListener("click", () => {
+                const type = btn.getAttribute("data-sensei-action");
+                let msg = "";
+
+                if (type === "scaling") {
+                    msg = insights.scaling.action;
+                } else if (type === "risk") {
+                    msg = insights.risk.action;
+                } else if (type === "fatigue") {
+                    msg = insights.fatigue.action;
+                }
+
+                showToast("info", msg || "Sensei-Hinweis noch in Arbeit.");
+            });
+        });
+}
+
+// Public API – wird aus app.js aufgerufen
+// --------------------------------------
+export function updateSenseiView(connected) {
+    const view = document.getElementById("senseiView");
+    if (!view) return;
+
+    const { summaryCard, recList } = buildSenseiLayout() || {};
+    if (!summaryCard || !recList) return;
+
+    if (!connected || !AppState.metaConnected) {
+        // Wenn Meta nicht verbunden ist, bleiben wir soft.
+        const summary = {
+            spend: 0,
+            roas: 0,
+            ctr: 0,
+            cpm: 0,
+            campaignsCount: 0,
+            creativesCount: 0,
+        };
+        renderSenseiSummary(summary);
+        recList.innerHTML = `
+            <div class="card strategy-card warning-card" style="grid-column:span 3; text-align:center;">
+                <h3 class="strategy-title">Noch keine Verbindung zu Meta.</h3>
+                <p style="color: var(--text-secondary); font-size:14px;">
+                    Verbinde dein Meta-Konto, damit Sensei echte Empfehlungen auf Basis deiner
+                    Kampagnen & Creatives geben kann.
+                </p>
+            </div>
+        `;
+        return;
+    }
+
+    const insights = deriveInsightsFromState();
+    renderSenseiSummary(insights.summary);
+    renderRecommendationCards(recList, insights);
 }
