@@ -1,4 +1,4 @@
-// app.js – Premium Orchestrator (Final Version)
+// app.js – Premium Orchestrator (Final Version, mit aktiven Dropdowns)
 // SignalOne.cloud – Frontend Engine
 
 import { AppState, META_OAUTH_CONFIG } from "./state.js";
@@ -35,8 +35,9 @@ const META_TOKEN_STORAGE_KEY = "signalone_meta_token_v1";
 ---------------------------------------------------------*/
 
 function showView(viewId) {
-    document.querySelectorAll(".view")
-        .forEach((v) => v.classList.add("hidden"));
+    document.querySelectorAll(".view").forEach((v) =>
+        v.classList.add("hidden")
+    );
 
     const view = document.getElementById(viewId);
     if (view) view.classList.remove("hidden");
@@ -148,7 +149,6 @@ async function handleMetaOAuthRedirectIfPresent() {
 
         updateUI();
         showToast("Erfolgreich mit Meta verbunden!", "success");
-
     } catch (err) {
         console.error(err);
         showToast("Verbindungsfehler", "error");
@@ -156,7 +156,7 @@ async function handleMetaOAuthRedirectIfPresent() {
 }
 
 /* -------------------------------------------------------
-    ACCOUNT & CAMPAIGNS
+    ACCOUNT & CAMPAIGNS (LIVE DROPDOWNS)
 ---------------------------------------------------------*/
 
 async function loadAdAccountsAndCampaigns() {
@@ -185,27 +185,34 @@ function updateAccountAndCampaignSelectors() {
 
     if (!accSel || !campSel) return;
 
-    accSel.innerHTML = AppState.meta.adAccounts
-        .map(
-            (acc) =>
-                `<option value="${acc.id}" ${
-                    acc.id === AppState.selectedAccountId ? "selected" : ""
-                }>${acc.name || acc.id}</option>`
-        )
-        .join("");
+    // Accounts
+    accSel.innerHTML = AppState.meta.adAccounts.length
+        ? AppState.meta.adAccounts
+              .map(
+                  (acc) => `
+            <option value="${acc.id}" ${
+                      acc.id === AppState.selectedAccountId ? "selected" : ""
+                  }>
+                ${acc.name || acc.id}
+            </option>`
+              )
+              .join("")
+        : '<option value="">Kein Werbekonto gefunden</option>';
 
-    campSel.innerHTML =
-        `<option value="">Alle Kampagnen</option>` +
-        AppState.meta.campaigns
-            .map(
-                (c) =>
-                    `<option value="${c.id}" ${
-                        c.id === AppState.selectedCampaignId
-                            ? "selected"
-                            : ""
-                    }>${c.name}</option>`
-            )
-            .join("");
+    // Campaigns
+    const options = [
+        `<option value="">Alle Kampagnen</option>`
+    ];
+
+    (AppState.meta.campaigns || []).forEach((c) => {
+        options.push(
+            `<option value="${c.id}" ${
+                c.id === AppState.selectedCampaignId ? "selected" : ""
+            }>${c.name}</option>`
+        );
+    });
+
+    campSel.innerHTML = options.join("");
 }
 
 /* -------------------------------------------------------
@@ -218,23 +225,29 @@ function updateUI() {
     updateGreeting();
     updateAccountAndCampaignSelectors();
 
-    if (AppState.currentView === "dashboardView")
+    if (AppState.currentView === "dashboardView") {
         updateDashboardView(connected);
+    }
 
-    if (AppState.currentView === "campaignsView")
+    if (AppState.currentView === "campaignsView") {
         updateCampaignsView(connected);
+    }
 
-    if (AppState.currentView === "creativesView")
+    if (AppState.currentView === "creativesView") {
         updateCreativeLibraryView(connected);
+    }
 
-    if (AppState.currentView === "senseiView")
+    if (AppState.currentView === "senseiView") {
         updateSenseiView(connected);
+    }
 
-    if (AppState.currentView === "reportsView")
+    if (AppState.currentView === "reportsView") {
         updateReportsView(connected);
+    }
 
-    if (AppState.currentView === "testingLogView")
+    if (AppState.currentView === "testingLogView") {
         updateTestingLogView(connected);
+    }
 }
 
 /* -------------------------------------------------------
@@ -268,7 +281,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         updateUI();
     }
 
-    // SEARCH / FILTER EVENTS
+    /* ---------------------------------------------------
+        SEARCH / FILTER EVENTS – CAMPAIGNS
+    ----------------------------------------------------*/
+
     const searchInput = document.getElementById("campaignSearch");
     if (searchInput)
         searchInput.addEventListener("input", () =>
@@ -281,6 +297,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             updateCampaignsView(true)
         );
 
+    /* ---------------------------------------------------
+        DASHBOARD TIME RANGE
+    ----------------------------------------------------*/
+
     const dashboardTimeRange = document.getElementById("dashboardTimeRange");
     if (dashboardTimeRange)
         dashboardTimeRange.addEventListener("change", (e) => {
@@ -290,7 +310,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             updateDashboardView(AppState.metaConnected);
         });
 
-    // CREATIVE LIBRARY FILTERS
+    /* ---------------------------------------------------
+        CREATIVE LIBRARY FILTERS
+    ----------------------------------------------------*/
+
     const creativeSearch = document.getElementById("creativeSearch");
     const creativeSort = document.getElementById("creativeSort");
     const creativeType = document.getElementById("creativeType");
@@ -304,4 +327,53 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (AppState.creativesLoaded) renderCreativeLibrary();
         });
     });
+
+    /* ---------------------------------------------------
+        AKTIVE DROPDOWNS: ACCOUNT & KAMPAGNE
+        -> beeinflussen Dashboard, Library, Campaigns, Sensei
+    ----------------------------------------------------*/
+
+    const accountSelect = document.getElementById("brandSelect");
+    if (accountSelect) {
+        accountSelect.addEventListener("change", async (e) => {
+            const newAccountId = e.target.value || null;
+            AppState.selectedAccountId = newAccountId;
+            AppState.selectedCampaignId = null;
+
+            // Caches & Daten zurücksetzen, damit alles frisch geladen wird
+            AppState.dashboardLoaded = false;
+            AppState.campaignsLoaded = false;
+            AppState.creativesLoaded = false;
+            AppState.dashboardMetrics = null;
+            AppState.meta.insightsByCampaign = {};
+            AppState.meta.campaigns = [];
+            AppState.meta.creatives = [];
+            AppState.meta.ads = [];
+
+            if (newAccountId) {
+                const campRes = await fetchMetaCampaigns(newAccountId);
+                if (campRes?.success) {
+                    AppState.meta.campaigns = campRes.data?.data || [];
+                }
+            }
+
+            updateAccountAndCampaignSelectors();
+            updateUI();
+        });
+    }
+
+    const campaignSelect = document.getElementById("campaignGroupSelect");
+    if (campaignSelect) {
+        campaignSelect.addEventListener("change", (e) => {
+            const newCampaignId = e.target.value || null;
+            AppState.selectedCampaignId = newCampaignId;
+
+            // Views neu berechnen, da sich Fokus geändert hat
+            AppState.dashboardLoaded = false;
+            AppState.creativesLoaded = false;
+            AppState.dashboardMetrics = null;
+
+            updateUI();
+        });
+    }
 });
