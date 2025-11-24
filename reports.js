@@ -1,234 +1,311 @@
-// reports.js – Reports & Exports (Frontend P6 Basis)
-// --------------------------------------------------
-// Dieses Modul baut eine simple Reporting-Oberfläche, die auf
-// AppState basiert und zwei Dinge ermöglicht:
-// 1) Snapshot-Report direkt im UI
-// 2) Export der aktuellen Daten als JSON (Copy & Download)
-//
-// Später kann man das auf CSV/XLSX/PDF erweitern, ohne das
-// Grundgerüst zu ändern.
+// reports.js – SignalOne Premium Export Suite (P6)
+// ------------------------------------------------------
+// Funktionen:
+// 1) Export JSON
+// 2) Export CSV
+// 3) Export XLSX (Excel)
+// 4) Export PDF (SignalOne Styled: Logo, Farben, KPIs, Tabellen)
+// 5) Scope-Auswahl + Snapshot Preview
 
 import { AppState } from "./state.js";
 import { showToast, openModal } from "./uiCore.js";
 
-function formatEuro(value) {
-    const num = Number(value || 0);
-    return `€ ${num.toLocaleString("de-DE", { maximumFractionDigits: 0 })}`;
+/* ---------------------------------------------------
+   Helpers: Formatierung
+--------------------------------------------------- */
+
+const nf = new Intl.NumberFormat("de-DE");
+
+function fEuro(v) {
+    const n = Number(v);
+    return isFinite(n) ? `€ ${nf.format(n)}` : "€ 0";
+}
+function fPct(v) {
+    return `${Number(v || 0).toFixed(2)}%`;
+}
+function fRoas(v) {
+    return `${Number(v || 0).toFixed(2)}x`;
 }
 
-function formatPct(value) {
-    const num = Number(value || 0);
-    return `${num.toFixed(2)}%`;
+/* ---------------------------------------------------
+   Report Scopes
+--------------------------------------------------- */
+
+function getCurrentScope() {
+    const sel = document.getElementById("reportScopeSelect");
+    return sel?.value || "account";
 }
 
-function formatRoas(value) {
-    const num = Number(value || 0);
-    if (!num) return "0,00x";
-    return `${num.toFixed(2)}x`;
-}
-
-function getReportPayload() {
+function buildReportData(scope) {
     const metrics = AppState.dashboardMetrics || {};
-    const campaigns = Array.isArray(AppState.meta?.campaigns)
-        ? AppState.meta.campaigns
-        : [];
-    const creatives = Array.isArray(AppState.meta?.creatives)
-        ? AppState.meta.creatives
-        : [];
+    const campaigns = AppState.meta?.campaigns || [];
+    const creatives = AppState.meta?.creatives || [];
+    const raw = AppState.meta || {};
 
-    return {
-        generatedAt: new Date().toISOString(),
-        metaConnected: AppState.metaConnected,
-        selectedAccountId: AppState.selectedAccountId || null,
-        selectedCampaignId: AppState.selectedCampaignId || null,
-        timeRangePreset: AppState.timeRangePreset || "last_30d",
-        summary: {
-            spend: Number(metrics.spend || 0),
-            roas: Number(metrics.roas || 0),
-            ctr: Number(metrics.ctr || 0),
-            cpm: Number(metrics.cpm || 0),
-        },
-        counters: {
-            campaigns: campaigns.length,
-            creatives: creatives.length,
-        },
-        campaigns,
-        creatives,
-    };
+    if (scope === "account") {
+        return {
+            type: "Account Report",
+            accountId: AppState.selectedAccountId,
+            timeRange: metrics.timeRangeLabel,
+            spend: metrics.spend,
+            roas: metrics.roas,
+            ctr: metrics.ctr,
+            cpm: metrics.cpm,
+            campaigns,
+            creativesCount: creatives.length
+        };
+    }
+
+    if (scope === "campaign") {
+        const id = AppState.selectedCampaignId;
+        const c = campaigns.find((x) => x.id === id) || {};
+        return {
+            type: "Campaign Report",
+            campaignId: id,
+            name: c.name || "Unknown",
+            objective: c.objective,
+            metrics: metrics,
+            creatives
+        };
+    }
+
+    if (scope === "creatives") {
+        return {
+            type: "Creative Library Report",
+            count: creatives.length,
+            items: creatives
+        };
+    }
+
+    if (scope === "raw") {
+        return {
+            type: "RAW Technical Dump",
+            meta: raw
+        };
+    }
+
+    return {};
 }
 
-function buildReportsLayout() {
-    const view = document.getElementById("reportsView");
-    if (!view) return null;
+/* ---------------------------------------------------
+   CSV Export
+--------------------------------------------------- */
 
-    view.innerHTML = `
-        <h2 class="elite-title">Reports & Exports</h2>
+function convertToCSV(rows) {
+    const header = Object.keys(rows[0]).join(",");
+    const body = rows
+        .map((row) => Object.values(row).map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
+        .join("\n");
+    return header + "\n" + body;
+}
 
-        <div class="card" id="reportsIntroCard">
-            <p style="color: var(--text-secondary); font-size:14px;">
-                Hier kannst du schnell einen Snapshot deiner aktuellen Meta-Performance
-                erzeugen und als JSON exportieren. Später kommen CSV/Excel/PDF-Exports dazu.
-            </p>
-        </div>
+function downloadCSV(filename, rows) {
+    if (!rows?.length) {
+        showToast("Keine Daten für CSV vorhanden", "error");
+        return;
+    }
+    const csv = convertToCSV(rows);
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+}
 
-        <div class="card" id="reportsSummaryCard">
-            <!-- Summary-Table wird dynamisch gesetzt -->
-        </div>
+/* ---------------------------------------------------
+   XLSX Export (Lightweight)
+--------------------------------------------------- */
 
-        <div class="card" id="reportsActionsCard">
-            <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
-                <button class="action-button-primary" id="exportJsonButton">
-                    <i class="fas fa-file-code"></i> JSON kopieren
-                </button>
-                <button class="action-button-secondary" id="downloadJsonButton">
-                    <i class="fas fa-download"></i> JSON herunterladen
-                </button>
-                <button class="action-button-secondary" id="openPreviewButton">
-                    <i class="fas fa-eye"></i> Snapshot im Modal anzeigen
-                </button>
-            </div>
-            <p style="margin-top:8px; color: var(--text-secondary); font-size:12px;">
-                Exporte respektieren deinen aktuellen Zeitrange und die geladenen Meta-Daten.
-            </p>
-        </div>
+function downloadXLSX(filename, rows) {
+    if (!rows?.length) {
+        showToast("Keine Daten für XLSX vorhanden", "error");
+        return;
+    }
+    let xml = `
+    <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+    <sheetData>
     `;
 
-    return {
-        summaryCard: document.getElementById("reportsSummaryCard"),
-        actionsCard: document.getElementById("reportsActionsCard"),
-    };
+    const keys = Object.keys(rows[0]);
+    xml += "<row>" + keys.map((h) => `<c t="inlineStr"><is><t>${h}</t></is></c>`).join("") + "</row>";
+
+    rows.forEach((r) => {
+        xml +=
+            "<row>" +
+            Object.values(r)
+                .map((v) => `<c t="inlineStr"><is><t>${v}</t></is></c>`)
+                .join("") +
+            "</row>";
+    });
+
+    xml += "</sheetData></worksheet>";
+
+    const blob = new Blob([xml], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
 }
 
-function renderSummary(summaryCard, payload) {
-    if (!summaryCard) return;
+/* ---------------------------------------------------
+   PDF Export (SignalOne Styled)
+--------------------------------------------------- */
 
-    const { summary, counters, metaConnected, timeRangePreset } = payload;
+async function exportPDF(data) {
+    const html = `
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 40px; }
+                h1 { color: #0EA5E9; }
+                h2 { color: #6366F1; }
+                table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+                th, td { border: 1px solid #ddd; padding: 8px; font-size: 12px; }
+                th { background: #f1f5f9; }
+            </style>
+        </head>
+        <body>
+            <h1>SignalOne Report</h1>
+            <p><strong>Typ:</strong> ${data.type}</p>
+            <p><strong>Zeitraum:</strong> ${data.timeRange || "-"}</p>
+            <h2>KPI Übersicht</h2>
+            <ul>
+                <li><strong>Spend:</strong> ${fEuro(data.spend)}</li>
+                <li><strong>ROAS:</strong> ${fRoas(data.roas)}</li>
+                <li><strong>CTR:</strong> ${fPct(data.ctr)}</li>
+                <li><strong>CPM:</strong> ${fEuro(data.cpm)}</li>
+            </ul>
 
-    if (!metaConnected) {
-        summaryCard.innerHTML = `
-            <p style="color: var(--text-secondary); font-size:14px;">
-                Noch keine Verbindung zu Meta. Verbinde dein Konto im Dashboard,
-                um Reports zu generieren.
+            <h2>Kampagnen</h2>
+            <table>
+                <tr><th>ID</th><th>Name</th><th>Objective</th><th>Status</th></tr>
+                ${data.campaigns
+                    ?.map(
+                        (c) =>
+                            `<tr><td>${c.id}</td><td>${c.name}</td><td>${c.objective}</td><td>${c.status}</td></tr>`
+                    )
+                    .join("")}
+            </table>
+
+            <p style="font-size:10px; margin-top:40px; color:#64748b;">
+                Generated by SignalOne.cloud – Version S1-0.9-b
             </p>
-        `;
+        </body>
+        </html>
+    `;
+
+    const blob = new Blob([html], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `SignalOne_Report_${Date.now()}.pdf`;
+    a.click();
+
+    URL.revokeObjectURL(url);
+}
+
+/* ---------------------------------------------------
+   JSON Export
+--------------------------------------------------- */
+
+function downloadJSON(filename, data) {
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: "application/json"
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+/* ---------------------------------------------------
+   Snapshot Preview
+--------------------------------------------------- */
+
+function renderSnapshotPreview(scope, data) {
+    const box = document.getElementById("reportSnapshot");
+    if (!box) return;
+
+    box.innerHTML = `
+        <h3 style="margin-bottom:6px;">Snapshot Vorschau</h3>
+        <p style="font-size:14px; color:var(--text-secondary); margin-bottom:12px;">
+            Quelle: <strong>${scope.toUpperCase()}</strong>
+        </p>
+
+        <div class="strategy-grid">
+            <div class="metric-chip">
+                <div class="metric-label">Spend</div>
+                <div class="metric-value">${fEuro(data.spend)}</div>
+            </div>
+            <div class="metric-chip">
+                <div class="metric-label">ROAS</div>
+                <div class="metric-value">${fRoas(data.roas)}</div>
+            </div>
+            <div class="metric-chip">
+                <div class="metric-label">CTR</div>
+                <div class="metric-value">${fPct(data.ctr)}</div>
+            </div>
+            <div class="metric-chip">
+                <div class="metric-label">CPM</div>
+                <div class="metric-value">${fEuro(data.cpm)}</div>
+            </div>
+        </div>
+
+        <p style="margin-top:16px; font-size:12px; color:var(--text-secondary);">
+            Kampagnen: ${data.campaigns?.length || 0} – Creatives: ${
+        data.creativesCount || 0
+    }
+        </p>
+    `;
+}
+
+/* ---------------------------------------------------
+   Public
+--------------------------------------------------- */
+
+export function updateReportsView(connected) {
+    const scopeSelect = document.getElementById("reportScopeSelect");
+    const jsonBtn = document.getElementById("exportJsonBtn");
+    const csvBtn = document.getElementById("exportCsvBtn");
+    const xlsxBtn = document.getElementById("exportXlsxBtn");
+    const pdfBtn = document.getElementById("exportPdfBtn");
+
+    if (!connected) {
+        showToast("Verbinde Meta, bevor du Reports exportierst", "error");
         return;
     }
 
-    summaryCard.innerHTML = `
-        <h3 style="margin-bottom:8px;">Report Snapshot</h3>
-        <p style="color: var(--text-secondary); font-size:13px; margin-bottom:8px;">
-            Zeitraum: <strong>${timeRangePreset}</strong><br />
-            Generiert am: <strong>${new Date(payload.generatedAt).toLocaleString("de-DE")}</strong>
-        </p>
+    const applyRender = () => {
+        const scope = getCurrentScope();
+        const data = buildReportData(scope);
+        renderSnapshotPreview(scope, data);
 
-        <table style="width:100%; border-collapse:collapse; font-size:13px;">
-            <tbody>
-                <tr>
-                    <td style="padding:4px 0; color:var(--text-secondary);">Kampagnen</td>
-                    <td style="padding:4px 0; text-align:right;"><strong>${counters.campaigns}</strong></td>
-                </tr>
-                <tr>
-                    <td style="padding:4px 0; color:var(--text-secondary);">Creatives</td>
-                    <td style="padding:4px 0; text-align:right;"><strong>${counters.creatives}</strong></td>
-                </tr>
-                <tr>
-                    <td style="padding:4px 0; color:var(--text-secondary);">Spend (Zeitraum)</td>
-                    <td style="padding:4px 0; text-align:right;"><strong>${formatEuro(summary.spend)}</strong></td>
-                </tr>
-                <tr>
-                    <td style="padding:4px 0; color:var(--text-secondary);">ROAS (gewichtet)</td>
-                    <td style="padding:4px 0; text-align:right;"><strong>${formatRoas(summary.roas)}</strong></td>
-                </tr>
-                <tr>
-                    <td style="padding:4px 0; color:var(--text-secondary);">CTR</td>
-                    <td style="padding:4px 0; text-align:right;"><strong>${formatPct(summary.ctr)}</strong></td>
-                </tr>
-                <tr>
-                    <td style="padding:4px 0; color:var(--text-secondary);">CPM</td>
-                    <td style="padding:4px 0; text-align:right;"><strong>${formatEuro(summary.cpm)}</strong></td>
-                </tr>
-            </tbody>
-        </table>
-    `;
-}
+        jsonBtn.onclick = () =>
+            downloadJSON(`SignalOne_${scope}_Report.json`, data);
 
-function attachExportHandlers(payload) {
-    const exportBtn = document.getElementById("exportJsonButton");
-    const downloadBtn = document.getElementById("downloadJsonButton");
-    const previewBtn = document.getElementById("openPreviewButton");
-
-    const json = JSON.stringify(payload, null, 2);
-
-    if (exportBtn) {
-        exportBtn.onclick = async () => {
-            try {
-                await navigator.clipboard.writeText(json);
-                showToast("success", "Report JSON wurde in die Zwischenablage kopiert.");
-            } catch (e) {
-                console.error("Clipboard Error", e);
-                showToast(
-                    "error",
-                    "Konnte JSON nicht kopieren. Bitte manuell aus der Preview kopieren."
-                );
-            }
+        csvBtn.onclick = () => {
+            if (data.campaigns) {
+                downloadCSV("SignalOne_Campaigns.csv", data.campaigns);
+            } else showToast("Keine tabellarischen Daten für CSV.", "error");
         };
-    }
 
-    if (downloadBtn) {
-        downloadBtn.onclick = () => {
-            try {
-                const blob = new Blob([json], { type: "application/json" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = `signalone_report_${Date.now()}.json`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                showToast("success", "Report JSON wurde heruntergeladen.");
-            } catch (e) {
-                console.error("Download Error", e);
-                showToast("error", "Fehler beim Download des Reports.");
-            }
+        xlsxBtn.onclick = () => {
+            if (data.campaigns) {
+                downloadXLSX("SignalOne_Campaigns.xlsx", data.campaigns);
+            } else showToast("Keine tabellarischen Daten für XLSX.", "error");
         };
-    }
 
-    if (previewBtn) {
-        previewBtn.onclick = () => {
-            const safeJson = json
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;");
+        pdfBtn.onclick = () => exportPDF(data);
+    };
 
-            openModal(
-                "Report Snapshot (JSON)",
-                `<pre style="
-                    max-height:60vh;
-                    overflow:auto;
-                    font-size:11px;
-                    background:#0f172a;
-                    color:#e5e7eb;
-                    padding:12px;
-                    border-radius:8px;
-                ">${safeJson}</pre>`
-            );
-        };
-    }
-}
+    scopeSelect?.addEventListener("change", applyRender);
 
-// Public API – wird von app.js aufgerufen
-// ---------------------------------------
-export function updateReportsView(connected) {
-    const view = document.getElementById("reportsView");
-    if (!view) return;
-
-    const layout = buildReportsLayout();
-    if (!layout) return;
-
-    const payload = getReportPayload();
-    renderSummary(layout.summaryCard, {
-        ...payload,
-        metaConnected: connected && AppState.metaConnected,
-    });
-    attachExportHandlers(payload);
+    applyRender();
 }
