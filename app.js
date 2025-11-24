@@ -26,6 +26,7 @@ import {
 import { updateSenseiView } from "./sensei.js";
 import { updateReportsView } from "./reports.js";
 import { updateTestingLogView } from "./testingLog.js";
+import { initSettings } from "./settings.js";
 
 const META_TOKEN_STORAGE_KEY = "signalone_meta_token_v1";
 
@@ -264,6 +265,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     showView(AppState.currentView);
     initSidebarNavigation(showView);
+    initSettings(); // Theme / Settings initialisieren
 
     // META Connect Buttons
     const metaBtn = document.getElementById("connectMetaButton");
