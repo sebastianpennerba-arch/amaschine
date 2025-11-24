@@ -1,5 +1,5 @@
-// campaigns.js – Premium Version (Option B)
-// SignalOne.cloud – Campaign Manager (P3 Base)
+// campaigns.js – Premium Version (P3+) mit Add-Buttons & Sensei-Hooks
+// SignalOne.cloud – Campaign Manager
 
 import { AppState } from "./state.js";
 import {
@@ -9,9 +9,6 @@ import {
 } from "./metaApi.js";
 
 import { openModal, showToast } from "./uiCore.js";
-// ❌ ENTFERNT – verursacht TOTALEN JS-BREAK
-// import { updateDashboardView } from "./dashboard.js";
-
 import { updateCreativeLibraryView } from "./creativeLibrary.js";
 
 /* -------------------------------------------------------
@@ -44,10 +41,206 @@ const statusClass = (s) => {
 };
 
 /* -------------------------------------------------------
+   Toolbar (Add Kampagne / Adset / Ad)
+---------------------------------------------------------*/
+
+let toolbarInitialized = false;
+
+function ensureCampaignToolbar() {
+    if (toolbarInitialized) return;
+
+    const view = document.getElementById("campaignsView");
+    if (!view) return;
+
+    // Erstes Card-Element im Campaigns-View (Filter-Karte mit Suche/Status)
+    const firstCard = view.querySelector(".card");
+    if (!firstCard) return;
+
+    const row = firstCard.firstElementChild;
+    if (!row) return;
+
+    // Toolbar nur einmal anlegen
+    const existing = row.querySelector(".campaigns-toolbar");
+    if (existing) {
+        toolbarInitialized = true;
+        return;
+    }
+
+    const toolbar = document.createElement("div");
+    toolbar.className = "campaigns-toolbar";
+    toolbar.style.display = "flex";
+    toolbar.style.gap = "8px";
+    toolbar.style.marginLeft = "auto";
+    toolbar.style.flexWrap = "wrap";
+
+    toolbar.innerHTML = `
+        <button type="button" class="action-button" data-create-type="campaign">
+            + Kampagne
+        </button>
+        <button type="button" class="action-button-secondary" data-create-type="adset">
+            + Anzeigengruppe
+        </button>
+        <button type="button" class="action-button-secondary" data-create-type="ad">
+            + Anzeige
+        </button>
+    `;
+
+    row.appendChild(toolbar);
+
+    toolbar.querySelectorAll("[data-create-type]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const type = btn.getAttribute("data-create-type");
+            if (!AppState.metaConnected || !AppState.selectedAccountId) {
+                showToast(
+                    "Bitte zuerst ein Meta-Werbekonto verbinden, bevor du neue Elemente erstellst.",
+                    "error"
+                );
+                return;
+            }
+            openCreateEntityModal(type);
+        });
+    });
+
+    toolbarInitialized = true;
+}
+
+function openCreateEntityModal(type) {
+    let title = "";
+    let description = "";
+    let fieldsHtml = "";
+
+    if (type === "campaign") {
+        title = "Neue Kampagne anlegen";
+        description =
+            "Lege eine neue Kampagne an. In einem späteren Schritt wird dieser Dialog direkt mit der Meta API verknüpft. Sensei kann hier zukünftig automatisch Ziele & Budgets vorschlagen.";
+        fieldsHtml = `
+            <label style="display:flex; flex-direction:column; gap:4px; font-size:13px;">
+                Kampagnenname
+                <input type="text" id="createCampaignName" placeholder="z.B. Q4 Prospecting DE" 
+                    style="padding:8px; border-radius:6px; border:1px solid var(--border);" />
+            </label>
+            <label style="display:flex; flex-direction:column; gap:4px; font-size:13px;">
+                Objective
+                <select id="createCampaignObjective" 
+                    style="padding:8px; border-radius:6px; border:1px solid var(--border);">
+                    <option value="CONVERSIONS">Conversions</option>
+                    <option value="LEAD_GENERATION">Leads</option>
+                    <option value="AWARENESS">Awareness</option>
+                    <option value="TRAFFIC">Traffic</option>
+                </select>
+            </label>
+            <label style="display:flex; flex-direction:column; gap:4px; font-size:13px;">
+                Tägliches Budget (EUR)
+                <input type="number" min="0" step="1" id="createCampaignBudget" 
+                    placeholder="z.B. 100" 
+                    style="padding:8px; border-radius:6px; border:1px solid var(--border);" />
+            </label>
+        `;
+    } else if (type === "adset") {
+        title = "Neue Anzeigengruppe anlegen";
+        description =
+            "Diese Anzeigengruppe wird später mit einer Meta-Kampagne verknüpft. Sensei kann hier Zielgruppen & Placements empfehlen.";
+        fieldsHtml = `
+            <label style="display:flex; flex-direction:column; gap:4px; font-size:13px;">
+                Name der Anzeigengruppe
+                <input type="text" id="createAdsetName" placeholder="z.B. DE - Broad - 25-45" 
+                    style="padding:8px; border-radius:6px; border:1px solid var(--border);" />
+            </label>
+            <label style="display:flex; flex-direction:column; gap:4px; font-size:13px;">
+                Zugehörige Kampagne (ID oder Name)
+                <input type="text" id="createAdsetCampaignRef" placeholder="z.B. Kampagnen-ID oder -Name" 
+                    style="padding:8px; border-radius:6px; border:1px solid var(--border);" />
+            </label>
+            <label style="display:flex; flex-direction:column; gap:4px; font-size:13px;">
+                Tägliches Budget (EUR)
+                <input type="number" min="0" step="1" id="createAdsetBudget" 
+                    placeholder="z.B. 50" 
+                    style="padding:8px; border-radius:6px; border:1px solid var(--border);" />
+            </label>
+        `;
+    } else {
+        title = "Neue Anzeige anlegen";
+        description =
+            "Lege eine neue Anzeige an. In der späteren Ausbaustufe kann Sensei hier direkt Ad-Copies, Hooks & Creatives empfehlen.";
+        fieldsHtml = `
+            <label style="display:flex; flex-direction:column; gap:4px; font-size:13px;">
+                Anzeigenname
+                <input type="text" id="createAdName" placeholder="z.B. UGC Hook 01" 
+                    style="padding:8px; border-radius:6px; border:1px solid var(--border);" />
+            </label>
+            <label style="display:flex; flex-direction:column; gap:4px; font-size:13px;">
+                Zugehörige Anzeigengruppe (ID oder Name)
+                <input type="text" id="createAdAdsetRef" placeholder="z.B. Adset-ID oder -Name" 
+                    style="padding:8px; border-radius:6px; border:1px solid var(--border);" />
+            </label>
+            <label style="display:flex; flex-direction:column; gap:4px; font-size:13px;">
+                Creative-Referenz (z.B. Creative-ID)
+                <input type="text" id="createAdCreativeRef" placeholder="z.B. Creative-ID" 
+                    style="padding:8px; border-radius:6px; border:1px solid var(--border);" />
+            </label>
+        `;
+    }
+
+    const html = `
+        <div style="display:flex; flex-direction:column; gap:16px; max-width:520px;">
+            <p style="font-size:13px; color:var(--text-secondary); margin:0;">
+                ${description}
+            </p>
+
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                ${fieldsHtml}
+            </div>
+
+            <div style="font-size:11px; color:var(--text-secondary); margin-top:4px;">
+                <strong>Hinweis:</strong> Aktuell werden diese Entwürfe noch nicht live
+                zu Meta übertragen. In der nächsten Ausbaustufe wird hier die echte Meta API
+                angebunden und Sensei liefert konkrete Vorschläge.
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:6px;">
+                <button type="button" class="action-button-secondary" data-create-role="sensei-hint">
+                    Sensei-Empfehlung anzeigen
+                </button>
+                <button type="button" class="action-button" data-create-role="save">
+                    Entwurf speichern
+                </button>
+            </div>
+        </div>
+    `;
+
+    openModal(title, html, {
+        onOpen(modal) {
+            const saveBtn = modal.querySelector('[data-create-role="save"]');
+            const senseiBtn = modal.querySelector('[data-create-role="sensei-hint"]');
+
+            if (saveBtn) {
+                saveBtn.addEventListener("click", () => {
+                    showToast(
+                        "Der Entwurf wurde lokal vorgemerkt. In der nächsten Phase wird hier die echte Meta-Erstellung angebunden.",
+                        "success"
+                    );
+                });
+            }
+
+            if (senseiBtn) {
+                senseiBtn.addEventListener("click", () => {
+                    showToast(
+                        "Sensei wird in einer späteren Stufe konkrete Vorschläge für Ziel, Budget & Struktur geben.",
+                        "info"
+                    );
+                });
+            }
+        }
+    });
+}
+
+/* -------------------------------------------------------
    Render Placeholder
 ---------------------------------------------------------*/
 
-function renderCampaignsPlaceholder(text = "Verbinde Meta, um deine Kampagnen zu sehen.") {
+function renderCampaignsPlaceholder(
+    text = "Verbinde Meta, um deine Kampagnen zu sehen."
+) {
     const tbody = document.getElementById("campaignsTableBody");
     if (!tbody) return;
 
@@ -175,7 +368,6 @@ async function toggleCampaignStatus(campaign) {
         );
 
         await updateCampaignsView(true);
-
     } catch (err) {
         console.error(err);
         showToast("Fehler beim Aktualisieren", "error");
@@ -183,7 +375,7 @@ async function toggleCampaignStatus(campaign) {
 }
 
 /* -------------------------------------------------------
-   Modal – Premium (Option B)
+   Modal – Campaign Details
 ---------------------------------------------------------*/
 
 function openCampaignDetails(campaign) {
@@ -205,7 +397,9 @@ function openCampaignDetails(campaign) {
                             font-weight:600;
                         ">Meta • Campaign</span>
 
-                        <span class="status-indicator ${statusClass(campaign.status)}"></span>
+                        <span class="status-indicator ${statusClass(
+                            campaign.status
+                        )}"></span>
                         <span style="font-size:12px; color:var(--text-secondary); text-transform:uppercase;">
                             ${campaign.status}
                         </span>
@@ -230,20 +424,38 @@ function openCampaignDetails(campaign) {
             </header>
 
             <section style="display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px;">
-                <div class="metric-chip"><div class="metric-label">Spend</div><div class="metric-value">${fEuro(m.spend || 0)}</div></div>
-                <div class="metric-chip"><div class="metric-label">ROAS</div><div class="metric-value">${fRoas(m.purchase_roas || m.roas || 0)}</div></div>
-                <div class="metric-chip"><div class="metric-label">CTR</div><div class="metric-value">${fPct(m.ctr || 0)}</div></div>
-                <div class="metric-chip"><div class="metric-label">Impressions</div><div class="metric-value">${nf.format(m.impressions || 0)}</div></div>
-                <div class="metric-chip"><div class="metric-label">Clicks</div><div class="metric-value">${nf.format(m.clicks || 0)}</div></div>
-                <div class="metric-chip"><div class="metric-label">CPM</div><div class="metric-value">${fEuro(m.cpm || 0)}</div></div>
+                <div class="metric-chip"><div class="metric-label">Spend</div><div class="metric-value">${fEuro(
+                    m.spend || 0
+                )}</div></div>
+                <div class="metric-chip"><div class="metric-label">ROAS</div><div class="metric-value">${fRoas(
+                    m.purchase_roas || m.roas || 0
+                )}</div></div>
+                <div class="metric-chip"><div class="metric-label">CTR</div><div class="metric-value">${fPct(
+                    m.ctr || 0
+                )}</div></div>
+                <div class="metric-chip"><div class="metric-label">Impressions</div><div class="metric-value">${nf.format(
+                    m.impressions || 0
+                )}</div></div>
+                <div class="metric-chip"><div class="metric-label">Clicks</div><div class="metric-value">${nf.format(
+                    m.clicks || 0
+                )}</div></div>
+                <div class="metric-chip"><div class="metric-label">CPM</div><div class="metric-value">${fEuro(
+                    m.cpm || 0
+                )}</div></div>
             </section>
 
             <section style="margin-top:10px;">
                 <h4 style="font-size:14px; margin-bottom:6px;">Sensei Aktionen (Preview)</h4>
                 <div style="display:flex; flex-direction:column; gap:6px; color:var(--text-secondary); font-size:13px;">
-                    <button class="action-button" disabled style="opacity:.5;">Performanceanalyse starten</button>
-                    <button class="action-button" disabled style="opacity:.5;">Neue Kampagne mit Sensei</button>
-                    <button class="action-button" disabled style="opacity:.5;">Meta Metriken verstehen</button>
+                    <button class="action-button-secondary" data-sensei-role="analyze">
+                        Performanceanalyse starten
+                    </button>
+                    <button class="action-button-secondary" data-sensei-role="duplicate">
+                        Neue Kampagne aus dieser Struktur
+                    </button>
+                    <button class="action-button-secondary" data-sensei-role="explain">
+                        Meta Metriken verstehen
+                    </button>
                 </div>
             </section>
         </div>
@@ -251,12 +463,34 @@ function openCampaignDetails(campaign) {
 
     openModal("Kampagnendetails", html, {
         onOpen(modal) {
-            const btn = modal.querySelector("[data-modal-action='toggle']");
-            if (btn) {
-                btn.addEventListener("click", async () => {
+            const toggleBtn = modal.querySelector("[data-modal-action='toggle']");
+            if (toggleBtn) {
+                toggleBtn.addEventListener("click", async () => {
                     await toggleCampaignStatus(campaign);
                 });
             }
+
+            modal.querySelectorAll("[data-sensei-role]").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const role = btn.getAttribute("data-sensei-role");
+                    if (role === "analyze") {
+                        showToast(
+                            "Sensei wird in Kürze eine detaillierte Performanceanalyse für diese Kampagne bereitstellen.",
+                            "info"
+                        );
+                    } else if (role === "duplicate") {
+                        showToast(
+                            "Die Funktion ‚Neue Kampagne aus dieser Struktur‘ wird mit der Meta API verbunden. Aktuell noch Vorschau.",
+                            "info"
+                        );
+                    } else if (role === "explain") {
+                        showToast(
+                            "Hier wird Sensei später deine Metriken (ROAS, CTR, CPM) in Klartext erklären.",
+                            "info"
+                        );
+                    }
+                });
+            });
         }
     });
 }
@@ -269,6 +503,9 @@ export async function updateCampaignsView(connected) {
     const tbody = document.getElementById("campaignsTableBody");
     if (!tbody) return;
 
+    // Toolbar oben immer sicherstellen
+    ensureCampaignToolbar();
+
     if (!connected) {
         renderCampaignsPlaceholder();
         return;
@@ -280,7 +517,6 @@ export async function updateCampaignsView(connected) {
         const data = await loadCampaignsWithInsights();
         AppState.meta.campaigns = data;
         renderCampaignsTable(data);
-
     } catch (err) {
         console.error(err);
         renderCampaignsPlaceholder("Fehler beim Laden der Kampagnen.");
