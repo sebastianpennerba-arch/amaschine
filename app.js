@@ -1,4 +1,4 @@
-// app.js – Orchestrator mit Popup-OAuth & Creative-Loader
+// app.js – Premium Orchestrator (Final Version, mit aktiven Dropdowns)
 // SignalOne.cloud – Frontend Engine
 
 import { AppState, META_OAUTH_CONFIG } from "./state.js";
@@ -50,7 +50,7 @@ function showView(viewId) {
 }
 
 /* -------------------------------------------------------
-    META CONNECT (nur Button + Popup, kein Auto-Connect)
+    META CONNECT
 ---------------------------------------------------------*/
 
 function handleMetaConnectClick() {
@@ -70,18 +70,7 @@ function handleMetaConnectClick() {
             scope: META_OAUTH_CONFIG.scopes
         });
 
-    const popup = window.open(
-        url,
-        "signalone_meta_login",
-        "width=500,height=800"
-    );
-
-    if (!popup) {
-        showToast(
-            "Popup konnte nicht geöffnet werden. Bitte Popups für SignalOne erlauben.",
-            "error"
-        );
-    }
+    window.location.href = url;
 }
 
 function persistMetaToken(token) {
@@ -124,7 +113,7 @@ function disconnectMeta() {
 }
 
 /* -------------------------------------------------------
-    OAuth Redirect – unterstützt Popup & klassischen Flow
+    OAuth Redirect
 ---------------------------------------------------------*/
 
 async function handleMetaOAuthRedirectIfPresent() {
@@ -132,7 +121,6 @@ async function handleMetaOAuthRedirectIfPresent() {
     const code = url.searchParams.get("code");
     if (!code) return;
 
-    // URL säubern
     window.history.replaceState({}, "", META_OAUTH_CONFIG.redirectUri);
     showToast("Token wird abgeholt…", "info");
 
@@ -147,25 +135,9 @@ async function handleMetaOAuthRedirectIfPresent() {
             return;
         }
 
-        // Popup-Fall: Token an Hauptfenster, dann schließen
-        if (window.opener && !window.opener.closed) {
-            window.opener.postMessage(
-                {
-                    type: "SIGNALONE_META_CONNECTED",
-                    payload: {
-                        accessToken: res.accessToken
-                    }
-                },
-                window.location.origin
-            );
-
-            window.close();
-            return;
-        }
-
-        // Klassischer Redirect (kein Popup)
         AppState.meta.accessToken = res.accessToken;
         AppState.metaConnected = true;
+
         persistMetaToken(res.accessToken);
 
         await fetchMetaUser();
@@ -180,31 +152,29 @@ async function handleMetaOAuthRedirectIfPresent() {
 }
 
 /* -------------------------------------------------------
-    RECEIVE TOKEN FROM POPUP (Main Window)
+    TOKEN LOAD
 ---------------------------------------------------------*/
 
-async function handlePopupMessages(event) {
-    if (event.origin !== window.location.origin) return;
-    const data = event.data;
-    if (!data || typeof data !== "object") return;
+function loadMetaTokenFromStorage() {
+    try {
+        const stored = localStorage.getItem(META_TOKEN_STORAGE_KEY);
+        if (!stored) return;
 
-    if (data.type === "SIGNALONE_META_CONNECTED") {
-        const accessToken = data.payload?.accessToken;
-        if (!accessToken) return;
-
-        AppState.meta.accessToken = accessToken;
+        AppState.meta.accessToken = stored;
         AppState.metaConnected = true;
-        persistMetaToken(accessToken);
 
-        try {
-            await fetchMetaUser();
-            await loadAdAccountsAndCampaigns();
-            updateUI();
-            showToast("Erfolgreich mit Meta verbunden!", "success");
-        } catch (err) {
-            console.error(err);
-            showToast("Verbindungsfehler nach OAuth", "error");
-        }
+        showToast("Meta-Token aus Speicher geladen", "info");
+        fetchMetaUser()
+            .then(() => loadAdAccountsAndCampaigns())
+            .then(() => {
+                updateUI();
+            })
+            .catch((err) => {
+                console.error(err);
+                showToast("Fehler beim Wiederherstellen der Meta-Verbindung", "error");
+            });
+    } catch (e) {
+        console.warn("LocalStorage read failed:", e);
     }
 }
 
@@ -300,7 +270,7 @@ async function ensureCreativesLoadedAndRender() {
     if (!AppState.creativesLoaded) {
         await loadCreativesForCurrentSelection();
     }
-    updateCreativeLibraryView(AppState.metaConnected);
+    updateCreativeLibraryView(true);
 }
 
 /* -------------------------------------------------------
@@ -323,7 +293,6 @@ function updateUI() {
 
     if (AppState.currentView === "creativesView") {
         if (connected) {
-            // async, aber wir warten hier nicht – UI bleibt responsiv
             ensureCreativesLoadedAndRender();
         } else {
             updateCreativeLibraryView(false);
@@ -342,6 +311,7 @@ function updateUI() {
         updateTestingLogView(connected);
     }
 
+    // Health-Ampeln (System + Kampagne) aktualisieren
     updateHealthStatus();
 }
 
@@ -350,15 +320,13 @@ function updateUI() {
 ---------------------------------------------------------*/
 
 document.addEventListener("DOMContentLoaded", async () => {
-    // KEIN Auto-Connect mehr via LocalStorage – Verbindung nur per User-Klick / OAuth
+    loadMetaTokenFromStorage();
 
     showView(AppState.currentView);
     initSidebarNavigation(showView);
     initSettings();
     initDateTime();
     updateGreeting();
-
-    window.addEventListener("message", handlePopupMessages);
 
     const metaBtn = document.getElementById("connectMetaButton");
     if (metaBtn) metaBtn.addEventListener("click", handleMetaConnectClick);
@@ -382,8 +350,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                         Geplant:
                     </p>
                     <ul style="margin-left:18px; color:var(--text-secondary); font-size:13px;">
-                        <li>Verknüpfte Werbekonten & Rollen</li>
-                        <li>Benachrichtigungs-Einstellungen</li>
+                        <li>Verknüpfte Werbekonten & Rollen (Owner / Admin / Viewer)</li>
+                        <li>Benachrichtigungs-Einstellungen & E-Mail-Reports</li>
                         <li>Fehler- & Aktivitätslog für dieses Profil</li>
                     </ul>
                     <p style="font-size:12px; color:var(--text-secondary);">
@@ -418,7 +386,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // Falls diese Instanz gerade als OAuth-Redirect läuft:
     await handleMetaOAuthRedirectIfPresent();
 
     /* ---------------------------------------------------
