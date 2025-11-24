@@ -21,6 +21,8 @@ export const META_BACKEND_CONFIG = {
         `https://signalone-backend.onrender.com/api/meta/campaigns/${campaignId}/status`
 };
 
+// Optionale Demo-Kampagnen (werden aktuell primär in Dokus verwendet,
+// der eigentliche Demo-Mode läuft über DEMO_DATA in app.js)
 export const DEMO_CAMPAIGNS = [
     {
         id: "CAMP-001",
@@ -55,24 +57,49 @@ export const DEMO_CAMPAIGNS = [
 ];
 
 export const AppState = {
+    // Aktuelle View im SPA-System
     currentView: "dashboardView",
+
+    // Meta-Verbindungsstatus (Live)
     metaConnected: false,
+
+    // Alle Meta-bezogenen Daten (werden von metaApi.js gefüllt)
     meta: {
         accessToken: null,
         adAccounts: [],
         campaigns: [],
-        insightsByCampaign: {},
+        insightsByCampaign: {}, // { [campaignId]: { spend, roas, ... } }
         user: null,
         ads: [],
         creatives: []
     },
+
+    // Settings werden im Lauf von app.js (ensureSettings/loadSettingsFromStorage)
+    // sauber initialisiert und sind hier nur als Platzhalter vorgesehen.
+    // Struktur z.B.:
+    // {
+    //   theme: "light" | "dark" | "auto",
+    //   demoMode: boolean,
+    //   defaultTimeRange: "last_7d" | "last_30d" | ...
+    //   metaCacheTtlMinutes: number
+    // }
+    settings: null,
+
+    // Auswahl im Topbar-Dropdown
     selectedAccountId: null,
     selectedCampaignId: null,
+
+    // Globaler Zeitraum für Dashboard & andere Views
     timeRangePreset: "last_30d", // today | last_7d | last_30d
+
+    // Loader-Flags für verschiedene Views
     dashboardLoaded: false,
     campaignsLoaded: false,
     creativesLoaded: false,
+
+    // Aggregierte Metriken fürs Dashboard (wird in dashboard.js berechnet)
     dashboardMetrics: null,
-    // einfacher, clientseitiger Testing-Log (wird in P6 über Backend persistiert)
+
+    // Einfacher, clientseitiger Testing-Log (P6 später über Backend persistiert)
     testingLog: []
 };
