@@ -385,9 +385,12 @@ body {
     cursor: pointer;
     font-weight: 700;
     font-size: 14px;
+    transition: transform 0.1s ease, box-shadow 0.2s ease, opacity 0.2s ease;
 }
 .connect-meta-btn:hover {
     opacity: 0.9;
+    box-shadow: var(--shadow-soft);
+    transform: translateY(-1px);
 }
 
 /* --- MAIN CONTENT --- */
@@ -413,6 +416,32 @@ body {
     font-size: 28px;
     font-weight: 800;
     margin-bottom: var(--spacing-main);
+}
+
+/* Kompakte View-Header mit kleinem Zeitraum-Dropdown */
+.view-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: var(--spacing-main);
+}
+
+.time-range-select {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.time-range-select select {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background-color: var(--color-card);
+    font-size: 13px;
+    cursor: pointer;
 }
 
 /* --- CARD --- */
@@ -872,9 +901,27 @@ body {
 .modal-content h3 {
     margin-bottom: var(--spacing-inner);
 }
-.modal-content button {
+
+/* Moderner Primary-Button im Modal (kein MS-DOS-Button mehr 😄) */
+.primary-btn {
     margin-top: var(--spacing-inner);
     float: right;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: none;
+    background-color: var(--color-primary);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: var(--shadow-soft);
+    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+}
+
+.primary-btn:hover {
+    background-color: var(--color-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.25);
 }
 
 /* --- METRIC CHIPS (Campaign / Creative / Sensei) --- */
