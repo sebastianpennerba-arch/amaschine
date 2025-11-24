@@ -988,21 +988,81 @@ body {
     padding: 10px 12px;
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
 }
 
-.metric-label {
-    font-size: 11px;
+.metric-chip-label {
+    font-weight: 500;
     color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
 }
 
-.metric-value {
-    font-size: 16px;
-    font-weight: 700;
+.metric-chip-value {
+    font-weight: 600;
     color: var(--text-primary);
+    font-size: 13px;
+}
+
+.badge-green {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+}
+
+.badge-yellow {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: var(--warning);
+}
+
+.badge-red {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+}
+
+/* --- SENSEI BLOCKS --- */
+
+.sensei-output-container {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+.sensei-section {
+    /* Fix: vorher var(--card-bg) & var(--shadow-sm), die NICHT existierten */
+    background: var(--color-card);
+    padding: 18px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-soft);
+}
+
+.sensei-section h3 {
+    margin-bottom: 10px;
+    font-size: 15px;
+}
+
+.sensei-section ul {
+    padding-left: 20px;
+    margin: 0;
+}
+
+.sensei-section li {
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.sensei-section p {
+    margin: 4px 0;
+    font-size: 14px;
+}
+
+.funnel-block {
+    margin-bottom: 10px;
+    padding: 10px;
+    /* Fix: vorher var(--bg-secondary), das nicht existiert hat */
+    background: #F9FAFB;
+    border-radius: 8px;
+    font-size: 14px;
 }
 
 /* --- REPORTS & TESTING LOG --- */
@@ -1054,34 +1114,4 @@ body {
 .badge-red {
     background-color: rgba(239, 68, 68, 0.1);
     color: var(--danger);
-}
-
-.sensei-output-container {
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 22px;
-}
-
-.sensei-section {
-    background: var(--card-bg);
-    padding: 18px;
-    border-radius: 12px;
-    box-shadow: var(--shadow-sm);
-}
-
-.sensei-section h3 {
-    margin-bottom: 10px;
-    font-size: 15px;
-}
-
-.sensei-section ul {
-    padding-left: 20px;
-}
-
-.funnel-block {
-    margin-bottom: 10px;
-    padding: 10px;
-    background: var(--bg-secondary);
-    border-radius: 8px;
 }
