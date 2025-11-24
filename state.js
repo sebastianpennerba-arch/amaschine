@@ -72,5 +72,7 @@ export const AppState = {
     dashboardLoaded: false,
     campaignsLoaded: false,
     creativesLoaded: false,
-    dashboardMetrics: null
+    dashboardMetrics: null,
+    // einfacher, clientseitiger Testing-Log (wird in P6 über Backend persistiert)
+    testingLog: []
 };
