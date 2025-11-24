@@ -1,4 +1,4 @@
-// app.js – Premium Orchestrator (Option B)
+// app.js – Premium Orchestrator (Final Version)
 // SignalOne.cloud – Frontend Engine
 
 import { AppState, META_OAUTH_CONFIG } from "./state.js";
@@ -31,25 +31,28 @@ import { initSettings } from "./settings.js";
 const META_TOKEN_STORAGE_KEY = "signalone_meta_token_v1";
 
 /* -------------------------------------------------------
-   VIEW HANDLING
+    VIEW HANDLING
 ---------------------------------------------------------*/
 
 function showView(viewId) {
-    document.querySelectorAll(".view").forEach((v) => v.classList.add("hidden"));
+    document.querySelectorAll(".view")
+        .forEach((v) => v.classList.add("hidden"));
+
     const view = document.getElementById(viewId);
     if (view) view.classList.remove("hidden");
+
     AppState.currentView = viewId;
     updateUI();
 }
 
 /* -------------------------------------------------------
-   META CONNECT / DISCONNECT
+    META CONNECT
 ---------------------------------------------------------*/
 
 function handleMetaConnectClick() {
-    showToast("Verbinde mit Meta...", "info");
+    showToast("Verbinde mit Meta…", "info");
 
-    const authUrl =
+    const url =
         "https://www.facebook.com/v21.0/dialog/oauth?" +
         new URLSearchParams({
             client_id: META_OAUTH_CONFIG.appId,
@@ -58,15 +61,13 @@ function handleMetaConnectClick() {
             scope: META_OAUTH_CONFIG.scopes
         });
 
-    window.location.href = authUrl;
+    window.location.href = url;
 }
 
 function persistMetaToken(token) {
     try {
-        if (token)
-            localStorage.setItem(META_TOKEN_STORAGE_KEY, token);
-        else
-            localStorage.removeItem(META_TOKEN_STORAGE_KEY);
+        if (token) localStorage.setItem(META_TOKEN_STORAGE_KEY, token);
+        else localStorage.removeItem(META_TOKEN_STORAGE_KEY);
     } catch (e) {
         console.warn("LocalStorage not available:", e);
     }
@@ -80,9 +81,13 @@ function loadMetaTokenFromStorage() {
             AppState.metaConnected = true;
         }
     } catch (e) {
-        console.warn("LocalStorage not available:", e);
+        console.warn(e);
     }
 }
+
+/* -------------------------------------------------------
+    DISCONNECT
+---------------------------------------------------------*/
 
 function disconnectMeta() {
     AppState.metaConnected = false;
@@ -106,14 +111,12 @@ function disconnectMeta() {
     AppState.dashboardMetrics = null;
 
     persistMetaToken(null);
-
-    showToast("Verbindung zu Meta getrennt", "info");
-    updateGreeting();
+    showToast("Meta getrennt", "info");
     updateUI();
 }
 
 /* -------------------------------------------------------
-   META OAuth Redirect Handling
+    OAuth Redirect
 ---------------------------------------------------------*/
 
 async function handleMetaOAuthRedirectIfPresent() {
@@ -122,7 +125,7 @@ async function handleMetaOAuthRedirectIfPresent() {
     if (!code) return;
 
     window.history.replaceState({}, "", META_OAUTH_CONFIG.redirectUri);
-    showToast("Token wird von Meta abgeholt…", "info");
+    showToast("Token wird abgeholt…", "info");
 
     try {
         const res = await exchangeMetaCodeForToken(
@@ -132,7 +135,6 @@ async function handleMetaOAuthRedirectIfPresent() {
 
         if (!res.success) {
             showToast("Meta-Verbindung fehlgeschlagen", "error");
-            console.error(res);
             return;
         }
 
@@ -141,49 +143,32 @@ async function handleMetaOAuthRedirectIfPresent() {
 
         persistMetaToken(res.accessToken);
 
-        // Reset
-        AppState.selectedAccountId = null;
-        AppState.selectedCampaignId = null;
-        AppState.dashboardLoaded = false;
-        AppState.campaignsLoaded = false;
-        AppState.creativesLoaded = false;
-        AppState.meta.insightsByCampaign = {};
-        AppState.meta.ads = [];
-        AppState.meta.creatives = [];
-
         await fetchMetaUser();
-        updateGreeting();
-
-        showToast("Erfolgreich mit Meta verbunden!", "success");
-
-        // IMPORTANT:
         await loadAdAccountsAndCampaigns();
 
         updateUI();
+        showToast("Erfolgreich mit Meta verbunden!", "success");
 
     } catch (err) {
         console.error(err);
-        showToast("Fehler beim Verbinden mit Meta", "error");
+        showToast("Verbindungsfehler", "error");
     }
 }
 
 /* -------------------------------------------------------
-   DROPDOWN HANDLING (Brand + Campaign) — PREMIUM VERSION
+    ACCOUNT & CAMPAIGNS
 ---------------------------------------------------------*/
 
 async function loadAdAccountsAndCampaigns() {
-    // Load ad accounts
-    const adAccRes = await fetchMetaAdAccounts();
-    if (adAccRes?.success) {
-        AppState.meta.adAccounts = adAccRes.data?.data || [];
+    const accRes = await fetchMetaAdAccounts();
+    if (accRes?.success) {
+        AppState.meta.adAccounts = accRes.data?.data || [];
     }
 
-    // Auto-select first account
     if (AppState.meta.adAccounts.length > 0 && !AppState.selectedAccountId) {
         AppState.selectedAccountId = AppState.meta.adAccounts[0].id;
     }
 
-    // Load campaigns
     if (AppState.selectedAccountId) {
         const campRes = await fetchMetaCampaigns(AppState.selectedAccountId);
         if (campRes?.success) {
@@ -195,40 +180,36 @@ async function loadAdAccountsAndCampaigns() {
 }
 
 function updateAccountAndCampaignSelectors() {
-    const accountSelect = document.getElementById("brandSelect");
-    const campaignSelect = document.getElementById("campaignGroupSelect");
-    if (!accountSelect || !campaignSelect) return;
+    const accSel = document.getElementById("brandSelect");
+    const campSel = document.getElementById("campaignGroupSelect");
 
-    const accounts = AppState.meta.adAccounts || [];
-    const campaigns = AppState.meta.campaigns || [];
+    if (!accSel || !campSel) return;
 
-    // Accounts
-    accountSelect.innerHTML = accounts.length
-        ? accounts.map((acc) =>
-            `<option value="${acc.id}"
-                ${acc.id === AppState.selectedAccountId ? "selected" : ""}>
-                ${acc.name || acc.id}
-             </option>`
-          ).join("")
-        : '<option value="">Kein Werbekonto</option>';
+    accSel.innerHTML = AppState.meta.adAccounts
+        .map(
+            (acc) =>
+                `<option value="${acc.id}" ${
+                    acc.id === AppState.selectedAccountId ? "selected" : ""
+                }>${acc.name || acc.id}</option>`
+        )
+        .join("");
 
-    // Campaigns
-    const options = ['<option value="">Alle Kampagnen</option>'];
-
-    campaigns.forEach((c) => {
-        options.push(
-            `<option value="${c.id}" 
-                ${c.id === AppState.selectedCampaignId ? "selected" : ""}>
-                ${c.name || c.id}
-            </option>`
-        );
-    });
-
-    campaignSelect.innerHTML = options.join("");
+    campSel.innerHTML =
+        `<option value="">Alle Kampagnen</option>` +
+        AppState.meta.campaigns
+            .map(
+                (c) =>
+                    `<option value="${c.id}" ${
+                        c.id === AppState.selectedCampaignId
+                            ? "selected"
+                            : ""
+                    }>${c.name}</option>`
+            )
+            .join("");
 }
 
 /* -------------------------------------------------------
-   UI UPDATE
+    UI UPDATE
 ---------------------------------------------------------*/
 
 function updateUI() {
@@ -257,7 +238,7 @@ function updateUI() {
 }
 
 /* -------------------------------------------------------
-   INIT
+    INIT
 ---------------------------------------------------------*/
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -265,9 +246,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     showView(AppState.currentView);
     initSidebarNavigation(showView);
-    initSettings(); // Theme / Settings initialisieren
+    initSettings();
+    initDateTime();
+    updateGreeting();
 
-    // META Connect Buttons
     const metaBtn = document.getElementById("connectMetaButton");
     if (metaBtn) metaBtn.addEventListener("click", handleMetaConnectClick);
 
@@ -278,115 +260,48 @@ document.addEventListener("DOMContentLoaded", async () => {
             disconnectMeta();
         });
 
-    initDateTime();
-    updateGreeting();
-
-    // OAuth Handling
     await handleMetaOAuthRedirectIfPresent();
 
-    // If still connected (token from storage)
     if (AppState.metaConnected && AppState.meta.accessToken) {
         await fetchMetaUser();
         await loadAdAccountsAndCampaigns();
         updateUI();
     }
 
-    /* -----------------------------
-       SEARCH / FILTER EVENTS
-    ------------------------------*/
-
+    // SEARCH / FILTER EVENTS
     const searchInput = document.getElementById("campaignSearch");
-    if (searchInput) {
-        searchInput.addEventListener("input", () => {
-            if (!AppState.metaConnected) return;
-            AppState.campaignsLoaded = false;
-            updateCampaignsView(true);
-        });
-    }
+    if (searchInput)
+        searchInput.addEventListener("input", () =>
+            updateCampaignsView(true)
+        );
 
     const statusFilter = document.getElementById("campaignStatusFilter");
-    if (statusFilter) {
-        statusFilter.addEventListener("change", () => {
-            if (!AppState.metaConnected) return;
-            AppState.campaignsLoaded = false;
-            updateCampaignsView(true);
-        });
-    }
+    if (statusFilter)
+        statusFilter.addEventListener("change", () =>
+            updateCampaignsView(true)
+        );
 
     const dashboardTimeRange = document.getElementById("dashboardTimeRange");
-    if (dashboardTimeRange) {
+    if (dashboardTimeRange)
         dashboardTimeRange.addEventListener("change", (e) => {
             AppState.timeRangePreset = e.target.value;
             AppState.dashboardLoaded = false;
-            AppState.dashboardMetrics = null;
             AppState.meta.insightsByCampaign = {};
             updateDashboardView(AppState.metaConnected);
         });
-    }
 
-    // CREATIVE LIBRARY FILTER EVENTS
+    // CREATIVE LIBRARY FILTERS
     const creativeSearch = document.getElementById("creativeSearch");
     const creativeSort = document.getElementById("creativeSort");
     const creativeType = document.getElementById("creativeType");
 
-    if (creativeSearch) {
-        creativeSearch.addEventListener("input", () => {
-            if (!AppState.metaConnected || !AppState.creativesLoaded) return;
-            renderCreativeLibrary();
+    [creativeSearch, creativeSort, creativeType].forEach((el) => {
+        if (!el) return;
+        el.addEventListener("input", () => {
+            if (AppState.creativesLoaded) renderCreativeLibrary();
         });
-    }
-    if (creativeSort) {
-        creativeSort.addEventListener("change", () => {
-            if (!AppState.metaConnected || !AppState.creativesLoaded) return;
-            renderCreativeLibrary();
+        el.addEventListener("change", () => {
+            if (AppState.creativesLoaded) renderCreativeLibrary();
         });
-    }
-    if (creativeType) {
-        creativeType.addEventListener("change", () => {
-            if (!AppState.metaConnected || !AppState.creativesLoaded) return;
-            renderCreativeLibrary();
-        });
-    }
-
-    /* -----------------------------
-       TOPBAR DROPDOWN EVENTS
-    ------------------------------*/
-
-    const accountSelect = document.getElementById("brandSelect");
-    if (accountSelect) {
-        accountSelect.addEventListener("change", async (e) => {
-            const newId = e.target.value || null;
-            AppState.selectedAccountId = newId;
-            AppState.selectedCampaignId = null;
-
-            AppState.dashboardLoaded = false;
-            AppState.campaignsLoaded = false;
-            AppState.creativesLoaded = false;
-            AppState.dashboardMetrics = null;
-
-            if (newId) {
-                const campRes = await fetchMetaCampaigns(newId);
-                if (campRes?.success) {
-                    AppState.meta.campaigns = campRes.data?.data || [];
-                }
-            }
-
-            updateAccountAndCampaignSelectors();
-            updateUI();
-        });
-    }
-
-    const campaignSelect = document.getElementById("campaignGroupSelect");
-    if (campaignSelect) {
-        campaignSelect.addEventListener("change", (e) => {
-            const val = e.target.value;
-            AppState.selectedCampaignId = val || null;
-
-            AppState.dashboardLoaded = false;
-            AppState.creativesLoaded = false;
-            AppState.dashboardMetrics = null;
-
-            updateUI();
-        });
-    }
+    });
 });
