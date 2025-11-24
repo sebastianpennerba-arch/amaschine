@@ -142,28 +142,37 @@
 
         <!-- DASHBOARD VIEW -->
         <section class="view" id="dashboardView">
-            <div class="view-header">
-                <h2 class="elite-title">Meta Performance Dashboard</h2>
-                <div class="time-range-select">
-                    <label for="dashboardTimeRange">Zeitraum:</label>
-                    <select id="dashboardTimeRange">
-                        <option value="today">Heute</option>
-                        <option value="yesterday">Gestern</option>
-                        <option value="today_yesterday">Heute + Gestern</option>
-                        <option value="last_7d">Letzte 7 Tage</option>
-                        <option value="last_30d" selected>Letzte 30 Tage</option>
-                        <option value="this_month">Aktueller Monat</option>
-                        <option value="last_month">Letzter Monat</option>
-                    </select>
-                </div>
-            </div>
+            <h2 class="elite-title">Meta Performance Dashboard</h2>
 
-            <div id="dashboardMetaSummary" style="margin-bottom: 16px; color: var(--text-secondary); font-size: 14px;">
+            <div
+                id="dashboardMetaSummary"
+                style="margin-bottom: 16px; color: var(--text-secondary); font-size: 14px;"
+            >
                 Noch keine Daten geladen.
             </div>
 
             <div id="dashboardKpiContainer"></div>
             <div id="dashboardChartContainer"></div>
+
+            <div class="card">
+                <div class="performance-card">
+                    <div class="card-header">
+                        <h3>Zeitraum</h3>
+                        <div>
+                            <select id="dashboardTimeRange">
+                                <option value="today">Heute</option>
+                                <option value="yesterday">Gestern</option>
+                                <option value="today_yesterday">Heute + Gestern</option>
+                                <option value="last_7d">Letzte 7 Tage</option>
+                                <option value="last_30d" selected>Letzte 30 Tage</option>
+                                <option value="this_month">Aktueller Monat</option>
+                                <option value="last_month">Letzter Monat</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div id="dashboardHeroCreativesContainer"></div>
         </section>
 
@@ -266,7 +275,42 @@
         <!-- REPORTS / EXPORTS VIEW -->
         <section class="view hidden" id="reportsView">
             <h2 class="elite-title">Reports & Exports</h2>
-            <div id="reportsContent"></div>
+
+            <div class="card">
+                <div class="reports-header" style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap;">
+                    <div>
+                        <label for="reportScopeSelect" style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:4px;">
+                            Report-Scope:
+                        </label>
+                        <select id="reportScopeSelect" style="padding:8px 12px; border-radius:6px; border:1px solid var(--border); font-size:13px;">
+                            <option value="account">Account Report (Standard)</option>
+                            <option value="campaign">Campaign Report (aktuell ausgewählte Kampagne)</option>
+                            <option value="creatives">Creative Library (alle geladenen Creatives)</option>
+                            <option value="raw">RAW Dump (technische Meta-Response)</option>
+                        </select>
+                    </div>
+                    <p class="reports-hint">
+                        Wähle zuerst den Scope, dann exportiere die Daten als JSON, CSV, XLSX oder PDF.
+                    </p>
+                </div>
+
+                <div class="reports-actions">
+                    <button class="action-button-secondary" id="exportJsonBtn">
+                        <i class="fas fa-code"></i>&nbsp; JSON Export
+                    </button>
+                    <button class="action-button-secondary" id="exportCsvBtn">
+                        <i class="fas fa-file-csv"></i>&nbsp; CSV Export
+                    </button>
+                    <button class="action-button-secondary" id="exportXlsxBtn">
+                        <i class="fas fa-file-excel"></i>&nbsp; XLSX Export
+                    </button>
+                    <button class="action-button-secondary" id="exportPdfBtn">
+                        <i class="fas fa-file-pdf"></i>&nbsp; PDF Export
+                    </button>
+                </div>
+
+                <div id="reportSnapshot"></div>
+            </div>
         </section>
 
         <!-- TESTING LOG VIEW -->
@@ -283,7 +327,7 @@
         <div class="modal-content">
             <h3 id="modalTitle"></h3>
             <div id="modalBody"></div>
-            <button id="modalCloseButton" class="primary-btn">Schließen</button>
+            <button id="modalCloseButton">Schließen</button>
         </div>
     </div>
 
