@@ -9,7 +9,9 @@ import {
 } from "./metaApi.js";
 
 import { openModal, showToast } from "./uiCore.js";
-import { updateDashboardView } from "./dashboard.js";
+// ❌ ENTFERNT – verursacht TOTALEN JS-BREAK
+// import { updateDashboardView } from "./dashboard.js";
+
 import { updateCreativeLibraryView } from "./creativeLibrary.js";
 
 /* -------------------------------------------------------
