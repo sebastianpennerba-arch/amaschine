@@ -7,7 +7,9 @@ import {
     updateGreeting,
     initSidebarNavigation,
     initDateTime,
-    checkMetaConnection
+    checkMetaConnection,
+    openModal,
+    updateHealthStatus
 } from "./uiCore.js";
 
 import {
@@ -200,9 +202,7 @@ function updateAccountAndCampaignSelectors() {
         : '<option value="">Kein Werbekonto gefunden</option>';
 
     // Campaigns
-    const options = [
-        `<option value="">Alle Kampagnen</option>`
-    ];
+    const options = [`<option value="">Alle Kampagnen</option>`];
 
     (AppState.meta.campaigns || []).forEach((c) => {
         options.push(
@@ -248,6 +248,9 @@ function updateUI() {
     if (AppState.currentView === "testingLogView") {
         updateTestingLogView(connected);
     }
+
+    // Health-Ampeln (System + Kampagne) aktualisieren
+    updateHealthStatus();
 }
 
 /* -------------------------------------------------------
@@ -272,6 +275,31 @@ document.addEventListener("DOMContentLoaded", async () => {
             e.preventDefault();
             disconnectMeta();
         });
+
+    const profileBtn = document.getElementById("profileButton");
+    if (profileBtn) {
+        profileBtn.addEventListener("click", () => {
+            const html = `
+                <div style="display:flex; flex-direction:column; gap:12px; font-size:13px;">
+                    <p>
+                        Hier werden später deine Profil-, Team- und Account-Daten aus der SignalOne-Datenbank geladen.
+                    </p>
+                    <p style="color:var(--text-secondary);">
+                        Geplant:
+                    </p>
+                    <ul style="margin-left:18px; color:var(--text-secondary); font-size:13px;">
+                        <li>Verknüpfte Werbekonten & Rollen</li>
+                        <li>Benachrichtigungs-Einstellungen</li>
+                        <li>Fehler- & Aktivitätslog für dieses Profil</li>
+                    </ul>
+                    <p style="font-size:12px; color:var(--text-secondary);">
+                        Aktuelle Version: <strong>S1-0.9-b</strong>
+                    </p>
+                </div>
+            `;
+            openModal("Profil & Account (Preview)", html);
+        });
+    }
 
     await handleMetaOAuthRedirectIfPresent();
 
