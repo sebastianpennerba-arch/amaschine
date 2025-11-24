@@ -487,3 +487,137 @@ export function updateSenseiView(connected) {
     renderSenseiSummary(insights.summary);
     renderRecommendationCards(recList, insights);
 }
+
+import { runSenseiDemoAnalysis } from "./sensei-demo-engine.js";
+import { AppState } from "./state.js";
+
+export function updateSenseiView(isConnected) {
+    const runBtn = document.getElementById("runSenseiBtn");
+    const output = document.getElementById("senseiOutput");
+    const loading = document.getElementById("senseiLoading");
+
+    if (!runBtn || !output || !loading) return;
+
+    runBtn.onclick = async () => {
+        loading.classList.remove("hidden");
+        output.classList.add("hidden");
+        output.innerHTML = "";
+
+        await new Promise(r => setTimeout(r, 900)); // Fake Loading
+
+        let result;
+
+        if (AppState.settings.demoMode === true) {
+            result = runSenseiDemoAnalysis();
+        } else {
+            // Platzhalter für Live-KI später
+            result = {
+                summary: "Sensei Live-Analyse wird in Schritt 4 angebunden.",
+                actions: [],
+                risks: [],
+                opportunities: [],
+                testing: [],
+                forecast: null,
+                funnel: null
+            };
+        }
+
+        loading.classList.add("hidden");
+        output.classList.remove("hidden");
+        output.innerHTML = renderSenseiOutput(result);
+    };
+}
+
+function renderSenseiOutput(data) {
+    return `
+        <div class="sensei-section">
+            <h3>Zusammenfassung</h3>
+            <p>${data.summary}</p>
+        </div>
+
+        ${renderList("Aktionen", data.actions)}
+        ${renderList("Risiken", data.risks)}
+        ${renderList("Chancen", data.opportunities)}
+        ${renderTesting(data.testing)}
+        ${renderForecast(data.forecast)}
+        ${renderFunnel(data.funnel)}
+    `;
+}
+
+function renderList(title, items = []) {
+    if (!items.length) return "";
+    return `
+        <div class="sensei-section">
+            <h3>${title}</h3>
+            <ul>
+                ${items
+                    .map(
+                        i => `
+                    <li>
+                        <strong>${i.title}</strong><br>
+                        <span>${i.message}</span><br>
+                        <small>Priorität: ${i.priority}</small>
+                    </li>`
+                    )
+                    .join("")}
+            </ul>
+        </div>
+    `;
+}
+
+function renderTesting(tests = []) {
+    if (!tests.length) return "";
+    return `
+        <div class="sensei-section">
+            <h3>Testing</h3>
+            <ul>
+                ${tests
+                    .map(
+                        t => `
+                <li>
+                    <strong>${t.title}</strong><br>
+                    <small>Status: ${t.status}</small><br>
+                    <div>${t.findings}</div>
+                    <em>Nächster Schritt: ${t.next}</em>
+                </li>`
+                    )
+                    .join("")}
+            </ul>
+        </div>
+    `;
+}
+
+function renderForecast(fc) {
+    if (!fc) return "";
+    return `
+        <div class="sensei-section">
+            <h3>Prognose (7 Tage)</h3>
+            <p><strong>ROAS:</strong> ${fc.roas}x</p>
+            <p><strong>Umsatz:</strong> ${fc.revenue} €</p>
+            <p><strong>Ausgaben:</strong> ${fc.spend} €</p>
+            <p><strong>Konfidenz:</strong> ${(fc.confidence * 100).toFixed(1)}%</p>
+            <small>${fc.message}</small>
+        </div>
+    `;
+}
+
+function renderFunnel(f) {
+    if (!f) return "";
+    return `
+        <div class="sensei-section">
+            <h3>Funnel-Analyse</h3>
+            ${["tof", "mof", "bof"]
+                .map(
+                    stage => `
+                    <div class="funnel-block">
+                        <strong>${stage.toUpperCase()}</strong><br>
+                        Score: ${f[stage].score}<br>
+                        Probleme: ${f[stage].issues.join(", ")}<br>
+                        Chancen: ${f[stage].opportunities.join(", ")}
+                    </div>`
+                )
+                .join("")}
+        </div>
+    `;
+}
+
