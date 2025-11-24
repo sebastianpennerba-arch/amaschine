@@ -20,6 +20,18 @@
     --radius: 12px;
 }
 
+/* Dark Theme Overrides */
+:root[data-theme="dark"] {
+    --color-background: #020617;
+    --color-sidebar: #020617;
+    --color-topbar: #020617;
+    --color-card: #020617;
+    --text-primary: #E5E7EB;
+    --text-secondary: #9CA3AF;
+    --border: #1F2937;
+    --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.7);
+}
+
 /* Reset & Font */
 * {
     box-sizing: border-box;
@@ -113,6 +125,45 @@ body {
     padding: 5px var(--spacing-main);
     font-size: 12px;
     color: var(--text-secondary);
+}
+
+/* SETTINGS BUTTON (unten links) */
+.menu-settings-button {
+    margin-top: 8px;
+    margin-left: var(--spacing-main);
+    margin-right: var(--spacing-main);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: calc(100% - 2 * var(--spacing-main));
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #000;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+}
+.menu-settings-button i {
+    font-size: 14px;
+}
+.menu-settings-button:hover {
+    background: #111827;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    transform: translateY(-1px);
+}
+
+/* Dark Mode Settings Button Variation */
+:root[data-theme="dark"] .menu-settings-button {
+    background: #F9FAFB;
+    color: #111827;
+    border-color: #4B5563;
+}
+:root[data-theme="dark"] .menu-settings-button:hover {
+    background: #FFFFFF;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.5);
 }
 
 .status-indicator {
@@ -259,7 +310,7 @@ body {
 }
 
 /* --- META CONNECT STATUS PILL (TOP BAR) ---
-   (wird aktuell im HTML nicht mehr genutzt, aber bleibt als Fallback bestehen) */
+   (Fallback) */
 .meta-connection-pill {
     display: inline-flex;
     align-items: center;
@@ -623,13 +674,6 @@ body {
 }
 .fill-spend {
     background-color: var(--color-primary);
-}
-
-.kpi-value-mini {
-    font-size: 12px;
-    font-weight: 700;
-    width: 60px;
-    text-align: right;
 }
 
 .creative-footer-kpis {
