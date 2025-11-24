@@ -14,7 +14,7 @@ import {
     fetchMetaUser,
     exchangeMetaCodeForToken,
     fetchMetaAdAccounts,
-    fetchMetaCampaigns,
+    fetchMetaCampaigns
 } from "./metaApi.js";
 
 import { updateDashboardView } from "./dashboard.js";
@@ -23,6 +23,9 @@ import {
     updateCreativeLibraryView,
     renderCreativeLibrary
 } from "./creativeLibrary.js";
+import { updateSenseiView } from "./sensei.js";
+import { updateReportsView } from "./reports.js";
+import { updateTestingLogView } from "./testingLog.js";
 
 const META_TOKEN_STORAGE_KEY = "signalone_meta_token_v1";
 
@@ -241,6 +244,15 @@ function updateUI() {
 
     if (AppState.currentView === "creativesView")
         updateCreativeLibraryView(connected);
+
+    if (AppState.currentView === "senseiView")
+        updateSenseiView(connected);
+
+    if (AppState.currentView === "reportsView")
+        updateReportsView(connected);
+
+    if (AppState.currentView === "testingLogView")
+        updateTestingLogView(connected);
 }
 
 /* -------------------------------------------------------
