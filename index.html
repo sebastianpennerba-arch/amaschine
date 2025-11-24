@@ -31,37 +31,27 @@
             <i class="fas fa-bullhorn"></i> Campaigns
         </a>
 
-        <div class="menu-category">INTELLIGENCE</div>
-        <a href="#" class="menu-item" data-view="senseiStrategyView" id="menuSenseiStrategy">
-            <i class="fas fa-brain"></i> Sensei Strategy
-        </a>
-        <a href="#" class="menu-item" data-view="reportsExportView" id="menuReportsExport">
-            <i class="fas fa-file-export"></i> Reports & Export
+        <div class="menu-category">SENSEI / AI</div>
+        <a href="#" class="menu-item" data-view="senseiView" id="menuSensei">
+            <i class="fas fa-robot"></i> Sensei Strategy
         </a>
 
-        <div class="menu-category">TOOLS</div>
+        <div class="menu-category">REPORTING</div>
+        <a href="#" class="menu-item" data-view="reportsView" id="menuReports">
+            <i class="fas fa-file-export"></i> Exports & Reports
+        </a>
         <a href="#" class="menu-item" data-view="testingLogView" id="menuTestingLog">
             <i class="fas fa-flask"></i> Testing Log
         </a>
-        <a href="#" class="menu-item" data-view="customBuilderView" id="menuCustomBuilder">
-            <i class="fas fa-wrench"></i> Custom Builder
-        </a>
 
         <div class="menu-footer">
-            <div class="menu-status" style="margin-bottom: 5px">
+            <div class="menu-status">
                 <span
-                    id="sidebarMetaStatusIndicator"
                     class="status-indicator status-red"
+                    id="sidebarMetaStatusIndicator"
                 ></span>
                 <span id="sidebarMetaStatusLabel">Meta Ads (Offline)</span>
             </div>
-            <div class="menu-status" style="margin-bottom: 15px">
-                <span class="status-indicator status-yellow"></span> API Health
-                (Delayed)
-            </div>
-            <a href="#" class="menu-item" data-view="settingsView" id="menuSettings">
-                <i class="fas fa-cog"></i> Settings
-            </a>
         </div>
     </nav>
 
@@ -78,11 +68,6 @@
             </span>
 
             <span class="system-health system-optimal">SYSTEM HEALTH: OPTIMAL</span>
-
-            <div class="meta-connection-pill meta-disconnected" id="metaConnectionPill">
-                <span class="meta-connection-dot" id="metaConnectionDot"></span>
-                <span id="metaConnectionLabel">Nicht mit Meta verbunden</span>
-            </div>
         </div>
 
         <div class="account-selection">
@@ -96,6 +81,11 @@
                 <select id="campaignGroupSelect">
                     <option>Alle Kampagnen</option>
                 </select>
+            </div>
+
+            <div id="topbarMetaStatus" class="topbar-meta-status meta-status-disconnected">
+                <i id="topbarMetaStatusIcon" class="fas fa-plug"></i>
+                <span id="topbarMetaStatusLabel">Meta: Getrennt</span>
             </div>
 
             <button class="header-action-button">
@@ -131,45 +121,31 @@
 
         <!-- DASHBOARD VIEW -->
         <section class="view" id="dashboardView">
-            <h2 class="elite-title">Dashboard Overview</h2>
+            <h2 class="elite-title">Meta Performance Dashboard</h2>
 
-            <div class="card" id="dashboardFilters">
-                <div
-                    class="filter-bar"
-                    style="
-                        display: flex;
-                        align-items: center;
-                        justify-content: space-between;
-                        gap: 16px;
-                    "
-                >
-                    <div style="font-size: 14px; color: var(--text-secondary)">
-                        Zeitraum:
-                        <select
-                            id="dashboardTimeRange"
-                            style="
-                                margin-left: 8px;
-                                padding: 6px 10px;
-                                border: 1px solid var(--border);
-                                border-radius: 6px;
-                            "
-                        >
-                            <option value="today">Heute</option>
-                            <option value="last_7d">Letzte 7 Tage</option>
-                            <option value="last_30d" selected>Letzte 30 Tage</option>
-                        </select>
-                    </div>
-                    <div
-                        id="dashboardMetaSummary"
-                        style="font-size: 12px; color: var(--text-secondary)"
-                    >
-                        Noch keine Daten geladen.
-                    </div>
-                </div>
+            <div id="dashboardMetaSummary" style="margin-bottom: 16px; color: var(--text-secondary); font-size: 14px;">
+                Noch keine Daten geladen.
             </div>
 
             <div id="dashboardKpiContainer"></div>
             <div id="dashboardChartContainer"></div>
+
+            <div class="card">
+                <div class="performance-card">
+                    <div class="card-header">
+                        <h3>Zeitraum</h3>
+                        <div>
+                            <select id="dashboardTimeRange">
+                                <option value="last_7d">Letzte 7 Tage</option>
+                                <option value="last_30d" selected>Letzte 30 Tage</option>
+                                <option value="this_month">Aktueller Monat</option>
+                                <option value="last_month">Letzter Monat</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div id="dashboardHeroCreativesContainer"></div>
         </section>
 
@@ -189,147 +165,166 @@
                         style="
                             flex-grow: 1;
                             padding: 8px;
+                            border-radius: 6px;
                             border: 1px solid var(--border);
-                            border-radius: 4px;
                         "
                     />
-
-                    <div class="select-container" style="min-width: 150px">
-                        <select id="creativeSort">
-                            <option value="roas_desc">
-                                Sortieren nach: ROAS (absteigend)
-                            </option>
-                            <option value="spend_asc">
-                                Sortieren nach: Spend (aufsteigend)
-                            </option>
-                        </select>
-                    </div>
-
-                    <div class="select-container" style="min-width: 150px">
-                        <select id="creativeType">
-                            <option value="all">Typ: Alle</option>
-                            <option value="video">Typ: Video</option>
-                            <option value="static">Typ: Static</option>
-                            <option value="carousel">Typ: Carousel</option>
-                        </select>
-                    </div>
+                    <select id="creativeType">
+                        <option value="all">Alle Typen</option>
+                        <option value="static">Static / Image</option>
+                        <option value="video">Video</option>
+                        <option value="carousel">Carousel</option>
+                    </select>
+                    <select id="creativeSort">
+                        <option value="roas_desc">ROAS (absteigend)</option>
+                        <option value="spend_desc">Spend (absteigend)</option>
+                        <option value="spend_asc">Spend (aufsteigend)</option>
+                    </select>
                 </div>
             </div>
 
-            <div class="creative-library-grid" id="creativeLibraryGrid"></div>
+            <div id="creativeLibraryGrid"></div>
         </section>
 
         <!-- CAMPAIGNS VIEW -->
         <section class="view hidden" id="campaignsView">
             <h2 class="elite-title">Campaigns Overview</h2>
 
-            <div class="card">
-                <div
-                    class="filter-bar"
-                    style="display: flex; gap: 15px; align-items: center"
-                >
+            <div class="card" style="margin-bottom: 16px;">
+                <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
                     <input
                         type="text"
                         id="campaignSearch"
-                        placeholder="Suche nach Kampagnen-Namen oder ID"
+                        placeholder="Kampagnen suchen..."
                         style="
                             flex-grow: 1;
                             padding: 8px;
+                            border-radius: 6px;
                             border: 1px solid var(--border);
-                            border-radius: 4px;
                         "
                     />
-
-                    <div class="select-container" style="min-width: 150px">
-                        <select id="campaignStatusFilter">
-                            <option value="all">Status: Alle</option>
-                            <option value="active">Status: Aktiv</option>
-                            <option value="paused">Status: Pausiert</option>
-                            <option value="completed">Status: Abgeschlossen</option>
-                        </select>
-                    </div>
+                    <select id="campaignStatusFilter">
+                        <option value="all">Alle Status</option>
+                        <option value="ACTIVE">Aktiv</option>
+                        <option value="PAUSED">Pausiert</option>
+                    </select>
                 </div>
             </div>
 
-            <div class="card" style="padding: 0">
+            <div class="card">
                 <table class="campaigns-table">
                     <thead>
                         <tr>
                             <th>Status</th>
-                            <th>Kampagnen Name</th>
-                            <th>Ziel</th>
-                            <th>Tagesbudget</th>
-                            <th>Ad Spend</th>
-                            <th>ROAS</th>
-                            <th>CTR</th>
+                            <th>Name</th>
+                            <th>Objective</th>
+                            <th>Daily Budget</th>
+                            <th>Spend (30D)</th>
+                            <th>ROAS (30D)</th>
+                            <th>CTR (30D)</th>
+                            <th>Impressions (30D)</th>
                             <th>Aktionen</th>
                         </tr>
                     </thead>
-                    <tbody id="campaignsTableBody"></tbody>
+                    <tbody id="campaignsTableBody">
+                        <tr>
+                            <td colspan="9">
+                                <span style="color: var(--text-secondary); font-size:14px;">
+                                    Verbinde Meta, um Kampagnen zu laden.
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
         </section>
 
-        <!-- SENSEI STRATEGY -->
-        <section class="view hidden" id="senseiStrategyView">
-            <h2 class="elite-title">Sensei Strategy</h2>
-            <p style="color: var(--text-secondary); margin-bottom: 30px">
-                Intelligente, datengesteuerte Empfehlungen zur Optimierung Ihrer
-                Werbekampagnen.
-            </p>
+        <!-- SENSEI / AI VIEW -->
+        <section class="view hidden" id="senseiView">
+            <h2 class="elite-title">Sensei Strategy (AI Layer)</h2>
+
+            <div class="card">
+                <p style="color: var(--text-secondary); font-size:14px;">
+                    Hier entsteht der Sensei-Layer: AI-Strategie, Creative-Briefings, Kampagnen-Optimierung.
+                    Aktuell noch Platzhalter – Fokus liegt auf P1 (Dashboard) und P2 (Creative Library).
+                </p>
+            </div>
 
             <div class="strategy-grid">
                 <div class="card strategy-card recommendation-card">
-                    <h3 class="strategy-title">💡 Creative Recommendation</h3>
-                    <p style="color: var(--text-secondary)">
-                        Live-Daten folgen nach weiterer Integration.
-                    </p>
+                    <div>
+                        <h3 class="strategy-title">Scaling-Empfehlungen</h3>
+                        <p style="color: var(--text-secondary); font-size:14px;">
+                            In Zukunft: Budget- und Bid-Strategien basierend auf deinen Live-Daten.
+                        </p>
+                    </div>
+                    <button class="action-button-secondary">
+                        Bald verfügbar: Sensei Scaling
+                    </button>
                 </div>
+
                 <div class="card strategy-card alert-card">
-                    <h3 class="strategy-title">⚠️ Budget Pacing Alert</h3>
-                    <p style="color: var(--text-secondary)">
-                        Live-Daten folgen nach weiterer Integration.
-                    </p>
+                    <div>
+                        <h3 class="strategy-title">Risiko-Alerts</h3>
+                        <p style="color: var(--text-secondary); font-size:14px;">
+                            Anomalien in CTR, ROAS oder CPM werden hier hervorgehoben.
+                        </p>
+                    </div>
+                    <button class="action-button-secondary">
+                        Bald verfügbar: Anomaly Sensei
+                    </button>
                 </div>
+
                 <div class="card strategy-card warning-card">
-                    <h3 class="strategy-title">🚨 Creative Fatigue</h3>
-                    <p style="color: var(--text-secondary)">
-                        Live-Daten folgen nach weiterer Integration.
-                    </p>
+                    <div>
+                        <h3 class="strategy-title">Creative Fatigue</h3>
+                        <p style="color: var(--text-secondary); font-size:14px;">
+                            Sensei erkennt Creative-Fatigue und schlägt neue Varianten vor.
+                        </p>
+                    </div>
+                    <button class="action-button-secondary">
+                        Bald verfügbar: Creative Sensei
+                    </button>
                 </div>
             </div>
         </section>
 
-        <section class="view hidden" id="reportsExportView">
-            <h2 class="elite-title">Reports & Export</h2>
+        <!-- REPORTS / EXPORTS VIEW -->
+        <section class="view hidden" id="reportsView">
+            <h2 class="elite-title">Reports & Exports</h2>
+
+            <div class="card">
+                <p style="color: var(--text-secondary); font-size:14px;">
+                    Geplante Funktionen: CSV/Excel-Exporte, API-Exporte, PDF-Reports.
+                    Aktuell noch Platzhalter – wird in P6 ausgebaut.
+                </p>
+            </div>
         </section>
 
+        <!-- TESTING LOG VIEW -->
         <section class="view hidden" id="testingLogView">
             <h2 class="elite-title">Testing Log</h2>
-        </section>
 
-        <section class="view hidden" id="customBuilderView">
-            <h2 class="elite-title">Custom Builder</h2>
-        </section>
-
-        <section class="view hidden" id="settingsView">
-            <h2 class="elite-title">Settings</h2>
+            <div class="card">
+                <p style="color: var(--text-secondary); font-size:14px;">
+                    Geplante Funktionen: Test-Protokolle, A/B-Test-Historie, Learnings.
+                    Aktuell noch Platzhalter – wird in P6 ausgebaut.
+                </p>
+            </div>
         </section>
     </main>
 
-    <!-- Toast Container -->
-    <div class="toast-container" id="toastContainer"></div>
+    <!-- TOAST & MODAL ROOTS -->
+    <div id="toastContainer" class="toast-container"></div>
 
-    <!-- Modal -->
-    <div class="modal-overlay" id="modalOverlay">
+    <div id="modalOverlay" class="modal-overlay">
         <div class="modal-content">
-            <h3 id="modalTitle">Modal Titel</h3>
-            <p id="modalBody">Dies ist der Inhalt des Modals.</p>
-            <button onclick="window.closeModal && window.closeModal()">Schließen</button>
+            <h3 id="modalTitle"></h3>
+            <div id="modalBody"></div>
+            <button id="modalCloseButton">Schließen</button>
         </div>
     </div>
 
-    <!-- Module Scripts -->
     <script type="module" src="app.js"></script>
 </body>
 </html>
