@@ -1,52 +1,23 @@
-/* ================================
-   SignalOne.cloud – Global Styles
-   Elite UI – Light & Dark
-=================================== */
-
 /* Globale Variablen */
 :root {
-    /* Brand */
     --color-primary: #6366F1;
     --color-primary-dark: #4F46E5;
-    --color-teal: #06B6D4;
-
-    /* Surfaces & Backgrounds */
-    --color-background: #F9FAFB;
+    --color-background: #F3F4F6;
     --color-sidebar: #FFFFFF;
     --color-topbar: #FFFFFF;
     --color-card: #FFFFFF;
-
-    /* Text */
-    --text-primary: #111827;
+    --text-primary: #1F2937;
     --text-secondary: #6B7280;
-    --text-muted: #9CA3AF;
-
-    /* Border & Shadows */
     --border: #E5E7EB;
-    --border-subtle: #E5E7EB;
     --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.05);
-    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.08);
-    --shadow-lg: 0 18px 45px rgba(15, 23, 42, 0.16);
 
-    /* Status */
     --success: #10B981;
     --warning: #F59E0B;
     --danger: #EF4444;
-    --info: #6366F1;
 
-    /* Layout Tokens */
     --spacing-main: 24px;
     --spacing-inner: 16px;
     --radius: 12px;
-    --radius-pill: 999px;
-
-    /* Sensei / Secondary Surfaces */
-    --card-bg: var(--color-card);
-    --bg-secondary: #F3F4F6;
-
-    /* Scrollbar */
-    --scrollbar-track: rgba(148, 163, 184, 0.08);
-    --scrollbar-thumb: rgba(148, 163, 184, 0.7);
 }
 
 /* Dark Theme Overrides */
@@ -55,79 +26,28 @@
     --color-sidebar: #020617;
     --color-topbar: #020617;
     --color-card: #020617;
-
     --text-primary: #E5E7EB;
     --text-secondary: #9CA3AF;
-    --text-muted: #6B7280;
-
     --border: #1F2937;
-    --border-subtle: #111827;
-
-    --card-bg: #020617;
-    --bg-secondary: #020617;
-
     --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.7);
-    --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.8);
-    --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.85);
-
-    --scrollbar-track: rgba(15, 23, 42, 0.9);
-    --scrollbar-thumb: rgba(148, 163, 184, 0.8);
 }
 
-/* ================================
-   Reset & Base
-=================================== */
-
-*,
-*::before,
-*::after {
+/* Reset & Font */
+* {
     box-sizing: border-box;
-}
-
-html,
-body {
     margin: 0;
     padding: 0;
+    font-family: "Arial", sans-serif;
 }
 
 body {
     display: flex;
-    min-height: 100vh;
     background-color: var(--color-background);
     color: var(--text-primary);
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
 }
 
-/* Angenehme globale Scrollbars */
-* {
-    scrollbar-width: thin;
-    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-}
-
-*::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-*::-webkit-scrollbar-track {
-    background: var(--scrollbar-track);
-}
-
-*::-webkit-scrollbar-thumb {
-    background: var(--scrollbar-thumb);
-    border-radius: 999px;
-}
-
-/* Utility */
-.hidden {
-    display: none !important;
-}
-
-/* ================================
-   Sidebar
-=================================== */
-
+/* --- SIDEBAR --- */
 .sidebar {
     width: 250px;
     background-color: var(--color-sidebar);
@@ -147,22 +67,18 @@ body {
     border-bottom: 1px solid var(--border);
     text-align: left;
 }
-
 .logo {
     width: 150px;
     height: auto;
-    display: block;
 }
 
-/* Sidebar Menüs */
 .menu-category {
     color: var(--text-secondary);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
     padding: 10px var(--spacing-main) 5px;
     margin-top: 10px;
-    letter-spacing: 0.08em;
 }
 
 .menu-item {
@@ -173,13 +89,8 @@ body {
     color: var(--text-secondary);
     text-decoration: none;
     font-size: 14px;
-    transition:
-        background-color 0.17s ease,
-        color 0.17s ease,
-        border-color 0.17s ease,
-        transform 0.08s ease;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
     border-left: 4px solid transparent;
-    border-radius: 0 12px 12px 0;
 }
 
 .menu-item i {
@@ -190,24 +101,22 @@ body {
 }
 
 .menu-item:hover {
-    background: linear-gradient(90deg, rgba(99, 102, 241, 0.06), transparent);
+    background-color: var(--border);
     color: var(--text-primary);
-    transform: translateX(2px);
 }
 
 .menu-item.active {
-    background: linear-gradient(90deg, rgba(99, 102, 241, 0.09), rgba(6, 182, 212, 0.02));
+    background-color: #EEF2FF;
     color: var(--color-primary);
     border-left: 4px solid var(--color-primary);
     font-weight: 600;
 }
 
-/* Footerbereich der Sidebar */
 .menu-footer {
     margin-top: auto;
     padding-top: var(--spacing-inner);
-    border-top: 1px solid var(--border-subtle);
-    padding-bottom: var(--spacing-inner);
+    border-top: 1px solid var(--border);
+    padding: var(--spacing-inner) 0;
 }
 
 .menu-status {
@@ -216,27 +125,6 @@ body {
     padding: 5px var(--spacing-main);
     font-size: 12px;
     color: var(--text-secondary);
-}
-
-/* Status Dots */
-.status-indicator {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    margin-right: 8px;
-}
-
-.status-green {
-    background-color: var(--success);
-}
-
-.status-yellow {
-    background-color: var(--warning);
-}
-
-.status-red {
-    background-color: var(--danger);
 }
 
 /* SETTINGS BUTTON (unten links) */
@@ -249,28 +137,21 @@ body {
     gap: 8px;
     width: calc(100% - 2 * var(--spacing-main));
     padding: 8px 10px;
-    border-radius: 10px;
+    border-radius: 8px;
     border: 1px solid var(--border);
     background: #000;
     color: #fff;
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    transition:
-        background 0.2s ease,
-        transform 0.1s ease,
-        box-shadow 0.2s ease,
-        border-color 0.2s ease;
+    transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
 }
-
 .menu-settings-button i {
     font-size: 14px;
 }
-
 .menu-settings-button:hover {
     background: #111827;
-    border-color: #111827;
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
     transform: translateY(-1px);
 }
 
@@ -280,16 +161,30 @@ body {
     color: #111827;
     border-color: #4B5563;
 }
-
 :root[data-theme="dark"] .menu-settings-button:hover {
     background: #FFFFFF;
     box-shadow: 0 10px 25px rgba(15, 23, 42, 0.5);
 }
 
-/* ================================
-   Top Bar
-=================================== */
+.status-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
 
+.status-green {
+    background-color: var(--success);
+}
+.status-yellow {
+    background-color: var(--warning);
+}
+.status-red {
+    background-color: var(--danger);
+}
+
+/* --- TOP BAR --- */
 .top-bar {
     position: fixed;
     top: 0;
@@ -320,12 +215,7 @@ body {
 
 .app-version-label {
     margin-left: 8px;
-    opacity: 0.85;
-    padding: 2px 8px;
-    border-radius: 999px;
-    background: rgba(99, 102, 241, 0.06);
-    border: 1px solid rgba(99, 102, 241, 0.2);
-    font-weight: 500;
+    opacity: 0.8;
 }
 
 .system-health {
@@ -334,48 +224,34 @@ body {
     font-weight: 700;
     display: inline-block;
 }
-
 .system-optimal {
     background-color: rgba(16, 185, 129, 0.1);
     color: var(--success);
 }
 
-/* Topbar – rechte Seite */
 .account-selection {
     display: flex;
     align-items: center;
     gap: 15px;
 }
 
-/* Dropdowns */
 .select-container select {
     padding: 8px 12px;
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 6px;
     background-color: var(--color-card);
     font-size: 14px;
     color: var(--text-primary);
     cursor: pointer;
     min-width: 180px;
-    outline: none;
-    transition:
-        border-color 0.15s ease,
-        box-shadow 0.15s ease,
-        background-color 0.15s ease;
 }
 
-.select-container select:focus {
-    border-color: rgba(99, 102, 241, 0.7);
-    box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.25);
-}
-
-/* Meta Status Badge in Topbar */
 .topbar-meta-status {
     display: inline-flex;
     align-items: center;
     gap: 6px;
     padding: 4px 10px;
-    border-radius: var(--radius-pill);
+    border-radius: 999px;
     font-size: 12px;
     font-weight: 500;
     border: 1px solid transparent;
@@ -390,16 +266,13 @@ body {
 .topbar-meta-status.meta-status-connected {
     border-color: rgba(16, 185, 129, 0.4);
     color: var(--success);
-    background: rgba(16, 185, 129, 0.08);
 }
 
 .topbar-meta-status.meta-status-disconnected {
     border-color: rgba(239, 68, 68, 0.4);
     color: var(--danger);
-    background: rgba(239, 68, 68, 0.08);
 }
 
-/* Icon Buttons im Header */
 .header-action-button {
     background: none;
     border: none;
@@ -408,17 +281,13 @@ body {
     cursor: pointer;
     padding: 8px;
     border-radius: 50%;
-    transition:
-        background-color 0.18s ease,
-        color 0.18s ease,
-        transform 0.08s ease;
+    transition: background-color 0.2s, color 0.2s;
     position: relative;
 }
 
 .header-action-button:hover {
     background-color: var(--border);
     color: var(--color-primary);
-    transform: translateY(-1px);
 }
 
 /* Tooltip-Blase für Systembuttons */
@@ -437,9 +306,7 @@ body {
     box-shadow: var(--shadow-soft);
     opacity: 0;
     pointer-events: none;
-    transition:
-        opacity 0.2s ease,
-        transform 0.2s ease;
+    transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .header-action-button:hover .icon-tooltip {
@@ -465,12 +332,9 @@ body {
     justify-content: center;
 }
 
-/* ================================
-   Meta Connect Stripe
-=================================== */
-
+/* --- META CONNECT STRIPE --- */
 .meta-connect-stripe {
-    background: linear-gradient(90deg, #EF4444, #DC2626);
+    background: var(--danger);
     color: white;
     padding: 10px 20px;
     margin-bottom: 16px;
@@ -491,37 +355,24 @@ body {
     font-size: 14px;
 }
 
-/* Meta Connect Button */
 .connect-meta-btn {
-    background: #FFFFFF;
-    color: #B91C1C;
+    background: white;
+    color: var(--danger);
     border: none;
     padding: 7px 14px;
     border-radius: 8px;
     cursor: pointer;
     font-weight: 700;
     font-size: 14px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition:
-        transform 0.1s ease,
-        box-shadow 0.2s ease,
-        opacity 0.2s ease,
-        background-color 0.15s ease;
+    transition: transform 0.1s ease, box-shadow 0.2s ease, opacity 0.2s ease;
 }
-
 .connect-meta-btn:hover {
-    opacity: 0.98;
+    opacity: 0.9;
     box-shadow: var(--shadow-soft);
     transform: translateY(-1px);
-    background: #F9FAFB;
 }
 
-/* ================================
-   Main Content & Views
-=================================== */
-
+/* --- MAIN CONTENT --- */
 .main-content {
     margin-left: 250px;
     margin-top: 70px;
@@ -533,6 +384,10 @@ body {
 
 .view {
     padding: var(--spacing-main) 0;
+}
+
+.hidden {
+    display: none;
 }
 
 .elite-title {
@@ -566,15 +421,6 @@ body {
     background-color: var(--color-card);
     font-size: 13px;
     cursor: pointer;
-    outline: none;
-    transition:
-        border-color 0.15s ease,
-        box-shadow 0.15s ease;
-}
-
-.time-range-select select:focus {
-    border-color: rgba(99, 102, 241, 0.7);
-    box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.25);
 }
 
 .time-range-select.mini select {
@@ -588,23 +434,16 @@ body {
     color: var(--text-secondary);
 }
 
-/* ================================
-   Cards
-=================================== */
-
+/* --- CARD --- */
 .card {
     background-color: var(--color-card);
     border-radius: var(--radius);
     box-shadow: var(--shadow-soft);
     padding: var(--spacing-main);
     margin-bottom: var(--spacing-main);
-    border: 1px solid rgba(148, 163, 184, 0.22);
 }
 
-/* ================================
-   KPI GRID
-=================================== */
-
+/* --- KPI GRID --- */
 .kpi-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -620,10 +459,7 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    transition:
-        transform 0.15s ease-out,
-        box-shadow 0.2s ease,
-        border-color 0.2s ease;
+    transition: transform 0.15s ease-out, box-shadow 0.2s ease, border-color 0.2s ease;
     border: 1px solid var(--border);
 }
 
@@ -641,9 +477,7 @@ body {
     margin-bottom: 5px;
     display: flex;
     align-items: center;
-    letter-spacing: 0.06em;
 }
-
 .kpi-label i {
     margin-right: 6px;
     font-size: 14px;
@@ -665,23 +499,17 @@ body {
 .trend-positive {
     color: var(--success);
 }
-
 .trend-negative {
     color: var(--danger);
 }
-
 .trend-neutral {
     color: var(--text-secondary);
 }
 
-/* ================================
-   Performance Chart
-=================================== */
-
+/* --- PERFORMANCE CHART --- */
 .performance-card {
     padding: var(--spacing-main);
 }
-
 .performance-card .card-header {
     display: flex;
     justify-content: space-between;
@@ -700,17 +528,14 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--bg-secondary);
+    background-color: var(--color-background);
     border-radius: 8px;
     color: var(--text-secondary);
     font-style: normal;
     margin-top: 15px;
 }
 
-/* ================================
-   Hero Creatives / Kampagnen
-=================================== */
-
+/* --- HERO CREATIVES / KAMPAGNEN --- */
 .hero-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -723,10 +548,7 @@ body {
     border-radius: var(--radius);
     overflow: hidden;
     cursor: pointer;
-    transition:
-        box-shadow 0.3s,
-        border-color 0.3s,
-        transform 0.15s ease-out;
+    transition: box-shadow 0.3s, border-color 0.3s, transform 0.15s ease-out;
 }
 
 .creative-hero-item:hover {
@@ -740,7 +562,6 @@ body {
     overflow: hidden;
     position: relative;
 }
-
 .creative-media-container img,
 .creative-media-container video {
     width: 100%;
@@ -785,10 +606,7 @@ body {
     color: var(--text-primary);
 }
 
-/* ================================
-   Creative Library View
-=================================== */
-
+/* --- CREATIVE LIBRARY VIEW --- */
 #creativeLibraryGrid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -803,19 +621,14 @@ body {
     display: flex;
     overflow: hidden;
     cursor: pointer;
-    transition:
-        box-shadow 0.3s,
-        transform 0.3s;
+    transition: box-shadow 0.3s, transform 0.3s;
     border-radius: var(--radius);
     box-shadow: var(--shadow-soft);
-    border: 1px solid rgba(148, 163, 184, 0.3);
-    background-color: var(--color-card);
 }
 
 .creative-library-item:hover {
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.18);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.15);
     transform: translateY(-1px);
-    border-color: rgba(99, 102, 241, 0.6);
 }
 
 .creative-media-container-library {
@@ -837,12 +650,10 @@ body {
     top: 5px;
     left: 5px;
     color: white;
-    background: linear-gradient(135deg, #111827, #020617);
+    background-color: #000;
     border-radius: 4px;
     padding: 5px 8px;
-    font-size: 11px;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+    font-size: 12px;
 }
 
 .creative-stats {
@@ -862,7 +673,6 @@ body {
     margin-bottom: 10px;
 }
 
-/* KPI-Bar Visualisierung */
 .kpi-bar-visual {
     display: flex;
     align-items: center;
@@ -888,15 +698,12 @@ body {
     height: 100%;
     transition: width 0.5s;
 }
-
 .fill-positive {
     background-color: var(--success);
 }
-
 .fill-negative {
     background-color: var(--danger);
 }
-
 .fill-spend {
     background-color: var(--color-primary);
 }
@@ -908,17 +715,13 @@ body {
     margin-top: 10px;
     padding-top: 10px;
 }
-
 .kpi-footer-item {
     font-size: 12px;
     font-weight: 600;
     color: var(--text-secondary);
 }
 
-/* ================================
-   Campaigns Table
-=================================== */
-
+/* --- CAMPAIGNS TABLE --- */
 .campaigns-table {
     width: 100%;
     border-collapse: collapse;
@@ -938,33 +741,24 @@ body {
     font-weight: 700;
     text-transform: uppercase;
     font-size: 12px;
-    letter-spacing: 0.05em;
 }
 
 .campaigns-table tbody tr:last-child td {
     border-bottom: none;
 }
 
-/* Primary Action Button (inline) */
 .action-button {
     background-color: var(--color-primary);
     color: white;
     border: none;
     padding: 6px 12px;
-    border-radius: 6px;
+    border-radius: 4px;
     cursor: pointer;
     font-size: 12px;
-    font-weight: 600;
-    transition:
-        background-color 0.2s,
-        box-shadow 0.18s ease,
-        transform 0.08s ease;
+    transition: background-color 0.2s;
 }
-
 .action-button:hover {
     background-color: var(--color-primary-dark);
-    box-shadow: var(--shadow-soft);
-    transform: translateY(-1px);
 }
 
 /* sekundäre Action-Buttons */
@@ -973,63 +767,19 @@ body {
     color: var(--color-primary);
     border: 1px solid var(--color-primary);
     padding: 8px 12px;
-    border-radius: 999px;
+    border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
     font-weight: 600;
     margin-top: 0;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition:
-        background-color 0.2s,
-        color 0.2s,
-        box-shadow 0.18s ease;
+    transition: background-color 0.2s, color 0.2s;
 }
-
 .action-button-secondary:hover {
     background-color: var(--color-primary);
     color: white;
-    box-shadow: var(--shadow-soft);
 }
 
-/* ================================
-   Primary Button (global, z.B. Sensei)
-=================================== */
-
-.btn-primary {
-    background-color: var(--color-primary);
-    color: #fff;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow: var(--shadow-soft);
-    transition:
-        background-color 0.18s ease,
-        transform 0.08s ease,
-        box-shadow 0.18s ease;
-}
-
-.btn-primary i {
-    font-size: 14px;
-}
-
-.btn-primary:hover {
-    background-color: var(--color-primary-dark);
-    transform: translateY(-1px);
-    box-shadow: 0 10px 25px rgba(99, 102, 241, 0.25);
-}
-
-/* ================================
-   Sensei Strategy Grid (Basis)
-=================================== */
-
+/* --- SENSEI STRATEGY GRID (Basis) --- */
 .strategy-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -1038,75 +788,30 @@ body {
 
 .strategy-card {
     padding: var(--spacing-inner);
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
-    background: var(--card-bg);
-    box-shadow: var(--shadow-soft);
+    border-left: 5px solid;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
 }
 
 .strategy-title {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 5px;
 }
 
 .recommendation-card {
-    border-left: 5px solid var(--success);
+    border-left-color: var(--success);
 }
-
 .alert-card {
-    border-left: 5px solid var(--warning);
+    border-left-color: var(--warning);
 }
-
 .warning-card {
-    border-left: 5px solid var(--danger);
+    border-left-color: var(--danger);
 }
 
-/* Sensei Output Bereiche */
-.sensei-output-container {
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 22px;
-}
-
-.sensei-section {
-    background: var(--card-bg);
-    padding: 18px;
-    border-radius: 12px;
-    box-shadow: var(--shadow-soft);
-    border: 1px solid var(--border);
-}
-
-.sensei-section h3 {
-    margin-bottom: 10px;
-    font-size: 15px;
-    font-weight: 700;
-}
-
-.sensei-section ul {
-    padding-left: 20px;
-    font-size: 13px;
-    color: var(--text-secondary);
-}
-
-/* Funnel Block */
-.funnel-block {
-    margin-bottom: 10px;
-    padding: 10px;
-    background: var(--bg-secondary);
-    border-radius: 8px;
-    font-size: 13px;
-}
-
-/* ================================
-   Toast & Modal
-=================================== */
-
+/* --- TOAST & MODAL --- */
 .toast-container {
     position: fixed;
     top: 90px;
@@ -1124,10 +829,7 @@ body {
     min-width: 300px;
     border-left: 5px solid var(--color-primary);
     animation: slideIn 0.3s ease-out;
-    transition:
-        opacity 0.3s ease,
-        transform 0.3s ease;
-    font-size: 13px;
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 /* sanfter Fade-Out */
@@ -1140,11 +842,9 @@ body {
 .toast.success {
     border-left-color: var(--success);
 }
-
 .toast.error {
     border-left-color: var(--danger);
 }
-
 .toast.info {
     border-left-color: var(--color-primary);
 }
@@ -1160,23 +860,20 @@ body {
     }
 }
 
-/* Modal Overlay */
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(15, 23, 42, 0.5);
+    background-color: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 3000;
     visibility: hidden;
     opacity: 0;
-    transition:
-        visibility 0s,
-        opacity 0.3s;
+    transition: visibility 0s, opacity 0.3s;
 }
 
 /* JS setzt .visible */
@@ -1193,8 +890,6 @@ body {
     max-width: 560px;
     transform: translateY(-50px);
     transition: transform 0.3s;
-    box-shadow: var(--shadow-lg);
-    border: 1px solid rgba(148, 163, 184, 0.35);
 }
 
 .modal-overlay.visible .modal-content {
@@ -1218,10 +913,7 @@ body {
     font-weight: 600;
     cursor: pointer;
     box-shadow: var(--shadow-soft);
-    transition:
-        background-color 0.2s ease,
-        transform 0.1s ease,
-        box-shadow 0.2s ease;
+    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
 }
 
 .primary-btn:hover {
@@ -1230,10 +922,7 @@ body {
     box-shadow: 0 8px 20px rgba(99, 102, 241, 0.25);
 }
 
-/* ================================
-   Settings Form
-=================================== */
-
+/* --- SETTINGS FORM --- */
 .settings-form {
     display: flex;
     flex-direction: column;
@@ -1245,7 +934,6 @@ body {
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 12px 14px;
-    background: var(--card-bg);
 }
 
 .settings-group-title {
@@ -1281,16 +969,6 @@ body {
     border: 1px solid var(--border);
     font-size: 13px;
     background: var(--color-card);
-    outline: none;
-    transition:
-        border-color 0.15s ease,
-        box-shadow 0.15s ease;
-}
-
-.settings-row select:focus,
-.settings-row input[type="number"]:focus {
-    border-color: rgba(99, 102, 241, 0.7);
-    box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.25);
 }
 
 .settings-radio-group {
@@ -1301,10 +979,7 @@ body {
     font-size: 12px;
 }
 
-/* ================================
-   Metric Chips & Badges
-=================================== */
-
+/* --- METRIC CHIPS (Campaign / Creative / Sensei) --- */
 .metric-chip {
     background-color: #F9FAFB;
     border-radius: 10px;
@@ -1328,7 +1003,7 @@ body {
     color: var(--text-primary);
 }
 
-/* Reports & Testing Log */
+/* --- REPORTS & TESTING LOG --- */
 .reports-actions {
     display: flex;
     flex-wrap: wrap;
@@ -1355,7 +1030,6 @@ body {
     color: var(--text-secondary);
 }
 
-/* Badges */
 .badge {
     display: inline-flex;
     align-items: center;
@@ -1380,69 +1054,32 @@ body {
     color: var(--danger);
 }
 
-/* ================================
-   Filter Inputs (Searchbars etc.)
-=================================== */
-
-input[type="text"] {
-    font-size: 13px;
-    color: var(--text-primary);
-    background: var(--color-card);
+.sensei-output-container {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
 }
 
-input[type="text"]::placeholder {
-    color: var(--text-muted);
+.sensei-section {
+    background: var(--card-bg);
+    padding: 18px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
 }
 
-input[type="text"],
-select {
-    outline: none;
+.sensei-section h3 {
+    margin-bottom: 10px;
+    font-size: 15px;
 }
 
-/* Fokuszustände für Filter in Card-Headern */
-.card input[type="text"],
-.card select {
-    transition:
-        border-color 0.15s ease,
-        box-shadow 0.15s ease,
-        background-color 0.15s ease;
+.sensei-section ul {
+    padding-left: 20px;
 }
 
-.card input[type="text"]:focus,
-.card select:focus {
-    border-color: rgba(99, 102, 241, 0.7) !important;
-    box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.18);
-    background-color: #FFFFFF;
-}
-
-/* ================================
-   Responsive Tweaks (Desktop-Only App, aber kleinerer Screens)
-=================================== */
-
-@media (max-width: 1280px) {
-    .kpi-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .hero-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .strategy-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 960px) {
-    .kpi-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .hero-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .strategy-grid {
-        grid-template-columns: 1fr;
-    }
+.funnel-block {
+    margin-bottom: 10px;
+    padding: 10px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
 }
