@@ -1,10 +1,9 @@
 // state.js – SignalOne.cloud – FINAL
 
-const META_APP_ID = "732040642590155"; // deine Meta App ID
+const META_APP_ID = "732040642590155";
 
 export const AppState = {
   currentView: "dashboardView",
-
   metaConnected: false,
 
   meta: {
@@ -13,18 +12,25 @@ export const AppState = {
     campaigns: [],
     ads: [],
     creatives: [],
-    insightsByCampaign: {}, // { [campaignId]: [insightsRows] }
+    insightsByCampaign: {},
     user: null,
   },
 
   selectedAccountId: null,
   selectedCampaignId: "ALL",
-
-  timeRangePreset: "last_30d", // today | yesterday | last_30d etc.
-
+  timeRangePreset: "last_30d",
   dashboardMetrics: null,
-
   testingLog: [],
+
+  // NEU: Settings mit Demo-Mode
+  settings: {
+    theme: "light",
+    currency: "EUR",
+    metaCacheTtlMinutes: 15,
+    defaultTimeRange: "last_30d",
+    creativeLayout: "grid",
+    demoMode: true  // ⭐ DEMO-MODE AKTIVIERT
+  },
 
   config: {
     meta: {
