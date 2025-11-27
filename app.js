@@ -291,7 +291,7 @@ function disconnectMeta() {
 }
 
 /* -------------------------------------------------------
-    OAuth Redirect
+    OAuth Redirect – holt Access Token über Backend
 ---------------------------------------------------------*/
 
 async function handleMetaOAuthRedirectIfPresent() {
@@ -299,33 +299,41 @@ async function handleMetaOAuthRedirectIfPresent() {
     const code = url.searchParams.get("code");
     if (!code) return;
 
-    // URL auf Root zurücksetzen, Query entfernen
+    // Query-Parameter aus URL entfernen
     window.history.replaceState({}, "", "/");
     showToast("Token wird abgeholt…", "info");
 
     try {
-        const res = await exchangeMetaCodeForToken(
+        // metaApi.js liefert den Access Token direkt (String)
+        const accessToken = await exchangeMetaCodeForToken(
             code,
             META_OAUTH_CONFIG.redirectUri
         );
 
-        if (!res?.success || !res.accessToken) {
+        if (!accessToken) {
             showToast("Meta-Verbindung fehlgeschlagen", "error");
             addNotification(
                 "error",
                 "Meta OAuth",
-                "Meta-Verbindung fehlgeschlagen."
+                "Meta-Verbindung fehlgeschlagen – kein Token erhalten."
             );
             return;
         }
 
-        AppState.meta.accessToken = res.accessToken;
+        AppState.meta.accessToken = accessToken;
         AppState.metaConnected = true;
 
-        persistMetaToken(res.accessToken);
+        persistMetaToken(accessToken);
         clearMetaCache();
 
-        await fetchMetaUser();
+        // User + Accounts mit Token laden
+        try {
+            const user = await fetchMetaUser(accessToken);
+            AppState.meta.user = user || {};
+        } catch (e) {
+            console.warn("Meta-User konnte nicht geladen werden:", e);
+        }
+
         await loadAdAccountsAndCampaigns();
 
         updateUI();
@@ -336,8 +344,8 @@ async function handleMetaOAuthRedirectIfPresent() {
             "SignalOne ist erfolgreich mit Meta verbunden."
         );
     } catch (err) {
-        console.error(err);
-        showToast("Verbindungsfehler", "error");
+        console.error("OAuth Redirect Error:", err);
+        showToast("Verbindungsfehler bei Meta OAuth", "error");
         addNotification(
             "error",
             "Verbindungsfehler",
@@ -366,13 +374,16 @@ function loadMetaTokenFromStorage() {
         );
         clearMetaCache();
 
-        fetchMetaUser()
-            .then(() => loadAdAccountsAndCampaigns())
+        fetchMetaUser(stored)
+            .then((user) => {
+                AppState.meta.user = user || {};
+                return loadAdAccountsAndCampaigns();
+            })
             .then(() => {
                 updateUI();
             })
             .catch((err) => {
-                console.error(err);
+                console.error("Auto-Reconnect Fehler:", err);
                 showToast(
                     "Fehler beim Wiederherstellen der Meta-Verbindung",
                     "error"
@@ -382,6 +393,8 @@ function loadMetaTokenFromStorage() {
                     "Wiederherstellung fehlgeschlagen",
                     "Meta-Verbindung konnte nicht wiederhergestellt werden."
                 );
+                AppState.metaConnected = false;
+                AppState.meta.accessToken = null;
             });
     } catch (e) {
         console.warn("LocalStorage read failed:", e);
@@ -389,28 +402,29 @@ function loadMetaTokenFromStorage() {
 }
 
 /* -------------------------------------------------------
-    ACCOUNT & CAMPAIGNS (mit Cache)
+    ACCOUNT & CAMPAIGNS (mit Cache, Token-abhängig)
 ---------------------------------------------------------*/
 
 async function loadAdAccountsAndCampaigns() {
     ensureMetaCache();
 
+    const token = AppState.meta.accessToken;
+    if (!token) {
+        AppState.meta.adAccounts = [];
+        AppState.meta.campaigns = [];
+        return;
+    }
+
     // 1) AdAccounts – erst Cache prüfen
     if (isCacheValid(AppState.metaCache.adAccounts)) {
         AppState.meta.adAccounts = AppState.metaCache.adAccounts.data;
     } else {
-        const accRes = await fetchMetaAdAccounts();
-        if (accRes?.success) {
-            const data = accRes.data?.data || [];
-            AppState.meta.adAccounts = data;
-            AppState.metaCache.adAccounts = {
-                data,
-                fetchedAt: Date.now()
-            };
-        } else {
-            AppState.meta.adAccounts = [];
-            AppState.metaCache.adAccounts = null;
-        }
+        const data = await fetchMetaAdAccounts(token);
+        AppState.meta.adAccounts = Array.isArray(data) ? data : [];
+        AppState.metaCache.adAccounts = {
+            data: AppState.meta.adAccounts,
+            fetchedAt: Date.now()
+        };
     }
 
     // 2) Default Account setzen
@@ -427,21 +441,13 @@ async function loadAdAccountsAndCampaigns() {
         if (isCacheValid(cacheEntry)) {
             AppState.meta.campaigns = cacheEntry.data;
         } else {
-            const campRes = await fetchMetaCampaigns(accId);
-            if (campRes?.success) {
-                const data = campRes.data?.data || [];
-                AppState.meta.campaigns = data;
-                AppState.metaCache.campaignsByAccount[accId] = {
-                    data,
-                    fetchedAt: Date.now()
-                };
-            } else {
-                AppState.meta.campaigns = [];
-                AppState.metaCache.campaignsByAccount[accId] = {
-                    data: [],
-                    fetchedAt: Date.now()
-                };
-            }
+            const data = await fetchMetaCampaigns(accId, token);
+            const arr = Array.isArray(data) ? data : [];
+            AppState.meta.campaigns = arr;
+            AppState.metaCache.campaignsByAccount[accId] = {
+                data: arr,
+                fetchedAt: Date.now()
+            };
         }
     }
 
@@ -489,7 +495,8 @@ function updateAccountAndCampaignSelectors() {
 async function loadCreativesForCurrentSelection() {
     ensureMetaCache();
 
-    if (!AppState.selectedAccountId) {
+    const token = AppState.meta.accessToken;
+    if (!AppState.selectedAccountId || !token) {
         AppState.meta.ads = [];
         AppState.creativesLoaded = false;
         return;
@@ -505,31 +512,15 @@ async function loadCreativesForCurrentSelection() {
     }
 
     try {
-        const res = await fetchMetaAds(accId);
-        if (res?.success) {
-            const arr = res.data?.data || res.data || [];
-            const data = Array.isArray(arr) ? arr : [];
-            AppState.meta.ads = data;
-            AppState.creativesLoaded = true;
+        const data = await fetchMetaAds(accId, token);
+        const arr = Array.isArray(data) ? data : [];
+        AppState.meta.ads = arr;
+        AppState.creativesLoaded = true;
 
-            AppState.metaCache.adsByAccount[accId] = {
-                data,
-                fetchedAt: Date.now()
-            };
-        } else {
-            AppState.meta.ads = [];
-            AppState.creativesLoaded = false;
-            AppState.metaCache.adsByAccount[accId] = {
-                data: [],
-                fetchedAt: Date.now()
-            };
-            showToast("Creatives konnten nicht geladen werden.", "error");
-            addNotification(
-                "error",
-                "Creatives Fehler",
-                "Creatives konnten nicht geladen werden."
-            );
-        }
+        AppState.metaCache.adsByAccount[accId] = {
+            data: arr,
+            fetchedAt: Date.now()
+        };
     } catch (err) {
         console.error(err);
         AppState.meta.ads = [];
@@ -866,7 +857,6 @@ function openSettingsModal() {
                 "Deine Einstellungen wurden aktualisiert."
             );
 
-            // UI nach Demo-Mode-Wechsel neu rendern
             updateUI();
         });
     }
@@ -945,7 +935,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     showView(AppState.currentView);
     initSidebarNavigation(showView);
-    initSettings(); // vorhandenes Modul bleibt eingebunden
+    initSettings();
     initDateTime();
     updateGreeting();
     updateNotificationsBadge();
@@ -1087,19 +1077,18 @@ document.addEventListener("DOMContentLoaded", async () => {
             AppState.meta.ads = [];
 
             ensureMetaCache();
-            if (newAccountId) {
+            if (newAccountId && AppState.meta.accessToken) {
+                const token = AppState.meta.accessToken;
                 delete AppState.metaCache.campaignsByAccount[newAccountId];
                 delete AppState.metaCache.adsByAccount[newAccountId];
 
-                const campRes = await fetchMetaCampaigns(newAccountId);
-                if (campRes?.success) {
-                    const data = campRes.data?.data || [];
-                    AppState.meta.campaigns = data;
-                    AppState.metaCache.campaignsByAccount[newAccountId] = {
-                        data,
-                        fetchedAt: Date.now()
-                    };
-                }
+                const data = await fetchMetaCampaigns(newAccountId, token);
+                const arr = Array.isArray(data) ? data : [];
+                AppState.meta.campaigns = arr;
+                AppState.metaCache.campaignsByAccount[newAccountId] = {
+                    data: arr,
+                    fetchedAt: Date.now()
+                };
             }
 
             updateAccountAndCampaignSelectors();
