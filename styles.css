@@ -990,3 +990,23 @@ body {
     background-color: rgba(239, 68, 68, 0.1);
     color: var(--danger);
 }
+
+/* Notification Badge */
+.notification-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: var(--danger);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.header-action-button {
+    position: relative; /* Wichtig für die absolute Badge-Positionierung */
+}
