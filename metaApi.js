@@ -1,4 +1,4 @@
-// metaApi.js – FINAL FIXED VERSION
+// metaApi.js – SignalOne.cloud – FINAL
 
 const API_BASE = "https://signalone-backend.onrender.com/api/meta";
 
@@ -15,6 +15,7 @@ async function exchangeMetaCodeForToken(code, redirectUri) {
   const data = await res.json();
 
   if (!data.ok || !data.accessToken) {
+    console.error("exchangeMetaCodeForToken error:", data);
     throw new Error(data.error || "Failed to exchange token");
   }
 
@@ -33,7 +34,10 @@ async function fetchMetaAdAccounts(accessToken) {
 
   const data = await res.json();
 
-  if (!data.ok) throw new Error(data.error || "Failed loading ad accounts");
+  if (!data.ok) {
+    console.error("fetchMetaAdAccounts error:", data);
+    throw new Error(data.error || "Failed loading ad accounts");
+  }
 
   return data.data?.data || [];
 }
@@ -50,7 +54,10 @@ async function fetchMetaCampaigns(accountId, accessToken) {
 
   const data = await res.json();
 
-  if (!data.ok) throw new Error("Failed loading campaigns");
+  if (!data.ok) {
+    console.error("fetchMetaCampaigns error:", data);
+    throw new Error("Failed loading campaigns");
+  }
 
   return data.data?.data || [];
 }
@@ -67,7 +74,10 @@ async function fetchMetaCampaignInsights(campaignId, accessToken, timeRangePrese
 
   const data = await res.json();
 
-  if (!data.ok) throw new Error("Failed loading insights");
+  if (!data.ok) {
+    console.error("fetchMetaCampaignInsights error:", data);
+    throw new Error("Failed loading insights");
+  }
 
   return data.data?.data || [];
 }
@@ -83,7 +93,10 @@ async function fetchMetaAds(accountId, accessToken) {
   });
 
   const data = await res.json();
-  if (!data.ok) throw new Error("Failed loading ads");
+  if (!data.ok) {
+    console.error("fetchMetaAds error:", data);
+    throw new Error("Failed loading ads");
+  }
 
   return data.data?.data || [];
 }
@@ -99,12 +112,14 @@ async function fetchMetaUser(accessToken) {
   });
 
   const data = await res.json();
-  if (!data.ok) throw new Error("Failed loading profile");
+  if (!data.ok) {
+    console.error("fetchMetaUser error:", data);
+    throw new Error("Failed loading profile");
+  }
 
   return data.data || {};
 }
 
-// Exports
 export {
   exchangeMetaCodeForToken,
   fetchMetaAdAccounts,
