@@ -142,41 +142,55 @@
             </div>
         </div>
 
-        <!-- DASHBOARD VIEW -->
-        <section class="view" id="dashboardView">
-            <h2 class="elite-title">Meta Performance Dashboard</h2>
+<!-- DASHBOARD VIEW -->
+<section class="view" id="dashboardView">
+    <h2 class="elite-title">Meta Performance Dashboard</h2>
 
-            <div
-                id="dashboardMetaSummary"
-                style="margin-bottom: 16px; color: var(--text-secondary); font-size: 14px;"
-            >
-                Noch keine Daten geladen.
-            </div>
+    <div id="dashboardMetaSummary" style="margin-bottom: 16px; color: var(--text-secondary); font-size: 14px;">
+        Noch keine Daten geladen.
+    </div>
 
-            <div id="dashboardKpiContainer"></div>
-            <div id="dashboardChartContainer"></div>
+    <!-- KPIs -->
+    <div id="dashboardKpiContainer"></div>
+    
+    <!-- Chart -->
+    <div id="dashboardChartContainer"></div>
 
-            <div class="card">
-                <div class="performance-card">
-                    <div class="card-header">
-                        <h3>Zeitraum</h3>
-                        <div>
-                            <select id="dashboardTimeRange">
-                                <option value="today">Heute</option>
-                                <option value="yesterday">Gestern</option>
-                                <option value="today_yesterday">Heute + Gestern</option>
-                                <option value="last_7d">Letzte 7 Tage</option>
-                                <option value="last_30d" selected>Letzte 30 Tage</option>
-                                <option value="this_month">Aktueller Monat</option>
-                                <option value="last_month">Letzter Monat</option>
-                            </select>
-                        </div>
-                    </div>
+    <!-- 🚨 ALERTS SECTION -->
+    <div id="dashboardAlertsContainer"></div>
+
+    <!-- 🧠 SENSEI DAILY BRIEFING -->
+    <div id="dashboardSenseiBriefingContainer"></div>
+
+    <!-- 🏆 TOP PERFORMERS -->
+    <div id="dashboardTopPerformersContainer"></div>
+
+    <!-- 💀 BOTTOM PERFORMERS -->
+    <div id="dashboardBottomPerformersContainer"></div>
+
+    <!-- Zeitraum Auswahl -->
+    <div class="card">
+        <div class="performance-card">
+            <div class="card-header">
+                <h3>Zeitraum</h3>
+                <div>
+                    <select id="dashboardTimeRange">
+                        <option value="today">Heute</option>
+                        <option value="yesterday">Gestern</option>
+                        <option value="today_yesterday">Heute + Gestern</option>
+                        <option value="last_7d">Letzte 7 Tage</option>
+                        <option value="last_30d" selected>Letzte 30 Tage</option>
+                        <option value="this_month">Aktueller Monat</option>
+                        <option value="last_month">Letzter Monat</option>
+                    </select>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <div id="dashboardHeroCreativesContainer"></div>
-        </section>
+    <!-- Top Campaigns (Hero) -->
+    <div id="dashboardHeroCreativesContainer"></div>
+</section>
 
         <!-- CREATIVE LIBRARY VIEW -->
         <section class="view hidden" id="creativesView">
