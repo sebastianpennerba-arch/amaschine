@@ -29,7 +29,7 @@ import {
 import { updateSenseiView } from "./sensei.js";
 import { updateReportsView } from "./reports.js";
 import { updateTestingLogView } from "./testingLog.js";
-import { initSettings } from "./settings.js";
+import { initSettings, applyThemeFromSettings } from "./settings.js";
 
 /* -------------------------------------------------------
     CONSTANTS
@@ -890,6 +890,9 @@ function openSettingsModal() {
 
             saveSettingsToStorage();
 
+            // Theme sofort anwenden
+            applyThemeFromSettings();
+
             // Demo-Mode Umschalten
             if (newDemoMode && !oldDemoMode) {
                 applyDemoData();
@@ -1039,10 +1042,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         applyDemoData();
     }
 
+    // Theme aus Settings anwenden
+    initSettings();
+
     // Grund-Init
     showView(AppState.currentView || "dashboardView");
     initSidebarNavigation(showView);
-    initSettings();
     initDateTime();
     updateGreeting();
     initSystemButtons();
