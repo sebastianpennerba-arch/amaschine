@@ -1,6 +1,12 @@
-// state.js – SignalOne.cloud – FINAL
+// state.js – SignalOne.cloud – FINAL FIX
 
 const META_APP_ID = "732040642590155";
+
+export const META_OAUTH_CONFIG = {
+  appId: META_APP_ID,
+  redirectUri: "https://signalone-frontend.onrender.com/",
+  scopes: "ads_read,ads_management,read_insights"
+};
 
 export const AppState = {
   currentView: "dashboardView",
@@ -21,8 +27,9 @@ export const AppState = {
   timeRangePreset: "last_30d",
   dashboardMetrics: null,
   testingLog: [],
+  notifications: [],
 
-  // NEU: Settings mit Demo-Mode
+  // Settings mit Demo-Mode
   settings: {
     theme: "light",
     currency: "EUR",
@@ -32,9 +39,20 @@ export const AppState = {
     demoMode: true  // ⭐ DEMO-MODE AKTIVIERT
   },
 
+  // Meta Cache
+  metaCache: {
+    adAccounts: null,
+    campaignsByAccount: {},
+    adsByAccount: {}
+  },
+
   config: {
     meta: {
       appId: META_APP_ID,
     },
   },
+
+  dashboardLoaded: false,
+  campaignsLoaded: false,
+  creativesLoaded: false
 };
