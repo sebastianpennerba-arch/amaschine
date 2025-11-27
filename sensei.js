@@ -7,11 +7,9 @@ import { AppState } from "./state.js";
  * URL deines Sensei-Backends.
  * Wenn du auf Render/Hetzner hostest:
  * - lokal:        http://localhost:3000/api/sensei/analyze
- * - Produktion:   https://deine-domain.de/api/sensei/analyze
- *
- * Im Frontend kannst du relativ bleiben, wenn Backend unter gleicher Domain läuft:
+ * - Produktion:   https://signalone-backend.onrender.com/api/sensei/analyze
  */
-const SENSEI_API_URL = "/api/sensei/analyze";
+const SENSEI_API_URL = "https://signalone-backend.onrender.com/api/sensei/analyze";
 
 /* ----------------------------------------------------------
    PUBLIC ENTRYPOINT
