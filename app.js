@@ -48,10 +48,16 @@ function ensureSettings() {
             currency: "EUR",
             metaCacheTtlMinutes: 15,
             defaultTimeRange: "last_30d",
-            creativeLayout: "grid"
+            creativeLayout: "grid",
+            demoMode: true
         };
     }
     return AppState.settings;
+}
+
+function isDemoMode() {
+    const settings = ensureSettings();
+    return !!settings.demoMode;
 }
 
 function ensureNotifications() {
@@ -191,16 +197,21 @@ function showView(viewId) {
 }
 
 /* -------------------------------------------------------
-    META CONNECT (aktuell klassisch per Redirect)
+    META CONNECT – Popup OAuth
 ---------------------------------------------------------*/
 
 function handleMetaConnectClick() {
     if (!META_OAUTH_CONFIG?.appId || !META_OAUTH_CONFIG?.redirectUri) {
         showToast("Meta-Konfiguration fehlt.", "error");
+        addNotification(
+            "error",
+            "Meta-Konfiguration",
+            "Meta-Konfiguration fehlt. Bitte Backend prüfen."
+        );
         return;
     }
 
-    const popupUrl =
+    const authUrl =
         "https://www.facebook.com/v21.0/dialog/oauth?" +
         new URLSearchParams({
             client_id: META_OAUTH_CONFIG.appId,
@@ -209,25 +220,28 @@ function handleMetaConnectClick() {
             scope: META_OAUTH_CONFIG.scopes
         });
 
-    // ⭐ Popup statt Redirect
     const popup = window.open(
-        popupUrl,
+        authUrl,
         "MetaLogin",
-        "width=600,height=800"
+        "width=600,height=800,left=200,top=100"
     );
 
     if (!popup) {
-        showToast("Popup blockiert! Bitte Popups erlauben.", "warning");
+        showToast("Popup blockiert – bitte Popups erlauben!", "error");
+        addNotification(
+            "error",
+            "Popup blockiert",
+            "Bitte Popups für diese Seite erlauben, um Meta zu verbinden."
+        );
         return;
     }
 
-    // Alle 500ms prüfen: Token zurück?
-    const pollTimer = setInterval(() => {
-        if (popup.closed) {
-            clearInterval(pollTimer);
-            updateUI();
-        }
-    }, 500);
+    showToast("Meta Login geöffnet…", "info");
+    addNotification(
+        "info",
+        "Meta Login",
+        "Meta Login Popup wurde geöffnet."
+    );
 }
 
 function persistMetaToken(token) {
@@ -268,7 +282,11 @@ function disconnectMeta() {
 
     persistMetaToken(null);
     showToast("Meta getrennt", "info");
-    addNotification("info", "Meta getrennt", "Die Verbindung zu Meta wurde getrennt.");
+    addNotification(
+        "info",
+        "Meta getrennt",
+        "Die Verbindung zu Meta wurde getrennt."
+    );
     updateUI();
 }
 
@@ -281,7 +299,8 @@ async function handleMetaOAuthRedirectIfPresent() {
     const code = url.searchParams.get("code");
     if (!code) return;
 
-    window.history.replaceState({}, "", META_OAUTH_CONFIG.redirectUri);
+    // URL auf Root zurücksetzen, Query entfernen
+    window.history.replaceState({}, "", "/");
     showToast("Token wird abgeholt…", "info");
 
     try {
@@ -559,8 +578,98 @@ function applyDashboardNoDataState() {
     }
 }
 
+function applyDemoDashboardState() {
+    const summary = document.getElementById("dashboardMetaSummary");
+    const kpiContainer = document.getElementById("dashboardKpiContainer");
+    const chartContainer = document.getElementById("dashboardChartContainer");
+    const heroContainer = document.getElementById(
+        "dashboardHeroCreativesContainer"
+    );
+
+    if (summary) {
+        summary.textContent =
+            "Demo-Modus aktiv – es werden Beispiel-KPIs angezeigt (keine echten Meta-Daten).";
+    }
+
+    if (kpiContainer) {
+        kpiContainer.innerHTML = `
+            <div class="kpi-grid">
+                <div class="kpi-card success">
+                    <div class="kpi-label"><i class="fas fa-euro-sign"></i> Spend (30d)</div>
+                    <div class="kpi-value">12.340 €</div>
+                    <div class="kpi-trend trend-positive">+18% vs. Vormonat</div>
+                </div>
+                <div class="kpi-card success">
+                    <div class="kpi-label"><i class="fas fa-bullseye"></i> ROAS</div>
+                    <div class="kpi-value">3,8x</div>
+                    <div class="kpi-trend trend-positive">Top 10% deiner Branche</div>
+                </div>
+                <div class="kpi-card warning">
+                    <div class="kpi-label"><i class="fas fa-mouse-pointer"></i> CTR</div>
+                    <div class="kpi-value">1,4%</div>
+                    <div class="kpi-trend trend-neutral">stabil</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label"><i class="fas fa-shopping-cart"></i> Conversions</div>
+                    <div class="kpi-value">926</div>
+                    <div class="kpi-trend trend-positive">+9% vs. letzte 30 Tage</div>
+                </div>
+            </div>
+        `;
+    }
+
+    if (chartContainer) {
+        chartContainer.innerHTML =
+            "<div class='chart-placeholder'>Demo-Chart – hier siehst du in der Live-Version die Performance-Kurve deiner Kampagnen.</div>";
+    }
+
+    if (heroContainer) {
+        heroContainer.innerHTML = `
+            <div class="hero-grid">
+                <div class="creative-hero-item">
+                    <div class="creative-media-container">
+                        <div class="creative-faux-thumb">1</div>
+                    </div>
+                    <div class="creative-details">
+                        <div class="creative-name">Top Funnel – Prospecting Europe</div>
+                        <div class="creative-kpi-bar">
+                            <span>ROAS: <span class="kpi-value-mini">4,2x</span></span>
+                            <span>Spend: <span class="kpi-value-mini">4.800 €</span></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="creative-hero-item">
+                    <div class="creative-media-container">
+                        <div class="creative-faux-thumb">2</div>
+                    </div>
+                    <div class="creative-details">
+                        <div class="creative-name">Mid Funnel – ATC Retargeting</div>
+                        <div class="creative-kpi-bar">
+                            <span>ROAS: <span class="kpi-value-mini">3,1x</span></span>
+                            <span>Spend: <span class="kpi-value-mini">2.100 €</span></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="creative-hero-item">
+                    <div class="creative-media-container">
+                        <div class="creative-faux-thumb">3</div>
+                    </div>
+                    <div class="creative-details">
+                        <div class="creative-name">Bottom Funnel – DPA Remarketing</div>
+                        <div class="creative-kpi-bar">
+                            <span>ROAS: <span class="kpi-value-mini">5,6x</span></span>
+                            <span>Spend: <span class="kpi-value-mini">1.450 €</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+}
+
 function updateUI() {
     const connected = checkMetaConnection();
+    const demo = isDemoMode();
 
     updateGreeting();
     updateAccountAndCampaignSelectors();
@@ -568,6 +677,8 @@ function updateUI() {
     if (AppState.currentView === "dashboardView") {
         if (connected) {
             updateDashboardView(true);
+        } else if (demo) {
+            applyDemoDashboardState();
         } else {
             applyDashboardNoDataState();
         }
@@ -655,26 +766,26 @@ function openSettingsModal() {
                     </div>
                 </div>
                 <div class="settings-group">
-    <div class="settings-group-title">🎮 Demo & Testing</div>
-    <div class="settings-row">
-        <label>Demo-Modus</label>
-        <div class="settings-control">
-            <div class="settings-radio-group">
-                <label>
-                    <input type="radio" name="demoMode" value="true" ${settings.demoMode ? "checked" : ""} />
-                    Ein (zeige Demo-Daten & alle Features)
-                </label>
-                <label>
-                    <input type="radio" name="demoMode" value="false" ${!settings.demoMode ? "checked" : ""} />
-                    Aus (nur echte Meta-Daten)
-                </label>
-            </div>
-        </div>
-    </div>
-    <p style="font-size:11px;color:var(--text-secondary);margin-top:4px;">
-        Im Demo-Modus siehst du alle Features mit realistischen Beispieldaten – perfekt für Präsentationen!
-    </p>
-</div>                
+                    <div class="settings-group-title">🎮 Demo & Testing</div>
+                    <div class="settings-row">
+                        <label>Demo-Modus</label>
+                        <div class="settings-control">
+                            <div class="settings-radio-group">
+                                <label>
+                                    <input type="radio" name="demoMode" value="true" ${settings.demoMode ? "checked" : ""} />
+                                    Ein (zeige Demo-Daten & alle Features)
+                                </label>
+                                <label>
+                                    <input type="radio" name="demoMode" value="false" ${!settings.demoMode ? "checked" : ""} />
+                                    Aus (nur echte Meta-Daten)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <p style="font-size:11px;color:var(--text-secondary);margin-top:4px;">
+                        Im Demo-Modus siehst du alle Features mit realistischen Beispieldaten – perfekt für Präsentationen!
+                    </p>
+                </div>                
                 <div class="settings-row">
                     <label for="settingsCreativeLayout">Creative Layout</label>
                     <div class="settings-control">
@@ -731,7 +842,9 @@ function openSettingsModal() {
             const theme = themeRadio?.value === "dark" ? "dark" : "light";
 
             const settings = ensureSettings();
-            const demoModeRadio = form.querySelector('input[name="demoMode"]:checked');
+            const demoModeRadio = form.querySelector(
+                'input[name="demoMode"]:checked'
+            );
             const demoMode = demoModeRadio?.value === "true";
             settings.demoMode = demoMode;
             settings.currency = currency;
@@ -752,6 +865,9 @@ function openSettingsModal() {
                 "Settings gespeichert",
                 "Deine Einstellungen wurden aktualisiert."
             );
+
+            // UI nach Demo-Mode-Wechsel neu rendern
+            updateUI();
         });
     }
 }
