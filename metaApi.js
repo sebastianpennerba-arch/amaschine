@@ -1,123 +1,115 @@
-// metaApi.js – Wrapper für Backend-API Richtung Meta
+// metaApi.js – FINAL FIXED VERSION
 
-import { AppState, META_BACKEND_CONFIG } from "./state.js";
+const API_BASE = "https://signalone-backend.onrender.com/api/meta";
 
-export async function fetchMetaAdAccounts() {
-    if (!AppState.meta.accessToken) {
-        return { success: false, error: "No access token" };
-    }
+// -----------------------------
+// 1) OAuth Code → Token
+// -----------------------------
+async function exchangeMetaCodeForToken(code, redirectUri) {
+  const res = await fetch(`${API_BASE}/oauth/token`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code, redirectUri }),
+  });
 
-    const res = await fetch(META_BACKEND_CONFIG.adAccountsEndpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ accessToken: AppState.meta.accessToken })
-    }).catch(() => null);
+  const data = await res.json();
 
-    if (!res) return { success: false, error: "Network error" };
-    return await res.json();
+  if (!data.ok || !data.accessToken) {
+    throw new Error(data.error || "Failed to exchange token");
+  }
+
+  return data.accessToken;
 }
 
-export async function fetchMetaCampaigns(accountId) {
-    if (!AppState.meta.accessToken) {
-        return { success: false, error: "No access token" };
-    }
+// -----------------------------
+// 2) GET Ad Accounts
+// -----------------------------
+async function fetchMetaAdAccounts(accessToken) {
+  const res = await fetch(`${API_BASE}/adaccounts`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ accessToken }),
+  });
 
-    const res = await fetch(META_BACKEND_CONFIG.campaignsEndpoint(accountId), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ accessToken: AppState.meta.accessToken })
-    }).catch(() => null);
+  const data = await res.json();
 
-    if (!res) return { success: false, error: "Network error" };
-    return await res.json();
+  if (!data.ok) throw new Error(data.error || "Failed loading ad accounts");
+
+  return data.data?.data || [];
 }
 
-export async function fetchMetaCampaignInsights(campaignId, datePreset) {
-    if (!AppState.meta.accessToken) {
-        return { success: false, error: "No access token" };
-    }
+// -----------------------------
+// 3) GET Campaigns
+// -----------------------------
+async function fetchMetaCampaigns(accountId, accessToken) {
+  const res = await fetch(`${API_BASE}/campaigns/${accountId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ accessToken }),
+  });
 
-    const body = {
-        accessToken: AppState.meta.accessToken,
-        datePreset: datePreset || "last_30d"
-    };
+  const data = await res.json();
 
-    const res = await fetch(META_BACKEND_CONFIG.insightsEndpoint(campaignId), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-    }).catch(() => null);
+  if (!data.ok) throw new Error("Failed loading campaigns");
 
-    if (!res) return { success: false, error: "Network error" };
-    return await res.json();
+  return data.data?.data || [];
 }
 
-export async function fetchMetaAds(accountId) {
-    if (!AppState.meta.accessToken) {
-        return { success: false, error: "No access token" };
-    }
+// -----------------------------
+// 4) GET Campaign Insights
+// -----------------------------
+async function fetchMetaCampaignInsights(campaignId, accessToken, timeRangePreset) {
+  const res = await fetch(`${API_BASE}/insights/${campaignId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ accessToken, timeRangePreset }),
+  });
 
-    const res = await fetch(META_BACKEND_CONFIG.adsEndpoint(accountId), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ accessToken: AppState.meta.accessToken })
-    }).catch(() => null);
+  const data = await res.json();
 
-    if (!res) return { success: false, error: "Network error" };
-    return await res.json();
+  if (!data.ok) throw new Error("Failed loading insights");
+
+  return data.data?.data || [];
 }
 
-export async function fetchMetaUser() {
-    if (!AppState.meta.accessToken) return null;
+// -----------------------------
+// 5) GET Ads
+// -----------------------------
+async function fetchMetaAds(accountId, accessToken) {
+  const res = await fetch(`${API_BASE}/ads/${accountId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ accessToken }),
+  });
 
-    try {
-        const res = await fetch(META_BACKEND_CONFIG.meEndpoint, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ accessToken: AppState.meta.accessToken })
-        }).catch(() => null);
+  const data = await res.json();
+  if (!data.ok) throw new Error("Failed loading ads");
 
-        if (!res) return null;
-        const data = await res.json();
-        if (data?.success && data.data) {
-            AppState.meta.user = {
-                id: data.data.id,
-                name: data.data.name
-            };
-            return AppState.meta.user;
-        }
-    } catch (e) {
-        console.warn("fetchMetaUser error:", e);
-    }
-    return null;
+  return data.data?.data || [];
 }
 
-export async function exchangeMetaCodeForToken(code, redirectUri) {
-    const res = await fetch(META_BACKEND_CONFIG.tokenEndpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, redirectUri })
-    }).catch(() => null);
+// -----------------------------
+// 6) GET User Profile
+// -----------------------------
+async function fetchMetaUser(accessToken) {
+  const res = await fetch(`${API_BASE}/me`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ accessToken }),
+  });
 
-    if (!res) return { success: false, error: "Network error" };
-    return await res.json();
+  const data = await res.json();
+  if (!data.ok) throw new Error("Failed loading profile");
+
+  return data.data || {};
 }
 
-// Neu: Kampagnenstatus (ACTIVE/PAUSED) ändern
-export async function updateMetaCampaignStatus(campaignId, status) {
-    if (!AppState.meta.accessToken) {
-        return { success: false, error: "No access token" };
-    }
-
-    const res = await fetch(META_BACKEND_CONFIG.campaignStatusEndpoint(campaignId), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            accessToken: AppState.meta.accessToken,
-            status
-        })
-    }).catch(() => null);
-
-    if (!res) return { success: false, error: "Network error" };
-    return await res.json();
-}
+// Exports
+export {
+  exchangeMetaCodeForToken,
+  fetchMetaAdAccounts,
+  fetchMetaCampaigns,
+  fetchMetaCampaignInsights,
+  fetchMetaAds,
+  fetchMetaUser,
+};
