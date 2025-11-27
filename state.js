@@ -1,5 +1,3 @@
-// state.js – SignalOne.cloud – CLEAN + VALID VERSION
-
 export const META_APP_ID = "732040642590155";
 
 export const META_OAUTH_CONFIG = {
