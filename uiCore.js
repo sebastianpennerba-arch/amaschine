@@ -1,82 +1,220 @@
-// uiCore.js – SignalOne.cloud – FINAL
+// uiCore.js – UI Core Functions + Meta Connection Check
 
 import { AppState } from "./state.js";
 
-// ----------------------
-// Sidebar Active Handling
-// ----------------------
-export function setActiveSidebarItem(item) {
-  document.querySelectorAll(".sidebar-item").forEach((el) => {
-    el.classList.remove("active");
-  });
-  item.classList.add("active");
+/* -------------------------------------------------------
+    SIDEBAR NAVIGATION
+---------------------------------------------------------*/
+
+export function initSidebarNavigation(showViewCallback) {
+    const menuItems = document.querySelectorAll(".menu-item");
+    
+    menuItems.forEach((item) => {
+        item.addEventListener("click", (e) => {
+            e.preventDefault();
+            
+            // Remove active from all
+            menuItems.forEach((mi) => mi.classList.remove("active"));
+            
+            // Add active to clicked
+            item.classList.add("active");
+            
+            // Get view ID
+            const viewId = item.getAttribute("data-view");
+            if (viewId && showViewCallback) {
+                showViewCallback(viewId);
+            }
+        });
+    });
 }
 
-// ----------------------
-// Toast System
-// ----------------------
-const TOAST_LIFETIME = 4000;
+/* -------------------------------------------------------
+    GREETING & DATE/TIME
+---------------------------------------------------------*/
+
+export function updateGreeting() {
+    const greetingEl = document.getElementById("greetingTitle");
+    if (!greetingEl) return;
+
+    const hour = new Date().getHours();
+    let greeting = "Guten Tag";
+
+    if (hour < 12) greeting = "Guten Morgen";
+    else if (hour < 18) greeting = "Guten Tag";
+    else greeting = "Guten Abend";
+
+    const userName = AppState.meta?.user?.name || "";
+    greetingEl.textContent = userName ? `${greeting}, ${userName.split(" ")[0]}!` : `${greeting}!`;
+}
+
+export function initDateTime() {
+    const dateEl = document.getElementById("currentDate");
+    const timeEl = document.getElementById("currentTime");
+
+    function update() {
+        const now = new Date();
+        
+        if (dateEl) {
+            dateEl.textContent = now.toLocaleDateString("de-DE", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric"
+            });
+        }
+        
+        if (timeEl) {
+            timeEl.textContent = now.toLocaleTimeString("de-DE", {
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+        }
+    }
+
+    update();
+    setInterval(update, 1000);
+}
+
+/* -------------------------------------------------------
+    TOAST SYSTEM
+---------------------------------------------------------*/
 
 export function showToast(message, type = "info") {
-  const container = document.getElementById("toastContainer");
-  if (!container) return;
+    const container = document.getElementById("toastContainer");
+    if (!container) return;
 
-  const toast = document.createElement("div");
-  toast.classList.add("toast", `toast-${type}`);
-  toast.textContent = message;
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
 
-  container.appendChild(toast);
+    container.appendChild(toast);
 
-  setTimeout(() => {
-    toast.classList.add("toast-hide");
     setTimeout(() => {
-      toast.remove();
-    }, 300);
-  }, TOAST_LIFETIME);
+        toast.classList.add("hide");
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }
 
-// ----------------------
-// Modal System
-// ----------------------
-export function openModal(title, html) {
-  const overlay = document.getElementById("modalOverlay");
-  const titleEl = document.getElementById("modalTitle");
-  const bodyEl = document.getElementById("modalBody");
-  const closeBtn = document.getElementById("modalCloseBtn");
+/* -------------------------------------------------------
+    MODAL SYSTEM
+---------------------------------------------------------*/
 
-  if (!overlay || !titleEl || !bodyEl || !closeBtn) return;
+export function openModal(title, bodyHtml) {
+    const overlay = document.getElementById("modalOverlay");
+    const titleEl = document.getElementById("modalTitle");
+    const bodyEl = document.getElementById("modalBody");
+    const closeBtn = document.getElementById("modalCloseButton");
 
-  titleEl.textContent = title;
-  bodyEl.innerHTML = html;
+    if (!overlay || !titleEl || !bodyEl) return;
 
-  overlay.classList.remove("hidden");
+    titleEl.textContent = title;
+    bodyEl.innerHTML = bodyHtml;
 
-  const handler = () => {
-    overlay.classList.add("hidden");
-    closeBtn.removeEventListener("click", handler);
-    overlay.removeEventListener("click", overlayHandler);
-  };
+    overlay.classList.add("visible");
 
-  const overlayHandler = (e) => {
-    if (e.target === overlay) {
-      handler();
+    function closeModal() {
+        overlay.classList.remove("visible");
     }
-  };
 
-  closeBtn.addEventListener("click", handler);
-  overlay.addEventListener("click", overlayHandler);
+    if (closeBtn) {
+        closeBtn.onclick = closeModal;
+    }
+
+    overlay.onclick = (e) => {
+        if (e.target === overlay) closeModal();
+    };
 }
 
-// ----------------------
-// Meta Health Indicator Helper (optional)
-// ----------------------
-export function updateMetaHealthIndicator() {
-  const el = document.querySelector(".dot-meta");
-  if (!el) return;
+/* -------------------------------------------------------
+    META CONNECTION CHECK
+---------------------------------------------------------*/
 
-  if (AppState.metaConnected) {
-    el.classList.add("dot-on");
-  } else {
-    el.classList.remove("dot-on");
-  }
+export function checkMetaConnection() {
+    const connected = AppState.metaConnected && !!AppState.meta?.accessToken;
+    
+    // Update Stripe
+    const stripe = document.getElementById("metaConnectStripe");
+    if (stripe) {
+        stripe.style.display = connected ? "none" : "block";
+    }
+
+    // Update Topbar Status
+    const topbarStatus = document.getElementById("topbarMetaStatus");
+    const topbarIcon = document.getElementById("topbarMetaStatusIcon");
+    const topbarLabel = document.getElementById("topbarMetaStatusLabel");
+
+    if (topbarStatus && topbarIcon && topbarLabel) {
+        if (connected) {
+            topbarStatus.classList.remove("meta-status-disconnected");
+            topbarStatus.classList.add("meta-status-connected");
+            topbarIcon.className = "fas fa-check-circle";
+            topbarLabel.textContent = "Meta: Verbunden";
+        } else {
+            topbarStatus.classList.remove("meta-status-connected");
+            topbarStatus.classList.add("meta-status-disconnected");
+            topbarIcon.className = "fas fa-plug";
+            topbarLabel.textContent = "Meta: Getrennt";
+        }
+    }
+
+    // Update Sidebar Status
+    updateHealthStatus();
+
+    return connected;
+}
+
+/* -------------------------------------------------------
+    HEALTH STATUS (Sidebar Footer)
+---------------------------------------------------------*/
+
+export function updateHealthStatus() {
+    const metaConnected = AppState.metaConnected && !!AppState.meta?.accessToken;
+    
+    // Meta Ads Status
+    const metaIndicator = document.getElementById("sidebarMetaStatusIndicator");
+    const metaLabel = document.getElementById("sidebarMetaStatusLabel");
+    
+    if (metaIndicator && metaLabel) {
+        if (metaConnected) {
+            metaIndicator.className = "status-indicator status-green";
+            metaLabel.textContent = "Meta Ads (Verbunden)";
+        } else {
+            metaIndicator.className = "status-indicator status-red";
+            metaLabel.textContent = "Meta Ads (Offline)";
+        }
+    }
+
+    // System Health (immer OK)
+    const systemIndicator = document.getElementById("sidebarSystemHealthIndicator");
+    const systemLabel = document.getElementById("sidebarSystemHealthLabel");
+    
+    if (systemIndicator && systemLabel) {
+        systemIndicator.className = "status-indicator status-green";
+        systemLabel.textContent = "System Health (OK)";
+    }
+
+    // Campaign Health
+    const campaignIndicator = document.getElementById("sidebarCampaignHealthIndicator");
+    const campaignLabel = document.getElementById("sidebarCampaignHealthLabel");
+    
+    if (campaignIndicator && campaignLabel) {
+        const metrics = AppState.dashboardMetrics;
+        
+        if (!metrics || !metaConnected) {
+            campaignIndicator.className = "status-indicator status-yellow";
+            campaignLabel.textContent = "Campaign Health (n/a)";
+        } else {
+            const roas = metrics.roas || 0;
+            
+            if (roas >= 4.0) {
+                campaignIndicator.className = "status-indicator status-green";
+                campaignLabel.textContent = "Campaign Health (Gut)";
+            } else if (roas >= 2.5) {
+                campaignIndicator.className = "status-indicator status-yellow";
+                campaignLabel.textContent = "Campaign Health (OK)";
+            } else {
+                campaignIndicator.className = "status-indicator status-red";
+                campaignLabel.textContent = "Campaign Health (Schwach)";
+            }
+        }
+    }
 }
