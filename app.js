@@ -644,6 +644,27 @@ function openSettingsModal() {
                         </div>
                     </div>
                 </div>
+                <div class="settings-group">
+    <div class="settings-group-title">🎮 Demo & Testing</div>
+    <div class="settings-row">
+        <label>Demo-Modus</label>
+        <div class="settings-control">
+            <div class="settings-radio-group">
+                <label>
+                    <input type="radio" name="demoMode" value="true" ${settings.demoMode ? "checked" : ""} />
+                    Ein (zeige Demo-Daten & alle Features)
+                </label>
+                <label>
+                    <input type="radio" name="demoMode" value="false" ${!settings.demoMode ? "checked" : ""} />
+                    Aus (nur echte Meta-Daten)
+                </label>
+            </div>
+        </div>
+    </div>
+    <p style="font-size:11px;color:var(--text-secondary);margin-top:4px;">
+        Im Demo-Modus siehst du alle Features mit realistischen Beispieldaten – perfekt für Präsentationen!
+    </p>
+</div>                
                 <div class="settings-row">
                     <label for="settingsCreativeLayout">Creative Layout</label>
                     <div class="settings-control">
@@ -700,6 +721,9 @@ function openSettingsModal() {
             const theme = themeRadio?.value === "dark" ? "dark" : "light";
 
             const settings = ensureSettings();
+            const demoModeRadio = form.querySelector('input[name="demoMode"]:checked');
+            const demoMode = demoModeRadio?.value === "true";
+            settings.demoMode = demoMode;
             settings.currency = currency;
             settings.defaultTimeRange = defaultRange;
             settings.creativeLayout = creativeLayout;
