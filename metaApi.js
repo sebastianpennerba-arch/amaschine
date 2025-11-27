@@ -1,130 +1,72 @@
-// metaApi.js – SignalOne.cloud – FINAL
+// metaApi.js – FINAL VERSION for https://signalone-backend.onrender.com
 
-const API_BASE = "https://signalone-backend.onrender.com/api/meta";
+const BASE_URL = "https://signalone-backend.onrender.com/api/meta";
 
-// -----------------------------
-// 1) OAuth Code → Token
-// -----------------------------
-async function exchangeMetaCodeForToken(code, redirectUri) {
-  const res = await fetch(`${API_BASE}/oauth/token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ code, redirectUri }),
-  });
+// 1. OAuth Code gegen Token tauschen
+export async function exchangeMetaCodeForToken(code, redirectUri) {
+    const res = await fetch(`${BASE_URL}/oauth/token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, redirectUri })
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  if (!data.ok || !data.accessToken) {
-    console.error("exchangeMetaCodeForToken error:", data);
-    throw new Error(data.error || "Failed to exchange token");
-  }
+    // Backend Format:
+    // { ok: true, success: true, accessToken: "...", tokenType: "...", expiresIn: ... }
 
-  return data.accessToken;
+    if (!data.ok || !data.accessToken) {
+        console.error("OAuth Error:", data);
+        return null;
+    }
+
+    return data.accessToken;
 }
 
-// -----------------------------
-// 2) GET Ad Accounts
-// -----------------------------
-async function fetchMetaAdAccounts(accessToken) {
-  const res = await fetch(`${API_BASE}/adaccounts`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ accessToken }),
-  });
+// 2. Werbekonten laden
+export async function fetchMetaAdAccounts(accessToken) {
+    const res = await fetch(`${BASE_URL}/adaccounts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accessToken })
+    });
 
-  const data = await res.json();
-
-  if (!data.ok) {
-    console.error("fetchMetaAdAccounts error:", data);
-    throw new Error(data.error || "Failed loading ad accounts");
-  }
-
-  return data.data?.data || [];
+    const data = await res.json();
+    return data.ok ? data.data.data : [];
 }
 
-// -----------------------------
-// 3) GET Campaigns
-// -----------------------------
-async function fetchMetaCampaigns(accountId, accessToken) {
-  const res = await fetch(`${API_BASE}/campaigns/${accountId}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ accessToken }),
-  });
+// 3. Kampagnen laden
+export async function fetchMetaCampaigns(accountId, accessToken) {
+    const res = await fetch(`${BASE_URL}/campaigns/${accountId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accessToken })
+    });
 
-  const data = await res.json();
-
-  if (!data.ok) {
-    console.error("fetchMetaCampaigns error:", data);
-    throw new Error("Failed loading campaigns");
-  }
-
-  return data.data?.data || [];
+    const data = await res.json();
+    return data.ok ? data.data.data : [];
 }
 
-// -----------------------------
-// 4) GET Campaign Insights
-// -----------------------------
-async function fetchMetaCampaignInsights(campaignId, accessToken, timeRangePreset) {
-  const res = await fetch(`${API_BASE}/insights/${campaignId}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ accessToken, timeRangePreset }),
-  });
+// 4. Creatives / Ads laden
+export async function fetchMetaAds(accountId, accessToken) {
+    const res = await fetch(`${BASE_URL}/ads/${accountId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accessToken })
+    });
 
-  const data = await res.json();
-
-  if (!data.ok) {
-    console.error("fetchMetaCampaignInsights error:", data);
-    throw new Error("Failed loading insights");
-  }
-
-  return data.data?.data || [];
+    const data = await res.json();
+    return data.ok ? data.data.data : [];
 }
 
-// -----------------------------
-// 5) GET Ads
-// -----------------------------
-async function fetchMetaAds(accountId, accessToken) {
-  const res = await fetch(`${API_BASE}/ads/${accountId}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ accessToken }),
-  });
+// 5. User laden
+export async function fetchMetaUser(accessToken) {
+    const res = await fetch(`${BASE_URL}/me`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accessToken })
+    });
 
-  const data = await res.json();
-  if (!data.ok) {
-    console.error("fetchMetaAds error:", data);
-    throw new Error("Failed loading ads");
-  }
-
-  return data.data?.data || [];
+    const data = await res.json();
+    return data.ok ? data.data : null;
 }
-
-// -----------------------------
-// 6) GET User Profile
-// -----------------------------
-async function fetchMetaUser(accessToken) {
-  const res = await fetch(`${API_BASE}/me`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ accessToken }),
-  });
-
-  const data = await res.json();
-  if (!data.ok) {
-    console.error("fetchMetaUser error:", data);
-    throw new Error("Failed loading profile");
-  }
-
-  return data.data || {};
-}
-
-export {
-  exchangeMetaCodeForToken,
-  fetchMetaAdAccounts,
-  fetchMetaCampaigns,
-  fetchMetaCampaignInsights,
-  fetchMetaAds,
-  fetchMetaUser,
-};
