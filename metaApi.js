@@ -49,16 +49,16 @@ export async function fetchMetaCampaigns(accountId, accessToken) {
     return data.ok ? data.data.data : [];
 }
 
-//*// 5. Ads laden
-//export async function fetchMetaAds(accountId, accessToken) {
- //   const res = await fetch(`${BASE_URL}/ads/${accountId}`, {
- //       method: "POST",
- //       headers: { "Content-Type": "application/json" },
- //       body: JSON.stringify({ accessToken })
- //   });
- //   const data = await res.json();
-//    return data.ok ? data.data.data : [];
-//}
+// 5. Ads laden
+export async function fetchMetaAds(accountId, accessToken) {
+    const res = await fetch(`${BASE_URL}/ads/${accountId}`, {
+       method: "POST",
+        headers: { "Content-Type": "application/json" },
+       body: JSON.stringify({ accessToken })
+   });
+    const data = await res.json();
+   return data.ok ? data.data.data : [];
+}
 
 // 6. Kampagnen-Insights laden (WICHTIG! Dashboard fix)
 export async function fetchMetaCampaignInsights(campaignId, timeRange, accessToken) {
