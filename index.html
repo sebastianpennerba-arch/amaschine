@@ -115,6 +115,7 @@
             </button>
             <button class="header-action-button" id="notificationsButton">
                 <i class="fas fa-bell"></i>
+                <span class="notification-badge hidden" id="notificationsBadge">0</span>
                 <span class="icon-tooltip">Benachrichtigungen</span>
             </button>
             <button class="header-action-button" id="disconnectMetaButton">
@@ -141,7 +142,7 @@
         </div>
 
         <!-- ================================ -->
-        <!-- DASHBOARD VIEW (FIXED HEADER)   -->
+        <!-- DASHBOARD VIEW -->
         <!-- ================================ -->
         <section class="view" id="dashboardView">
             <div class="view-header">
@@ -263,10 +264,21 @@
         </section>
 
         <!-- SENSEI / AI VIEW -->
-        <section class="view hidden" id="senseiView">
-            <h2 class="elite-title">Sensei Strategy (AI Layer)</h2>
-            <div id="senseiContent"></div>
-        </section>
+<div id="senseiView" class="view hidden">
+    <div class="view-header">
+        <h2>Sensei Analyse</h2>
+        <button id="runSenseiBtn" class="btn-primary">Sensei starten</button>
+    </div>
+
+    <div id="senseiLoading" class="hidden" 
+         style="margin-top:20px;font-size:14px;color:var(--text-secondary);">
+        🔮 <strong>Sensei analysiert deine Daten...</strong>
+    </div>
+
+    <div id="senseiOutput" class="sensei-output-container hidden">
+        <!-- Sensei Ergebnisse erscheinen hier dynamisch -->
+    </div>
+</div>
 
         <!-- REPORTS / EXPORTS VIEW -->
         <section class="view hidden" id="reportsView">
