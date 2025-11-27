@@ -1,247 +1,82 @@
-// uiCore.js – UI Utilities, Sidebar, Toast, Modal
+// uiCore.js – SignalOne.cloud – FINAL
 
 import { AppState } from "./state.js";
 
+// ----------------------
+// Sidebar Active Handling
+// ----------------------
+export function setActiveSidebarItem(item) {
+  document.querySelectorAll(".sidebar-item").forEach((el) => {
+    el.classList.remove("active");
+  });
+  item.classList.add("active");
+}
+
+// ----------------------
+// Toast System
+// ----------------------
+const TOAST_LIFETIME = 4000;
+
 export function showToast(message, type = "info") {
-    const box = document.getElementById("toastContainer");
-    if (!box) return;
-    const el = document.createElement("div");
-    el.className = `toast ${type}`;
-    el.innerText = message;
-    box.appendChild(el);
+  const container = document.getElementById("toastContainer");
+  if (!container) return;
+
+  const toast = document.createElement("div");
+  toast.classList.add("toast", `toast-${type}`);
+  toast.textContent = message;
+
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add("toast-hide");
     setTimeout(() => {
-        el.classList.add("hide");
-        setTimeout(() => el.remove(), 300);
-    }, 2500);
+      toast.remove();
+    }, 300);
+  }, TOAST_LIFETIME);
 }
 
-export function updateGreeting() {
-    const titleEl = document.getElementById("greetingTitle");
-    if (!titleEl) return;
+// ----------------------
+// Modal System
+// ----------------------
+export function openModal(title, html) {
+  const overlay = document.getElementById("modalOverlay");
+  const titleEl = document.getElementById("modalTitle");
+  const bodyEl = document.getElementById("modalBody");
+  const closeBtn = document.getElementById("modalCloseBtn");
 
-    const now = new Date();
-    const hour = now.getHours();
-    let base = "Willkommen zurück";
+  if (!overlay || !titleEl || !bodyEl || !closeBtn) return;
 
-    if (hour >= 5 && hour < 11) base = "Guten Morgen";
-    else if (hour >= 11 && hour < 16) base = "Guten Tag";
-    else if (hour >= 16 && hour < 22) base = "Guten Abend";
-    else base = "Gute Nacht";
+  titleEl.textContent = title;
+  bodyEl.innerHTML = html;
 
-    if (AppState.meta && AppState.meta.user && AppState.meta.user.name) {
-        titleEl.textContent = `${base}, ${AppState.meta.user.name}`;
-    } else {
-        titleEl.textContent = `${base}!`;
+  overlay.classList.remove("hidden");
+
+  const handler = () => {
+    overlay.classList.add("hidden");
+    closeBtn.removeEventListener("click", handler);
+    overlay.removeEventListener("click", overlayHandler);
+  };
+
+  const overlayHandler = (e) => {
+    if (e.target === overlay) {
+      handler();
     }
+  };
+
+  closeBtn.addEventListener("click", handler);
+  overlay.addEventListener("click", overlayHandler);
 }
 
-export function initDateTime() {
-    const dateEl = document.getElementById("currentDate");
-    const timeEl = document.getElementById("currentTime");
-    if (!dateEl || !timeEl) return;
+// ----------------------
+// Meta Health Indicator Helper (optional)
+// ----------------------
+export function updateMetaHealthIndicator() {
+  const el = document.querySelector(".dot-meta");
+  if (!el) return;
 
-    function update() {
-        const now = new Date();
-        dateEl.textContent = now.toLocaleDateString("de-DE");
-        timeEl.textContent = now.toLocaleTimeString("de-DE", {
-            hour: "2-digit",
-            minute: "2-digit"
-        });
-    }
-
-    update();
-    setInterval(update, 1000 * 30);
-}
-
-export function openModal(title, html, options = {}) {
-    const overlay = document.getElementById("modalOverlay");
-    const titleEl = document.getElementById("modalTitle");
-    const bodyEl = document.getElementById("modalBody");
-    const closeBtn = document.getElementById("modalCloseButton");
-
-    if (!overlay || !titleEl || !bodyEl || !closeBtn) return;
-
-    titleEl.textContent = title;
-    bodyEl.innerHTML = html;
-
-    overlay.classList.add("visible");
-
-    const onClose = () => {
-        overlay.classList.remove("visible");
-        if (typeof options.onClose === "function") {
-            options.onClose();
-        }
-    };
-
-    closeBtn.onclick = onClose;
-    overlay.onclick = (e) => {
-        if (e.target === overlay) {
-            onClose();
-        }
-    };
-
-    if (typeof options.onOpen === "function") {
-        options.onOpen(overlay);
-    }
-}
-
-export function checkMetaConnection() {
-    const connected = !!(AppState.metaConnected && AppState.meta.accessToken);
-
-    const stripe = document.getElementById("metaConnectStripe");
-    const stripeText = document.getElementById("metaStripeText");
-    const pill = document.getElementById("metaConnectionPill");
-    const pillLabel = document.getElementById("metaConnectionLabel");
-    const pillDot = document.getElementById("metaConnectionDot");
-    const sidebarLabel = document.getElementById("sidebarMetaStatusLabel");
-    const sidebarIndicator = document.getElementById("sidebarMetaStatusIndicator");
-
-    const topbarMetaStatus = document.getElementById("topbarMetaStatus");
-    const topbarMetaLabel = document.getElementById("topbarMetaStatusLabel");
-
-    if (connected) {
-        // Stripe oben ausblenden, Sidebar auf "Live" setzen
-        stripe?.classList.add("hidden");
-        if (stripeText) {
-            stripeText.innerHTML = '<i class="fas fa-plug"></i> Mit Meta Ads verbunden';
-        }
-
-        // Ehemalige Pill (falls im DOM vorhanden) weiterhin korrekt, aber i.d.R. nicht mehr genutzt
-        pill?.classList.add("meta-connected");
-        pill?.classList.remove("meta-disconnected");
-        if (pillLabel) pillLabel.textContent = "Verbunden mit Meta Ads";
-        if (pillDot) pillDot.style.backgroundColor = "var(--success)";
-
-        if (sidebarLabel) sidebarLabel.textContent = "Meta Ads (Live)";
-        if (sidebarIndicator) {
-            sidebarIndicator.classList.remove("status-red");
-            sidebarIndicator.classList.add("status-green");
-        }
-
-        // Neuer, dezenter Topbar-Status (immer sichtbar)
-        if (topbarMetaStatus) {
-            topbarMetaStatus.classList.add("meta-status-connected");
-            topbarMetaStatus.classList.remove("meta-status-disconnected");
-        }
-        if (topbarMetaLabel) {
-            topbarMetaLabel.textContent = "Meta: Verbunden";
-        }
-
-        return true;
-    } else {
-        // Stripe anzeigen, wenn nicht verbunden
-        stripe?.classList.remove("hidden");
-        if (stripeText) {
-            stripeText.innerHTML =
-                '<i class="fas fa-plug"></i> Nicht mit Meta Ads verbunden';
-        }
-
-        pill?.classList.add("meta-disconnected");
-        pill?.classList.remove("meta-connected");
-        if (pillLabel) pillLabel.textContent = "Nicht mit Meta verbunden";
-        if (pillDot) pillDot.style.backgroundColor = "var(--danger)";
-
-        if (sidebarLabel) sidebarLabel.textContent = "Meta Ads (Offline)";
-        if (sidebarIndicator) {
-            sidebarIndicator.classList.remove("status-green");
-            sidebarIndicator.classList.add("status-red");
-        }
-
-        if (topbarMetaStatus) {
-            topbarMetaStatus.classList.add("meta-status-disconnected");
-            topbarMetaStatus.classList.remove("meta-status-connected");
-        }
-        if (topbarMetaLabel) {
-            topbarMetaLabel.textContent = "Meta: Getrennt";
-        }
-
-        return false;
-    }
-}
-
-/**
- * Health-Ampeln unten links aktualisieren:
- * - System Health (basiert auf Meta-Verbindung)
- * - Campaign Health (basiert auf ROAS/CTR der gewählten Kampagne)
- */
-export function updateHealthStatus() {
-    const systemIndicator = document.getElementById("sidebarSystemHealthIndicator");
-    const systemLabel = document.getElementById("sidebarSystemHealthLabel");
-    const campaignIndicator = document.getElementById("sidebarCampaignHealthIndicator");
-    const campaignLabel = document.getElementById("sidebarCampaignHealthLabel");
-
-    // System Health: einfach – Meta verbunden = optimal, sonst Standby
-    if (systemIndicator && systemLabel) {
-        systemIndicator.classList.remove("status-green", "status-yellow", "status-red");
-
-        if (AppState.metaConnected && AppState.meta.accessToken) {
-            systemIndicator.classList.add("status-green");
-            systemLabel.textContent = "System Health (Optimal)";
-        } else {
-            systemIndicator.classList.add("status-yellow");
-            systemLabel.textContent = "System Health (Standby)";
-        }
-    }
-
-    // Campaign Health: basierend auf Dashboard-/Campaign-Metriken
-    if (campaignIndicator && campaignLabel) {
-        campaignIndicator.classList.remove("status-green", "status-yellow", "status-red");
-
-        let metrics = AppState.dashboardMetrics || null;
-        const selectedId = AppState.selectedCampaignId;
-
-        // Wenn es gezielte Kampagnen-Insights gibt, diese bevorzugen
-        if (
-            selectedId &&
-            AppState.meta &&
-            AppState.meta.insightsByCampaign &&
-            AppState.meta.insightsByCampaign[selectedId]
-        ) {
-            const im = AppState.meta.insightsByCampaign[selectedId];
-            metrics = {
-                roas: im.roas,
-                ctr: im.ctr
-            };
-        }
-
-        if (!metrics) {
-            campaignIndicator.classList.add("status-yellow");
-            campaignLabel.textContent = "Campaign Health (n/a)";
-            return;
-        }
-
-        const roas = Number(metrics.roas || 0);
-        const ctr = Number(metrics.ctr || 0);
-
-        if (roas >= 3 && ctr >= 2) {
-            campaignIndicator.classList.add("status-green");
-            campaignLabel.textContent = "Campaign Health (Strong)";
-        } else if (roas >= 2 || ctr >= 1) {
-            campaignIndicator.classList.add("status-yellow");
-            campaignLabel.textContent = "Campaign Health (OK)";
-        } else {
-            campaignIndicator.classList.add("status-red");
-            campaignLabel.textContent = "Campaign Health (Critical)";
-        }
-    }
-}
-
-export function initSidebarNavigation(onViewChange) {
-    const items = document.querySelectorAll(".menu-item[data-view]");
-    items.forEach((item) => {
-        item.addEventListener("click", (e) => {
-            e.preventDefault();
-            const view = item.getAttribute("data-view");
-            if (!view) return;
-
-            document
-                .querySelectorAll(".menu-item[data-view]")
-                .forEach((el) => el.classList.remove("active"));
-            item.classList.add("active");
-
-            if (typeof onViewChange === "function") {
-                onViewChange(view);
-            }
-        });
-    });
+  if (AppState.metaConnected) {
+    el.classList.add("dot-on");
+  } else {
+    el.classList.remove("dot-on");
+  }
 }
