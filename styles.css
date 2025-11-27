@@ -1,5 +1,5 @@
 /* ================================
-   SIGNALONE GLOBAL STYLES (CLEAN)
+   SIGNALONE GLOBAL STYLES (CLEAN + FIXED 27.11.2025)
    ================================ */
 
 /* ROOT VARIABLES */
@@ -51,16 +51,6 @@ body {
 }
 
 /* ======================
-   LAYOUT
-   ====================== */
-
-.app-shell {
-    display: grid;
-    grid-template-columns: 260px minmax(0, 1fr);
-    min-height: 100vh;
-}
-
-/* ======================
    SIDEBAR
    ====================== */
 
@@ -69,7 +59,13 @@ body {
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
+    width: 250px;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
     padding: 16px 16px 12px;
+    z-index: 900;
 }
 
 .logo-container {
@@ -82,6 +78,7 @@ body {
     width: 150px;
 }
 
+/* MENU CATEGORY */
 .menu-category {
     color: var(--text-secondary);
     font-size: 12px;
@@ -104,17 +101,6 @@ body {
     border-radius: 6px;
 }
 
-.menu-item i {
-    margin-right: 12px;
-    font-size: 16px;
-    width: 20px;
-}
-
-.menu-item:hover {
-    background-color: var(--border);
-    color: var(--text-primary);
-}
-
 .menu-item.active {
     background-color: #EEF2FF;
     color: var(--color-primary);
@@ -122,6 +108,7 @@ body {
     font-weight: 600;
 }
 
+/* FOOTER */
 .menu-footer {
     margin-top: auto;
     padding-top: var(--spacing-inner);
@@ -133,59 +120,24 @@ body {
     gap: 4px;
 }
 
-.menu-status {
-    display: flex;
-    align-items: center;
-    padding: 2px var(--spacing-main);
-}
-
-/* SETTINGS BUTTON (unten links) */
+/* SETTINGS BUTTON */
 .menu-settings-button {
     margin: 8px var(--spacing-main);
     display: flex;
     gap: 8px;
     padding: 8px 10px;
-    width: calc(100% - 2 * var(--spacing-main));
     border-radius: 8px;
     border: 1px solid var(--border);
     background: var(--color-card);
     color: var(--text-primary);
     cursor: pointer;
+    justify-content: center;
     font-size: 13px;
     font-weight: 600;
-    transition: 0.2s;
-    align-items: center;
-    justify-content: center;
 }
-
-.menu-settings-button i {
-    font-size: 14px;
-}
-
-.menu-settings-button:hover {
-    background: var(--border);
-    color: var(--color-primary);
-}
-
-:root[data-theme="dark"] .menu-settings-button {
-    background: var(--color-card);
-    color: var(--text-primary);
-}
-
-/* STATUS INDICATORS */
-.status-indicator {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    margin-right: 8px;
-}
-
-.status-green { background-color: var(--success); }
-.status-yellow { background-color: var(--warning); }
-.status-red { background-color: var(--danger); }
 
 /* ======================
-   TOPBAR
+   TOPBAR (FIXED)
    ====================== */
 
 .top-bar {
@@ -193,183 +145,29 @@ body {
     top: 0;
     left: 250px;
     right: 0;
+    height: 70px;
     background-color: var(--color-topbar);
     box-shadow: var(--shadow-soft);
-    height: 70px;
     padding: 0 var(--spacing-main);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    z-index: 999;
-}
-
-.greeting-status h1 {
-    font-size: 20px;
-    font-weight: 700;
-    margin-bottom: 3px;
-}
-
-.header-date-time {
-    font-size: 12px;
-    color: var(--text-secondary);
-    margin-right: 15px;
-}
-
-.app-version-label {
-    opacity: 0.8;
-    margin-left: 8px;
-}
-
-/* Account selection + buttons rechts */
-.account-selection {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.select-container select {
-    padding: 6px 10px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    background: var(--color-card);
-    font-size: 12px;
-    color: var(--text-primary);
-    outline: none;
-}
-
-.select-container select:focus {
-    border-color: var(--color-primary);
-}
-
-/* Header Icon Buttons */
-.header-action-button {
-    position: relative;
-    border: 1px solid var(--border);
-    background: var(--color-card);
-    border-radius: 999px;
-    width: 32px;
-    height: 32px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 14px;
-    transition: 0.15s;
-}
-
-.header-action-button:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-soft);
-    border-color: rgba(99, 102, 241, 0.5);
-}
-
-.icon-tooltip {
-    position: absolute;
-    bottom: -22px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #111827;
-    color: #F9FAFB;
-    font-size: 10px;
-    padding: 3px 6px;
-    border-radius: 999px;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: 0.15s;
-}
-
-.header-action-button:hover .icon-tooltip {
-    opacity: 1;
-}
-
-/* Notification Badge */
-.notification-badge {
-    position: absolute;
-    top: -4px;
-    right: -4px;
-    background: var(--danger);
-    color: #fff;
-    font-size: 10px;
-    padding: 2px 5px;
-    border-radius: 999px;
-}
-
-.notification-badge.hidden {
-    display: none;
-}
-
-/* TOPBAR META STATUS */
-.topbar-meta-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 12px;
-    background: rgba(15, 23, 42, 0.02);
-    color: var(--text-secondary);
-    border: 1px solid transparent;
-}
-
-.topbar-meta-status.meta-status-connected {
-    color: var(--success);
-    border-color: rgba(16, 185, 129, 0.4);
-}
-.topbar-meta-status.meta-status-disconnected {
-    color: var(--danger);
-    border-color: rgba(239, 68, 68, 0.4);
+    z-index: 950;
 }
 
 /* ======================
-   MAIN CONTENT
+   MAIN CONTENT (FIXED)
    ====================== */
 
 .main-content {
     margin-left: 250px;
-    margin-top: 70px;
-    padding: 0 var(--spacing-main) var(--spacing-main); /* TOP-PADDING ENTFERNT, damit Stripe direkt unter Header sitzt */
+    margin-top: 70px; /* SYNC mit Topbar */
+    padding: var(--spacing-main);
     max-width: 1600px;
-    width: calc(100% - 250px);
 }
 
 .view {
-    padding: 16px 0; /* schlankere Top-Abstände innerhalb der Views */
-}
-
-.hidden { display: none; }
-
-.elite-title {
-    color: var(--text-primary);
-    font-size: 28px;
-    font-weight: 800;
-    margin-bottom: var(--spacing-main);
-}
-
-/* View Header (Titel + Controls) */
-.view-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    gap: 16px;
-    flex-wrap: wrap;
-    margin-bottom: 12px;
-}
-
-.time-range-select {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: var(--text-secondary);
-}
-
-.time-range-select select {
-    padding: 6px 10px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    background: var(--color-card);
-    font-size: 12px;
+    padding-top: 12px; /* FIX: Kein riesiger Abstand */
 }
 
 /* ======================
@@ -384,39 +182,18 @@ body {
     margin-bottom: 18px;
 }
 
-.meta-connect-inner {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    font-size: 13px;
-    color: var(--text-secondary);
-}
+/* ======================
+   VIEW HEADERS
+   ====================== */
 
-.connect-meta-btn {
-    border-radius: 999px;
-    border: none;
-    padding: 6px 14px;
-    background: var(--color-primary);
-    color: #fff;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.connect-meta-btn i {
-    font-size: 14px;
-}
-
-.connect-meta-btn:hover {
-    background: var(--color-primary-dark);
+.elite-title {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 18px;
 }
 
 /* ======================
-   CARDS + KPI GRID
+   CARDS / GENERAL
    ====================== */
 
 .card {
@@ -426,6 +203,10 @@ body {
     margin-bottom: var(--spacing-main);
     box-shadow: var(--shadow-soft);
 }
+
+/* ======================
+   KPI GRID
+   ====================== */
 
 .kpi-grid {
     display: grid;
@@ -438,170 +219,37 @@ body {
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 20px;
-    transition: 0.15s;
-}
-
-.kpi-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(99, 102, 241, 0.12);
-    border-color: rgba(99, 102, 241, 0.4);
-}
-
-.kpi-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin-bottom: 5px;
-    display: flex;
-    align-items: center;
-}
-
-.kpi-label i { margin-right: 6px; }
-
-.kpi-value {
-    font-size: 32px;
-    font-weight: 800;
-    margin: 5px 0;
 }
 
 /* ======================
-   CREATIVE GRID & LIBRARY
+   CREATIVE LIBRARY
    ====================== */
 
 #creativeLibraryGrid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
     gap: var(--spacing-main);
-    max-width: 1200px;
-    margin: 0 auto;
 }
 
 /* ======================
-   CAMPAIGNS TABLE
+   TABLES
    ====================== */
 
 .campaigns-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 14px;
 }
 
 .campaigns-table th,
 .campaigns-table td {
     padding: var(--spacing-inner);
-    text-align: left;
     border-bottom: 1px solid var(--border);
 }
 
-.campaigns-table th {
-    background: var(--color-background);
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    font-weight: 700;
-    font-size: 12px;
-}
-
-/* Metric Chips in Campaign Modal & Testing Log */
-.metric-chip {
-    border-radius: 10px;
-    background: rgba(15, 23, 42, 0.02);
-    padding: 10px 12px;
-    border: 1px solid rgba(148, 163, 184, 0.5);
-}
-
-.metric-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--text-secondary);
-    margin-bottom: 3px;
-}
-
-.metric-value {
-    font-size: 14px;
-    font-weight: 600;
-}
-
 /* ======================
-   GENERISCHE BUTTONS
+   MODALS
    ====================== */
 
-.action-button,
-.action-button-secondary,
-.btn-primary,
-.btn-secondary,
-.primary-btn {
-    border-radius: 999px;
-    padding: 8px 16px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    border: 1px solid transparent;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: none;
-}
-
-.action-button,
-.btn-primary,
-.primary-btn {
-    background: var(--color-primary);
-    color: #fff;
-    border-color: transparent;
-}
-
-.action-button-secondary,
-.btn-secondary {
-    background: transparent;
-    color: var(--text-primary);
-    border-color: var(--border);
-}
-
-.action-button:hover,
-.btn-primary:hover,
-.primary-btn:hover {
-    background: var(--color-primary-dark);
-}
-
-.action-button-secondary:hover,
-.btn-secondary:hover {
-    border-color: rgba(148, 163, 184, 0.8);
-}
-
-/* ======================
-   TOASTS + MODALS
-   ====================== */
-
-.toast-container {
-    position: fixed;
-    top: 90px;
-    right: 20px;
-    z-index: 2000;
-}
-
-.toast {
-    background-color: var(--color-card);
-    padding: 15px 20px;
-    border-radius: var(--radius);
-    min-width: 300px;
-    border-left: 5px solid var(--color-primary);
-    margin-bottom: 10px;
-    box-shadow: var(--shadow-soft);
-    animation: slideIn 0.3s ease-out;
-}
-
-.toast.hide { opacity: 0; transform: translateX(20px); }
-
-.toast.success { border-left-color: var(--success); }
-.toast.error { border-left-color: var(--danger); }
-
-@keyframes slideIn {
-    from { opacity: 0; transform: translateX(100%); }
-    to { opacity: 1; transform: translateX(0); }
-}
-
-/* Modal Overlay */
 .modal-overlay {
     position: fixed;
     inset: 0;
@@ -619,198 +267,32 @@ body {
 .modal-content {
     background: var(--color-card);
     border-radius: 16px;
-    padding: 20px 22px 18px;
+    padding: 22px;
     max-width: 720px;
-    width: 100%;
     box-shadow: var(--shadow-soft);
 }
 
 /* ======================
-   SETTINGS FORM
+   FIX PACK — Layout-Bugs 27.11.2025
    ====================== */
 
-.settings-form {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-    font-size: 13px;
+/* entfernt zu große weiße Box über Dashboard */
+.view-header {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
 }
 
-.settings-group {
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 14px;
-    background: var(--color-card);
+/* bündelt Settings-Button korrekt */
+.menu-settings-button {
+    margin-top: 12px;
 }
 
-.settings-group-title {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--text-secondary);
-    margin-bottom: 8px;
+/* fix: kein Leerraum unter Topbar */
+.main-content {
+    padding-top: 24px !important;
 }
 
-.settings-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-top: 8px;
-}
-
-.settings-row label {
-    flex: 1;
-}
-
-.settings-control {
-    flex: 1;
-    display: flex;
-    justify-content: flex-end;
-}
-
-.settings-control select,
-.settings-control input[type="number"],
-.settings-control input[type="text"],
-.settings-control input[type="checkbox"] {
-    font-size: 13px;
-}
-
-.settings-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 6px;
-}
-
-/* ======================
-   SENSEI OUTPUT (CLEAN)
-   ====================== */
-
-.sensei-output-container {
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 22px;
-}
-
-.sensei-section {
-    background: var(--color-card);
-    padding: 18px;
-    border-radius: 12px;
-    box-shadow: var(--shadow-soft);
-}
-
-.sensei-section h3 { margin-bottom: 10px; }
-
-.funnel-block {
-    margin-bottom: 10px;
-    padding: 10px;
-    background: #F9FAFB;
-    border-radius: 8px;
-}
-
-/* ======================
-   REPORTS + TESTING LOG
-   ====================== */
-
-.reports-actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.reports-hint {
-    font-size: 12px;
-    color: var(--text-secondary);
-    max-width: 380px;
-}
-
-/* Testing Log */
-.testing-log-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 16px;
-    flex-wrap: wrap;
-}
-
-.testing-log-meta {
-    font-size: 13px;
-    color: var(--text-secondary);
-}
-
-/* Badges */
-.badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 3px 8px;
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight: 600;
-}
-
-.badge-green {
-    background: rgba(16,185,129,0.1);
-    color: var(--success);
-}
-.badge-yellow {
-    background: rgba(245,158,11,0.1);
-    color: var(--warning);
-}
-.badge-red {
-    background: rgba(239,68,68,0.1);
-    color: var(--danger);
-}
-
-/* ======================
-   RESPONSIVE
-   ====================== */
-
-@media (max-width: 1024px) {
-    .top-bar {
-        left: 0;
-    }
-
-    .main-content {
-        margin-left: 0;
-    }
-
-    .sidebar {
-        position: fixed;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 230px;
-        z-index: 1200;
-    }
-
-    .main-content {
-        padding-top: 0;
-    }
-}
-
-@media (max-width: 768px) {
-    .account-selection {
-        gap: 6px;
-    }
-
-    .select-container select {
-        max-width: 130px;
-    }
-
-    .kpi-grid {
-        grid-template-columns: repeat(2, minmax(0,1fr));
-    }
-}
-
-@media (max-width: 640px) {
-    .kpi-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .meta-connect-inner {
-        flex-direction: column;
-        align-items: flex-start;
-    }
+/* fix: Dashboard rückt nicht mehr hoch */
+#dashboardView {
+    margin-top: 0 !important;
 }
