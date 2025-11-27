@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SignalOne.cloud | Elite Dashboard</title>
     <link rel="stylesheet" href="styles.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
 </head>
 
 <body>
@@ -43,20 +46,30 @@
 
         <div class="menu-footer">
             <div class="menu-status">
-                <span class="status-indicator status-red" id="sidebarMetaStatusIndicator"></span>
+                <span
+                    class="status-indicator status-red"
+                    id="sidebarMetaStatusIndicator"
+                ></span>
                 <span id="sidebarMetaStatusLabel">Meta Ads (Offline)</span>
             </div>
 
             <div class="menu-status">
-                <span class="status-indicator status-green" id="sidebarSystemHealthIndicator"></span>
+                <span
+                    class="status-indicator status-green"
+                    id="sidebarSystemHealthIndicator"
+                ></span>
                 <span id="sidebarSystemHealthLabel">System Health (OK)</span>
             </div>
 
             <div class="menu-status">
-                <span class="status-indicator status-yellow" id="sidebarCampaignHealthIndicator"></span>
+                <span
+                    class="status-indicator status-yellow"
+                    id="sidebarCampaignHealthIndicator"
+                ></span>
                 <span id="sidebarCampaignHealthLabel">Campaign Health (n/a)</span>
             </div>
 
+            <!-- SETTINGS BUTTON (unten links) -->
             <button class="menu-settings-button" id="openSettingsButton">
                 <i class="fas fa-cog"></i>
                 <span>Settings</span>
@@ -72,7 +85,8 @@
             <h1 id="greetingTitle">Guten Tag!</h1>
 
             <span class="header-date-time">
-                Datum: <span id="currentDate"></span> | Zeit: <span id="currentTime"></span>
+                Datum: <span id="currentDate"></span> | Zeit:
+                <span id="currentTime"></span>
                 <span class="app-version-label">Version: S1-0.9-b</span>
             </span>
         </div>
@@ -101,6 +115,7 @@
             </button>
             <button class="header-action-button" id="notificationsButton">
                 <i class="fas fa-bell"></i>
+                <span class="notification-badge hidden" id="notificationsBadge">0</span>
                 <span class="icon-tooltip">Benachrichtigungen</span>
             </button>
             <button class="header-action-button" id="disconnectMetaButton">
@@ -114,6 +129,7 @@
     <!-- MAIN CONTENT -->
     <!-- ========================================= -->
     <main class="main-content" id="mainContent">
+        <!-- META CONNECT STRIPE -->
         <div id="metaConnectStripe" class="meta-connect-stripe">
             <div class="meta-connect-inner">
                 <span id="metaStripeText">
@@ -125,13 +141,12 @@
             </div>
         </div>
 
+        <!-- ================================ -->
         <!-- DASHBOARD VIEW -->
+        <!-- ================================ -->
         <section class="view" id="dashboardView">
-
-            <!-- FIXED HEADER WITH TIME RANGE -->
             <div class="view-header">
                 <h2 class="elite-title">Meta Performance Dashboard</h2>
-
                 <div class="time-range-select mini">
                     <label for="dashboardTimeRange">Zeitraum:</label>
                     <select id="dashboardTimeRange">
@@ -146,7 +161,10 @@
                 </div>
             </div>
 
-            <div id="dashboardMetaSummary" style="margin-bottom: 16px; color: var(--text-secondary); font-size: 14px;">
+            <div
+                id="dashboardMetaSummary"
+                style="margin-bottom: 16px; color: var(--text-secondary); font-size: 14px;"
+            >
                 Noch keine Daten geladen.
             </div>
 
@@ -155,13 +173,26 @@
             <div id="dashboardHeroCreativesContainer"></div>
         </section>
 
-        <!-- CREATIVE LIBRARY -->
+        <!-- CREATIVE LIBRARY VIEW -->
         <section class="view hidden" id="creativesView">
             <h2 class="elite-title">Creative Library (Live-Daten)</h2>
+
             <div class="card">
-                <div class="filter-bar" style="display: flex; gap: 15px; align-items: center">
-                    <input type="text" id="creativeSearch" placeholder="Suche nach Namen, Kampagne, Adset"
-                           style="flex-grow: 1; padding: 8px; border-radius: 6px; border: 1px solid var(--border);" />
+                <div
+                    class="filter-bar"
+                    style="display: flex; gap: 15px; align-items: center"
+                >
+                    <input
+                        type="text"
+                        id="creativeSearch"
+                        placeholder="Suche nach Namen, Kampagne, Adset"
+                        style="
+                            flex-grow: 1;
+                            padding: 8px;
+                            border-radius: 6px;
+                            border: 1px solid var(--border);
+                        "
+                    />
                     <select id="creativeType">
                         <option value="all">Alle Typen</option>
                         <option value="static">Static / Image</option>
@@ -175,16 +206,27 @@
                     </select>
                 </div>
             </div>
+
             <div id="creativeLibraryGrid"></div>
         </section>
 
-        <!-- CAMPAIGNS -->
+        <!-- CAMPAIGNS VIEW -->
         <section class="view hidden" id="campaignsView">
             <h2 class="elite-title">Campaigns Overview</h2>
+
             <div class="card" style="margin-bottom: 16px;">
                 <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
-                    <input type="text" id="campaignSearch" placeholder="Kampagnen suchen..."
-                           style="flex-grow: 1; padding: 8px; border-radius: 6px; border: 1px solid var(--border);" />
+                    <input
+                        type="text"
+                        id="campaignSearch"
+                        placeholder="Kampagnen suchen..."
+                        style="
+                            flex-grow: 1;
+                            padding: 8px;
+                            border-radius: 6px;
+                            border: 1px solid var(--border);
+                        "
+                    />
                     <select id="campaignStatusFilter">
                         <option value="all">Alle Status</option>
                         <option value="ACTIVE">Aktiv</option>
@@ -211,7 +253,9 @@
                     <tbody id="campaignsTableBody">
                         <tr>
                             <td colspan="9">
-                                <span style="color: var(--text-secondary); font-size:14px;">Verbinde Meta, um Kampagnen zu laden.</span>
+                                <span style="color: var(--text-secondary); font-size:14px;">
+                                    Verbinde Meta, um Kampagnen zu laden.
+                                </span>
                             </td>
                         </tr>
                     </tbody>
@@ -219,16 +263,26 @@
             </div>
         </section>
 
-        <!-- SENSEI -->
-        <section class="view hidden" id="senseiView">
-            <h2 class="elite-title">Sensei Strategy (AI Layer)</h2>
-            <div id="senseiContent"></div>
-        </section>
+        <!-- SENSEI / AI VIEW -->
+<div id="senseiView" class="view hidden">
+    <div class="view-header">
+        <h2>Sensei Analyse</h2>
+        <button id="runSenseiBtn" class="btn-primary">Sensei starten</button>
+    </div>
 
-        <!-- REPORTS -->
+    <div id="senseiLoading" class="hidden" 
+         style="margin-top:20px;font-size:14px;color:var(--text-secondary);">
+        🔮 <strong>Sensei analysiert deine Daten...</strong>
+    </div>
+
+    <div id="senseiOutput" class="sensei-output-container hidden">
+        <!-- Sensei Ergebnisse erscheinen hier dynamisch -->
+    </div>
+</div>
+
+        <!-- REPORTS / EXPORTS VIEW -->
         <section class="view hidden" id="reportsView">
             <h2 class="elite-title">Reports & Exports</h2>
-
             <div class="card">
                 <div class="reports-header" style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap;">
                     <div>
@@ -242,34 +296,45 @@
                             <option value="raw">RAW Dump (technische Meta-Response)</option>
                         </select>
                     </div>
-                    <p class="reports-hint">Wähle zuerst den Scope, dann exportiere die Daten.</p>
+                    <p class="reports-hint">
+                        Wähle zuerst den Scope, dann exportiere die Daten als JSON, CSV, XLSX oder PDF.
+                    </p>
                 </div>
 
                 <div class="reports-actions">
-                    <button class="action-button-secondary" id="exportJsonBtn"><i class="fas fa-code"></i>&nbsp; JSON Export</button>
-                    <button class="action-button-secondary" id="exportCsvBtn"><i class="fas fa-file-csv"></i>&nbsp; CSV Export</button>
-                    <button class="action-button-secondary" id="exportXlsxBtn"><i class="fas fa-file-excel"></i>&nbsp; XLSX Export</button>
-                    <button class="action-button-secondary" id="exportPdfBtn"><i class="fas fa-file-pdf"></i>&nbsp; PDF Export</button>
+                    <button class="action-button-secondary" id="exportJsonBtn">
+                        <i class="fas fa-code"></i>&nbsp; JSON Export
+                    </button>
+                    <button class="action-button-secondary" id="exportCsvBtn">
+                        <i class="fas fa-file-csv"></i>&nbsp; CSV Export
+                    </button>
+                    <button class="action-button-secondary" id="exportXlsxBtn">
+                        <i class="fas fa-file-excel"></i>&nbsp; XLSX Export
+                    </button>
+                    <button class="action-button-secondary" id="exportPdfBtn">
+                        <i class="fas fa-file-pdf"></i>&nbsp; PDF Export
+                    </button>
                 </div>
 
                 <div id="reportSnapshot"></div>
             </div>
         </section>
 
-        <!-- TESTING LOG -->
+        <!-- TESTING LOG VIEW -->
         <section class="view hidden" id="testingLogView">
             <h2 class="elite-title">Testing Log</h2>
             <div id="testingLogContent"></div>
         </section>
     </main>
 
+    <!-- TOAST & MODAL ROOTS -->
     <div id="toastContainer" class="toast-container"></div>
 
     <div id="modalOverlay" class="modal-overlay">
         <div class="modal-content">
             <h3 id="modalTitle"></h3>
             <div id="modalBody"></div>
-            <button id="modalCloseButton">Schließen</button>
+            <button id="modalCloseButton" class="primary-btn">Schließen</button>
         </div>
     </div>
 
