@@ -1,4 +1,5 @@
-// app.js – Orchestrator mit Meta-Caching & Creative-Loader
+// app.js – Orchestrator mit Meta-Caching, Creative-Loader,
+// Dashboard-CleanState, Settings & Notifications
 // SignalOne.cloud – Frontend Engine
 
 import { AppState, META_OAUTH_CONFIG } from "./state.js";
@@ -37,6 +38,104 @@ const META_TOKEN_STORAGE_KEY = "signalone_meta_token_v1";
 const DEFAULT_CACHE_TTL_MS = 15 * 60 * 1000; // 15 Minuten
 
 /* -------------------------------------------------------
+    Hilfsfunktionen: Settings & Notifications
+---------------------------------------------------------*/
+
+function ensureSettings() {
+    if (!AppState.settings) {
+        AppState.settings = {
+            theme: "light",
+            currency: "EUR",
+            metaCacheTtlMinutes: 15,
+            defaultTimeRange: "last_30d",
+            creativeLayout: "grid"
+        };
+    }
+    return AppState.settings;
+}
+
+function ensureNotifications() {
+    if (!Array.isArray(AppState.notifications)) {
+        AppState.notifications = [];
+    }
+    return AppState.notifications;
+}
+
+function saveSettingsToStorage() {
+    try {
+        const settings = ensureSettings();
+        localStorage.setItem(
+            "signalone_settings_v1",
+            JSON.stringify(settings)
+        );
+    } catch (e) {
+        console.warn("Settings speichern fehlgeschlagen:", e);
+    }
+}
+
+function loadSettingsFromStorage() {
+    ensureSettings();
+    try {
+        const raw = localStorage.getItem("signalone_settings_v1");
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        AppState.settings = {
+            ...AppState.settings,
+            ...parsed
+        };
+    } catch (e) {
+        console.warn("Settings laden fehlgeschlagen:", e);
+    }
+}
+
+function applyThemeFromSettings() {
+    const settings = ensureSettings();
+    const root = document.documentElement;
+    root.dataset.theme = settings.theme === "dark" ? "dark" : "light";
+}
+
+function applyDashboardTimeRangeFromSettings() {
+    const settings = ensureSettings();
+    const timeRange = settings.defaultTimeRange || "last_30d";
+    const select = document.getElementById("dashboardTimeRange");
+    if (select) {
+        select.value = timeRange;
+    }
+    AppState.timeRangePreset = timeRange;
+}
+
+function updateNotificationsBadge() {
+    const badge = document.getElementById("notificationsBadge");
+    const list = ensureNotifications();
+    if (!badge) return;
+    const count = list.length;
+    if (count <= 0) {
+        badge.classList.add("hidden");
+        badge.textContent = "0";
+    } else {
+        badge.classList.remove("hidden");
+        badge.textContent = String(count > 99 ? "99+" : count);
+    }
+}
+
+function addNotification(type, title, message) {
+    const list = ensureNotifications();
+    const entry = {
+        id: Date.now(),
+        type: type || "info",
+        title: title || "",
+        message: message || "",
+        timestamp: new Date().toISOString()
+    };
+    list.unshift(entry);
+    // Max 50 Einträge halten
+    if (list.length > 50) {
+        list.length = 50;
+    }
+    updateNotificationsBadge();
+}
+
+/* -------------------------------------------------------
     Hilfsfunktionen: Cache
 ---------------------------------------------------------*/
 
@@ -52,8 +151,8 @@ function ensureMetaCache() {
 }
 
 function getCacheTtlMs() {
-    // optional: aus Settings lesen, falls du es später konfigurierbar machst
-    const override = AppState.settings?.metaCacheTtlMinutes;
+    const settings = ensureSettings();
+    const override = settings.metaCacheTtlMinutes;
     if (typeof override === "number" && override > 0) {
         return override * 60 * 1000;
     }
@@ -98,10 +197,16 @@ function showView(viewId) {
 function handleMetaConnectClick() {
     if (!META_OAUTH_CONFIG?.appId || !META_OAUTH_CONFIG?.redirectUri) {
         showToast("Meta-Konfiguration fehlt. Bitte Backend prüfen.", "error");
+        addNotification(
+            "error",
+            "Meta-Konfiguration",
+            "Meta-Konfiguration fehlt. Bitte Backend prüfen."
+        );
         return;
     }
 
     showToast("Meta Login wird geöffnet…", "info");
+    addNotification("info", "Meta Login", "Meta Login Dialog geöffnet.");
 
     const url =
         "https://www.facebook.com/v21.0/dialog/oauth?" +
@@ -112,7 +217,6 @@ function handleMetaConnectClick() {
             scope: META_OAUTH_CONFIG.scopes
         });
 
-    // TODO: Später auf Popup-Flow umstellen – aktuell klassischer Redirect:
     window.location.href = url;
 }
 
@@ -154,6 +258,7 @@ function disconnectMeta() {
 
     persistMetaToken(null);
     showToast("Meta getrennt", "info");
+    addNotification("info", "Meta getrennt", "Die Verbindung zu Meta wurde getrennt.");
     updateUI();
 }
 
@@ -177,6 +282,11 @@ async function handleMetaOAuthRedirectIfPresent() {
 
         if (!res?.success || !res.accessToken) {
             showToast("Meta-Verbindung fehlgeschlagen", "error");
+            addNotification(
+                "error",
+                "Meta OAuth",
+                "Meta-Verbindung fehlgeschlagen."
+            );
             return;
         }
 
@@ -191,9 +301,19 @@ async function handleMetaOAuthRedirectIfPresent() {
 
         updateUI();
         showToast("Erfolgreich mit Meta verbunden!", "success");
+        addNotification(
+            "success",
+            "Meta verbunden",
+            "SignalOne ist erfolgreich mit Meta verbunden."
+        );
     } catch (err) {
         console.error(err);
         showToast("Verbindungsfehler", "error");
+        addNotification(
+            "error",
+            "Verbindungsfehler",
+            "Beim Verbinden mit Meta ist ein Fehler aufgetreten."
+        );
     }
 }
 
@@ -210,6 +330,11 @@ function loadMetaTokenFromStorage() {
         AppState.metaConnected = true;
 
         showToast("Meta-Token aus Speicher geladen", "info");
+        addNotification(
+            "info",
+            "Meta-Token geladen",
+            "Token wurde aus dem lokalen Speicher geladen."
+        );
         clearMetaCache();
 
         fetchMetaUser()
@@ -222,6 +347,11 @@ function loadMetaTokenFromStorage() {
                 showToast(
                     "Fehler beim Wiederherstellen der Meta-Verbindung",
                     "error"
+                );
+                addNotification(
+                    "error",
+                    "Wiederherstellung fehlgeschlagen",
+                    "Meta-Verbindung konnte nicht wiederhergestellt werden."
                 );
             });
     } catch (e) {
@@ -365,6 +495,11 @@ async function loadCreativesForCurrentSelection() {
                 fetchedAt: Date.now()
             };
             showToast("Creatives konnten nicht geladen werden.", "error");
+            addNotification(
+                "error",
+                "Creatives Fehler",
+                "Creatives konnten nicht geladen werden."
+            );
         }
     } catch (err) {
         console.error(err);
@@ -375,6 +510,11 @@ async function loadCreativesForCurrentSelection() {
             fetchedAt: Date.now()
         };
         showToast("Fehler beim Laden der Creatives.", "error");
+        addNotification(
+            "error",
+            "Creatives Fehler",
+            "Fehler beim Laden der Creatives."
+        );
     }
 }
 
@@ -389,6 +529,26 @@ async function ensureCreativesLoadedAndRender() {
     UI UPDATE
 ---------------------------------------------------------*/
 
+function applyDashboardNoDataState() {
+    const kpiContainer = document.getElementById("dashboardKpiContainer");
+    const chartContainer = document.getElementById("dashboardChartContainer");
+    const heroContainer = document.getElementById(
+        "dashboardHeroCreativesContainer"
+    );
+
+    if (kpiContainer) {
+        kpiContainer.innerHTML =
+            "<p style='color:var(--text-secondary);font-size:13px;'>Verbinde Meta, um Performance-KPIs zu sehen.</p>";
+    }
+    if (chartContainer) {
+        chartContainer.innerHTML =
+            "<div class='chart-placeholder'>Keine Daten – Meta nicht verbunden.</div>";
+    }
+    if (heroContainer) {
+        heroContainer.innerHTML = "";
+    }
+}
+
 function updateUI() {
     const connected = checkMetaConnection();
 
@@ -396,7 +556,11 @@ function updateUI() {
     updateAccountAndCampaignSelectors();
 
     if (AppState.currentView === "dashboardView") {
-        updateDashboardView(connected);
+        if (connected) {
+            updateDashboardView(true);
+        } else {
+            applyDashboardNoDataState();
+        }
     }
 
     if (AppState.currentView === "campaignsView") {
@@ -424,6 +588,194 @@ function updateUI() {
     }
 
     updateHealthStatus();
+    updateNotificationsBadge();
+}
+
+/* -------------------------------------------------------
+    SETTINGS UI
+---------------------------------------------------------*/
+
+function openSettingsModal() {
+    const settings = ensureSettings();
+
+    const html = `
+        <form id="settingsForm" class="settings-form">
+            <div class="settings-group">
+                <div class="settings-group-title">Allgemein</div>
+                <div class="settings-row">
+                    <label for="settingsCurrency">Währung</label>
+                    <div class="settings-control">
+                        <select id="settingsCurrency">
+                            <option value="EUR" ${settings.currency === "EUR" ? "selected" : ""}>EUR (€)</option>
+                            <option value="USD" ${settings.currency === "USD" ? "selected" : ""}>USD ($)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <label for="settingsDefaultRange">Standard-Zeitraum Dashboard</label>
+                    <div class="settings-control">
+                        <select id="settingsDefaultRange">
+                            <option value="today" ${settings.defaultTimeRange === "today" ? "selected" : ""}>Heute</option>
+                            <option value="yesterday" ${settings.defaultTimeRange === "yesterday" ? "selected" : ""}>Gestern</option>
+                            <option value="today_yesterday" ${settings.defaultTimeRange === "today_yesterday" ? "selected" : ""}>Heute + Gestern</option>
+                            <option value="last_7d" ${settings.defaultTimeRange === "last_7d" ? "selected" : ""}>Letzte 7 Tage</option>
+                            <option value="last_30d" ${settings.defaultTimeRange === "last_30d" ? "selected" : ""}>Letzte 30 Tage</option>
+                            <option value="this_month" ${settings.defaultTimeRange === "this_month" ? "selected" : ""}>Aktueller Monat</option>
+                            <option value="last_month" ${settings.defaultTimeRange === "last_month" ? "selected" : ""}>Letzter Monat</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-group-title">Darstellung</div>
+                <div class="settings-row">
+                    <label>Theme</label>
+                    <div class="settings-control">
+                        <div class="settings-radio-group">
+                            <label>
+                                <input type="radio" name="theme" value="light" ${settings.theme !== "dark" ? "checked" : ""} />
+                                Light
+                            </label>
+                            <label>
+                                <input type="radio" name="theme" value="dark" ${settings.theme === "dark" ? "checked" : ""} />
+                                Dark
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <label for="settingsCreativeLayout">Creative Layout</label>
+                    <div class="settings-control">
+                        <select id="settingsCreativeLayout">
+                            <option value="grid" ${settings.creativeLayout === "grid" ? "selected" : ""}>Grid</option>
+                            <option value="list" ${settings.creativeLayout === "list" ? "selected" : ""}>Liste</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-group-title">Meta / Cache</div>
+                <div class="settings-row">
+                    <label for="settingsCacheTtl">Cache-Dauer für Meta-Daten (Minuten)</label>
+                    <div class="settings-control">
+                        <input
+                            type="number"
+                            id="settingsCacheTtl"
+                            min="5"
+                            max="120"
+                            step="5"
+                            value="${settings.metaCacheTtlMinutes || 15}"
+                        />
+                    </div>
+                </div>
+                <p style="font-size:11px;color:var(--text-secondary);margin-top:4px;">
+                    Je höher die Dauer, desto weniger API-Calls – aber Daten sind weniger „frisch“.
+                </p>
+            </div>
+
+            <button type="submit" class="primary-btn" id="settingsSaveButton">Speichern</button>
+        </form>
+    `;
+
+    openModal("Settings", html);
+
+    const form = document.getElementById("settingsForm");
+    if (form) {
+        form.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const currencyEl = document.getElementById("settingsCurrency");
+            const rangeEl = document.getElementById("settingsDefaultRange");
+            const layoutEl = document.getElementById("settingsCreativeLayout");
+            const cacheEl = document.getElementById("settingsCacheTtl");
+            const themeRadio = form.querySelector(
+                'input[name="theme"]:checked'
+            );
+
+            const currency = currencyEl?.value || "EUR";
+            const defaultRange = rangeEl?.value || "last_30d";
+            const creativeLayout = layoutEl?.value || "grid";
+            const cacheMinutes = parseInt(cacheEl?.value || "15", 10);
+            const theme = themeRadio?.value === "dark" ? "dark" : "light";
+
+            const settings = ensureSettings();
+            settings.currency = currency;
+            settings.defaultTimeRange = defaultRange;
+            settings.creativeLayout = creativeLayout;
+            settings.metaCacheTtlMinutes = isNaN(cacheMinutes)
+                ? 15
+                : Math.min(Math.max(cacheMinutes, 5), 120);
+            settings.theme = theme;
+
+            saveSettingsToStorage();
+            applyThemeFromSettings();
+            applyDashboardTimeRangeFromSettings();
+
+            showToast("Settings gespeichert.", "success");
+            addNotification(
+                "success",
+                "Settings gespeichert",
+                "Deine Einstellungen wurden aktualisiert."
+            );
+        });
+    }
+}
+
+/* -------------------------------------------------------
+    NOTIFICATION UI
+---------------------------------------------------------*/
+
+function openNotificationsModal() {
+    const list = ensureNotifications();
+    if (!list.length) {
+        openModal(
+            "Benachrichtigungen",
+            "<p style='font-size:13px;color:var(--text-secondary);'>Keine Benachrichtigungen.</p>"
+        );
+        return;
+    }
+
+    const itemsHtml = list
+        .map((n) => {
+            const d = new Date(n.timestamp);
+            const ts = isNaN(d.getTime())
+                ? ""
+                : d.toLocaleString("de-DE", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit"
+                  });
+            let badgeClass = "badge-green";
+            if (n.type === "error") badgeClass = "badge-red";
+            else if (n.type === "warning") badgeClass = "badge-yellow";
+
+            return `
+                <div style="border-bottom:1px solid var(--border);padding:8px 0;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-size:13px;font-weight:600;">${n.title ||
+                            "System"}</span>
+                        <span class="badge ${badgeClass}">${n.type.toUpperCase()}</span>
+                    </div>
+                    <p style="font-size:12px;color:var(--text-secondary);margin-top:2px;">
+                        ${n.message || ""}
+                    </p>
+                    <p style="font-size:11px;color:var(--text-secondary);margin-top:2px;">
+                        ${ts}
+                    </p>
+                </div>
+            `;
+        })
+        .join("");
+
+    const html = `
+        <div style="max-height:360px;overflow-y:auto;font-size:13px;">
+            ${itemsHtml}
+        </div>
+    `;
+
+    openModal("Benachrichtigungen", html);
 }
 
 /* -------------------------------------------------------
@@ -431,13 +783,22 @@ function updateUI() {
 ---------------------------------------------------------*/
 
 document.addEventListener("DOMContentLoaded", async () => {
+    ensureSettings();
+    ensureNotifications();
+    loadSettingsFromStorage();
+    applyThemeFromSettings();
+
     loadMetaTokenFromStorage();
+
+    // Dashboard Default Range setzen
+    applyDashboardTimeRangeFromSettings();
 
     showView(AppState.currentView);
     initSidebarNavigation(showView);
-    initSettings();
+    initSettings(); // vorhandenes Modul bleibt eingebunden
     initDateTime();
     updateGreeting();
+    updateNotificationsBadge();
 
     const metaBtn = document.getElementById("connectMetaButton");
     if (metaBtn) metaBtn.addEventListener("click", handleMetaConnectClick);
@@ -452,20 +813,35 @@ document.addEventListener("DOMContentLoaded", async () => {
     const profileBtn = document.getElementById("profileButton");
     if (profileBtn) {
         profileBtn.addEventListener("click", () => {
+            const user = AppState.meta?.user || {};
+            const name = user.name || "SignalOne User";
+            const id = user.id || "n/a";
+
             const html = `
                 <div style="display:flex; flex-direction:column; gap:12px; font-size:13px;">
-                    <p>
-                        Hier werden später deine Profil-, Team- und Account-Daten aus der SignalOne-Datenbank geladen.
-                    </p>
-                    <p style="color:var(--text-secondary);">
-                        Geplant:
-                    </p>
-                    <ul style="margin-left:18px; color:var(--text-secondary); font-size:13px;">
-                        <li>Verknüpfte Werbekonten & Rollen (Owner / Admin / Viewer)</li>
-                        <li>Benachrichtigungs-Einstellungen & E-Mail-Reports</li>
-                        <li>Fehler- & Aktivitätslog für dieses Profil</li>
-                    </ul>
-                    <p style="font-size:12px; color:var(--text-secondary);">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div style="width:38px;height:38px;border-radius:999px;background:linear-gradient(135deg,#6366F1,#4F46E5);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;">
+                            ${name
+                                .split(" ")
+                                .map((p) => p[0])
+                                .join("")
+                                .slice(0, 2)
+                                .toUpperCase()}
+                        </div>
+                        <div>
+                            <div style="font-weight:700;">${name}</div>
+                            <div style="font-size:12px;color:var(--text-secondary);">Meta ID: ${id}</div>
+                        </div>
+                    </div>
+                    <div style="font-size:12px;color:var(--text-secondary);">
+                        <p>In der finalen Version werden hier deine Team- und Account-Daten aus der SignalOne-Datenbank angezeigt.</p>
+                        <ul style="margin-left:18px;margin-top:6px;">
+                            <li>Verknüpfte Werbekonten & Rollen</li>
+                            <li>Benachrichtigungs-Einstellungen & E-Mail-Reports</li>
+                            <li>Fehler- & Aktivitätslog für dieses Profil</li>
+                        </ul>
+                    </div>
+                    <p style="font-size:11px;color:var(--text-secondary);margin-top:6px;">
                         Aktuelle Version: <strong>S1-0.9-b</strong>
                     </p>
                 </div>
@@ -477,23 +853,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     const notificationsBtn = document.getElementById("notificationsButton");
     if (notificationsBtn) {
         notificationsBtn.addEventListener("click", () => {
-            const html = `
-                <div style="display:flex; flex-direction:column; gap:10px; font-size:13px;">
-                    <p>
-                        Hier werden später System- und Produkt-Benachrichtigungen angezeigt:
-                    </p>
-                    <ul style="margin-left:18px; color:var(--text-secondary); font-size:13px;">
-                        <li>Meta-Verbindungsstatus & API-Fehler</li>
-                        <li>Neue Reports & Exporte bereit</li>
-                        <li>Sensei-Warnungen & Chancen</li>
-                        <li>Testing-Log Updates</li>
-                    </ul>
-                    <p style="font-size:12px; color:var(--text-secondary);">
-                        In der finalen Version werden diese Einträge aus der Datenbank (error_logs & notifications) geladen.
-                    </p>
-                </div>
-            `;
-            openModal("Benachrichtigungen (Preview)", html);
+            openNotificationsModal();
+        });
+    }
+
+    const settingsBtn = document.getElementById("openSettingsButton");
+    if (settingsBtn) {
+        settingsBtn.addEventListener("click", () => {
+            openSettingsModal();
         });
     }
 
@@ -525,6 +892,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             AppState.timeRangePreset = e.target.value;
             AppState.dashboardLoaded = false;
             AppState.meta.insightsByCampaign = {};
+            const settings = ensureSettings();
+            settings.defaultTimeRange = e.target.value;
+            saveSettingsToStorage();
             updateDashboardView(AppState.metaConnected);
         });
 
@@ -566,8 +936,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             AppState.meta.creatives = [];
             AppState.meta.ads = [];
 
-            // Cache für diesen Account (Kampagnen & Ads) leeren,
-            // Accounts-Cache kann bleiben
             ensureMetaCache();
             if (newAccountId) {
                 delete AppState.metaCache.campaignsByAccount[newAccountId];
