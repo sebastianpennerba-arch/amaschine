@@ -94,8 +94,8 @@ function normalizeCreative(raw) {
     const typeRaw =
         base.creative?.object_type ||
         base.object_type ||
-        base.creative?.object_story_spec?.video_data && "VIDEO" ||
-        base.creative?.object_story_spec?.image_hash && "IMAGE" ||
+        (base.creative?.object_story_spec?.video_data && "VIDEO") ||
+        (base.creative?.object_story_spec?.image_hash && "IMAGE") ||
         inferCreativeTypeFromName(name);
 
     const type = typeRaw || inferCreativeTypeFromName(name);
@@ -288,9 +288,15 @@ export function renderCreativeLibrary() {
 
     let list = [...cachedCreatives];
 
-    // Type-Filter (z. B. "all", "video", "image", "carousel")
+    // Type-Filter (z. B. "all", "video", "image", "carousel", "static")
     if (typeFilter !== "all") {
-        const t = typeFilter.toUpperCase();
+        let t = typeFilter.toUpperCase();
+
+        // Fix: "static" (aus dem Dropdown) entspricht in den Daten "IMAGE"
+        if (t === "STATIC") {
+            t = "IMAGE";
+        }
+
         list = list.filter((c) =>
             (c._view.type || "").toUpperCase().includes(t)
         );
