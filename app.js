@@ -196,19 +196,11 @@ function showView(viewId) {
 
 function handleMetaConnectClick() {
     if (!META_OAUTH_CONFIG?.appId || !META_OAUTH_CONFIG?.redirectUri) {
-        showToast("Meta-Konfiguration fehlt. Bitte Backend prüfen.", "error");
-        addNotification(
-            "error",
-            "Meta-Konfiguration",
-            "Meta-Konfiguration fehlt. Bitte Backend prüfen."
-        );
+        showToast("Meta-Konfiguration fehlt.", "error");
         return;
     }
 
-    showToast("Meta Login wird geöffnet…", "info");
-    addNotification("info", "Meta Login", "Meta Login Dialog geöffnet.");
-
-    const url =
+    const popupUrl =
         "https://www.facebook.com/v21.0/dialog/oauth?" +
         new URLSearchParams({
             client_id: META_OAUTH_CONFIG.appId,
@@ -217,7 +209,25 @@ function handleMetaConnectClick() {
             scope: META_OAUTH_CONFIG.scopes
         });
 
-    window.location.href = url;
+    // ⭐ Popup statt Redirect
+    const popup = window.open(
+        popupUrl,
+        "MetaLogin",
+        "width=600,height=800"
+    );
+
+    if (!popup) {
+        showToast("Popup blockiert! Bitte Popups erlauben.", "warning");
+        return;
+    }
+
+    // Alle 500ms prüfen: Token zurück?
+    const pollTimer = setInterval(() => {
+        if (popup.closed) {
+            clearInterval(pollTimer);
+            updateUI();
+        }
+    }, 500);
 }
 
 function persistMetaToken(token) {
