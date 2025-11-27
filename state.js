@@ -4,7 +4,7 @@ export const META_APP_ID = "732040642590155";
 
 export const META_OAUTH_CONFIG = {
     appId: META_APP_ID,
-    redirectUri: "https://signalone-frontend.onrender.com/auth-complete",
+    redirectUri: "https://signalone-frontend.onrender.com/",
     scopes: "ads_read,ads_management,business_management"
 };
 
