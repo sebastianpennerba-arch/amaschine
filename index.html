@@ -1,217 +1,337 @@
+
 <!DOCTYPE html>
 <html lang="de">
-  <head>
+<head>
     <meta charset="UTF-8" />
-    <title>SignalOne.cloud</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="./styles.css" />
-  </head>
-  <body>
-    <!-- Sidebar -->
-    <nav class="sidebar">
-      <div class="sidebar-logo">
-        <span class="logo-dot"></span>
-        <span class="logo-text">SignalOne</span>
-      </div>
+    <title>SignalOne.cloud | Elite Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+</head>
 
-      <ul class="sidebar-nav">
-        <li class="sidebar-item active" data-view="dashboardView">
-          <span>Dashboard</span>
-        </li>
-        <li class="sidebar-item" data-view="creativesView">
-          <span>Creatives</span>
-        </li>
-        <li class="sidebar-item" data-view="campaignsView">
-          <span>Campaigns</span>
-        </li>
-        <li class="sidebar-item" data-view="senseiView">
-          <span>Sensei</span>
-        </li>
-        <li class="sidebar-item" data-view="reportsView">
-          <span>Reports</span>
-        </li>
-        <li class="sidebar-item" data-view="testingLogView">
-          <span>Testing Log</span>
-        </li>
-      </ul>
+<body>
+    <!-- ========================================= -->
+    <!-- SIDEBAR -->
+    <!-- ========================================= -->
+    <nav class="sidebar" id="sidebar">
+        <div class="logo-container">
+            <img src="Logo_re_Sc.png" alt="SignalOne Logo" class="logo" />
+        </div>
 
-      <div class="sidebar-footer">
-        <div class="health-pill">
-          <span class="dot dot-meta"></span> Meta
+        <div class="menu-category">ANALYTICS</div>
+        <a href="#" class="menu-item active" data-view="dashboardView" id="menuDashboard">
+            <i class="fas fa-chart-line"></i> Dashboard
+        </a>
+        <a href="#" class="menu-item" data-view="creativesView" id="menuCreativeLibrary">
+            <i class="fas fa-image"></i> Creative Library
+        </a>
+        <a href="#" class="menu-item" data-view="campaignsView" id="menuCampaigns">
+            <i class="fas fa-bullhorn"></i> Campaigns
+        </a>
+
+        <div class="menu-category">SENSEI / AI</div>
+        <a href="#" class="menu-item" data-view="senseiView" id="menuSensei">
+            <i class="fas fa-robot"></i> Sensei Strategy
+        </a>
+
+        <div class="menu-category">REPORTING</div>
+        <a href="#" class="menu-item" data-view="reportsView" id="menuReports">
+            <i class="fas fa-file-export"></i> Exports & Reports
+        </a>
+        <a href="#" class="menu-item" data-view="testingLogView" id="menuTestingLog">
+            <i class="fas fa-flask"></i> Testing Log
+        </a>
+
+        <div class="menu-footer">
+            <div class="menu-status">
+                <span
+                    class="status-indicator status-red"
+                    id="sidebarMetaStatusIndicator"
+                ></span>
+                <span id="sidebarMetaStatusLabel">Meta Ads (Offline)</span>
+            </div>
+
+            <div class="menu-status">
+                <span
+                    class="status-indicator status-green"
+                    id="sidebarSystemHealthIndicator"
+                ></span>
+                <span id="sidebarSystemHealthLabel">System Health (OK)</span>
+            </div>
+
+            <div class="menu-status">
+                <span
+                    class="status-indicator status-yellow"
+                    id="sidebarCampaignHealthIndicator"
+                ></span>
+                <span id="sidebarCampaignHealthLabel">Campaign Health (n/a)</span>
+            </div>
+
+            <!-- SETTINGS BUTTON (unten links) -->
+            <button class="menu-settings-button" id="openSettingsButton">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </button>
         </div>
-        <div class="health-pill">
-          <span class="dot dot-system"></span> System
-        </div>
-        <div class="health-pill">
-          <span class="dot dot-campaign"></span> Campaigns
-        </div>
-      </div>
     </nav>
 
-    <!-- Topbar -->
+    <!-- ========================================= -->
+    <!-- TOP BAR -->
+    <!-- ========================================= -->
     <header class="top-bar">
-      <div class="top-left">
-        <div class="top-title">Hallo, Sensei</div>
-        <div class="top-subtitle">
-          Meta Status:
-          <span id="metaStatusIndicator" class="status-badge">Nicht verbunden</span>
+        <div class="greeting-status">
+            <h1 id="greetingTitle">Guten Tag!</h1>
+
+            <span class="header-date-time">
+                Datum: <span id="currentDate"></span> | Zeit:
+                <span id="currentTime"></span>
+                <span class="app-version-label">Version: S1-0.9-b</span>
+            </span>
         </div>
-      </div>
 
-      <div class="top-center">
-        <select id="adAccountSelect" class="top-select">
-          <option>Werbekonto laden…</option>
-        </select>
+        <div class="account-selection">
+            <div class="select-container">
+                <select id="brandSelect">
+                    <option>SignalOne Brand (Active)</option>
+                </select>
+            </div>
 
-        <select id="campaignSelect" class="top-select">
-          <option>Kampagnen laden…</option>
-        </select>
+            <div class="select-container">
+                <select id="campaignGroupSelect">
+                    <option>Alle Kampagnen</option>
+                </select>
+            </div>
 
-        <select id="timeRangeSelect" class="top-select">
-          <option value="last_30d" selected>Letzte 30 Tage</option>
-          <option value="today">Heute</option>
-          <option value="yesterday">Gestern</option>
-        </select>
-      </div>
+            <div id="topbarMetaStatus" class="topbar-meta-status meta-status-disconnected">
+                <i id="topbarMetaStatusIcon" class="fas fa-plug"></i>
+                <span id="topbarMetaStatusLabel">Meta: Getrennt</span>
+            </div>
 
-      <div class="top-right">
-        <button id="metaConnectBtn" class="btn btn-primary">
-          Mit Meta verbinden
-        </button>
-      </div>
+            <button class="header-action-button" id="profileButton">
+                <i class="fas fa-user-circle"></i>
+                <span class="icon-tooltip">Profil</span>
+            </button>
+            <button class="header-action-button" id="notificationsButton">
+                <i class="fas fa-bell"></i>
+                <span class="icon-tooltip">Benachrichtigungen</span>
+            </button>
+            <button class="header-action-button" id="disconnectMetaButton">
+                <i class="fas fa-sign-out-alt"></i>
+                <span class="icon-tooltip">Abmelden</span>
+            </button>
+        </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="main-content">
-      <!-- Dashboard -->
-      <section id="dashboardView" class="view">
-        <div class="view-header">
-          <h1>Dashboard</h1>
+    <!-- ========================================= -->
+    <!-- MAIN CONTENT -->
+    <!-- ========================================= -->
+    <main class="main-content" id="mainContent">
+        <!-- META CONNECT STRIPE -->
+        <div id="metaConnectStripe" class="meta-connect-stripe">
+            <div class="meta-connect-inner">
+                <span id="metaStripeText">
+                    <i class="fas fa-plug"></i> Nicht mit Meta Ads verbunden
+                </span>
+                <button id="connectMetaButton" class="connect-meta-btn">
+                    <i class="fab fa-meta"></i> Mit Meta verbinden
+                </button>
+            </div>
         </div>
 
-        <div class="kpi-grid">
-          <div class="kpi-card">
-            <div class="kpi-label">Spend</div>
-            <div id="kpiTotalSpend" class="kpi-value">–</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Revenue</div>
-            <div id="kpiTotalRevenue" class="kpi-value">–</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">ROAS</div>
-            <div id="kpiRoas" class="kpi-value">–</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">CTR</div>
-            <div id="kpiCtr" class="kpi-value">–</div>
-          </div>
-        </div>
+        <!-- DASHBOARD VIEW -->
+        <section class="view" id="dashboardView">
+            <h2 class="elite-title">Meta Performance Dashboard</h2>
 
-        <div class="panel">
-          <div class="panel-header">
-            <h2>Performance Überblick</h2>
-          </div>
-          <div id="dashboardSummary" class="panel-body">
-            <p>Verbinde ein Werbekonto und wähle eine Kampagne, um Daten zu sehen.</p>
-          </div>
-        </div>
-      </section>
+            <div
+                id="dashboardMetaSummary"
+                style="margin-bottom: 16px; color: var(--text-secondary); font-size: 14px;"
+            >
+                Noch keine Daten geladen.
+            </div>
 
-      <!-- Creatives -->
-      <section id="creativesView" class="view hidden">
-        <div class="view-header">
-          <h1>Creative Library</h1>
-        </div>
+            <div id="dashboardKpiContainer"></div>
+            <div id="dashboardChartContainer"></div>
 
-        <div class="panel">
-          <div class="panel-header">
-            <h2>Creatives</h2>
-          </div>
-          <div id="creativesGrid" class="creatives-grid">
-            <p>Verbinde Meta und wähle ein Werbekonto, um Creatives zu laden.</p>
-          </div>
-        </div>
-      </section>
+            <div class="card">
+                <div class="performance-card">
+                    <div class="card-header">
+                        <h3>Zeitraum</h3>
+                        <div>
+                            <select id="dashboardTimeRange">
+                                <option value="today">Heute</option>
+                                <option value="yesterday">Gestern</option>
+                                <option value="today_yesterday">Heute + Gestern</option>
+                                <option value="last_7d">Letzte 7 Tage</option>
+                                <option value="last_30d" selected>Letzte 30 Tage</option>
+                                <option value="this_month">Aktueller Monat</option>
+                                <option value="last_month">Letzter Monat</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-      <!-- Campaigns -->
-      <section id="campaignsView" class="view hidden">
-        <div class="view-header">
-          <h1>Campaigns</h1>
-        </div>
+            <div id="dashboardHeroCreativesContainer"></div>
+        </section>
 
-        <div class="panel">
-          <div class="panel-header">
-            <h2>Kampagnen</h2>
-          </div>
-          <div class="panel-body">
-            <table class="table" id="campaignsTable">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Status</th>
-                  <th>Objective</th>
-                  <th>Daily Budget</th>
-                  <th>Created</th>
-                </tr>
-              </thead>
-              <tbody id="campaignsTableBody"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
+        <!-- CREATIVE LIBRARY VIEW -->
+        <section class="view hidden" id="creativesView">
+            <h2 class="elite-title">Creative Library (Live-Daten)</h2>
 
-      <!-- Sensei -->
-      <section id="senseiView" class="view hidden">
-        <div class="view-header">
-          <h1>Sensei</h1>
-        </div>
-        <div id="senseiContent" class="panel">
-          <div class="panel-body">
-            <p>Sensei-Empfehlungen basieren auf deinen Live-Daten.</p>
-          </div>
-        </div>
-      </section>
+            <div class="card">
+                <div
+                    class="filter-bar"
+                    style="display: flex; gap: 15px; align-items: center"
+                >
+                    <input
+                        type="text"
+                        id="creativeSearch"
+                        placeholder="Suche nach Namen, Kampagne, Adset"
+                        style="
+                            flex-grow: 1;
+                            padding: 8px;
+                            border-radius: 6px;
+                            border: 1px solid var(--border);
+                        "
+                    />
+                    <select id="creativeType">
+                        <option value="all">Alle Typen</option>
+                        <option value="static">Static / Image</option>
+                        <option value="video">Video</option>
+                        <option value="carousel">Carousel</option>
+                    </select>
+                    <select id="creativeSort">
+                        <option value="roas_desc">ROAS (absteigend)</option>
+                        <option value="spend_desc">Spend (absteigend)</option>
+                        <option value="spend_asc">Spend (aufsteigend)</option>
+                    </select>
+                </div>
+            </div>
 
-      <!-- Reports -->
-      <section id="reportsView" class="view hidden">
-        <div class="view-header">
-          <h1>Reports</h1>
-        </div>
-        <div id="reportsContent" class="panel">
-          <div class="panel-body">
-            <p>Export- und Reporting-Module folgen hier.</p>
-          </div>
-        </div>
-      </section>
+            <div id="creativeLibraryGrid"></div>
+        </section>
 
-      <!-- Testing Log -->
-      <section id="testingLogView" class="view hidden">
-        <div class="view-header">
-          <h1>Testing Log</h1>
-        </div>
-        <div id="testingLogContent" class="panel">
-          <div class="panel-body">
-            <p>Dokumentiere hier deine Tests & Hypothesen.</p>
-          </div>
-        </div>
-      </section>
+        <!-- CAMPAIGNS VIEW -->
+        <section class="view hidden" id="campaignsView">
+            <h2 class="elite-title">Campaigns Overview</h2>
+
+            <div class="card" style="margin-bottom: 16px;">
+                <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+                    <input
+                        type="text"
+                        id="campaignSearch"
+                        placeholder="Kampagnen suchen..."
+                        style="
+                            flex-grow: 1;
+                            padding: 8px;
+                            border-radius: 6px;
+                            border: 1px solid var(--border);
+                        "
+                    />
+                    <select id="campaignStatusFilter">
+                        <option value="all">Alle Status</option>
+                        <option value="ACTIVE">Aktiv</option>
+                        <option value="PAUSED">Pausiert</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="card">
+                <table class="campaigns-table">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Name</th>
+                            <th>Objective</th>
+                            <th>Daily Budget</th>
+                            <th>Spend (30D)</th>
+                            <th>ROAS (30D)</th>
+                            <th>CTR (30D)</th>
+                            <th>Impressions (30D)</th>
+                            <th>Aktionen</th>
+                        </tr>
+                    </thead>
+                    <tbody id="campaignsTableBody">
+                        <tr>
+                            <td colspan="9">
+                                <span style="color: var(--text-secondary); font-size:14px;">
+                                    Verbinde Meta, um Kampagnen zu laden.
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SENSEI / AI VIEW -->
+        <section class="view hidden" id="senseiView">
+            <h2 class="elite-title">Sensei Strategy (AI Layer)</h2>
+            <div id="senseiContent"></div>
+        </section>
+
+        <!-- REPORTS / EXPORTS VIEW -->
+        <section class="view hidden" id="reportsView">
+            <h2 class="elite-title">Reports & Exports</h2>
+
+            <div class="card">
+                <div class="reports-header" style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap;">
+                    <div>
+                        <label for="reportScopeSelect" style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:4px;">
+                            Report-Scope:
+                        </label>
+                        <select id="reportScopeSelect" style="padding:8px 12px; border-radius:6px; border:1px solid var(--border); font-size:13px;">
+                            <option value="account">Account Report (Standard)</option>
+                            <option value="campaign">Campaign Report (aktuell ausgewählte Kampagne)</option>
+                            <option value="creatives">Creative Library (alle geladenen Creatives)</option>
+                            <option value="raw">RAW Dump (technische Meta-Response)</option>
+                        </select>
+                    </div>
+                    <p class="reports-hint">
+                        Wähle zuerst den Scope, dann exportiere die Daten als JSON, CSV, XLSX oder PDF.
+                    </p>
+                </div>
+
+                <div class="reports-actions">
+                    <button class="action-button-secondary" id="exportJsonBtn">
+                        <i class="fas fa-code"></i>&nbsp; JSON Export
+                    </button>
+                    <button class="action-button-secondary" id="exportCsvBtn">
+                        <i class="fas fa-file-csv"></i>&nbsp; CSV Export
+                    </button>
+                    <button class="action-button-secondary" id="exportXlsxBtn">
+                        <i class="fas fa-file-excel"></i>&nbsp; XLSX Export
+                    </button>
+                    <button class="action-button-secondary" id="exportPdfBtn">
+                        <i class="fas fa-file-pdf"></i>&nbsp; PDF Export
+                    </button>
+                </div>
+
+                <div id="reportSnapshot"></div>
+            </div>
+        </section>
+
+        <!-- TESTING LOG VIEW -->
+        <section class="view hidden" id="testingLogView">
+            <h2 class="elite-title">Testing Log</h2>
+            <div id="testingLogContent"></div>
+        </section>
     </main>
 
-    <!-- Modal -->
-    <div id="modalOverlay" class="modal-overlay hidden">
-      <div class="modal">
-        <div class="modal-header">
-          <h2 id="modalTitle"></h2>
-          <button id="modalCloseBtn" class="modal-close">&times;</button>
-        </div>
-        <div id="modalBody" class="modal-body"></div>
-      </div>
-    </div>
-
-    <!-- Toasts -->
+    <!-- TOAST & MODAL ROOTS -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script type="module" src="./app.js"></script>
-  </body>
+    <div id="modalOverlay" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modalTitle"></h3>
+            <div id="modalBody"></div>
+            <button id="modalCloseButton">Schließen</button>
+        </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
 </html>
