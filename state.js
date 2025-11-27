@@ -37,7 +37,7 @@ export const AppState = {
         metaCacheTtlMinutes: 15,
         defaultTimeRange: "last_30d",
         creativeLayout: "grid",
-        demoMode: false
+        demoMode: true
     },
 
     metaCache: {
