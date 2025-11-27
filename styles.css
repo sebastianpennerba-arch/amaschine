@@ -1,144 +1,139 @@
-/* ================================
-   SIGNALONE GLOBAL STYLES (CLEAN + FIXED 27.11.2025)
-   ================================ */
+/* ========================================
+   SIGNALONE.P1 — ORIGINAL UI (Version A1)
+   Clean, centered, wide layout (24.11.2025)
+   ======================================== */
 
-/* ROOT VARIABLES */
+/* -------- ROOT -------- */
 :root {
-    --color-primary: #6366F1;
-    --color-primary-dark: #4F46E5;
-    --color-background: #F3F4F6;
-    --color-sidebar: #FFFFFF;
-    --color-topbar: #FFFFFF;
-    --color-card: #FFFFFF;
-    --text-primary: #1F2937;
-    --text-secondary: #6B7280;
-    --border: #E5E7EB;
-    --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.05);
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
 
-    --success: #10B981;
-    --warning: #F59E0B;
-    --danger: #EF4444;
+    --bg: #f3f4f6;
+    --white: #ffffff;
+    --text: #1f2937;
+    --text-light: #6b7280;
+    --border: #e5e7eb;
+    --shadow: 0 4px 12px rgba(0,0,0,0.05);
 
-    --spacing-main: 24px;
-    --spacing-inner: 16px;
-    --radius: 12px;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+
+    --radius: 14px;
+    --spacing: 24px;
+    --inner: 16px;
 }
 
-/* DARK THEME */
-:root[data-theme="dark"] {
-    --color-background: #020617;
-    --color-sidebar: #020617;
-    --color-topbar: #020617;
-    --color-card: #020617;
-    --text-primary: #E5E7EB;
-    --text-secondary: #9CA3AF;
-    --border: #1F2937;
-    --shadow-soft: 0 4px 16px rgba(15, 23, 42, 0.66);
-}
-
-/* GLOBAL RESET */
-*,
-*::before,
-*::after {
+/* -------- RESET -------- */
+* {
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 body {
-    margin: 0;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
-    background-color: var(--color-background);
-    color: var(--text-primary);
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui,-apple-system,BlinkMacSystemFont,"Inter",sans-serif;
 }
 
-/* ======================
+/* ========================================
    SIDEBAR
-   ====================== */
+   ======================================== */
 
 .sidebar {
-    background-color: var(--color-sidebar);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
     width: 250px;
+    background: var(--white);
+    border-right: 1px solid var(--border);
     position: fixed;
     top: 0;
-    bottom: 0;
     left: 0;
-    padding: 16px 16px 12px;
+    bottom: 0;
+    padding: 16px;
     z-index: 900;
-}
-
-.logo-container {
-    padding: var(--spacing-inner) var(--spacing-main);
-    margin-bottom: var(--spacing-inner);
-    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
 }
 
 .logo {
     width: 150px;
+    margin-bottom: 20px;
 }
 
-/* MENU CATEGORY */
 .menu-category {
-    color: var(--text-secondary);
+    margin-top: 10px;
+    margin-bottom: 6px;
+    padding: 0 8px;
     font-size: 12px;
     font-weight: 600;
+    color: var(--text-light);
     text-transform: uppercase;
-    padding: 10px var(--spacing-main) 5px;
-    margin-top: 10px;
 }
 
 .menu-item {
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin: 2px 0;
+    font-size: 14px;
+    color: var(--text-light);
+    text-decoration: none;
     display: flex;
     align-items: center;
-    padding: 10px var(--spacing-main);
-    margin: 2px 0;
-    color: var(--text-secondary);
-    font-size: 14px;
-    text-decoration: none;
-    transition: 0.2s;
-    border-left: 4px solid transparent;
-    border-radius: 6px;
+    gap: 10px;
+    transition: 0.15s;
+}
+
+.menu-item:hover {
+    background: var(--border);
+    color: var(--text);
 }
 
 .menu-item.active {
-    background-color: #EEF2FF;
-    color: var(--color-primary);
-    border-left-color: var(--color-primary);
+    background: #eef2ff;
+    border-left: 4px solid var(--primary);
+    color: var(--primary);
     font-weight: 600;
 }
 
-/* FOOTER */
 .menu-footer {
     margin-top: auto;
-    padding-top: var(--spacing-inner);
-    border-top: 1px solid var(--border);
     font-size: 12px;
-    color: var(--text-secondary);
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
 }
 
-/* SETTINGS BUTTON */
+.status-indicator {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    margin-right: 6px;
+}
+
+.status-green { background: var(--success); }
+.status-yellow { background: var(--warning); }
+.status-red { background: var(--danger); }
+
 .menu-settings-button {
-    margin: 8px var(--spacing-main);
-    display: flex;
-    gap: 8px;
-    padding: 8px 10px;
-    border-radius: 8px;
+    margin-top: 14px;
+    padding: 10px;
+    border-radius: 10px;
+    background: var(--white);
     border: 1px solid var(--border);
-    background: var(--color-card);
-    color: var(--text-primary);
-    cursor: pointer;
-    justify-content: center;
-    font-size: 13px;
+    width: 100%;
     font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
 }
 
-/* ======================
-   TOPBAR (FIXED)
-   ====================== */
+.menu-settings-button:hover {
+    background: var(--border);
+}
+
+/* ========================================
+   TOPBAR
+   ======================================== */
 
 .top-bar {
     position: fixed;
@@ -146,45 +141,102 @@ body {
     left: 250px;
     right: 0;
     height: 70px;
-    background-color: var(--color-topbar);
-    box-shadow: var(--shadow-soft);
-    padding: 0 var(--spacing-main);
+    background: var(--white);
+    box-shadow: var(--shadow);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 0 var(--spacing);
     z-index: 950;
 }
 
-/* ======================
-   MAIN CONTENT (FIXED)
-   ====================== */
+.greeting-status h1 {
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.header-date-time {
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--text-light);
+}
+
+.account-selection {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.select-container select {
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 12px;
+    background: var(--white);
+    cursor: pointer;
+}
+
+.header-action-button {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.header-action-button:hover {
+    border-color: var(--primary);
+}
+
+/* META STATUS (TOPBAR) */
+.topbar-meta-status {
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    border: 1px solid rgba(16,185,129,0.4);
+    color: var(--success);
+}
+
+/* ========================================
+   MAIN CONTENT (CENTERED, ORIGINAL A1)
+   ======================================== */
 
 .main-content {
     margin-left: 250px;
-    margin-top: 70px; /* SYNC mit Topbar */
-    padding: var(--spacing-main);
-    max-width: 1600px;
+    padding: var(--spacing);
+    margin-top: 70px;
+    width: calc(100% - 250px);
 }
+
+/* META CONNECT STRIPE */
+.meta-connect-stripe {
+    background: rgba(239, 246, 255, 0.85);
+    border: 1px dashed rgba(129, 140, 248, 0.6);
+    padding: 10px 16px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.meta-connect-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.hidden { display: none; }
+
+/* ========================================
+   VIEWS
+   ======================================== */
 
 .view {
-    padding-top: 12px; /* FIX: Kein riesiger Abstand */
+    max-width: 1250px;
+    margin: 0 auto;
 }
-
-/* ======================
-   META CONNECT STRIPE
-   ====================== */
-
-.meta-connect-stripe {
-    background: rgba(239, 246, 255, 0.9);
-    border: 1px dashed rgba(129, 140, 248, 0.6);
-    border-radius: 10px;
-    padding: 10px 14px;
-    margin-bottom: 18px;
-}
-
-/* ======================
-   VIEW HEADERS
-   ====================== */
 
 .elite-title {
     font-size: 28px;
@@ -192,107 +244,63 @@ body {
     margin-bottom: 18px;
 }
 
-/* ======================
-   CARDS / GENERAL
-   ====================== */
-
-.card {
-    background-color: var(--color-card);
-    border-radius: var(--radius);
-    padding: var(--spacing-main);
-    margin-bottom: var(--spacing-main);
-    box-shadow: var(--shadow-soft);
-}
-
-/* ======================
-   KPI GRID
-   ====================== */
+/* ========================================
+   KPI CARDS (ORIGINAL DESIGN)
+   ======================================== */
 
 .kpi-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: var(--spacing-main);
+    gap: var(--spacing);
+    margin-bottom: var(--spacing);
 }
 
 .kpi-card {
-    background: var(--color-card);
-    border: 1px solid var(--border);
+    background: var(--white);
     border-radius: var(--radius);
-    padding: 20px;
-}
-
-/* ======================
-   CREATIVE LIBRARY
-   ====================== */
-
-#creativeLibraryGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: var(--spacing-main);
-}
-
-/* ======================
-   TABLES
-   ====================== */
-
-.campaigns-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.campaigns-table th,
-.campaigns-table td {
-    padding: var(--spacing-inner);
-    border-bottom: 1px solid var(--border);
-}
-
-/* ======================
-   MODALS
-   ====================== */
-
-.modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.45);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 3000;
-}
-
-.modal-overlay.visible {
-    display: flex;
-}
-
-.modal-content {
-    background: var(--color-card);
-    border-radius: 16px;
     padding: 22px;
-    max-width: 720px;
-    box-shadow: var(--shadow-soft);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
 }
 
-/* ======================
-   FIX PACK — Layout-Bugs 27.11.2025
-   ====================== */
-
-/* entfernt zu große weiße Box über Dashboard */
-.view-header {
-    margin-top: 0 !important;
-    padding-top: 0 !important;
+.kpi-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-light);
+    margin-bottom: 4px;
 }
 
-/* bündelt Settings-Button korrekt */
-.menu-settings-button {
-    margin-top: 12px;
+.kpi-value {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--text);
 }
 
-/* fix: kein Leerraum unter Topbar */
-.main-content {
-    padding-top: 24px !important;
+/* ========================================
+   GENERIC CARD
+   ======================================== */
+
+.card {
+    background: var(--white);
+    padding: 24px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    margin-bottom: var(--spacing);
 }
 
-/* fix: Dashboard rückt nicht mehr hoch */
-#dashboardView {
-    margin-top: 0 !important;
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 1100px) {
+    .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 700px) {
+    .kpi-grid {
+        grid-template-columns: 1fr;
+    }
 }
