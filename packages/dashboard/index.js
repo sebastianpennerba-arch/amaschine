@@ -1,42 +1,30 @@
 // packages/dashboard/index.js
-// Zentrale API für das Dashboard-Package
+// Public API für das Dashboard (P1).
 
-import { computeDashboardState } from "./dashboard.compute.js";
+import { buildDashboardState } from "./dashboard.compute.js";
 import { renderDashboard } from "./dashboard.render.js";
 
 const DashboardPackage = {
-    /**
-     * Initialisierung – einmalig beim App-Start.
-     */
-    init(options = {}) {
-        console.debug("[DashboardPackage] init()", options);
+    async init() {
+        // Platzhalter – später z.B. für Polling, Websocket etc.
+        console.debug("[DashboardPackage] init()");
     },
 
-    /**
-     * Vollständiges Rendern des Dashboards (Demo oder Live).
-     */
     async render(options = {}) {
         const { connected } = options;
-        const state = await computeDashboardState(connected);
+        const state = await buildDashboardState({ connected });
         renderDashboard(state);
     },
 
-    /**
-     * Update bei Filter-/State-Änderungen.
-     */
     async update(options = {}) {
         return this.render(options);
     },
 
-    /**
-     * Cleanup-Hook (für spätere Erweiterungen).
-     */
     destroy() {
         console.debug("[DashboardPackage] destroy()");
     }
 };
 
-// Fertiges Modul einfrieren (Schutz vor versehentlicher Mutation)
 Object.freeze(DashboardPackage);
 
 export default DashboardPackage;
