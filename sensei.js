@@ -1,382 +1,230 @@
-// sensei.js – Sensei v1 (Demo) + v2 (KI via API)
-
-import { runSenseiDemoAnalysis } from "./sensei-demo-engine.js";
+// sensei.js
 import { AppState } from "./state.js";
 
 /**
- * URL deines Sensei-Backends.
- * Wenn du auf Render/Hetzner hostest:
- * - lokal:        http://localhost:3000/api/sensei/analyze
- * - Produktion:   https://signalone-backend.onrender.com/api/sensei/analyze
+ * Sensei View: nutzt Demo-Daten / aggregierte KPIs,
+ * um ein Briefing + Alerts + Handlungsvorschläge zu zeigen.
  */
-const SENSEI_API_URL = "https://signalone-backend.onrender.com/api/sensei/analyze";
+export function renderSensei() {
+    const container = document.getElementById("senseiContent");
+    if (!container) return;
 
-/* ----------------------------------------------------------
-   PUBLIC ENTRYPOINT
------------------------------------------------------------ */
+    const { campaigns, insightsByCampaign } = AppState.meta;
+    const metrics = buildSenseiMetrics(campaigns || [], insightsByCampaign || {});
 
-export function updateSenseiView(isConnected) {
-    const runBtn = document.getElementById("runSenseiBtn");
-    const output = document.getElementById("senseiOutput");
-    const loading = document.getElementById("senseiLoading");
+    container.innerHTML = `
+        <section class="sensei-briefing-section">
+            <div class="section-title">
+                <i class="ri-robot-line"></i> Sensei Briefing
+            </div>
 
-    if (!runBtn || !output || !loading) return;
+            ${renderSenseiBriefing(metrics)}
+        </section>
 
-    runBtn.onclick = async () => {
-        // Reset / Loading
-        loading.classList.remove("hidden");
-        output.classList.add("hidden");
-        output.innerHTML = "";
+        <section class="alerts-section">
+            <div class="section-title danger">
+                <i class="ri-alert-line"></i> Alerts
+            </div>
+            <div class="alerts-grid">
+                ${renderAlerts(metrics)}
+            </div>
+        </section>
 
-        try {
-            let result;
+        <section class="top-performers-section">
+            <div class="section-title">
+                <i class="ri-bar-chart-2-line"></i> Top Performer
+            </div>
+            <div class="top-performers-grid">
+                ${renderTopPerformers(metrics)}
+            </div>
+        </section>
+    `;
+}
 
-            const isDemo = !!AppState.settings?.demoMode;
+function buildSenseiMetrics(campaigns, insightsByCampaign) {
+    const decorated = campaigns.map(c => {
+        const ins = insightsByCampaign[c.id] || {};
+        const spend = Number(ins.spend || 0);
+        const rev = Number(ins.revenue || 0);
+        const roas = spend > 0 ? rev / spend : 0;
+        const impressions = Number(ins.impressions || 0);
+        const clicks = Number(ins.clicks || 0);
+        const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
 
-            if (isDemo) {
-                // DEMO-MODUS → Regelbasierte Analyse
-                await fakeDelay(800);
-                result = runSenseiDemoAnalysis();
-            } else {
-                // LIVE-MODUS → Backend + KI
-                result = await runSenseiLiveAnalysis();
-            }
+        return { ...c, insights: { spend, rev, roas, impressions, clicks, ctr } };
+    });
 
-            loading.classList.add("hidden");
-            output.classList.remove("hidden");
-            output.innerHTML = renderSenseiOutput(result);
-        } catch (err) {
-            console.error("Sensei Fehler:", err);
-            loading.classList.add("hidden");
-            output.classList.remove("hidden");
-            output.innerHTML = `
-                <div class="sensei-section">
-                    <h3>Fehler</h3>
-                    <p style="color:var(--danger);">
-                        Sensei konnte die Analyse nicht abschließen.
-                        Bitte überprüfe die Verbindung oder versuche es später erneut.
-                    </p>
+    const sortedByRoas = [...decorated].sort((a, b) => (b.insights.roas || 0) - (a.insights.roas || 0));
+    const top = sortedByRoas[0] || null;
+    const bottom = sortedByRoas[sortedByRoas.length - 1] || null;
+
+    const totalSpend = decorated.reduce((sum, c) => sum + c.insights.spend, 0);
+    const totalRev = decorated.reduce((sum, c) => sum + c.insights.rev, 0);
+    const overallRoas = totalSpend > 0 ? totalRev / totalSpend : 0;
+
+    return {
+        campaigns: decorated,
+        topCampaign: top,
+        bottomCampaign: bottom,
+        totalSpend,
+        totalRev,
+        overallRoas
+    };
+}
+
+function renderSenseiBriefing(m) {
+    if (!m.campaigns.length) {
+        return `
+            <div class="briefing-card">
+                <div class="priority-badge info">Info</div>
+                <div class="briefing-content">
+                    <p>Keine Kampagnen-Daten verfügbar. Verbinde Meta oder aktiviere den Demo Mode, um ein vollständiges Sensei-Briefing zu erhalten.</p>
                 </div>
-            `;
-        }
-    };
-}
-
-/* ----------------------------------------------------------
-   LIVE-MODUS: Aufruf Backend / KI
------------------------------------------------------------ */
-
-async function runSenseiLiveAnalysis() {
-    const payload = buildSenseiPayloadFromAppState();
-
-    const res = await fetch(SENSEI_API_URL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-    });
-
-    if (!res.ok) {
-        throw new Error("Sensei API Antwort war nicht OK: " + res.status);
+            </div>
+        `;
     }
 
-    const data = await res.json();
-
-    // Erwartete Struktur:
-    // {
-    //   summary, actions, risks, opportunities, testing, forecast, funnel
-    // }
-    // Wenn das Backend was anderes liefert, fallbacken wir hart.
-    return normalizeSenseiResult(data);
+    return `
+        <div class="briefing-card">
+            <div class="priority-badge ${
+                m.overallRoas >= 3 ? "success" : m.overallRoas >= 1.5 ? "warning" : "critical"
+            }">
+                ${
+                    m.overallRoas >= 3
+                        ? "System auf Skalierungsniveau"
+                        : m.overallRoas >= 1.5
+                        ? "Stabile Basis – Optimierung nötig"
+                        : "Kritischer Zustand"
+                }
+            </div>
+            <div class="briefing-content">
+                <p>
+                    Gesamt-ROAS liegt bei <strong>${m.overallRoas ? m.overallRoas.toFixed(2) + "x" : "–"}</strong>
+                    bei einem Spend von <strong>${formatCurrency(m.totalSpend)}</strong> und
+                    einem Revenue von <strong>${formatCurrency(m.totalRev)}</strong>.
+                </p>
+                <p class="action-line">
+                    > Fokus-Kampagne: ${
+                        m.topCampaign
+                            ? escapeHtml(m.topCampaign.name || m.topCampaign.campaign_name || m.topCampaign.id)
+                            : "keine"
+                    }
+                </p>
+            </div>
+        </div>
+    `;
 }
 
-/**
- * Aggregiert die wichtigsten Daten aus dem AppState für die KI.
- * Diese Struktur wird an das Backend geschickt.
- */
-function buildSenseiPayloadFromAppState() {
-    const account = {
-        id: AppState.selectedAccountId || "live_account",
-        name:
-            (AppState.meta?.adAccounts || []).find(
-                (a) => a.id === AppState.selectedAccountId
-            )?.name || "Live Meta Account",
-        currency:
-            (AppState.meta?.adAccounts || [])[0]?.currency || "EUR"
-    };
+function renderAlerts(m) {
+    if (!m.campaigns.length) {
+        return `
+            <div class="alert-card alert-info">
+                <div class="alert-icon"><i class="ri-information-line"></i></div>
+                <div class="alert-content">
+                    <div class="alert-title">Keine Daten</div>
+                    <div class="alert-message">Füge Kampagnen hinzu oder aktiviere Demo-Daten, um Alerts zu erhalten.</div>
+                </div>
+            </div>
+        `;
+    }
 
-    const dashboard = AppState.dashboardMetrics || {
-        spend: 0,
-        impressions: 0,
-        clicks: 0,
-        ctr: 0,
-        cpm: 0,
-        roas: 0,
-        scopeLabel: "Keine Auswahl",
-        timeRangeLabel: "Unbekannt"
-    };
-
-    const campaigns = (AppState.meta?.campaigns || []).map((c) => {
-        const insight = AppState.meta?.insightsByCampaign?.[c.id] || {};
-        return {
-            id: c.id,
-            name: c.name,
-            status: c.status || c.effective_status || "UNKNOWN",
-            objective: c.objective || "UNKNOWN",
-            spend: Number(insight.spend || 0),
-            impressions: Number(insight.impressions || 0),
-            clicks: Number(insight.clicks || 0),
-            ctr: Number(insight.ctr || 0),
-            roas: Number(insight.roas || 0)
-        };
-    });
-
-    const creatives = (AppState.meta?.ads || []).map((ad) => {
-        let thumb =
-            ad.creative?.object_story_spec?.video_data?.thumbnail_url ||
-            ad.creative?.object_story_spec?.link_data?.picture ||
-            null;
-
-        return {
-            id: ad.id,
-            name: ad.name || "Anzeige",
-            campaign_id: ad.campaign_id || null,
-            configured_status: ad.configured_status,
-            effective_status: ad.effective_status,
-            thumbnail: thumb
-        };
-    });
-
-    // Platzhalter – später können wir echte Logs / Alerts / Tests aus DB ziehen
     const alerts = [];
-    const testing = [];
 
-    // Funnel ist im Live-Modus noch nicht implementiert → Backend kann aus KPIs ableiten
-    const funnel = null;
-
-    return {
-        mode: "live",
-        account,
-        dashboard,
-        campaigns,
-        creatives,
-        alerts,
-        testing,
-        funnel
-    };
-}
-
-/**
- * Stellt sicher, dass das Ergebnis ein sinnvolles Objekt für das UI ist.
- */
-function normalizeSenseiResult(raw) {
-    if (!raw || typeof raw !== "object") {
-        return {
-            summary: "Sensei hat keine verwertbare Antwort geliefert.",
-            actions: [],
-            risks: [],
-            opportunities: [],
-            testing: [],
-            forecast: null,
-            funnel: null
-        };
+    if (m.overallRoas < 1.0) {
+        alerts.push(`
+            <div class="alert-card alert-critical">
+                <div class="alert-icon"><i class="ri-error-warning-line"></i></div>
+                <div class="alert-content">
+                    <div class="alert-title">ROAS unter 1.0</div>
+                    <div class="alert-message">
+                        Das Account-Level ist aktuell nicht profitabel. Überprüfe Budget-Allocation und
+                        pausiere nicht performende Kampagnen.
+                    </div>
+                    <div class="alert-meta">Sensei · Profitabilität</div>
+                </div>
+            </div>
+        `);
     }
 
-    return {
-        summary: raw.summary || "Sensei-Analyse abgeschlossen.",
-        actions: Array.isArray(raw.actions) ? raw.actions : [],
-        risks: Array.isArray(raw.risks) ? raw.risks : [],
-        opportunities: Array.isArray(raw.opportunities)
-            ? raw.opportunities
-            : [],
-        testing: Array.isArray(raw.testing) ? raw.testing : [],
-        forecast: raw.forecast || null,
-        funnel: raw.funnel || null
-    };
+    if (m.topCampaign && m.topCampaign.insights.roas >= 4) {
+        alerts.push(`
+            <div class="alert-card alert-success">
+                <div class="alert-icon"><i class="ri-rocket-line"></i></div>
+                <div class="alert-content">
+                    <div class="alert-title">Skalierungschance erkannt</div>
+                    <div class="alert-message">
+                        Kampagne <strong>${escapeHtml(m.topCampaign.name || m.topCampaign.id)}</strong> performt mit einem
+                        ROAS von ${m.topCampaign.insights.roas.toFixed(2)}x. 
+                        Erhöhe kontrolliert das Budget und beobachte die Stabilität.
+                    </div>
+                    <div class="alert-meta">Sensei · Scaling</div>
+                </div>
+            </div>
+        `);
+    }
+
+    if (!alerts.length) {
+        alerts.push(`
+            <div class="alert-card alert-success">
+                <div class="alert-icon"><i class="ri-check-double-line"></i></div>
+                <div class="alert-content">
+                    <div class="alert-title">Keine kritischen Alerts</div>
+                    <div class="alert-message">
+                        Aktuell wurden keine kritischen Anomalien im Account erkannt. Nutze die Zeit für strukturelle Optimierung, Creatives und Testing.
+                    </div>
+                    <div class="alert-meta">Sensei · Health Check</div>
+                </div>
+            </div>
+        `);
+    }
+
+    return alerts.join("");
 }
 
-/* ----------------------------------------------------------
-   UI-Rendering
------------------------------------------------------------ */
+function renderTopPerformers(m) {
+    if (!m.campaigns.length) {
+        return `<div class="hero-empty">Keine Kampagnen vorhanden.</div>`;
+    }
 
-function renderSenseiOutput(data) {
-    return `
-        <div class="sensei-section">
-            <h3>Zusammenfassung</h3>
-            <p>${escapeHtml(data.summary)}</p>
-        </div>
+    const sorted = [...m.campaigns].sort((a, b) => (b.insights.roas || 0) - (a.insights.roas || 0));
+    const top3 = sorted.slice(0, 3);
 
-        ${renderList("Aktionen", data.actions)}
-        ${renderList("Risiken", data.risks)}
-        ${renderList("Chancen", data.opportunities)}
-        ${renderTesting(data.testing)}
-        ${renderForecast(data.forecast)}
-        ${renderFunnel(data.funnel)}
-    `;
+    return top3
+        .map((c, idx) => {
+            const ins = c.insights;
+            return `
+                <article class="top-performer-card">
+                    <div class="performer-rank">#${idx + 1}</div>
+
+                    <div class="performer-content">
+                        <div class="performer-name">${escapeHtml(c.name || c.campaign_name || c.id)}</div>
+                        <div class="performer-metrics">
+                            <span class="metric-badge roas">ROAS ${ins.roas ? ins.roas.toFixed(2) + "x" : "–"}</span>
+                            <span class="metric-badge spend">${formatCurrency(ins.spend)} Spend</span>
+                            <span class="metric-badge ctr">${ins.ctr ? ins.ctr.toFixed(2) + "% CTR" : "– CTR"}</span>
+                        </div>
+                    </div>
+                </article>
+            `;
+        })
+        .join("");
 }
 
-function renderList(title, items = []) {
-    if (!items.length) return "";
-    return `
-        <div class="sensei-section">
-            <h3>${title}</h3>
-            <ul>
-                ${items
-                    .map(
-                        (i) => `
-                    <li>
-                        <strong>${escapeHtml(i.title || "")}</strong><br>
-                        <span>${escapeHtml(i.message || "")}</span><br>
-                        ${
-                            i.priority
-                                ? `<small>Priorität: ${escapeHtml(
-                                      i.priority
-                                  )}</small>`
-                                : ""
-                        }
-                    </li>`
-                    )
-                    .join("")}
-            </ul>
-        </div>
-    `;
+function formatCurrency(v) {
+    const num = Number(v || 0);
+    return num.toLocaleString("de-DE", {
+        style: "currency",
+        currency: "EUR",
+        maximumFractionDigits: 0
+    });
 }
-
-function renderTesting(tests = []) {
-    if (!tests.length) return "";
-    return `
-        <div class="sensei-section">
-            <h3>Testing</h3>
-            <ul>
-                ${tests
-                    .map(
-                        (t) => `
-                <li>
-                    <strong>${escapeHtml(t.title || "")}</strong><br>
-                    ${
-                        t.status
-                            ? `<small>Status: ${escapeHtml(
-                                  t.status
-                              )}</small><br>`
-                            : ""
-                    }
-                    <div>${escapeHtml(t.findings || "")}</div>
-                    ${
-                        t.next
-                            ? `<em>Nächster Schritt: ${escapeHtml(
-                                  t.next
-                              )}</em>`
-                            : ""
-                    }
-                </li>`
-                    )
-                    .join("")}
-            </ul>
-        </div>
-    `;
-}
-
-function renderForecast(fc) {
-    if (!fc) return "";
-    return `
-        <div class="sensei-section">
-            <h3>Prognose (7 Tage)</h3>
-            ${
-                fc.roas != null
-                    ? `<p><strong>ROAS:</strong> ${Number(
-                          fc.roas
-                      ).toFixed(2)}x</p>`
-                    : ""
-            }
-            ${
-                fc.revenue != null
-                    ? `<p><strong>Umsatz:</strong> ${Number(
-                          fc.revenue
-                      ).toLocaleString("de-DE")} €</p>`
-                    : ""
-            }
-            ${
-                fc.spend != null
-                    ? `<p><strong>Ausgaben:</strong> ${Number(
-                          fc.spend
-                      ).toLocaleString("de-DE")} €</p>`
-                    : ""
-            }
-            ${
-                fc.confidence != null
-                    ? `<p><strong>Konfidenz:</strong> ${(
-                          Number(fc.confidence) * 100
-                      ).toFixed(1)}%</p>`
-                    : ""
-            }
-            ${
-                fc.message
-                    ? `<small>${escapeHtml(fc.message)}</small>`
-                    : ""
-            }
-        </div>
-    `;
-}
-
-function renderFunnel(f) {
-    if (!f) return "";
-    const stages = ["tof", "mof", "bof"];
-
-    return `
-        <div class="sensei-section">
-            <h3>Funnel-Analyse</h3>
-            ${stages
-                .filter((s) => f[s])
-                .map((stage) => {
-                    const data = f[stage];
-                    const label =
-                        stage === "tof"
-                            ? "Top Funnel"
-                            : stage === "mof"
-                            ? "Middle Funnel"
-                            : "Bottom Funnel";
-                    return `
-                    <div class="funnel-block">
-                        <strong>${label}</strong><br>
-                        ${
-                            data.score != null
-                                ? `Score: ${data.score}<br>`
-                                : ""
-                        }
-                        ${
-                            data.issues?.length
-                                ? `Probleme: ${data.issues
-                                      .map(escapeHtml)
-                                      .join(", ")}<br>`
-                                : ""
-                        }
-                        ${
-                            data.opportunities?.length
-                                ? `Chancen: ${data.opportunities
-                                      .map(escapeHtml)
-                                      .join(", ")}`
-                                : ""
-                        }
-                    </div>`;
-                })
-                .join("")}
-        </div>
-    `;
-}
-
-/* ----------------------------------------------------------
-   Helper
------------------------------------------------------------ */
 
 function escapeHtml(str) {
-    if (!str && str !== 0) return "";
-    return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
-}
-
-function fakeDelay(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    return String(str || "").replace(/[&<>"']/g, s => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+    }[s]));
 }
