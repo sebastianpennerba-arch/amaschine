@@ -1,10 +1,14 @@
 // packages/campaigns/campaigns.actions.js
-// Aktionen wie "Budget erhöhen", "Pausieren", "Duplizieren" – Stub.
+// Kampagnen-Aktionen (aktuell Demo-Stubs)
 
-export function pauseCampaign(_campaignId) {
-    console.debug("[Campaigns] pauseCampaign()");
+export function pauseCampaign(id) {
+    alert(
+        `Kampagne ${id} wird pausiert...\n\n(Demo-Modus – hier würde ein Meta API Call abgesetzt werden.)`
+    );
 }
 
-export function increaseCampaignBudget(_campaignId, _amount) {
-    console.debug("[Campaigns] increaseCampaignBudget()");
+export function increaseCampaignBudget(id, amount = 10) {
+    alert(
+        `Budget von Kampagne ${id} wird um ${amount}€ erhöht...\n\n(Demo-Modus – hier würde ein Meta API Call abgesetzt werden.)`
+    );
 }
