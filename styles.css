@@ -1802,3 +1802,433 @@ body {
     border-radius: 999px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
+
+const SENSEI_CSS = `
+/* Sensei Briefing Section */
+.sensei-briefing-section {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    margin-bottom: 24px;
+}
+
+/* Header */
+.sensei-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.sensei-icon {
+    font-size: 40px;
+    margin-right: 16px;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.sensei-header-content {
+    flex: 1;
+}
+
+.sensei-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 4px 0;
+    letter-spacing: -0.5px;
+}
+
+.sensei-subtitle {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
+}
+
+/* Greeting */
+.sensei-greeting {
+    margin-bottom: 28px;
+}
+
+.greeting-text {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 4px 0;
+}
+
+.greeting-date {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0 0 8px 0;
+}
+
+.greeting-message {
+    font-size: 14px;
+    color: #475569;
+    margin: 0;
+}
+
+/* Sections */
+.sensei-section {
+    margin-bottom: 28px;
+}
+
+.section-header {
+    font-size: 14px;
+    font-weight: 700;
+    color: #475569;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.urgent-header {
+    color: #dc2626;
+}
+
+.recommended-header {
+    color: #0ea5e9;
+}
+
+/* Briefing Cards */
+.briefing-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border-left: 4px solid #e2e8f0;
+    transition: all 0.2s ease;
+}
+
+.briefing-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+}
+
+.priority-critical {
+    border-left-color: #dc2626;
+    background: #fef2f2;
+}
+
+.priority-success {
+    border-left-color: #10b981;
+    background: #f0fdf4;
+}
+
+.priority-warning {
+    border-left-color: #f59e0b;
+    background: #fffbeb;
+}
+
+.priority-info {
+    border-left-color: #0ea5e9;
+    background: #f0f9ff;
+}
+
+/* Priority Badges */
+.priority-badge {
+    display: inline-block;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+}
+
+.badge-critical {
+    background: #dc2626;
+    color: white;
+}
+
+.badge-success {
+    background: #10b981;
+    color: white;
+}
+
+.badge-warning {
+    background: #f59e0b;
+    color: white;
+}
+
+.badge-info {
+    background: #0ea5e9;
+    color: white;
+}
+
+/* Content */
+.briefing-content {
+    font-size: 14px;
+    color: #334155;
+    line-height: 1.6;
+}
+
+.briefing-description {
+    margin: 0 0 12px 0;
+    font-weight: 500;
+}
+
+/* Action Tree */
+.action-tree {
+    margin: 12px 0;
+    padding: 12px;
+    background: rgba(255,255,255,0.6);
+    border-radius: 8px;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.action-line {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: #475569;
+}
+
+.action-line:last-child {
+    margin-bottom: 0;
+}
+
+.tree-connector {
+    margin-right: 8px;
+    color: #94a3b8;
+    font-family: monospace;
+    font-weight: 700;
+}
+
+/* Impact Box */
+.impact-box {
+    margin: 12px 0;
+    padding: 12px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 8px;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.impact-label {
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 4px;
+    color: #1e293b;
+}
+
+.impact-text {
+    font-size: 13px;
+    color: #475569;
+    line-height: 1.5;
+}
+
+.text-success {
+    color: #10b981;
+    font-weight: 600;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.btn-action {
+    flex: 1;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-primary {
+    background: #3b82f6;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+    transform: scale(1.02);
+}
+
+.btn-secondary {
+    background: white;
+    color: #64748b;
+    border: 2px solid #e2e8f0;
+}
+
+.btn-secondary:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.btn-success {
+    background: #10b981;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #059669;
+}
+
+.btn-warning {
+    background: #f59e0b;
+    color: white;
+}
+
+.btn-warning:hover {
+    background: #d97706;
+}
+
+.btn-info {
+    background: #0ea5e9;
+    color: white;
+}
+
+.btn-info:hover {
+    background: #0284c7;
+}
+
+.btn-completed {
+    background: #6b7280;
+    color: white;
+    cursor: not-allowed;
+}
+
+/* Strategic Insight */
+.sensei-strategic-insight {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 2px solid #bfdbfe;
+}
+
+.insight-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.insight-icon {
+    font-size: 28px;
+    margin-right: 12px;
+}
+
+.insight-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e40af;
+    margin: 0;
+    letter-spacing: 0.5px;
+}
+
+.insight-content {
+    margin-left: 40px;
+}
+
+.insight-text {
+    font-size: 14px;
+    color: #1e40af;
+    line-height: 1.6;
+    margin: 0 0 16px 0;
+}
+
+/* Impact Metrics Grid */
+.impact-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+.impact-metric {
+    background: white;
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.metric-icon {
+    font-size: 28px;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.metric-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1e40af;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.metric-label {
+    font-size: 12px;
+    color: #64748b;
+    display: block;
+}
+
+/* Footer */
+.sensei-footer {
+    display: flex;
+    gap: 12px;
+    padding-top: 20px;
+    border-top: 2px solid #e2e8f0;
+}
+
+.sensei-footer-btn {
+    flex: 1;
+    padding: 12px 16px;
+    background: white;
+    color: #475569;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sensei-footer-btn:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sensei-briefing-section {
+        padding: 20px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .btn-action {
+        width: 100%;
+    }
+    
+    .sensei-footer {
+        flex-direction: column;
+    }
+    
+    .impact-metrics-grid {
+        grid-template-columns: 1fr;
+    }
+}
+`;
+
+// CSS Export Kommentar
+console.log("📝 HINWEIS: Füge das CSS aus SENSEI_CSS in deine styles.css ein!");
