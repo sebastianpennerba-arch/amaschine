@@ -1,142 +1,303 @@
-// demoData.js
-// (Original unverändert oben)
-export const DEMO_DATA_PRESETS = {
-  small_store: {
-    id: "small_store",
-    label: "Small Store – 5k€/Monat",
-    user: {
-      id: "user_demo_small",
-      name: "Demo Brand – Small Store",
-      email: "demo-small@signalone.cloud"
-    },
-    adAccounts: [
-      {
-        id: "act_demo_small_1",
-        name: "ACME Small Store",
-        currency: "EUR",
-        spendCap: 5000
-      }
-    ],
-    campaigns: [
-      {
-        id: "cmp_small_prospecting",
-        accountId: "act_demo_small_1",
-        name: "Prospecting Cold – Broad",
-        status: "ACTIVE",
-        objective: "PURCHASE",
-        spend: 2100,
-        revenue: 6300,
-        roas: 3.0,
-        impressions: 85000,
-        clicks: 2125,
-        ctr: 2.5,
-        cpm: 24.7,
-        createdTime: "2025-10-01"
-      },
-      {
-        id: "cmp_small_retarg",
-        accountId: "act_demo_small_1",
-        name: "Retargeting – 30 Tage",
-        status: "ACTIVE",
-        objective: "PURCHASE",
-        spend: 1200,
-        revenue: 5400,
-        roas: 4.5,
-        impressions: 43000,
-        clicks: 1720,
-        ctr: 4.0,
-        cpm: 27.9,
-        createdTime: "2025-10-05"
-      },
-      {
-        id: "cmp_small_testing",
-        accountId: "act_demo_small_1",
-        name: "Creative Testing – UGC Hooks",
-        status: "PAUSED",
-        objective: "PURCHASE",
-        spend: 600,
-        revenue: 1500,
-        roas: 2.5,
-        impressions: 27000,
-        clicks: 918,
-        ctr: 3.4,
-        cpm: 22.2,
-        createdTime: "2025-10-10"
-      }
-    ],
-    creatives: [
-      {
-        id: "cr_small_mia_ps_v1",
-        campaignId: "cmp_small_testing",
-        name: "Mia_PS_v1",
-        type: "VIDEO",
-        creator: "Mia",
-        hookType: "Problem/Solution",
-        thumbnailUrl: "/demo-assets/mia_ps_v1.jpg",
-        spend: 200,
-        revenue: 780,
-        roas: 3.9,
-        ctr: 3.8,
-        cpm: 18.5,
-        impressions: 10800,
-        clicks: 410,
-        adSenseiScore: 82
-      },
-      {
-        id: "cr_small_generic_static",
-        campaignId: "cmp_small_prospecting",
-        name: "Generic_Product_Static_v12",
-        type: "IMAGE",
-        creator: "Stock",
-        hookType: "Direct CTA",
-        thumbnailUrl: "/demo-assets/generic_static_v12.jpg",
-        spend: 350,
-        revenue: 420,
-        roas: 1.2,
-        ctr: 0.9,
-        cpm: 35.0,
-        impressions: 10000,
-        clicks: 90,
-        adSenseiScore: 24
-      }
-    ],
-    insightsByCampaign: {
-      cmp_small_prospecting: {
-        spend: 2100,
-        revenue: 6300,
-        roas: 3.0,
-        ctr: 2.5,
-        cpm: 24.7,
-        topCreatives: ["cr_small_generic_static"],
-        losers: [],
-        senseiNotes: [
-          "Prospecting Kampagne ist OK, aber nicht überragend.",
-          "Testen von UGC-Hooks könnte ROAS auf 3.5–4.0 heben."
-        ]
-      },
-      cmp_small_retarg: {
-        spend: 1200,
-        revenue: 5400,
-        roas: 4.5,
-        ctr: 4.0,
-        cpm: 27.9,
-        topCreatives: [],
-        losers: [],
-        senseiNotes: [
-          "Retargeting hält den Laden profitabel.",
-          "Skalierung begrenzt durch kleine Audience."
-        ]
-      }
-    }
-  },
+/* ------------------------------------------------------------
+   DEMO-DATEN FÜR SIGNALONE – basierend auf den 3 PDFs
+   Vollständig übersetzt & perfekt strukturiert
+   Version: 1.0 (DEMO-MODUS)
+------------------------------------------------------------- */
 
-  // (...)
-  // scaling_store
-  // agency
-  // (Dein kompletter Rest bleibt unverändert)
+export const demoAccount = {
+  id: "demo_act_001",
+  name: "DEMO BRAND – UGC Performance",
+  industry: "Beauty / Skin-Care",
+  averageMonthlySpend: 42000,
+  createdAt: "2023-08-14",
+  country: "Deutschland"
 };
 
-// ======================================
-// FIX: Kompatibler Export für app.js
-// ======================================
-export const demoData = DEMO_DATA_PRESETS;
+/* ------------------------------------------------------------
+   KAMPAGNEN (aus den PDF Layouts)
+------------------------------------------------------------- */
+export const demoCampaigns = [
+  {
+    id: "demo_cmp_ug1",
+    name: "UGC SCALE – Evergreen Vol. 3",
+    objective: "Conversions",
+    status: "Aktiv",
+    spend: 18420,
+    revenue: 88400,
+    roas: 4.8,
+    ctr: 3.9,
+    cpm: 8.12,
+    cpc: 0.53,
+    impressions: 2267000,
+    clicks: 41000,
+    funnel_stage: "Top Funnel",
+    creatives: ["cr_01", "cr_02", "cr_03", "cr_04", "cr_05"],
+    description: "Hauptkampagne basierend auf UGC-Creators mit starken Hooks."
+  },
+  {
+    id: "demo_cmp_ret1",
+    name: "RETARGETING – 30 Tage (DPA + Video)",
+    objective: "Conversions",
+    status: "Aktiv",
+    spend: 6200,
+    revenue: 19840,
+    roas: 3.2,
+    ctr: 2.4,
+    cpm: 11.40,
+    cpc: 0.72,
+    impressions: 540000,
+    clicks: 12900,
+    funnel_stage: "Middle Funnel",
+    creatives: ["cr_11", "cr_12"],
+    description: "Retargeting der letzten 30 Tage – performt stabil."
+  },
+  {
+    id: "demo_cmp_broad1",
+    name: "PROSPECTING – Broad 1",
+    objective: "Conversions",
+    status: "Aktiv",
+    spend: 12000,
+    revenue: 25200,
+    roas: 2.1,
+    ctr: 1.7,
+    cpm: 9.8,
+    cpc: 0.61,
+    impressions: 1220000,
+    clicks: 20300,
+    funnel_stage: "Top Funnel",
+    creatives: ["cr_21", "cr_22", "cr_23"],
+    description: "Breite Ansprache ohne Interessen – Testing neuer Hooks."
+  },
+  {
+    id: "demo_cmp_ht1",
+    name: "HOOK-TEST – Varianten Vol. 8",
+    objective: "Conversions",
+    status: "Aktiv",
+    spend: 4500,
+    revenue: 16200,
+    roas: 3.6,
+    ctr: 4.2,
+    cpm: 7.80,
+    cpc: 0.39,
+    impressions: 487000,
+    clicks: 12900,
+    funnel_stage: "Top Funnel",
+    creatives: ["cr_31", "cr_32", "cr_33", "cr_34"],
+    description: "Hook-Test mit 4 Varianten – Fokus: Scrollstop + Mikro-Hooks."
+  }
+];
+
+/* ------------------------------------------------------------
+   CREATIVES (Aus PDFs – Winner & Loser)
+------------------------------------------------------------- */
+export const demoCreatives = [
+  {
+    id: "cr_01",
+    name: "UGC Creator – Hook: „STOP! Du musst DAS sehen…“",
+    type: "Video",
+    thumbnail: "https://via.placeholder.com/320x180?text=UGC+1",
+    spend: 8400,
+    revenue: 55200,
+    roas: 6.57,
+    ctr: 4.1,
+    cpm: 7.82,
+    cpc: 0.48,
+    impressions: 1074000,
+    clicks: 22400,
+    hook: "Stop Scroll",
+    performance: "Winner"
+  },
+  {
+    id: "cr_02",
+    name: "UGC Creator – „Mein Freund hasst es, aber…“",
+    type: "Video",
+    thumbnail: "https://via.placeholder.com/320x180?text=UGC+2",
+    spend: 5400,
+    revenue: 19800,
+    roas: 3.66,
+    ctr: 3.2,
+    cpm: 8.90,
+    cpc: 0.61,
+    impressions: 607000,
+    clicks: 10300,
+    hook: "Story",
+    performance: "Gut"
+  },
+  {
+    id: "cr_03",
+    name: "Static – Offer -30%",
+    type: "Image",
+    thumbnail: "https://via.placeholder.com/320x180?text=-30%25",
+    spend: 1200,
+    revenue: 1800,
+    roas: 1.5,
+    ctr: 1.8,
+    cpm: 9.1,
+    cpc: 0.71,
+    impressions: 132000,
+    clicks: 2430,
+    hook: "Offer",
+    performance: "Schwach"
+  },
+  {
+    id: "cr_04",
+    name: "Hook-Test – „Ich habe DAS ausprobiert…“",
+    type: "Video",
+    thumbnail: "https://via.placeholder.com/320x180?text=HT1",
+    spend: 2100,
+    revenue: 9100,
+    roas: 4.33,
+    ctr: 4.8,
+    cpm: 7.2,
+    cpc: 0.33,
+    impressions: 292000,
+    clicks: 6300,
+    hook: "Experience",
+    performance: "Winner"
+  }
+];
+
+/* ------------------------------------------------------------
+   FUNNEL HEALTH (ToF/MoF/BoF – aus PDFs)
+------------------------------------------------------------- */
+export const demoFunnel = {
+  tof: {
+    score: 86,
+    issues: ["Scrollstop stark", "CTR stabil über Benchmark"],
+    opportunities: ["Mehr Broad-Scaling möglich"]
+  },
+  mof: {
+    score: 74,
+    issues: ["Video-View-Rate mittel"],
+    opportunities: ["DPA testen", "Testimonials verstärken"]
+  },
+  bof: {
+    score: 69,
+    issues: ["Checkout-Abbrüche 14%"],
+    opportunities: ["Landing Pages A/B test", "Trust Badges"]
+  }
+};
+
+/* ------------------------------------------------------------
+   ALERTS (aus PDFs extrahiert)
+------------------------------------------------------------- */
+export const demoAlerts = [
+  {
+    id: "al_01",
+    type: "Warnung",
+    severity: "Hoch",
+    title: "UGC Vol.3 – Creative Fatigue erkannt",
+    message:
+      "ROAS fällt seit 3 Tagen. CTR sinkt um 18%. Neues Creative testen.",
+    timestamp: "2025-01-21"
+  },
+  {
+    id: "al_02",
+    type: "Info",
+    severity: "Mittel",
+    title: "Retargeting – CPM gestiegen",
+    message: "CPM +22% im 30d Vergleich. Budget prüfen.",
+    timestamp: "2025-01-20"
+  },
+  {
+    id: "al_03",
+    type: "Erfolg",
+    severity: "Niedrig",
+    title: "Hook A outperformt andere Varianten",
+    message: "CTR +32%, CPC -12% → Hochskalieren empfohlen.",
+    timestamp: "2025-01-19"
+  }
+];
+
+/* ------------------------------------------------------------
+   CREATOR LEADERBOARD (aus PDFs)
+------------------------------------------------------------- */
+export const demoCreators = [
+  {
+    id: "cr_lead_01",
+    name: "Mia",
+    avg_roas: 5.9,
+    avg_ctr: 4.2,
+    total_spend: 11800,
+    profile_picture: "https://via.placeholder.com/80?text=M"
+  },
+  {
+    id: "cr_lead_02",
+    name: "Tom",
+    avg_roas: 4.1,
+    avg_ctr: 3.6,
+    total_spend: 9400,
+    profile_picture: "https://via.placeholder.com/80?text=T"
+  },
+  {
+    id: "cr_lead_03",
+    name: "Sarah",
+    avg_roas: 3.7,
+    avg_ctr: 3.2,
+    total_spend: 7400,
+    profile_picture: "https://via.placeholder.com/80?text=S"
+  }
+];
+
+/* ------------------------------------------------------------
+   HOOK ANALYSE (aus PDFs)
+------------------------------------------------------------- */
+export const demoHookAnalysis = [
+  {
+    hook: "Stop Scroll",
+    ctr: 4.8,
+    roas: 5.1,
+    conversions: 3800,
+    message: "Sehr stark – eignet sich zum Skalieren"
+  },
+  {
+    hook: "Story",
+    ctr: 3.1,
+    roas: 3.6,
+    conversions: 1400,
+    message: "Stabil – gut für Retargeting"
+  },
+  {
+    hook: "Problem-Solution",
+    ctr: 2.8,
+    roas: 2.9,
+    conversions: 900,
+    message: "Erweiterbar – neue Varianten testen"
+  }
+];
+
+/* ------------------------------------------------------------
+   TESTING LOG (aus PDF)
+------------------------------------------------------------- */
+export const demoTestingLog = [
+  {
+    id: "test_01",
+    title: "Hook-Test Vol. 8",
+    status: "Laufend",
+    findings:
+      "Hook A outperformt alle Varianten. A wird Gewinner. B/C pausieren.",
+    next_step: "Neue Hook-Varianten entwickeln.",
+    date: "2025-01-22"
+  },
+  {
+    id: "test_02",
+    title: "Retargeting – DPA vs Video",
+    status: "Abgeschlossen",
+    findings: "Video outperformt DPA bei CTR deutlich.",
+    next_step: "2 neue Videos testen.",
+    date: "2025-01-19"
+  }
+];
+
+/* ------------------------------------------------------------
+   FORECAST (basierend auf PDF Stil)
+------------------------------------------------------------- */
+export const demoForecast = {
+  next7days: {
+    projected_spend: 7200,
+    projected_revenue: 34800,
+    projected_roas: 4.83,
+    confidence: 0.87
+  },
+  message: "Basierend auf der Performance der letzten 14 Tage."
+};
