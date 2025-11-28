@@ -1,19 +1,12 @@
-// creativeLibrary.js – Legacy-Shim für Kompatibilität
-// Die komplette Logik liegt jetzt im CreativesPackage.
+// creativeLibrary.js
+// Legacy-Shim: leitet die alte API auf das neue Creative Library Package um.
 
-import CreativesPackage from "./packages/creatives/index.js";
-
-/**
- * Alte öffentliche API – wird intern auf das Package gemappt.
- */
-export async function updateCreativeLibraryView(initialLoad = false) {
-    // initialLoad wird aktuell ignoriert, kann aber bei Bedarf vom Package genutzt werden.
-    return CreativesPackage.render({ connected: true });
-}
+import CreativesPackage from "./packages/creativeLibrary/index.js";
 
 /**
- * Optionaler Export, falls irgendwo direkt auf renderCreativeLibrary verwiesen wird.
+ * Alte öffentliche API für die Creative Library.
+ * Wird jetzt intern über das Creative Library Package gerendert.
  */
-export function renderCreativeLibrary() {
-    return CreativesPackage.render({ connected: true });
+export async function updateCreativeLibraryView(connected) {
+    return CreativesPackage.render({ connected });
 }
