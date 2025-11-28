@@ -1,6 +1,6 @@
-// app.js – Backbone mit Package-Architektur (Dashboard, Campaigns, Creatives)
+// app.js – FINAL VERSION (mit MetaAuth Gateway)
 
-import { AppState, META_OAUTH_CONFIG } from "./state.js";
+import { AppState } from "./state.js";
 import {
     showToast,
     updateGreeting,
@@ -12,24 +12,22 @@ import {
 } from "./uiCore.js";
 
 import {
-    fetchMetaUser,
-    exchangeMetaCodeForToken,
     fetchMetaAdAccounts,
     fetchMetaCampaigns,
-    fetchMetaAds
+    fetchMetaAds,
+    fetchMetaCampaignInsights
 } from "./metaApi.js";
 
-// 🔹 Packages
-import DashboardPackage from "./packages/dashboard/index.js";
-import CampaignsPackage from "./packages/campaigns/index.js";
-import CreativesPackage from "./packages/creativeLibrary/index.js";
-
+import { updateDashboardView } from "./dashboard.js";
+import { updateCampaignsView } from "./campaigns.js";
+import { updateCreativeLibraryView } from "./creativeLibrary.js";
 import { updateSenseiView } from "./sensei.js";
 import { updateReportsView } from "./reports.js";
 import { updateTestingLogView } from "./testingLog.js";
 import { initSettings } from "./settings.js";
 
-const META_TOKEN_STORAGE_KEY = "signalone_meta_token_v1";
+import MetaAuth from "./packages/metaAuth/index.js";
+
 const DEFAULT_CACHE_TTL_MS = 15 * 60 * 1000;
 
 /* SETTINGS */
@@ -111,126 +109,7 @@ function showView(id) {
     updateUI();
 }
 
-/* META CONNECT */
-function handleMetaConnectClick() {
-    const authUrl =
-        "https://www.facebook.com/v21.0/dialog/oauth?" +
-        new URLSearchParams({
-            client_id: META_OAUTH_CONFIG.appId,
-            redirect_uri: META_OAUTH_CONFIG.redirectUri,
-            response_type: "code",
-            scope: META_OAUTH_CONFIG.scopes
-        });
-
-    const popup = window.open(
-        authUrl,
-        "MetaLogin",
-        "width=600,height=800,left=200,top=100"
-    );
-
-    if (!popup) {
-        showToast("Popup blockiert!", "error");
-        return;
-    }
-    showToast("Meta Login geöffnet…", "info");
-}
-
-function persistMetaToken(t) {
-    try {
-        if (t) localStorage.setItem(META_TOKEN_STORAGE_KEY, t);
-        else localStorage.removeItem(META_TOKEN_STORAGE_KEY);
-    } catch {}
-}
-
-/* DISCONNECT */
-function disconnectMeta() {
-    AppState.metaConnected = false;
-    AppState.meta = {
-        accessToken: null,
-        adAccounts: [],
-        campaigns: [],
-        insightsByCampaign: {},
-        user: null,
-        ads: [],
-        creatives: []
-    };
-    AppState.selectedAccountId = null;
-    AppState.selectedCampaignId = null;
-    AppState.dashboardLoaded = false;
-    AppState.campaignsLoaded = false;
-    AppState.creativesLoaded = false;
-    AppState.dashboardMetrics = null;
-    clearMetaCache();
-    persistMetaToken(null);
-    updateUI();
-}
-
-/* OAUTH REDIRECT — POPUP FIX DRIN! */
-async function handleMetaOAuthRedirectIfPresent() {
-    const url = new URL(window.location.href);
-    const code = url.searchParams.get("code");
-    if (!code) return;
-
-    window.history.replaceState({}, "", "/");
-    showToast("Token wird abgeholt…", "info");
-
-    try {
-        const token = await exchangeMetaCodeForToken(
-            code,
-            META_OAUTH_CONFIG.redirectUri
-        );
-        if (!token) {
-            showToast("OAuth Fehler", "error");
-            return;
-        }
-
-        AppState.meta.accessToken = token;
-        AppState.metaConnected = true;
-        persistMetaToken(token);
-        clearMetaCache();
-
-        try {
-            AppState.meta.user = await fetchMetaUser(token);
-        } catch {}
-
-        await loadAdAccountsAndCampaigns();
-        updateUI();
-        showToast("Meta verbunden!", "success");
-
-        // POPUP CLOSE
-        if (window.opener) {
-            window.opener.location.reload();
-            window.close();
-        }
-    } catch (e) {
-        showToast("Verbindung fehlgeschlagen", "error");
-    }
-}
-
-/* LOAD TOKEN */
-function loadMetaTokenFromStorage() {
-    try {
-        const t = localStorage.getItem(META_TOKEN_STORAGE_KEY);
-        if (!t) return;
-
-        AppState.meta.accessToken = t;
-        AppState.metaConnected = true;
-        clearMetaCache();
-
-        fetchMetaUser(t)
-            .then((u) => {
-                AppState.meta.user = u;
-                return loadAdAccountsAndCampaigns();
-            })
-            .then(() => updateUI())
-            .catch(() => {
-                AppState.metaConnected = false;
-                AppState.meta.accessToken = null;
-            });
-    } catch {}
-}
-
-/* LOAD ACC + CAMPAIGNS */
+/* LOAD ACCOUNTS + CAMPAIGNS */
 async function loadAdAccountsAndCampaigns() {
     ensureMetaCache();
     const token = AppState.meta.accessToken;
@@ -268,7 +147,6 @@ async function loadAdAccountsAndCampaigns() {
         }
     }
 
-    AppState.campaignsLoaded = true;
     updateAccountAndCampaignSelectors();
 }
 
@@ -300,7 +178,7 @@ function updateAccountAndCampaignSelectors() {
     campSel.innerHTML = ops.join("");
 }
 
-/* ADS / CREATIVES – (aktuell nicht genutzt vom Package, aber safe) */
+/* ADS / CREATIVES */
 async function loadCreativesForCurrentSelection() {
     ensureMetaCache();
     const token = AppState.meta.accessToken;
@@ -322,6 +200,10 @@ async function loadCreativesForCurrentSelection() {
     AppState.creativesLoaded = true;
     AppState.metaCache.adsByAccount[acc] = { data, fetchedAt: Date.now() };
 }
+async function ensureCreativesLoadedAndRender() {
+    if (!AppState.creativesLoaded) await loadCreativesForCurrentSelection();
+    updateCreativeLibraryView(true);
+}
 
 /* UI UPDATE */
 function updateUI() {
@@ -332,17 +214,15 @@ function updateUI() {
     updateAccountAndCampaignSelectors();
 
     if (AppState.currentView === "dashboardView") {
-        DashboardPackage.render({ connected, demo });
+        // Dashboard ist via Shim bereits auf Paket gemappt
+        updateDashboardView(connected);
     }
 
-    if (AppState.currentView === "campaignsView") {
-        CampaignsPackage.render({ connected });
-    }
-
+    if (AppState.currentView === "campaignsView") updateCampaignsView(connected);
     if (AppState.currentView === "creativesView") {
-        CreativesPackage.render({ connected });
+        if (connected) ensureCreativesLoadedAndRender();
+        else updateCreativeLibraryView(false);
     }
-
     if (AppState.currentView === "senseiView") updateSenseiView(connected);
     if (AppState.currentView === "reportsView") updateReportsView(connected);
     if (AppState.currentView === "testingLogView")
@@ -443,7 +323,7 @@ function openSettingsModal() {
         <button id="settingsSaveButton" class="primary-btn">
             Speichern
         </button>
-    `;
+    ";
 
     openSystemModal("Einstellungen", bodyHtml);
 
@@ -524,9 +404,14 @@ function openProfileModal() {
     const btn = document.getElementById("disconnectMetaFromProfile");
     if (btn) {
         btn.addEventListener("click", () => {
-            disconnectMeta();
-            showToast("Meta Verbindung getrennt.", "info");
-            closeSystemModal();
+            MetaAuth.disconnect({
+                clearMetaCache,
+                onAfterDisconnect: () => {
+                    updateUI();
+                    showToast("Meta Verbindung getrennt.", "info");
+                    closeSystemModal();
+                }
+            });
         });
     }
 }
@@ -588,14 +473,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     ensureSettings();
     loadSettingsFromStorage();
     applyThemeFromSettings();
-
-    loadMetaTokenFromStorage();
     applyDashboardTimeRangeFromSettings();
 
-    // Packages initialisieren
-    DashboardPackage.init();
-    CampaignsPackage.init();
-    CreativesPackage.init();
+    // MetaAuth Gateway: Token Restore + OAuth Redirect + Basisdaten laden
+    await MetaAuth.init({
+        clearMetaCache,
+        onAfterTokenRestore: async () => {
+            await loadAdAccountsAndCampaigns();
+            updateUI();
+        },
+        onAfterConnect: async () => {
+            await loadAdAccountsAndCampaigns();
+            updateUI();
+        },
+        onAfterDisconnect: () => {
+            updateUI();
+        }
+    });
 
     showView(AppState.currentView);
     initSidebarNavigation(showView);
@@ -603,13 +497,27 @@ document.addEventListener("DOMContentLoaded", async () => {
     initDateTime();
     updateGreeting();
 
-    const btn = document.getElementById("connectMetaButton");
-    if (btn) btn.addEventListener("click", handleMetaConnectClick);
+    const connectBtn = document.getElementById("connectMetaButton");
+    if (connectBtn) {
+        connectBtn.addEventListener("click", () => {
+            MetaAuth.connectWithPopup();
+        });
+    }
 
-    const d = document.getElementById("disconnectMetaButton");
-    if (d) d.addEventListener("click", disconnectMeta);
+    const disconnectBtn = document.getElementById("disconnectMetaButton");
+    if (disconnectBtn) {
+        disconnectBtn.addEventListener("click", () => {
+            MetaAuth.disconnect({
+                clearMetaCache,
+                onAfterDisconnect: () => {
+                    updateUI();
+                    showToast("Meta Verbindung getrennt.", "info");
+                }
+            });
+        });
+    }
 
-    // Zeitbereich Dashboard
+    // Zeitbereich-Änderung beeinflusst das Dashboard
     const timeRange = document.getElementById("dashboardTimeRange");
     if (timeRange) {
         timeRange.addEventListener("change", (e) => {
@@ -619,14 +527,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             s.defaultTimeRange = value;
             saveSettingsToStorage();
             AppState.dashboardLoaded = false;
-            DashboardPackage.update({
-                connected: checkMetaConnection(),
-                demo: isDemoMode()
-            });
+            updateUI();
         });
     }
-
-    await handleMetaOAuthRedirectIfPresent();
 
     const acc = document.getElementById("brandSelect");
     if (acc)
@@ -650,6 +553,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             updateUI();
         });
 
+    // 🔘 SETTINGS BUTTON (Sidebar)
     const settingsBtn = document.getElementById("openSettingsButton");
     if (settingsBtn) {
         settingsBtn.addEventListener("click", () => {
@@ -657,6 +561,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
+    // 🔘 PROFILE BUTTON (Topbar)
     const profileBtn = document.getElementById("profileButton");
     if (profileBtn) {
         profileBtn.addEventListener("click", () => {
@@ -664,6 +569,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
+    // 🔘 NOTIFICATIONS BUTTON (Topbar)
     const notificationsBtn = document.getElementById("notificationsButton");
     if (notificationsBtn) {
         notificationsBtn.addEventListener("click", () => {
@@ -671,6 +577,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
+    // Modal Close Handling (Apple-Style)
     const { overlay, closeBtn } = getModalElements();
     if (closeBtn) closeBtn.addEventListener("click", closeSystemModal);
     if (overlay) {
