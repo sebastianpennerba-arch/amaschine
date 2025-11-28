@@ -1,86 +1,105 @@
-// uiCore.js – UI Core Functions + Meta Connection Check
+/* ============================================================
+   UI CORE – ZENTRALE UI FUNKTIONEN
+   Für Navigation, Toasts, Modals, Debug, Status UI
+============================================================ */
 
 import { AppState } from "./state.js";
 
-/* -------------------------------------------------------
-    SIDEBAR NAVIGATION
----------------------------------------------------------*/
+/* ============================================================
+   VIEW SWITCHING
+============================================================ */
 
-export function initSidebarNavigation(showViewCallback) {
-    const menuItems = document.querySelectorAll(".menu-item");
-    
-    menuItems.forEach((item) => {
-        item.addEventListener("click", (e) => {
-            e.preventDefault();
-            
-            // Remove active from all
-            menuItems.forEach((mi) => mi.classList.remove("active"));
-            
-            // Add active to clicked
-            item.classList.add("active");
-            
-            // Get view ID
-            const viewId = item.getAttribute("data-view");
-            if (viewId && showViewCallback) {
-                showViewCallback(viewId);
-            }
-        });
-    });
-}
+export function switchView(viewId) {
+    const views = document.querySelectorAll(".view");
 
-/* -------------------------------------------------------
-    GREETING & DATE/TIME
----------------------------------------------------------*/
+    views.forEach(v => v.classList.add("hidden"));
 
-export function updateGreeting() {
-    const greetingEl = document.getElementById("greetingTitle");
-    if (!greetingEl) return;
-
-    const hour = new Date().getHours();
-    let greeting = "Guten Tag";
-
-    if (hour < 12) greeting = "Guten Morgen";
-    else if (hour < 18) greeting = "Guten Tag";
-    else greeting = "Guten Abend";
-
-    const userName = AppState.meta?.user?.name || "";
-    greetingEl.textContent = userName ? `${greeting}, ${userName.split(" ")[0]}!` : `${greeting}!`;
-}
-
-export function initDateTime() {
-    const dateEl = document.getElementById("currentDate");
-    const timeEl = document.getElementById("currentTime");
-
-    function update() {
-        const now = new Date();
-        
-        if (dateEl) {
-            dateEl.textContent = now.toLocaleDateString("de-DE", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric"
-            });
-        }
-        
-        if (timeEl) {
-            timeEl.textContent = now.toLocaleTimeString("de-DE", {
-                hour: "2-digit",
-                minute: "2-digit"
-            });
-        }
+    const activeView = document.getElementById(viewId);
+    if (activeView) {
+        activeView.classList.remove("hidden");
+        AppState.currentView = viewId;
     }
-
-    update();
-    setInterval(update, 1000);
 }
 
-/* -------------------------------------------------------
-    TOAST SYSTEM
----------------------------------------------------------*/
 
-export function showToast(message, type = "info") {
-    const container = document.getElementById("toastContainer");
-    if (!container) return;
+/* ============================================================
+   SIDEBAR ACTIVE ITEM
+============================================================ */
+
+export function updateSidebarActiveItem(selectedItem) {
+    const items = document.querySelectorAll(".nav-item");
+    items.forEach(i => i.classList.remove("active"));
+    selectedItem.classList.add("active");
+}
+
+
+/* ============================================================
+   PAGE TITLE (Fallback handled in app.js)
+============================================================ */
+
+
+
+/* ============================================================
+   META STATUS INDICATOR (TOPBAR)
+============================================================ */
+
+export function updateMetaStatusIndicator(state) {
+    const indicator = document.getElementById("metaStatusIndicator");
+    if (!indicator) return;
+
+    if (state === "connected") {
+        indicator.innerHTML = `
+            <div class="topbar-meta-status meta-status-connected">
+                <i class="ri-check-line"></i> Connected
+            </div>
+        `;
+    }
+    else if (state === "connected-demo") {
+        indicator.innerHTML = `
+            <div class="topbar-meta-status meta-status-connected">
+                <i class="ri-magic-line"></i> Demo Mode
+            </div>
+        `;
+    }
+    else {
+        indicator.innerHTML = `
+            <div class="topbar-meta-status meta-status-disconnected">
+                <i class="ri-error-warning-line"></i> Not Connected
+            </div>
+        `;
+    }
+}
+
+
+/* ============================================================
+   DEMO BADGE (rechts oben in Topbar)
+============================================================ */
+
+export function showDemoBadge(isActive) {
+    const badge = document.querySelector("[data-role='demo-badge']");
+    if (!badge) return;
+
+    if (isActive) {
+        badge.textContent = "DEMO MODE";
+        badge.classList.add("show");
+    } else {
+        badge.classList.remove("show");
+    }
+}
+
+
+/* ============================================================
+   TOAST SYSTEM
+============================================================ */
+
+export function showToast(message, type = "info", duration = 3200) {
+    let container = document.querySelector(".toast-container");
+
+    if (!container) {
+        container = document.createElement("div");
+        container.className = "toast-container";
+        document.body.appendChild(container);
+    }
 
     const toast = document.createElement("div");
     toast.className = `toast ${type}`;
@@ -90,131 +109,171 @@ export function showToast(message, type = "info") {
 
     setTimeout(() => {
         toast.classList.add("hide");
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, duration);
 }
 
-/* -------------------------------------------------------
-    MODAL SYSTEM
----------------------------------------------------------*/
 
-export function openModal(title, bodyHtml) {
-    const overlay = document.getElementById("modalOverlay");
-    const titleEl = document.getElementById("modalTitle");
-    const bodyEl = document.getElementById("modalBody");
-    const closeBtn = document.getElementById("modalCloseButton");
+/* ============================================================
+   MODAL SYSTEM (Apple-like)
+============================================================ */
 
-    if (!overlay || !titleEl || !bodyEl) return;
+const modalOverlayId = "globalModalOverlay";
+const modalContentId = "globalModalContent";
 
-    titleEl.textContent = title;
-    bodyEl.innerHTML = bodyHtml;
+function ensureModalStructure() {
+    if (!document.getElementById(modalOverlayId)) {
+        const overlay = document.createElement("div");
+        overlay.id = modalOverlayId;
+        overlay.className = "modal-overlay";
+
+        const content = document.createElement("div");
+        content.id = modalContentId;
+        content.className = "modal-content";
+
+        overlay.appendChild(content);
+        document.body.appendChild(overlay);
+
+        // Close animation
+        overlay.addEventListener("click", (e) => {
+            if (e.target === overlay) closeModal();
+        });
+    }
+}
+
+export function openModal(html) {
+    ensureModalStructure();
+
+    const overlay = document.getElementById(modalOverlayId);
+    const content = document.getElementById(modalContentId);
+
+    content.innerHTML = html;
 
     overlay.classList.add("visible");
+}
 
-    function closeModal() {
+export function closeModal() {
+    const overlay = document.getElementById(modalOverlayId);
+    if (overlay) {
         overlay.classList.remove("visible");
     }
-
-    if (closeBtn) {
-        closeBtn.onclick = closeModal;
-    }
-
-    overlay.onclick = (e) => {
-        if (e.target === overlay) closeModal();
-    };
 }
 
-/* -------------------------------------------------------
-    META CONNECTION CHECK
----------------------------------------------------------*/
+window.closeGlobalModal = closeModal;
 
-export function checkMetaConnection() {
-    const connected = AppState.metaConnected && !!AppState.meta?.accessToken;
-    
-    // Update Stripe
-    const stripe = document.getElementById("metaConnectStripe");
-    if (stripe) {
-        stripe.style.display = connected ? "none" : "block";
+
+/* ============================================================
+   SETTINGS MODAL (wird über app.js geöffnet)
+============================================================ */
+
+export const ui = {
+    openSettingsModal(settings) {
+        openModal(`
+            <h3>Einstellungen</h3>
+
+            <div class="modal-section">
+                <div class="modal-section-title">Darstellung</div>
+
+                <div class="modal-row">
+                    <label>Thema</label>
+                    <select id="settingsTheme">
+                        <option value="light">Hell</option>
+                        <option value="dark">Dunkel</option>
+                    </select>
+                </div>
+
+                <div class="modal-row">
+                    <label>Währung</label>
+                    <select id="settingsCurrency">
+                        <option value="EUR">EUR</option>
+                        <option value="USD">USD</option>
+                    </select>
+                </div>
+
+                <div class="modal-row">
+                    <label>Default Zeitraum</label>
+                    <select id="settingsTimeRange">
+                        <option value="last_7d">Letzte 7 Tage</option>
+                        <option value="last_30d">Letzte 30 Tage</option>
+                        <option value="last_90d">Letzte 90 Tage</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-section">
+                <div class="modal-section-title">System</div>
+
+                <div class="modal-row">
+                    <label>Meta Cache TTL (Minuten)</label>
+                    <input type="number" id="settingsTTL" min="1" value="${settings.metaCacheTtlMinutes}">
+                </div>
+
+                <div class="modal-row">
+                    <label>Kreativ-Layout</label>
+                    <select id="settingsCreativeLayout">
+                        <option value="grid">Grid</option>
+                        <option value="list">Liste</option>
+                    </select>
+                </div>
+            </div>
+
+            <button id="modalCloseButton" onclick="closeGlobalModal()">Schließen</button>
+            <button class="primary-btn" id="settingsSaveBtn">Speichern</button>
+        `);
+
+        // Werte setzen
+        document.getElementById("settingsTheme").value = settings.theme;
+        document.getElementById("settingsCurrency").value = settings.currency;
+        document.getElementById("settingsTimeRange").value = settings.defaultTimeRange;
+        document.getElementById("settingsCreativeLayout").value = settings.creativeLayout;
+
+        // Speichern
+        document.getElementById("settingsSaveBtn").addEventListener("click", () => {
+            AppState.settings.theme = document.getElementById("settingsTheme").value;
+            AppState.settings.currency = document.getElementById("settingsCurrency").value;
+            AppState.settings.defaultTimeRange = document.getElementById("settingsTimeRange").value;
+            AppState.settings.creativeLayout = document.getElementById("settingsCreativeLayout").value;
+            AppState.settings.metaCacheTtlMinutes = parseInt(document.getElementById("settingsTTL").value);
+
+            applyTheme(AppState.settings.theme);
+            showToast("Einstellungen gespeichert", "success");
+            closeModal();
+        });
     }
+};
 
-    // Update Topbar Status
-    const topbarStatus = document.getElementById("topbarMetaStatus");
-    const topbarIcon = document.getElementById("topbarMetaStatusIcon");
-    const topbarLabel = document.getElementById("topbarMetaStatusLabel");
 
-    if (topbarStatus && topbarIcon && topbarLabel) {
-        if (connected) {
-            topbarStatus.classList.remove("meta-status-disconnected");
-            topbarStatus.classList.add("meta-status-connected");
-            topbarIcon.className = "fas fa-check-circle";
-            topbarLabel.textContent = "Meta: Verbunden";
-        } else {
-            topbarStatus.classList.remove("meta-status-connected");
-            topbarStatus.classList.add("meta-status-disconnected");
-            topbarIcon.className = "fas fa-plug";
-            topbarLabel.textContent = "Meta: Getrennt";
-        }
+/* ============================================================
+   THEME APPLICATION
+============================================================ */
+
+export function applyTheme(theme) {
+    if (theme === "dark") {
+        document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+        document.documentElement.removeAttribute("data-theme");
     }
-
-    // Update Sidebar Status
-    updateHealthStatus();
-
-    return connected;
 }
 
-/* -------------------------------------------------------
-    HEALTH STATUS (Sidebar Footer)
----------------------------------------------------------*/
 
-export function updateHealthStatus() {
-    const metaConnected = AppState.metaConnected && !!AppState.meta?.accessToken;
-    
-    // Meta Ads Status
-    const metaIndicator = document.getElementById("sidebarMetaStatusIndicator");
-    const metaLabel = document.getElementById("sidebarMetaStatusLabel");
-    
-    if (metaIndicator && metaLabel) {
-        if (metaConnected) {
-            metaIndicator.className = "status-indicator status-green";
-            metaLabel.textContent = "Meta Ads (Verbunden)";
-        } else {
-            metaIndicator.className = "status-indicator status-red";
-            metaLabel.textContent = "Meta Ads (Offline)";
-        }
+/* ============================================================
+   DEBUG CONSOLE
+============================================================ */
+
+export function debugLog(...args) {
+    if (!document.getElementById("debugConsole")) {
+        const box = document.createElement("div");
+        box.id = "debugConsole";
+        box.className = "debug-console hidden";
+        document.body.appendChild(box);
     }
 
-    // System Health (immer OK)
-    const systemIndicator = document.getElementById("sidebarSystemHealthIndicator");
-    const systemLabel = document.getElementById("sidebarSystemHealthLabel");
-    
-    if (systemIndicator && systemLabel) {
-        systemIndicator.className = "status-indicator status-green";
-        systemLabel.textContent = "System Health (OK)";
-    }
+    const dbg = document.getElementById("debugConsole");
+    dbg.classList.remove("hidden");
 
-    // Campaign Health
-    const campaignIndicator = document.getElementById("sidebarCampaignHealthIndicator");
-    const campaignLabel = document.getElementById("sidebarCampaignHealthLabel");
-    
-    if (campaignIndicator && campaignLabel) {
-        const metrics = AppState.dashboardMetrics;
-        
-        if (!metrics || !metaConnected) {
-            campaignIndicator.className = "status-indicator status-yellow";
-            campaignLabel.textContent = "Campaign Health (n/a)";
-        } else {
-            const roas = metrics.roas || 0;
-            
-            if (roas >= 4.0) {
-                campaignIndicator.className = "status-indicator status-green";
-                campaignLabel.textContent = "Campaign Health (Gut)";
-            } else if (roas >= 2.5) {
-                campaignIndicator.className = "status-indicator status-yellow";
-                campaignLabel.textContent = "Campaign Health (OK)";
-            } else {
-                campaignIndicator.className = "status-indicator status-red";
-                campaignLabel.textContent = "Campaign Health (Schwach)";
-            }
-        }
-    }
+    dbg.innerHTML += args.join(" ") + "<br>";
+    dbg.scrollTop = dbg.scrollHeight;
 }
