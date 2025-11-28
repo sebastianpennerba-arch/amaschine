@@ -2,26 +2,27 @@
 // DEMO MODE + LIVE MODE vollständig integriert
 // (100% kompatibel zur aktuellen Architektur)
 
-import { 
-    AppState, 
-    setDemoMode 
+import {
+    AppState,
+    setDemoMode
 } from "./state.js";
 
-import { 
-    DEMO_DATA_PRESETS 
+import {
+    DEMO_DATA_PRESETS
 } from "./demoData.js";
 
-import { 
-    updateSidebarActiveItem, 
-    showToast, 
-    updateMetaStatusBadge 
+import {
+    updateSidebarActiveItem,
+    showToast,
+    updateMetaStatusBadge
 } from "./uiCore.js";
 
-import { 
+import {
     fetchMetaAdAccounts,
     fetchMetaCampaigns,
     fetchMetaAds,
-    fetchMetaUser
+    fetchMetaUser,
+    exchangeMetaCodeForToken
 } from "./metaApi.js";
 
 // Feature Views
@@ -41,7 +42,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function initApp() {
-
     // -----------------------------
     // A) CHECK FOR DEMO MODE
     // -----------------------------
@@ -73,7 +73,6 @@ function initApp() {
 // DEMO MODE
 // =========================================================
 function enableDemoMode(presetId) {
-
     if (!DEMO_DATA_PRESETS[presetId]) {
         console.warn("[DEMO] Unbekanntes Preset → fallback: scaling_store");
         presetId = "scaling_store";
@@ -145,7 +144,6 @@ function updateAllViews() {
 // LIVE MODE → META CONNECT FLOW
 // =========================================================
 async function initMetaOAuthFlow() {
-
     // 1. Prüfen: Ist ein OAuth Code in der URL?
     await handleMetaOAuthRedirectIfPresent();
 
@@ -181,7 +179,6 @@ async function handleMetaOAuthRedirectIfPresent() {
 }
 
 async function loadLiveMetaInitialData() {
-
     try {
         // User
         AppState.meta.user = await fetchMetaUser();
@@ -211,7 +208,6 @@ async function loadLiveMetaInitialData() {
         showToast("success", "Live Meta Daten geladen");
 
         updateAllViews();
-
     } catch (err) {
         console.error("[Meta Load] Fehler beim Laden:", err);
         showToast("error", "Fehler beim Laden der Meta-Daten");
@@ -256,11 +252,13 @@ export async function loadAdsForAccount(accountId) {
 // NAVIGATION (VIEW SWITCHING)
 // =========================================================
 function initNavigation() {
-    const navItems = document.querySelectorAll("[data-nav]");
+    // FIX: index.html nutzt data-view, nicht data-nav
+    const navItems = document.querySelectorAll("[data-view]");
 
     navItems.forEach(item => {
-        item.addEventListener("click", () => {
-            const view = item.getAttribute("data-nav");
+        item.addEventListener("click", (event) => {
+            event.preventDefault();
+            const view = item.getAttribute("data-view");
 
             AppState.currentView = view;
             updateSidebarActiveItem(view);
@@ -319,11 +317,13 @@ function updateUI() {
     if (badge) {
         if (AppState.demoMode) {
             badge.style.display = "inline-flex";
-            badge.textContent = `Demo: ${AppState.demoPresetId}`;
+
+            // falls Label im Preset vorhanden → anzeigen, sonst ID
+            const preset = AppState.demoPresetId && DEMO_DATA_PRESETS[AppState.demoPresetId];
+            const label = preset?.label || AppState.demoPresetId || "Demo Mode";
+            badge.textContent = `Demo: ${label}`;
         } else {
             badge.style.display = "none";
         }
     }
 }
-
-badge.classList.add("show");
