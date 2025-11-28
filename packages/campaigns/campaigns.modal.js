@@ -1,176 +1,117 @@
 // packages/campaigns/campaigns.modal.js
-// Deep-Dive-Kampagnenmodal + Aktionen
+// Campaign Deep Dive Modal (Detailansicht)
 
-import { AppState } from "../../state.js";
-import { openModal, showToast } from "../../uiCore.js";
-import {
-    getCampaignInsights,
-    formatMoney,
-    formatRoas,
-    formatPercent,
-    formatInteger,
-    buildSenseiCampaignInsight
-} from "./campaigns.compute.js";
+import { openModal } from "../../uiCore.js";
 
-export function openCampaignModal(campaign) {
-    const insights = getCampaignInsights(campaign);
-
-    const dailyBudget =
-        typeof campaign.daily_budget !== "undefined"
-            ? formatMoney(Number(campaign.daily_budget) / 100)
-            : "-";
-
-    const createdFull = campaign.created_time
-        ? new Date(campaign.created_time).toLocaleString("de-DE")
-        : "-";
-
-    const spend30 = insights.spend != null ? formatMoney(insights.spend) : "-";
-    const roas30 = formatRoas(insights.roas);
-    const ctr30 = formatPercent(insights.ctr);
-    const imp30 = formatInteger(insights.impressions);
-
-    const status = campaign.status || campaign.effective_status || "UNKNOWN";
-    const objective = campaign.objective || "Unbekannt";
-
-    let trendLabel = "Stabil";
-    let trendBadge = "neutral";
-    if (insights.roas && insights.roas >= 4) {
-        trendLabel = "Top Performer";
-        trendBadge = "good";
-    } else if (insights.roas && insights.roas < 1.5) {
-        trendLabel = "Kritisch";
-        trendBadge = "bad";
-    }
-
-    const kpiRow = (label, value) => `
-      <div class="kpi-row">
-        <span class="kpi-row-label">${label}</span>
-        <span class="kpi-row-value">${value}</span>
-      </div>
-  `;
-
-    const html = `
-    <div class="campaign-modal-grid">
-      <div class="campaign-modal-col">
-        <div class="campaign-modal-section">
-          <h3>${campaign.name || "Kampagne"}</h3>
-          <p class="campaign-meta-line">
-            Ziel: <strong>${objective}</strong> &nbsp;•&nbsp;
-            Status: <strong>${status}</strong>
-          </p>
-          <p class="campaign-meta-line">
-            Angelegt: ${createdFull}<br>
-            Tagesbudget: <strong>${dailyBudget}</strong>
-          </p>
-          <div class="campaign-trend-badge campaign-trend-${trendBadge}">
-            ${trendLabel}
-          </div>
-        </div>
-
-        <div class="campaign-modal-section">
-          <h4>📊 Letzte 30 Tage</h4>
-          <div class="campaign-kpi-grid">
-            ${kpiRow("Spend", spend30)}
-            ${kpiRow("ROAS", roas30)}
-            ${kpiRow("CTR", ctr30)}
-            ${kpiRow("Impressions", imp30)}
-          </div>
-          <p class="campaign-note">
-            KPIs basieren auf Meta-Insights (wenn geladen). Im Demo-Modus werden Beispielwerte angezeigt.
-          </p>
-        </div>
-
-        <div class="campaign-modal-section">
-          <h4>🧠 Sensei Einschätzung</h4>
-          <p class="campaign-sensei-text">
-            ${buildSenseiCampaignInsight(campaign, insights)}
-          </p>
-        </div>
-      </div>
-
-      <div class="campaign-modal-col">
-        <div class="campaign-modal-section">
-          <h4>📈 Performance Story</h4>
-          <p class="campaign-story">
-            Diese Kampagne hat in den letzten 30 Tagen ${imp30} Impressions erzeugt.
-            Mit einer CTR von ${ctr30} und einem ROAS von ${roas30} ergibt sich ein
-            Gesamt-Spend von ${spend30}. 
-          </p>
-          <p class="campaign-story">
-            Nutze diese Kampagne als Benchmark für ähnliche Zielgruppen & Creatives –
-            oder als Warnsignal, wenn ROAS und CTR in den nächsten Tagen fallen.
-          </p>
-        </div>
-
-        <div class="campaign-modal-section">
-          <h4>⚙️ Empfohlene Aktionen (Demo)</h4>
-          <p class="campaign-note">
-            Diese Buttons simulieren Meta Ads Manager Aktionen. Später können hier echte API-Calls angebunden werden.
-          </p>
-          <div class="campaign-actions-row">
-            <button class="action-button" data-campaign-action="scale_up">Budget +30%</button>
-            <button class="action-button-secondary" data-campaign-action="scale_down">Budget -20%</button>
-            <button class="action-button-secondary" data-campaign-action="pause">Pausieren</button>
-            <button class="action-button-secondary" data-campaign-action="edit">Im Ads Manager öffnen</button>
-          </div>
-        </div>
-
-        <div class="campaign-modal-section">
-          <h4>🔗 Verknüpfte Elemente</h4>
-          <ul class="campaign-linked-list">
-            <li>Account: <strong>${AppState.selectedAccountId || "Aktuelles Werbekonto"}</strong></li>
-            <li>Kampagnen-ID: <strong>${campaign.id}</strong></li>
-            <li>Objektiv: <strong>${objective}</strong></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  `;
-
-    openModal("Kampagnen-Details", html);
-    wireCampaignModalActions(campaign);
-}
-
-function wireCampaignModalActions(campaign) {
-    const overlay =
-        document.getElementById("modalOverlay") ||
-        document.querySelector(".modal-overlay");
-    if (!overlay) return;
-
-    const buttons = overlay.querySelectorAll("[data-campaign-action]");
-    buttons.forEach((btn) => {
-        btn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            const action = btn.getAttribute("data-campaign-action");
-            handleCampaignAction(action, campaign);
-        });
+function fEuro(v) {
+    const n = Number(v || 0);
+    return n.toLocaleString("de-DE", {
+        style: "currency",
+        currency: "EUR",
+        maximumFractionDigits: 2
     });
 }
 
-function handleCampaignAction(action, campaign) {
-    const name = campaign.name || "Kampagne";
+function fPct(v) {
+    const n = Number(v || 0);
+    return `${n.toFixed(2)}%`;
+}
 
-    if (action === "pause") {
-        showToast(
-            "info",
-            `„${name}“ würde jetzt pausiert werden. (Demo-Modus)`
-        );
-    } else if (action === "scale_up") {
-        showToast(
-            "success",
-            `Sensei würde empfehlen: Budget von „${name}“ um ca. 30 % zu erhöhen. (Demo-Modus)`
-        );
-    } else if (action === "scale_down") {
-        showToast(
-            "info",
-            `Budget von „${name}“ würde um ca. 20 % reduziert werden. (Demo-Modus)`
-        );
-    } else if (action === "edit") {
-        showToast(
-            "info",
-            `„${name}“ würde jetzt zur Bearbeitung im Meta Ads Manager geöffnet. (Demo-Modus)`
-        );
-    } else {
-        showToast("info", "Aktion im Demo-Modus – keine Live-Änderung.");
-    }
+function fInt(v) {
+    const n = Number(v || 0);
+    return n.toLocaleString("de-DE");
+}
+
+export function openCampaignDetailModal(campaign) {
+    const title = campaign.name || "Campaign Detail";
+
+    const badgeClass =
+        campaign.roas >= 3
+            ? "campaign-trend-good"
+            : campaign.roas >= 1
+            ? "campaign-trend-neutral"
+            : "campaign-trend-bad";
+
+    const bodyHtml = `
+        <div class="campaign-modal-grid">
+            <div class="campaign-modal-col">
+                <div class="campaign-modal-section">
+                    <h3>Meta Kampagne</h3>
+                    <p class="campaign-meta-line"><strong>Objective:</strong> ${
+                        campaign.objective || "n/a"
+                    }</p>
+                    <p class="campaign-meta-line"><strong>Status:</strong> ${
+                        campaign.status || "n/a"
+                    }</p>
+                    <p class="campaign-meta-line"><strong>Daily Budget:</strong> ${fEuro(
+                        campaign.dailyBudget
+                    )}</p>
+                    <span class="campaign-trend-badge ${badgeClass}">
+                        ROAS ${ (campaign.roas || 0).toFixed(2) }x
+                    </span>
+                </div>
+
+                <div class="campaign-modal-section">
+                    <h4>KPIs (letzte 30 Tage)</h4>
+                    <div class="campaign-kpi-grid">
+                        <div class="kpi-row">
+                            <span class="kpi-row-label">Spend</span>
+                            <span class="kpi-row-value">${fEuro(campaign.spend)}</span>
+                        </div>
+                        <div class="kpi-row">
+                            <span class="kpi-row-label">Impressions</span>
+                            <span class="kpi-row-value">${fInt(
+                                campaign.impressions
+                            )}</span>
+                        </div>
+                        <div class="kpi-row">
+                            <span class="kpi-row-label">Clicks</span>
+                            <span class="kpi-row-value">${fInt(campaign.clicks)}</span>
+                        </div>
+                        <div class="kpi-row">
+                            <span class="kpi-row-label">CTR</span>
+                            <span class="kpi-row-value">${fPct(campaign.ctr)}</span>
+                        </div>
+                        <div class="kpi-row">
+                            <span class="kpi-row-label">ROAS</span>
+                            <span class="kpi-row-value">${(campaign.roas || 0).toFixed(
+                                2
+                            )}x</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="campaign-modal-col">
+                <div class="campaign-modal-section">
+                    <h4>Sensei Story</h4>
+                    <p class="campaign-story">
+                        ${
+                            campaign.roas >= 3
+                                ? "Diese Kampagne ist ein klarer Gewinner. Prüfe, ob Budget-Upscaling möglich ist, ohne die Effizienz zu verlieren."
+                                : campaign.roas >= 1
+                                ? "Solide Performance mit Luft nach oben. Gute Kandidatin für Creative-Tests und Landing Page Optimierung."
+                                : "Unterhalb des Ziels. Kandidatin für Budget-Reduktion oder komplette Abschaltung, sofern kein strategischer Grund dagegen spricht."
+                        }
+                    </p>
+                    <p class="campaign-sensei-text">
+                        <strong>Empfehlung:</strong> Nutze diese Kampagne als Referenz im Sensei Strategy Center, um konkrete nächste Schritte zu definieren.
+                    </p>
+                </div>
+
+                <div class="campaign-modal-section">
+                    <h4>Aktionen</h4>
+                    <p class="campaign-note">
+                        Im Live-System würden hier direkte Meta API Calls ausgeführt werden (Pause, Budget ändern, Dupes).
+                    </p>
+                    <div class="campaign-actions-row">
+                        <button class="action-button-secondary">In Testing Log übernehmen</button>
+                        <button class="action-button">Budget anpassen</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    openModal(title, bodyHtml);
 }
