@@ -1,46 +1,42 @@
 // packages/dashboard/index.js
-// Dashboard Package – Einstiegspunkt für den Dashboard-View.
-// Aktuell nutzt es intern die bestehende updateDashboardView-Logik,
-// sodass sich am Verhalten nichts ändert.
+// Zentrale API für das Dashboard-Package
 
-import { updateDashboardView } from "../../dashboard.js";
+import { computeDashboardState } from "./dashboard.compute.js";
+import { renderDashboard } from "./dashboard.render.js";
 
 const DashboardPackage = {
     /**
      * Initialisierung – einmalig beim App-Start.
-     * Hier könnten später Event-Listener oder eigene State-Strukturen hin.
      */
     init(options = {}) {
         console.debug("[DashboardPackage] init()", options);
     },
 
     /**
-     * Vollständiges Rendern des Dashboards.
-     * Derzeit reine Durchleitung an die bestehende View-Funktion.
+     * Vollständiges Rendern des Dashboards (Demo oder Live).
      */
-    render(options = {}) {
-        console.debug("[DashboardPackage] render()", options);
-        updateDashboardView(true);
+    async render(options = {}) {
+        const { connected } = options;
+        const state = await computeDashboardState(connected);
+        renderDashboard(state);
     },
 
     /**
-     * Update bei State-/Filter-Änderungen.
-     * Aktuell identisch zu render(), um kompatibel zu bleiben.
+     * Update bei Filter-/State-Änderungen.
      */
-    update(options = {}) {
-        console.debug("[DashboardPackage] update()", options);
-        updateDashboardView(true);
+    async update(options = {}) {
+        return this.render(options);
     },
 
     /**
-     * Cleanup-Hook für spätere Erweiterungen.
+     * Cleanup-Hook (für spätere Erweiterungen).
      */
     destroy() {
         console.debug("[DashboardPackage] destroy()");
     }
 };
 
-// Modul „versiegeln“, damit niemand es versehentlich überschreibt.
+// Fertiges Modul einfrieren (Schutz vor versehentlicher Mutation)
 Object.freeze(DashboardPackage);
 
 export default DashboardPackage;
