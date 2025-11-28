@@ -1,103 +1,71 @@
-// packages/creativeLibrary/creativeLibrary.filters.js
-// Filter-, Sort- und Grouping-Engine für die Creative Library
-// Wird von index.js aufgerufen, um state.filteredCreatives zu erzeugen.
-
-/**
- * Wendet alle Filter auf die Creative-Liste an:
- * - search
- * - type
- * - groupBy
- * - sort
+/*
+ * Creative Library Filters
+ * Kapselt Filter- und Sortierlogik für die Creatives.
  */
-export function applyCreativeFilters(list, filters) {
-    let result = [...list];
 
-    // =============================
-    // 1) SEARCH
-    // =============================
-    if (filters.search && filters.search.trim() !== "") {
-        const q = filters.search.toLowerCase();
-        result = result.filter((item) => {
-            return (
-                (item.name || "").toLowerCase().includes(q) ||
-                (item.headline || "").toLowerCase().includes(q)
-            );
-        });
-    }
-
-    // =============================
-    // 2) TYPE FILTER
-    // =============================
-    if (filters.type && filters.type !== "all") {
-        result = result.filter((item) => item.type === filters.type);
-    }
-
-    // =============================
-    // 3) SORT
-    // =============================
-    result = sortCreatives(result, filters.sort);
-
-    // =============================
-    // 4) GROUP BY (optional)
-    // =============================
-    if (filters.groupBy && filters.groupBy !== "none") {
-        return groupCreatives(result, filters.groupBy);
-    }
-
-    return result;
+export function createDefaultFilters() {
+  return {
+    search: "",
+    tag: "",
+    type: "",
+    status: "",
+    sort: "score_desc", // score_desc, roas_desc, roas_asc, spend_desc, ctr_desc
+  };
 }
 
-/* ============================================================
-   SORTING
-============================================================ */
+export function applyFiltersAndSort(creatives, filters) {
+  let list = [...creatives];
+  const search = (filters.search || "").trim().toLowerCase();
 
-function sortCreatives(list, sort) {
-    const sorted = [...list];
+  // Filter: Tag
+  if (filters.tag) {
+    list = list.filter((c) => c.tags?.includes(filters.tag));
+  }
 
-    switch (sort) {
-        case "roas_desc":
-            return sorted.sort((a, b) => b.roas - a.roas);
-        case "roas_asc":
-            return sorted.sort((a, b) => a.roas - b.roas);
+  // Filter: Type
+  if (filters.type) {
+    list = list.filter((c) => c.type === filters.type);
+  }
 
-        case "ctr_desc":
-            return sorted.sort((a, b) => b.ctr - a.ctr);
-        case "ctr_asc":
-            return sorted.sort((a, b) => a.ctr - b.ctr);
+  // Filter: Status
+  if (filters.status) {
+    list = list.filter((c) => c.status === filters.status);
+  }
 
-        case "spend_desc":
-            return sorted.sort((a, b) => b.spend - a.spend);
-        case "spend_asc":
-            return sorted.sort((a, b) => a.spend - b.spend);
+  // Filter: Search (Titel, Creator, Kampagne, Hook)
+  if (search) {
+    list = list.filter((c) => {
+      const haystack = [
+        c.title,
+        c.creator,
+        c.campaignName,
+        c.hook,
+        (c.tags || []).join(" "),
+      ]
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(search);
+    });
+  }
 
-        default:
-            return sorted;
+  // Sortierung
+  list.sort((a, b) => {
+    switch (filters.sort) {
+      case "roas_desc":
+        return b.roas - a.roas;
+      case "roas_asc":
+        return a.roas - b.roas;
+      case "spend_desc":
+        return b.spend - a.spend;
+      case "ctr_desc":
+        return b.ctr - a.ctr;
+      case "score_asc":
+        return a.score - b.score;
+      case "score_desc":
+      default:
+        return b.score - a.score;
     }
-}
+  });
 
-/* ============================================================
-   GROUPING
-============================================================ */
-
-function groupCreatives(list, key) {
-    const groups = {};
-
-    list.forEach((item) => {
-        const groupValue = item[key] || "Sonstige";
-        if (!groups[groupValue]) groups[groupValue] = [];
-        groups[groupValue].push(item);
-    });
-
-    // Ergebnis: flach zurückgeben, aber gruppiert via Trenner
-    const flattened = [];
-    Object.keys(groups).forEach((groupLabel) => {
-        flattened.push({
-            __group: true,
-            label: groupLabel,
-            count: groups[groupLabel].length
-        });
-        flattened.push(...groups[groupLabel]);
-    });
-
-    return flattened;
+  return list;
 }
