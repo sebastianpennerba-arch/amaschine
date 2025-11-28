@@ -1,110 +1,133 @@
-// metaApi.js – FIXED VERSION
-// Bündelt alle Einzel-Funktionen in ein MetaApi Objekt,
-// damit app.js korrekt importieren kann:
-// import { MetaApi } from "./metaApi.js";
+/* ============================================================
+   metaApi.js – FINAL VERSION (kompatibel mit neuer app.js)
+============================================================ */
 
 import { AppState } from "./state.js";
 
 const BASE_URL = "https://signalone-backend.onrender.com/api/meta";
+
+/* ============================================================
+   Helper: Token auflösen
+============================================================ */
 
 function resolveAccessToken(explicitToken) {
     if (explicitToken) return explicitToken;
     return AppState?.meta?.accessToken || null;
 }
 
+/* ============================================================
+   Helper: POST JSON Wrapper
+============================================================ */
+
 async function jsonPost(url, body) {
-    const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body || {})
-    });
+    try {
+        const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body || {})
+        });
 
-    let data = null;
-    try { data = await res.json(); } catch { data = null; }
+        const data = await res.json().catch(() => null);
 
-    return { res, data };
+        return { ok: res.ok, status: res.status, data };
+    } catch (e) {
+        return { ok: false, status: 500, data: { ok: false, error: e.toString() } };
+    }
 }
 
-// ===============================
-// Einzel-Funktionen
-// ===============================
+/* ============================================================
+   OAuth: Code → Access Token
+============================================================ */
 
-async function exchangeMetaCodeForToken(code, redirectUri) {
-    const { res, data } = await jsonPost(`${BASE_URL}/oauth/token`, {
+export async function exchangeMetaCodeForToken(code, redirectUri) {
+    const { ok, data } = await jsonPost(`${BASE_URL}/oauth/token`, {
         code,
         redirectUri
     });
 
-    return res.ok && data?.ok ? data.accessToken : null;
+    return ok && data?.ok ? data.accessToken : null;
 }
 
-async function fetchMetaUser(accessToken) {
-    const token = resolveAccessToken(accessToken);
+/* ============================================================
+   USER
+============================================================ */
+
+export async function fetchMetaUser(explicitToken) {
+    const token = resolveAccessToken(explicitToken);
     if (!token) return null;
 
-    const { res, data } = await jsonPost(`${BASE_URL}/me`, { accessToken: token });
-    return res.ok && data?.ok ? data.data : null;
+    const { ok, data } = await jsonPost(`${BASE_URL}/me`, {
+        accessToken: token
+    });
+
+    return ok && data?.ok ? data.data : null;
 }
 
-async function fetchMetaAdAccounts(accessToken) {
-    const token = resolveAccessToken(accessToken);
+/* ============================================================
+   AD ACCOUNTS
+============================================================ */
+
+export async function fetchMetaAdAccounts(explicitToken) {
+    const token = resolveAccessToken(explicitToken);
     if (!token) return [];
 
-    const { res, data } = await jsonPost(`${BASE_URL}/adaccounts`, { accessToken: token });
-    return res.ok && data?.ok ? data.data?.data || [] : [];
-}
-
-async function fetchMetaCampaigns(accountId, accessToken) {
-    const token = resolveAccessToken(accessToken);
-    if (!token || !accountId) return [];
-
-    const { res, data } = await jsonPost(`${BASE_URL}/campaigns/${accountId}`, {
+    const { ok, data } = await jsonPost(`${BASE_URL}/adaccounts`, {
         accessToken: token
     });
 
-    return res.ok && data?.ok ? data.data?.data || [] : [];
+    return ok && data?.ok ? data.data?.data || [] : [];
 }
 
-async function fetchMetaAds(accountId, accessToken) {
-    const token = resolveAccessToken(accessToken);
+/* ============================================================
+   CAMPAIGNS
+============================================================ */
+
+export async function fetchMetaCampaigns(accountId, explicitToken) {
+    const token = resolveAccessToken(explicitToken);
     if (!token || !accountId) return [];
 
-    const { res, data } = await jsonPost(`${BASE_URL}/ads/${accountId}`, {
+    const { ok, data } = await jsonPost(`${BASE_URL}/campaigns/${accountId}`, {
         accessToken: token
     });
 
-    return res.ok && data?.ok ? data.data?.data || [] : [];
+    return ok && data?.ok ? data.data?.data || [] : [];
 }
 
-async function fetchMetaCampaignInsights(campaignId, timeRangePreset, accessToken) {
-    const token = resolveAccessToken(accessToken);
+/* ============================================================
+   ADS
+============================================================ */
+
+export async function fetchMetaAds(accountId, explicitToken) {
+    const token = resolveAccessToken(explicitToken);
+    if (!token || !accountId) return [];
+
+    const { ok, data } = await jsonPost(`${BASE_URL}/ads/${accountId}`, {
+        accessToken: token
+    });
+
+    return ok && data?.ok ? data.data?.data || [] : [];
+}
+
+/* ============================================================
+   INSIGHTS
+============================================================ */
+
+export async function fetchMetaCampaignInsights(campaignId, timeRangePreset, explicitToken) {
+    const token = resolveAccessToken(explicitToken);
     if (!token || !campaignId) {
-        return { ok: false, success: false, error: "Missing token or campaignId" };
+        return { ok: false, error: "Missing token or campaignId" };
     }
 
-    const preset = timeRangePreset || AppState.timeRangePreset || "last_30d";
+    const range = timeRangePreset || AppState.timeRangePreset || "last_30d";
 
-    const { res, data } = await jsonPost(`${BASE_URL}/insights/${campaignId}`, {
+    const { ok, data } = await jsonPost(`${BASE_URL}/insights/${campaignId}`, {
         accessToken: token,
-        timeRangePreset: preset
+        timeRangePreset: range
     });
 
-    if (!res.ok || !data) {
-        return { ok: false, success: false, error: data?.error || res.status };
+    if (!ok || !data) {
+        return { ok: false, error: data?.error || "Unknown API error" };
     }
 
-    return { ...data, ok: data.ok, success: !!data.ok };
+    return data;
 }
-
-// ===============================
-// Export als EIN Objekt (für app.js)
-// ===============================
-
-export const MetaApi = {
-    exchangeMetaCodeForToken,
-    fetchMetaUser,
-    fetchMetaAdAccounts,
-    fetchMetaCampaigns,
-    fetchMetaAds,
-    fetchMetaCampaignInsights
-};
