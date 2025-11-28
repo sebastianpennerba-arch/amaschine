@@ -2179,3 +2179,203 @@ nav.sidebar {
       0 0 16px rgba(248, 113, 22, 0.9),
       0 0 0 1px rgba(255,255,255,0.9) inset;
 }
+
+/* ===========================================================
+   SIDEBAR – VISION PRO TITANIUM ULTRA PREMIUM
+   =========================================================== */
+
+/* PANEL */
+nav.sidebar {
+  width: 250px;
+  padding: 18px 18px 16px;
+
+  background: radial-gradient(circle at 0% 0%, #ffffff 95%, #f1f4fc 100%);
+  border-right: 1px solid rgba(148,163,184,0.28);
+
+  box-shadow:
+      0 30px 90px rgba(15,23,42,0.20),
+      0 0 0 0.6px rgba(255,255,255,0.98) inset;
+
+  backdrop-filter: blur(28px);
+  z-index: 60;
+
+  display: flex;
+  flex-direction: column;
+}
+
+/* HEADER / LOGO */
+.sidebar-header {
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid rgba(148,163,184,0.2);
+}
+
+.sidebar-logo {
+  font-weight: 700;
+  font-size: 1.04rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #0f172a;
+  position: relative;
+}
+
+.sidebar-logo::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 40px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg,
+      rgba(79,70,229,0.9),
+      rgba(14,165,233,0.85));
+}
+
+/* NAVIGATION LIST */
+.sidebar-nav {
+  margin-top: 4px;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* NAV BUTTON */
+.sidebar-nav-button,
+.sidebar-nav button {
+  width: 100%;
+  padding: 10px 14px;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  border-radius: 999px;
+  border: 1px solid transparent;
+
+  background: transparent;
+
+  font-size: 0.9rem;
+  color: #64748b;
+
+  transition:
+      background .16s ease,
+      border-color .16s ease,
+      box-shadow .20s ease,
+      transform .08s ease,
+      color .16s;
+}
+
+/* ICON */
+.sidebar-nav-button i,
+.sidebar-nav button i {
+  width: 18px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 0.95rem;
+}
+
+/* HOVER (Vision Pro Lift) */
+.sidebar-nav-button:hover,
+.sidebar-nav button:hover {
+  background: radial-gradient(circle at 0% 0%, #eef2ff, #e5f2ff);
+  border-color: rgba(129,140,248,0.6);
+  color: #0f172a;
+
+  transform: translateY(-2px);
+
+  box-shadow:
+      0 22px 55px rgba(129,140,248,0.32),
+      0 0 0 0.6px rgba(255,255,255,1) inset;
+}
+
+.sidebar-nav-button:hover i,
+.sidebar-nav button:hover i {
+  color: #6366f1;
+}
+
+/* ACTIVE */
+.sidebar-nav-button.active,
+.sidebar-nav button.active {
+  background: radial-gradient(circle at 0% 0%,
+      rgba(129,140,248,.30),
+      rgba(37,99,235,.18));
+  border-color: rgba(79,70,229,1);
+  color: #020617;
+
+  box-shadow:
+      0 30px 80px rgba(79,70,229,0.50),
+      0 0 0 0.6px rgba(255,255,255,.98) inset;
+}
+
+.sidebar-nav-button.active i,
+.sidebar-nav button.active i {
+  color: rgba(79,70,229,1);
+}
+
+/* FOOTER SECTION (System Status + Buttons) */
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid rgba(148,163,184,0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+/* STATUS ROW */
+.sidebar-status-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #94a3b8;
+  box-shadow: 0 0 8px rgba(148,163,184,0.6);
+}
+
+/* FOOTER BUTTON */
+.sidebar-footer-button {
+  margin-top: 6px;
+  padding: 8px 14px;
+
+  border-radius: 999px;
+  border: 1px solid rgba(148,163,184,0.45);
+
+  background: radial-gradient(circle at 0% 0%, #ffffff, #f3f5ff);
+  color: #0f172a;
+  font-size: 0.82rem;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  box-shadow:
+      0 22px 60px rgba(15,23,42,0.20),
+      0 0 0 0.6px rgba(255,255,255,0.95) inset;
+
+  transition:
+      background .16s ease,
+      border-color .16s ease,
+      box-shadow .20s ease,
+      transform .08s ease;
+}
+
+.sidebar-footer-button:hover {
+  background: radial-gradient(circle at 0% 0%,
+      rgba(129,140,248,0.15),
+      rgba(191,219,254,0.18));
+  border-color: rgba(79,70,229,1);
+  transform: translateY(-2px);
+  box-shadow:
+      0 30px 80px rgba(15,23,42,0.32),
+      0 0 0 0.6px rgba(255,255,255,1) inset;
+}
