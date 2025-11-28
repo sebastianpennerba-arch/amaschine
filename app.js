@@ -422,13 +422,7 @@ function updateUI() {
     updateAccountAndCampaignSelectors();
 
     if (AppState.currentView === "dashboardView") {
-        if (connected) {
-            updateDashboardView(true);
-        } else if (demo) {
-            applyDemoDashboardState();
-        } else {
-            applyDashboardNoDataState();
-        }
+        updateDashboardView(connected);
     }
 
     if (AppState.currentView === "campaignsView") {
