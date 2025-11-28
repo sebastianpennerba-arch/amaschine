@@ -1802,3 +1802,94 @@ body {
     border-radius: 999px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
+
+/* ================================
+   SIGNALONE – CREATIVE DEEP DIVE MODAL
+   (Creative Library Detail Layout)
+===================================*/
+
+.creative-modal-layout {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.creative-modal-col {
+    flex: 1 1 320px;
+    min-width: 0;
+}
+
+.creative-modal-thumb {
+    width: 160px;
+    height: 100px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.creative-modal-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.creative-modal-copy {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.creative-modal-table-wrapper {
+    max-height: 220px;
+    overflow: auto;
+}
+
+.creative-modal-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.creative-modal-table th,
+.creative-modal-table td {
+    border-bottom: 1px solid var(--border);
+    padding: 4px 6px;
+    text-align: left;
+}
+
+.creative-modal-table th {
+    font-weight: 600;
+    color: var(--text-secondary);
+    position: sticky;
+    top: 0;
+    background: var(--color-card);
+}
+
+.sensei-snapshot {
+    background: var(--color-card);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+}
+
+.sensei-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.sensei-text {
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.modal-kpis-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+    margin-top: 4px;
+}
