@@ -1,5 +1,7 @@
 // packages/campaigns/index.js
-// Campaigns Package – public API
+// Public API für Kampagnen-View
+
+import { renderCampaignsView } from "./campaigns.render.js";
 
 const CampaignsPackage = {
     init(options = {}) {
@@ -7,16 +9,19 @@ const CampaignsPackage = {
     },
 
     render(options = {}) {
-        console.debug("[CampaignsPackage] render()", options);
+        const { connected } = options;
+        renderCampaignsView(connected);
     },
 
     update(options = {}) {
-        console.debug("[CampaignsPackage] update()", options);
+        return this.render(options);
     },
 
     destroy() {
         console.debug("[CampaignsPackage] destroy()");
     }
 };
+
+Object.freeze(CampaignsPackage);
 
 export default CampaignsPackage;
