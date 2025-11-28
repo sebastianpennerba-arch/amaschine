@@ -1,183 +1,86 @@
-/* ============================================================
-   UI CORE – DEMO-STABLE VERSION
-============================================================ */
+// uiCore.js – UI Core Functions + Meta Connection Check
 
 import { AppState } from "./state.js";
 
-/* ============================================================
-   META CONNECTION CHECK
-============================================================ */
+/* -------------------------------------------------------
+    SIDEBAR NAVIGATION
+---------------------------------------------------------*/
 
-export function checkMetaConnection() {
-    const isDemo = AppState.settings?.demoMode;
-    if (isDemo) return true;
-    const hasToken = !!AppState.meta?.accessToken;
-    return hasToken === true;
+export function initSidebarNavigation(showViewCallback) {
+    const menuItems = document.querySelectorAll(".menu-item");
+    
+    menuItems.forEach((item) => {
+        item.addEventListener("click", (e) => {
+            e.preventDefault();
+            
+            // Remove active from all
+            menuItems.forEach((mi) => mi.classList.remove("active"));
+            
+            // Add active to clicked
+            item.classList.add("active");
+            
+            // Get view ID
+            const viewId = item.getAttribute("data-view");
+            if (viewId && showViewCallback) {
+                showViewCallback(viewId);
+            }
+        });
+    });
 }
 
-/* ============================================================
-   META STATUS INDICATOR (TOPBAR + SIDEBAR)
-============================================================ */
-
-export function updateMetaStatusIndicator(state) {
-    const topbar = document.getElementById("topbarMetaStatus");
-    const sidebar = document.getElementById("sidebarMetaStatusIndicator");
-    const sidebarLabel = document.getElementById("sidebarMetaStatusLabel");
-
-    if (!topbar || !sidebar || !sidebarLabel) return;
-
-    if (state === "connected") {
-        topbar.classList.remove("meta-status-disconnected");
-        topbar.classList.add("meta-status-connected");
-        topbar.innerHTML = `<i class="fas fa-check-circle"></i> <span>Meta: Verbunden</span>`;
-
-        sidebar.className = "status-indicator status-green";
-        sidebarLabel.textContent = "Meta Ads (Online)";
-    }
-    else if (state === "connected-demo") {
-        topbar.classList.remove("meta-status-disconnected");
-        topbar.classList.add("meta-status-connected");
-        topbar.innerHTML = `<i class="fas fa-magic"></i> <span>Meta: Demo Mode</span>`;
-
-        sidebar.className = "status-indicator status-yellow";
-        sidebarLabel.textContent = "Meta Ads (Demo Mode)";
-    }
-    else {
-        topbar.classList.remove("meta-status-connected");
-        topbar.classList.add("meta-status-disconnected");
-        topbar.innerHTML = `<i class="fas fa-plug"></i> <span>Meta: Getrennt</span>`;
-
-        sidebar.className = "status-indicator status-red";
-        sidebarLabel.textContent = "Meta Ads (Offline)";
-    }
-}
-
-/* ============================================================
-   DEMO BADGE (rechts oben)
-============================================================ */
-
-export function showDemoBadge(isActive, presetName = "") {
-    let badge = document.querySelector("[data-role='demo-badge']");
-
-    if (!badge) {
-        badge = document.createElement("div");
-        badge.setAttribute("data-role", "demo-badge");
-        badge.className = "badge-demo hidden";
-        document.body.appendChild(badge);
-    }
-
-    if (isActive) {
-        badge.textContent = `DEMO MODE – ${presetName}`;
-        badge.classList.remove("hidden");
-        badge.classList.add("show");
-    } else {
-        badge.classList.add("hidden");
-    }
-}
-
-/* ============================================================
-   GREETING
-============================================================ */
+/* -------------------------------------------------------
+    GREETING & DATE/TIME
+---------------------------------------------------------*/
 
 export function updateGreeting() {
-    const el = document.getElementById("greetingTitle");
-    if (!el) return;
+    const greetingEl = document.getElementById("greetingTitle");
+    if (!greetingEl) return;
 
-    const h = new Date().getHours();
-    let g = "Guten Tag!";
+    const hour = new Date().getHours();
+    let greeting = "Guten Tag";
 
-    if (h < 11) g = "Guten Morgen!";
-    else if (h < 17) g = "Guten Tag!";
-    else g = "Guten Abend!";
+    if (hour < 12) greeting = "Guten Morgen";
+    else if (hour < 18) greeting = "Guten Tag";
+    else greeting = "Guten Abend";
 
-    el.textContent = g;
+    const userName = AppState.meta?.user?.name || "";
+    greetingEl.textContent = userName ? `${greeting}, ${userName.split(" ")[0]}!` : `${greeting}!`;
 }
-
-/* ============================================================
-   DATE & TIME
-============================================================ */
 
 export function initDateTime() {
     const dateEl = document.getElementById("currentDate");
     const timeEl = document.getElementById("currentTime");
 
-    if (!dateEl || !timeEl) return;
-
-    const update = () => {
-        const d = new Date();
-        dateEl.textContent = d.toLocaleDateString("de-DE");
-        timeEl.textContent = d.toLocaleTimeString("de-DE");
-    };
+    function update() {
+        const now = new Date();
+        
+        if (dateEl) {
+            dateEl.textContent = now.toLocaleDateString("de-DE", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric"
+            });
+        }
+        
+        if (timeEl) {
+            timeEl.textContent = now.toLocaleTimeString("de-DE", {
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+        }
+    }
 
     update();
     setInterval(update, 1000);
 }
 
-/* ============================================================
-   SIDEBAR NAVIGATION
-============================================================ */
+/* -------------------------------------------------------
+    TOAST SYSTEM
+---------------------------------------------------------*/
 
-export function initSidebarNavigation(onSwitch) {
-    const items = document.querySelectorAll(".menu-item");
-
-    items.forEach((item) => {
-        item.addEventListener("click", (e) => {
-            e.preventDefault();
-
-            const view = item.dataset.view;
-            if (!view) return;
-
-            document
-                .querySelectorAll(".menu-item")
-                .forEach((i) => i.classList.remove("active"));
-            item.classList.add("active");
-
-            onSwitch(view);
-        });
-    });
-}
-
-/* ============================================================
-   SYSTEM HEALTH
-============================================================ */
-
-export function updateHealthStatus() {
-    const sysDot = document.getElementById("sidebarSystemHealthIndicator");
-    const sysLbl = document.getElementById("sidebarSystemHealthLabel");
-
-    const campDot = document.getElementById(
-        "sidebarCampaignHealthIndicator"
-    );
-    const campLbl = document.getElementById("sidebarCampaignHealthLabel");
-
-    if (!sysDot || !campDot) return;
-
-    sysDot.className = "status-indicator status-green";
-    sysLbl.textContent = "System Health (OK)";
-
-    const hasData = (AppState.meta?.campaigns || []).length > 0;
-
-    if (hasData) {
-        campDot.className = "status-indicator status-green";
-        campLbl.textContent = "Campaign Health (OK)";
-    } else {
-        campDot.className = "status-indicator status-yellow";
-        campLbl.textContent = "Campaign Health (n/a)";
-    }
-}
-
-/* ============================================================
-   TOASTS
-============================================================ */
-
-export function showToast(message, type = "info", duration = 3000) {
-    let container = document.querySelector(".toast-container");
-
-    if (!container) {
-        container = document.createElement("div");
-        container.className = "toast-container";
-        document.body.appendChild(container);
-    }
+export function showToast(message, type = "info") {
+    const container = document.getElementById("toastContainer");
+    if (!container) return;
 
     const toast = document.createElement("div");
     toast.className = `toast ${type}`;
@@ -188,62 +91,130 @@ export function showToast(message, type = "info", duration = 3000) {
     setTimeout(() => {
         toast.classList.add("hide");
         setTimeout(() => toast.remove(), 300);
-    }, duration);
+    }, 3000);
 }
 
-/* ============================================================
-   MODAL SYSTEM
-============================================================ */
+/* -------------------------------------------------------
+    MODAL SYSTEM
+---------------------------------------------------------*/
 
-export function openModal(html) {
-    let overlay = document.getElementById("globalModalOverlay");
-    let content = document.getElementById("globalModalContent");
+export function openModal(title, bodyHtml) {
+    const overlay = document.getElementById("modalOverlay");
+    const titleEl = document.getElementById("modalTitle");
+    const bodyEl = document.getElementById("modalBody");
+    const closeBtn = document.getElementById("modalCloseButton");
 
-    if (!overlay) {
-        overlay = document.createElement("div");
-        overlay.id = "globalModalOverlay";
-        overlay.className = "modal-overlay";
+    if (!overlay || !titleEl || !bodyEl) return;
 
-        content = document.createElement("div");
-        content.id = "globalModalContent";
-        content.className = "modal-content";
+    titleEl.textContent = title;
+    bodyEl.innerHTML = bodyHtml;
 
-        overlay.appendChild(content);
-        document.body.appendChild(overlay);
-
-        overlay.addEventListener("click", (e) => {
-            if (e.target === overlay) closeModal();
-        });
-    }
-
-    content.innerHTML = html;
     overlay.classList.add("visible");
-}
 
-export function closeModal() {
-    const overlay = document.getElementById("globalModalOverlay");
-    if (overlay) overlay.classList.remove("visible");
-}
-
-/* ============================================================
-   THEME
-============================================================ */
-
-export function applyTheme(theme) {
-    if (theme === "dark") {
-        document.documentElement.dataset.theme = "dark";
-    } else {
-        document.documentElement.dataset.theme = "light";
+    function closeModal() {
+        overlay.classList.remove("visible");
     }
+
+    if (closeBtn) {
+        closeBtn.onclick = closeModal;
+    }
+
+    overlay.onclick = (e) => {
+        if (e.target === overlay) closeModal();
+    };
 }
 
-/* ============================================================
-   DEBUG CONSOLE → DEAKTIVIERT (kein schwarzer Balken)
-============================================================ */
+/* -------------------------------------------------------
+    META CONNECTION CHECK
+---------------------------------------------------------*/
 
-export function debugLog(...args) {
-    // Nur Konsole, kein DOM
-    if (typeof console !== "undefined") {
-        console.log("[SignalOne]", ...args);
+export function checkMetaConnection() {
+    const connected = AppState.metaConnected && !!AppState.meta?.accessToken;
+    
+    // Update Stripe
+    const stripe = document.getElementById("metaConnectStripe");
+    if (stripe) {
+        stripe.style.display = connected ? "none" : "block";
+    }
+
+    // Update Topbar Status
+    const topbarStatus = document.getElementById("topbarMetaStatus");
+    const topbarIcon = document.getElementById("topbarMetaStatusIcon");
+    const topbarLabel = document.getElementById("topbarMetaStatusLabel");
+
+    if (topbarStatus && topbarIcon && topbarLabel) {
+        if (connected) {
+            topbarStatus.classList.remove("meta-status-disconnected");
+            topbarStatus.classList.add("meta-status-connected");
+            topbarIcon.className = "fas fa-check-circle";
+            topbarLabel.textContent = "Meta: Verbunden";
+        } else {
+            topbarStatus.classList.remove("meta-status-connected");
+            topbarStatus.classList.add("meta-status-disconnected");
+            topbarIcon.className = "fas fa-plug";
+            topbarLabel.textContent = "Meta: Getrennt";
+        }
+    }
+
+    // Update Sidebar Status
+    updateHealthStatus();
+
+    return connected;
+}
+
+/* -------------------------------------------------------
+    HEALTH STATUS (Sidebar Footer)
+---------------------------------------------------------*/
+
+export function updateHealthStatus() {
+    const metaConnected = AppState.metaConnected && !!AppState.meta?.accessToken;
+    
+    // Meta Ads Status
+    const metaIndicator = document.getElementById("sidebarMetaStatusIndicator");
+    const metaLabel = document.getElementById("sidebarMetaStatusLabel");
+    
+    if (metaIndicator && metaLabel) {
+        if (metaConnected) {
+            metaIndicator.className = "status-indicator status-green";
+            metaLabel.textContent = "Meta Ads (Verbunden)";
+        } else {
+            metaIndicator.className = "status-indicator status-red";
+            metaLabel.textContent = "Meta Ads (Offline)";
+        }
+    }
+
+    // System Health (immer OK)
+    const systemIndicator = document.getElementById("sidebarSystemHealthIndicator");
+    const systemLabel = document.getElementById("sidebarSystemHealthLabel");
+    
+    if (systemIndicator && systemLabel) {
+        systemIndicator.className = "status-indicator status-green";
+        systemLabel.textContent = "System Health (OK)";
+    }
+
+    // Campaign Health
+    const campaignIndicator = document.getElementById("sidebarCampaignHealthIndicator");
+    const campaignLabel = document.getElementById("sidebarCampaignHealthLabel");
+    
+    if (campaignIndicator && campaignLabel) {
+        const metrics = AppState.dashboardMetrics;
+        
+        if (!metrics || !metaConnected) {
+            campaignIndicator.className = "status-indicator status-yellow";
+            campaignLabel.textContent = "Campaign Health (n/a)";
+        } else {
+            const roas = metrics.roas || 0;
+            
+            if (roas >= 4.0) {
+                campaignIndicator.className = "status-indicator status-green";
+                campaignLabel.textContent = "Campaign Health (Gut)";
+            } else if (roas >= 2.5) {
+                campaignIndicator.className = "status-indicator status-yellow";
+                campaignLabel.textContent = "Campaign Health (OK)";
+            } else {
+                campaignIndicator.className = "status-indicator status-red";
+                campaignLabel.textContent = "Campaign Health (Schwach)";
+            }
+        }
     }
 }
