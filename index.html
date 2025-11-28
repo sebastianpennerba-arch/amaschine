@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SignalOne.cloud | Elite Dashboard</title>
+
     <link rel="stylesheet" href="styles.css" />
     <link
         rel="stylesheet"
@@ -31,14 +32,14 @@
             <i class="fas fa-bullhorn"></i> Campaigns
         </a>
 
-        <div class="menu-category">SENSEI / AI</div>
+        <div class="menu-category">AI</div>
         <a href="#" class="menu-item" data-view="senseiView" id="menuSensei">
             <i class="fas fa-robot"></i> Sensei Strategy
         </a>
 
         <div class="menu-category">REPORTING</div>
         <a href="#" class="menu-item" data-view="reportsView" id="menuReports">
-            <i class="fas fa-file-export"></i> Exports & Reports
+            <i class="fas fa-file-export"></i> Exports &amp; Reports
         </a>
         <a href="#" class="menu-item" data-view="testingLogView" id="menuTestingLog">
             <i class="fas fa-flask"></i> Testing Log
@@ -69,7 +70,6 @@
                 <span id="sidebarCampaignHealthLabel">Campaign Health (n/a)</span>
             </div>
 
-            <!-- SETTINGS BUTTON (unten links) -->
             <button class="menu-settings-button" id="openSettingsButton">
                 <i class="fas fa-cog"></i>
                 <span>Settings</span>
@@ -78,57 +78,63 @@
     </nav>
 
     <!-- ========================================= -->
-    <!-- TOP BAR -->
-    <!-- ========================================= -->
-    <header class="top-bar">
-        <div class="greeting-status">
-            <h1 id="greetingTitle">Guten Tag!</h1>
-
-            <span class="header-date-time">
-                Datum: <span id="currentDate"></span> | Zeit:
-                <span id="currentTime"></span>
-                <span class="app-version-label">Version: S1-0.9-b</span>
-            </span>
-        </div>
-
-        <div class="account-selection">
-            <div class="select-container">
-                <select id="brandSelect">
-                    <option>SignalOne Brand (Active)</option>
-                </select>
-            </div>
-
-            <div class="select-container">
-                <select id="campaignGroupSelect">
-                    <option>Alle Kampagnen</option>
-                </select>
-            </div>
-
-            <div id="topbarMetaStatus" class="topbar-meta-status meta-status-disconnected">
-                <i id="topbarMetaStatusIcon" class="fas fa-plug"></i>
-                <span id="topbarMetaStatusLabel">Meta: Getrennt</span>
-            </div>
-
-            <button class="header-action-button" id="profileButton">
-                <i class="fas fa-user-circle"></i>
-                <span class="icon-tooltip">Profil</span>
-            </button>
-            <button class="header-action-button" id="notificationsButton">
-                <i class="fas fa-bell"></i>
-                <span class="notification-badge hidden" id="notificationsBadge">0</span>
-                <span class="icon-tooltip">Benachrichtigungen</span>
-            </button>
-            <button class="header-action-button" id="disconnectMetaButton">
-                <i class="fas fa-sign-out-alt"></i>
-                <span class="icon-tooltip">Abmelden</span>
-            </button>
-        </div>
-    </header>
-
-    <!-- ========================================= -->
-    <!-- MAIN CONTENT -->
+    <!-- MAIN LAYOUT -->
     <!-- ========================================= -->
     <main class="main-content" id="mainContent">
+        <!-- TOPBAR -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <div class="greeting-block">
+                    <h1 id="greetingTitle">Guten Tag!</h1>
+                    <div class="datetime-row">
+                        <span id="currentDate"></span>
+                        <span class="dot-separator">•</span>
+                        <span id="currentTime"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="topbar-center">
+                <div class="topbar-control">
+                    <label for="accountSelect">Ad Account</label>
+                    <select id="accountSelect">
+                        <option value="">Alle Accounts</option>
+                    </select>
+                </div>
+
+                <div class="topbar-control">
+                    <label for="timeRangeSelect">Zeitraum</label>
+                    <select id="timeRangeSelect">
+                        <option value="last_7d">Letzte 7 Tage</option>
+                        <option value="last_30d" selected>Letzte 30 Tage</option>
+                        <option value="this_month">Dieser Monat</option>
+                        <option value="last_month">Letzter Monat</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="topbar-right">
+                <div
+                    id="topbarMetaStatus"
+                    class="topbar-meta-status meta-status-disconnected"
+                >
+                    <i class="fas fa-plug"></i>
+                    <span>Meta: Getrennt</span>
+                </div>
+
+                <button class="header-action-button" id="notificationsButton">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge hidden" id="notificationsBadge">0</span>
+                    <span class="icon-tooltip">Benachrichtigungen</span>
+                </button>
+
+                <button class="header-action-button" id="profileButton">
+                    <i class="fas fa-user-circle"></i>
+                    <span class="icon-tooltip">Profil</span>
+                </button>
+            </div>
+        </header>
+
         <!-- META CONNECT STRIPE -->
         <div id="metaConnectStripe" class="meta-connect-stripe">
             <div class="meta-connect-inner">
@@ -141,29 +147,26 @@
             </div>
         </div>
 
-        <!-- DASHBOARD VIEW -->
+        <!-- ========================================= -->
+        <!-- DASHBOARD VIEW (Basis-Struktur nicht anfassen) -->
+        <!-- ========================================= -->
         <section class="view" id="dashboardView">
             <h2 class="elite-title">Meta Performance Dashboard</h2>
 
-            <div class="view-header">
-                <div
-                    id="dashboardMetaSummary"
-                    style="color: var(--text-secondary); font-size: 14px;"
-                >
-                    Noch keine Daten geladen.
-                </div>
-
-                <div class="time-range-select mini">
-                    <label for="dashboardTimeRange">Zeitraum</label>
-                    <select id="dashboardTimeRange">
-                        <option value="today">Heute</option>
-                        <option value="yesterday">Gestern</option>
-                        <option value="today_yesterday">Heute + Gestern</option>
-                        <option value="last_7d">Letzte 7 Tage</option>
-                        <option value="last_30d" selected>Letzte 30 Tage</option>
-                        <option value="this_month">Aktueller Monat</option>
-                        <option value="last_month">Letzter Monat</option>
-                    </select>
+            <div class="card">
+                <div class="dashboard-header">
+                    <div id="dashboardMetaSummary" class="dashboard-meta-summary">
+                        Keine Datenquelle aktiv. Demo Mode: AUS · Meta: nicht verbunden.
+                    </div>
+                    <div class="dashboard-header-controls">
+                        <label for="dashboardTimeRange">Zeitraum</label>
+                        <select id="dashboardTimeRange">
+                            <option value="last_7d">Letzte 7 Tage</option>
+                            <option value="last_30d" selected>Letzte 30 Tage</option>
+                            <option value="this_month">Dieser Monat</option>
+                            <option value="last_month">Letzter Monat</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -176,37 +179,23 @@
             <div id="dashboardHeroCreativesContainer"></div>
         </section>
 
+        <!-- ========================================= -->
         <!-- CREATIVE LIBRARY VIEW -->
+        <!-- ========================================= -->
         <section class="view hidden" id="creativesView">
-            <h2 class="elite-title">Creative Library (Live-Daten)</h2>
+            <h2 class="elite-title">Creative Library</h2>
 
             <div class="card">
-                <div class="filter-bar" style="display:flex; gap:15px; align-items:center; flex-wrap:wrap;">
+                <div class="filter-bar">
                     <input
                         type="text"
                         id="creativeSearch"
                         placeholder="Suche nach Namen, Kampagne, Adset"
-                        style="
-                            flex-grow: 1;
-                            padding: 8px;
-                            border-radius: 6px;
-                            border: 1px solid var(--border);
-                        "
                     />
 
-                    <!-- Grouping Dropdown -->
-                    <select id="creativeGroupBy">
-                        <option value="none">Keine Gruppierung</option>
-                        <option value="creative">Group by Creative</option>
-                        <option value="ad_name">Group by Ad Name</option>
-                        <option value="headline">Group by Headline</option>
-                        <option value="landing_page">Group by Landing Page</option>
-                        <option value="post_id">Group by Post ID</option>
-                    </select>
-
                     <select id="creativeType">
-                        <option value="all">Alle Typen</option>
-                        <option value="static">Static / Image</option>
+                        <option value="all">Alle Formate</option>
+                        <option value="static">Static</option>
                         <option value="video">Video</option>
                         <option value="carousel">Carousel</option>
                     </select>
@@ -216,33 +205,40 @@
                         <option value="spend_desc">Spend (absteigend)</option>
                         <option value="spend_asc">Spend (aufsteigend)</option>
                     </select>
+
+                    <select id="creativeGroupBy">
+                        <option value="none">Keine Gruppierung</option>
+                        <option value="creative">Creative ID</option>
+                        <option value="ad_name">Ad Name</option>
+                        <option value="headline">Headline</option>
+                        <option value="landing_page">Landing Page</option>
+                        <option value="post_id">Post ID</option>
+                    </select>
                 </div>
             </div>
 
-            <div id="creativeLibraryGrid"></div>
+            <div id="creativeLibraryGrid" class="creative-library-grid"></div>
         </section>
 
+        <!-- ========================================= -->
         <!-- CAMPAIGNS VIEW -->
+        <!-- ========================================= -->
         <section class="view hidden" id="campaignsView">
-            <h2 class="elite-title">Campaigns Overview</h2>
+            <h2 class="elite-title">Campaigns</h2>
 
-            <div class="card" style="margin-bottom: 16px;">
-                <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+            <div class="card">
+                <div class="filter-bar">
                     <input
                         type="text"
                         id="campaignSearch"
-                        placeholder="Kampagnen suchen..."
-                        style="
-                            flex-grow: 1;
-                            padding: 8px;
-                            border-radius: 6px;
-                            border: 1px solid var(--border);
-                        "
+                        placeholder="Kampagnen suchen"
                     />
+
                     <select id="campaignStatusFilter">
                         <option value="all">Alle Status</option>
-                        <option value="ACTIVE">Aktiv</option>
-                        <option value="PAUSED">Pausiert</option>
+                        <option value="ACTIVE">Active</option>
+                        <option value="PAUSED">Paused</option>
+                        <option value="DELETED">Deleted</option>
                     </select>
                 </div>
             </div>
@@ -252,94 +248,58 @@
                     <thead>
                         <tr>
                             <th>Status</th>
-                            <th>Name</th>
+                            <th>Kampagne</th>
                             <th>Objective</th>
                             <th>Daily Budget</th>
-                            <th>Spend (30D)</th>
-                            <th>ROAS (30D)</th>
-                            <th>CTR (30D)</th>
-                            <th>Impressions (30D)</th>
+                            <th>Spend</th>
+                            <th>ROAS</th>
+                            <th>CTR</th>
+                            <th>Impressions</th>
                             <th>Aktionen</th>
                         </tr>
                     </thead>
-                    <tbody id="campaignsTableBody">
-                        <tr>
-                            <td colspan="9">
-                                <span style="color: var(--text-secondary); font-size:14px;">
-                                    Verbinde Meta, um Kampagnen zu laden.
-                                </span>
-                            </td>
-                        </tr>
-                    </tbody>
+                    <tbody id="campaignsTableBody"></tbody>
                 </table>
             </div>
         </section>
 
-        <!-- SENSEI / AI VIEW -->
+        <!-- ========================================= -->
+        <!-- SENSEI / AI VIEW – Panel Style (3 Spalten) -->
+        <!-- ========================================= -->
         <section class="view hidden" id="senseiView">
             <h2 class="elite-title">Sensei Strategy (AI Layer)</h2>
-            <div id="senseiContent"></div>
-        </section>
 
-        <!-- REPORTS / EXPORTS VIEW -->
-        <section class="view hidden" id="reportsView">
-            <h2 class="elite-title">Reports & Exports</h2>
-
-            <div class="card">
-                <div class="reports-header" style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap;">
-                    <div>
-                        <label for="reportScopeSelect" style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:4px;">
-                            Report-Scope:
-                        </label>
-                        <select id="reportScopeSelect" style="padding:8px 12px; border-radius:6px; border:1px solid var(--border); font-size:13px;">
-                            <option value="account">Account Report (Standard)</option>
-                            <option value="campaign">Campaign Report (aktuell ausgewählte Kampagne)</option>
-                            <option value="creatives">Creative Library (alle geladenen Creatives)</option>
-                            <option value="raw">RAW Dump (technische Meta-Response)</option>
-                        </select>
-                    </div>
-                    <p class="reports-hint">
-                        Wähle zuerst den Scope, dann exportiere die Daten als JSON, CSV, XLSX oder PDF.
-                    </p>
-                </div>
-
-                <div class="reports-actions">
-                    <button class="action-button-secondary" id="exportJsonBtn">
-                        <i class="fas fa-code"></i>&nbsp; JSON Export
-                    </button>
-                    <button class="action-button-secondary" id="exportCsvBtn">
-                        <i class="fas fa-file-csv"></i>&nbsp; CSV Export
-                    </button>
-                    <button class="action-button-secondary" id="exportXlsxBtn">
-                        <i class="fas fa-file-excel"></i>&nbsp; XLSX Export
-                    </button>
-                    <button class="action-button-secondary" id="exportPdfBtn">
-                        <i class="fas fa-file-pdf"></i>&nbsp; PDF Export
-                    </button>
-                </div>
-
-                <div id="reportSnapshot"></div>
+            <div class="sensei-panel-grid" id="senseiPanelContainer">
+                <div class="sensei-column" id="senseiInsightsContainer"></div>
+                <div class="sensei-column" id="senseiAlertsContainer"></div>
+                <div class="sensei-column" id="senseiTopPerformersContainer"></div>
             </div>
         </section>
 
+        <!-- ========================================= -->
+        <!-- REPORTS / EXPORTS VIEW -->
+        <!-- ========================================= -->
+        <section class="view hidden" id="reportsView">
+            <h2 class="elite-title">Reports &amp; Exports</h2>
+
+            <div class="reports-layout">
+                <div id="reportsSummaryContainer"></div>
+                <div id="reportsTableContainer"></div>
+                <div id="reportsExportContainer"></div>
+            </div>
+        </section>
+
+        <!-- ========================================= -->
         <!-- TESTING LOG VIEW -->
+        <!-- ========================================= -->
         <section class="view hidden" id="testingLogView">
-            <h2 class="elite-title">Testing Log</h2>
-            <div id="testingLogContent"></div>
+            <div id="testingLogContainer"></div>
         </section>
     </main>
 
-    <!-- TOAST & MODAL ROOTS -->
-    <div id="toastContainer" class="toast-container"></div>
-
-    <div id="modalOverlay" class="modal-overlay">
-        <div class="modal-content">
-            <h3 id="modalTitle"></h3>
-            <div id="modalBody"></div>
-            <button id="modalCloseButton">Schließen</button>
-        </div>
-    </div>
-
+    <!-- ========================================= -->
+    <!-- SCRIPTS -->
+    <!-- ========================================= -->
     <script type="module" src="app.js"></script>
 </body>
 </html>
