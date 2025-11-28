@@ -1,226 +1,278 @@
-// sensei.js
+// sensei.js – FINAL VERSION (Elite Sensei Layer P4)
+
 import { AppState } from "./state.js";
+import { showToast, openModal } from "./uiCore.js";
 
 /**
- * Sensei View: nutzt Demo-Daten / aggregierte KPIs,
- * um ein Briefing + Alerts + Handlungsvorschläge zu zeigen.
+ * Entry-Point aus app.js
+ * app.js ruft: updateSenseiView(dataConnected)
  */
-export function renderSensei() {
-    const container = document.getElementById("senseiContent");
-    if (!container) return;
+export function updateSenseiView(hasData) {
+    const panel = document.getElementById("senseiPanelContainer");
+    const insightsBox = document.getElementById("senseiInsightsContainer");
+    const alertsBox = document.getElementById("senseiAlertsContainer");
+    const performerBox = document.getElementById("senseiTopPerformersContainer");
 
-    const { campaigns, insightsByCampaign } = AppState.meta;
-    const metrics = buildSenseiMetrics(campaigns || [], insightsByCampaign || {});
+    if (!panel || !insightsBox || !alertsBox || !performerBox) return;
 
-    container.innerHTML = `
-        <section class="sensei-briefing-section">
-            <div class="section-title">
-                <i class="ri-robot-line"></i> Sensei Briefing
+    if (!hasData) {
+        panel.innerHTML = `
+            <div class="card hero-empty">
+                <p>Keine Daten geladen. Verbinde Meta Ads oder aktiviere Demo Mode für den Sensei.</p>
             </div>
+        `;
+        insightsBox.innerHTML = "";
+        alertsBox.innerHTML = "";
+        performerBox.innerHTML = "";
+        return;
+    }
 
-            ${renderSenseiBriefing(metrics)}
-        </section>
+    const campaigns = AppState.meta?.campaigns || [];
+    const insights = AppState.meta?.insightsByCampaign || {};
 
-        <section class="alerts-section">
-            <div class="section-title danger">
-                <i class="ri-alert-line"></i> Alerts
+    if (!campaigns.length) {
+        panel.innerHTML = `
+            <div class="card hero-empty">
+                <p>Keine Kampagnen im Zeitraum ${humanize(AppState.timeRangePreset)} gefunden.</p>
             </div>
-            <div class="alerts-grid">
-                ${renderAlerts(metrics)}
-            </div>
-        </section>
+        `;
+        return;
+    }
 
-        <section class="top-performers-section">
-            <div class="section-title">
-                <i class="ri-bar-chart-2-line"></i> Top Performer
-            </div>
-            <div class="top-performers-grid">
-                ${renderTopPerformers(metrics)}
-            </div>
-        </section>
-    `;
+    const decorated = decorateCampaigns(campaigns, insights);
+
+    // Core Sensei Metrics
+    const metrics = buildSenseiMetrics(decorated);
+
+    // Render
+    insightsBox.innerHTML = renderBriefing(metrics);
+    alertsBox.innerHTML = renderAlerts(metrics);
+    performerBox.innerHTML = renderTopPerformers(metrics);
 }
 
-function buildSenseiMetrics(campaigns, insightsByCampaign) {
-    const decorated = campaigns.map(c => {
-        const ins = insightsByCampaign[c.id] || {};
-        const spend = Number(ins.spend || 0);
-        const rev = Number(ins.revenue || 0);
-        const roas = spend > 0 ? rev / spend : 0;
-        const impressions = Number(ins.impressions || 0);
-        const clicks = Number(ins.clicks || 0);
-        const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
+/* ============================================================
+   DATA PREP
+============================================================ */
 
-        return { ...c, insights: { spend, rev, roas, impressions, clicks, ctr } };
+function decorateCampaigns(campaigns, insightsByCampaign) {
+    return campaigns.map((c) => {
+        const ins = insightsByCampaign[c.id] || {};
+        const spend = num(ins.spend ?? ins.spend_total);
+        const rev = num(ins.revenue ?? ins.purchase_value);
+        const impressions = num(ins.impressions);
+        const clicks = num(ins.clicks);
+        const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
+        const roas = spend > 0 ? rev / spend : 0;
+
+        return {
+            ...c,
+            metrics: { spend, rev, impressions, clicks, ctr, roas }
+        };
+    });
+}
+
+function buildSenseiMetrics(list) {
+    let spend = 0;
+    let revenue = 0;
+    let clicks = 0;
+    let impressions = 0;
+    const sorted = [...list].sort((a, b) => (b.metrics.roas || 0) - (a.metrics.roas || 0));
+
+    list.forEach((c) => {
+        spend += c.metrics.spend;
+        revenue += c.metrics.rev;
+        clicks += c.metrics.clicks;
+        impressions += c.metrics.impressions;
     });
 
-    const sortedByRoas = [...decorated].sort((a, b) => (b.insights.roas || 0) - (a.insights.roas || 0));
-    const top = sortedByRoas[0] || null;
-    const bottom = sortedByRoas[sortedByRoas.length - 1] || null;
-
-    const totalSpend = decorated.reduce((sum, c) => sum + c.insights.spend, 0);
-    const totalRev = decorated.reduce((sum, c) => sum + c.insights.rev, 0);
-    const overallRoas = totalSpend > 0 ? totalRev / totalSpend : 0;
+    const overallRoas = spend > 0 ? revenue / spend : 0;
+    const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
 
     return {
-        campaigns: decorated,
-        topCampaign: top,
-        bottomCampaign: bottom,
-        totalSpend,
-        totalRev,
-        overallRoas
+        list,
+        top: sorted.slice(0, 3),
+        bottom: sorted.slice(-3),
+        spend,
+        revenue,
+        overallRoas,
+        ctr,
+        impressions,
+        clicks
     };
 }
 
-function renderSenseiBriefing(m) {
-    if (!m.campaigns.length) {
-        return `
-            <div class="briefing-card">
-                <div class="priority-badge info">Info</div>
-                <div class="briefing-content">
-                    <p>Keine Kampagnen-Daten verfügbar. Verbinde Meta oder aktiviere den Demo Mode, um ein vollständiges Sensei-Briefing zu erhalten.</p>
-                </div>
-            </div>
-        `;
-    }
+/* ============================================================
+   BRIEFING (AI/Consulting Style)
+============================================================ */
+
+function renderBriefing(m) {
+    const demo = AppState.settings?.demoMode;
+
+    const badge =
+        m.overallRoas >= 3
+            ? { cls: "success", label: "Elite Performance" }
+            : m.overallRoas >= 1.5
+            ? { cls: "warning", label: "OK – aber ausbaufähig" }
+            : { cls: "critical", label: "Unter Wasser" };
 
     return `
-        <div class="briefing-card">
-            <div class="priority-badge ${
-                m.overallRoas >= 3 ? "success" : m.overallRoas >= 1.5 ? "warning" : "critical"
-            }">
-                ${
-                    m.overallRoas >= 3
-                        ? "System auf Skalierungsniveau"
-                        : m.overallRoas >= 1.5
-                        ? "Stabile Basis – Optimierung nötig"
-                        : "Kritischer Zustand"
-                }
-            </div>
+        <div class="card briefing-card">
+            <span class="priority-badge ${badge.cls}">${badge.label}</span>
             <div class="briefing-content">
                 <p>
-                    Gesamt-ROAS liegt bei <strong>${m.overallRoas ? m.overallRoas.toFixed(2) + "x" : "–"}</strong>
-                    bei einem Spend von <strong>${formatCurrency(m.totalSpend)}</strong> und
-                    einem Revenue von <strong>${formatCurrency(m.totalRev)}</strong>.
+                    ROAS gesamt: <strong>${fmtX(m.overallRoas)}</strong> · 
+                    Spend: <strong>${fmtE(m.spend)}</strong> · 
+                    Revenue: <strong>${fmtE(m.revenue)}</strong>
                 </p>
-                <p class="action-line">
-                    > Fokus-Kampagne: ${
-                        m.topCampaign
-                            ? escapeHtml(m.topCampaign.name || m.topCampaign.campaign_name || m.topCampaign.id)
-                            : "keine"
+
+                <p>
+                    CTR: <strong>${fmtPct(m.ctr)}</strong> · 
+                    Impressions: <strong>${fmt(m.impressions)}</strong> ·
+                    Clicks: <strong>${fmt(m.clicks)}</strong>
+                </p>
+
+                <p>
+                    ${
+                        m.overallRoas >= 3
+                            ? "Account liefert Top-Performance. Fokus: kontrolliertes Skalieren & Creative Diversifikation."
+                            : m.overallRoas >= 1.5
+                            ? "Solide Basis. Fokus: Testing von Creatives, Offers und Audience Clustering."
+                            : "Account gefährdet. Fokus: Performance retten über Creative-First-Testing & Kampagnen-Konsolidierung."
                     }
                 </p>
+                ${
+                    demo
+                        ? `<p><em>Hinweis: Demo Mode aktiv → Werte sind simuliert.</em></p>`
+                        : ""
+                }
             </div>
         </div>
     `;
 }
 
-function renderAlerts(m) {
-    if (!m.campaigns.length) {
-        return `
-            <div class="alert-card alert-info">
-                <div class="alert-icon"><i class="ri-information-line"></i></div>
-                <div class="alert-content">
-                    <div class="alert-title">Keine Daten</div>
-                    <div class="alert-message">Füge Kampagnen hinzu oder aktiviere Demo-Daten, um Alerts zu erhalten.</div>
-                </div>
-            </div>
-        `;
-    }
+/* ============================================================
+   ALERTS
+============================================================ */
 
+function renderAlerts(m) {
     const alerts = [];
 
-    if (m.overallRoas < 1.0) {
-        alerts.push(`
-            <div class="alert-card alert-critical">
-                <div class="alert-icon"><i class="ri-error-warning-line"></i></div>
-                <div class="alert-content">
-                    <div class="alert-title">ROAS unter 1.0</div>
-                    <div class="alert-message">
-                        Das Account-Level ist aktuell nicht profitabel. Überprüfe Budget-Allocation und
-                        pausiere nicht performende Kampagnen.
-                    </div>
-                    <div class="alert-meta">Sensei · Profitabilität</div>
-                </div>
-            </div>
-        `);
+    if (m.overallRoas < 1) {
+        alerts.push(alert(
+            "critical",
+            "ROAS unter 1.0",
+            "Der Account verliert Geld. Dringend Maßnahmen nötig: Kampagnen pausieren, Creative-Testing intensivieren."
+        ));
     }
 
-    if (m.topCampaign && m.topCampaign.insights.roas >= 4) {
-        alerts.push(`
-            <div class="alert-card alert-success">
-                <div class="alert-icon"><i class="ri-rocket-line"></i></div>
-                <div class="alert-content">
-                    <div class="alert-title">Skalierungschance erkannt</div>
-                    <div class="alert-message">
-                        Kampagne <strong>${escapeHtml(m.topCampaign.name || m.topCampaign.id)}</strong> performt mit einem
-                        ROAS von ${m.topCampaign.insights.roas.toFixed(2)}x. 
-                        Erhöhe kontrolliert das Budget und beobachte die Stabilität.
-                    </div>
-                    <div class="alert-meta">Sensei · Scaling</div>
-                </div>
-            </div>
-        `);
+    if (m.ctr < 0.7) {
+        alerts.push(alert(
+            "warning",
+            "CTR sehr niedrig",
+            "Deine CTR ist niedrig – Creative Hook / Thumbnail / Messaging überprüfen."
+        ));
+    }
+
+    if (m.top[0]?.metrics.roas >= 4) {
+        alerts.push(alert(
+            "success",
+            "Skalierungspotenzial erkannt",
+            `Top Kampagne: ${escape(m.top[0].name)} mit ROAS ${fmtX(m.top[0].metrics.roas)}`
+        ));
     }
 
     if (!alerts.length) {
-        alerts.push(`
-            <div class="alert-card alert-success">
-                <div class="alert-icon"><i class="ri-check-double-line"></i></div>
-                <div class="alert-content">
-                    <div class="alert-title">Keine kritischen Alerts</div>
-                    <div class="alert-message">
-                        Aktuell wurden keine kritischen Anomalien im Account erkannt. Nutze die Zeit für strukturelle Optimierung, Creatives und Testing.
-                    </div>
-                    <div class="alert-meta">Sensei · Health Check</div>
-                </div>
-            </div>
-        `);
+        alerts.push(alert(
+            "info",
+            "Keine kritischen Probleme",
+            "Sensei hat aktuell keine kritischen Auffälligkeiten gefunden."
+        ));
     }
 
     return alerts.join("");
 }
 
+function alert(type, title, msg) {
+    return `
+        <div class="alert-card alert-${type}">
+            <div class="alert-icon"><i class="fas fa-bolt"></i></div>
+            <div class="alert-content">
+                <div class="alert-title">${escape(title)}</div>
+                <div class="alert-message">${escape(msg)}</div>
+            </div>
+        </div>
+    `;
+}
+
+/* ============================================================
+   TOP PERFORMERS
+============================================================ */
+
 function renderTopPerformers(m) {
-    if (!m.campaigns.length) {
-        return `<div class="hero-empty">Keine Kampagnen vorhanden.</div>`;
-    }
-
-    const sorted = [...m.campaigns].sort((a, b) => (b.insights.roas || 0) - (a.insights.roas || 0));
-    const top3 = sorted.slice(0, 3);
-
-    return top3
-        .map((c, idx) => {
-            const ins = c.insights;
-            return `
-                <article class="top-performer-card">
-                    <div class="performer-rank">#${idx + 1}</div>
-
-                    <div class="performer-content">
-                        <div class="performer-name">${escapeHtml(c.name || c.campaign_name || c.id)}</div>
-                        <div class="performer-metrics">
-                            <span class="metric-badge roas">ROAS ${ins.roas ? ins.roas.toFixed(2) + "x" : "–"}</span>
-                            <span class="metric-badge spend">${formatCurrency(ins.spend)} Spend</span>
-                            <span class="metric-badge ctr">${ins.ctr ? ins.ctr.toFixed(2) + "% CTR" : "– CTR"}</span>
-                        </div>
-                    </div>
-                </article>
-            `;
-        })
+    return m.top
+        .map(
+            (c, idx) => `
+        <article class="top-performer-card">
+            <div class="performer-rank">#${idx + 1}</div>
+            <div class="performer-content">
+                <div class="performer-name">${escape(c.name || c.campaign_name)}</div>
+                <div class="performer-metrics">
+                    <span class="metric-badge roas">ROAS ${fmtX(c.metrics.roas)}</span>
+                    <span class="metric-badge spend">${fmtE(c.metrics.spend)}</span>
+                    <span class="metric-badge ctr">${fmtPct(c.metrics.ctr)} CTR</span>
+                </div>
+            </div>
+        </article>
+    `
+        )
         .join("");
 }
 
-function formatCurrency(v) {
-    const num = Number(v || 0);
-    return num.toLocaleString("de-DE", {
+/* ============================================================
+   HELPERS
+============================================================ */
+
+function num(v) {
+    const n = Number(v);
+    return isNaN(n) ? 0 : n;
+}
+
+function fmtE(v) {
+    return Number(v || 0).toLocaleString("de-DE", {
         style: "currency",
         currency: "EUR",
         maximumFractionDigits: 0
     });
 }
 
-function escapeHtml(str) {
-    return String(str || "").replace(/[&<>"']/g, s => ({
+function fmt(v) {
+    const n = Number(v || 0);
+    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
+    if (n >= 1_000) return (n / 1_000).toFixed(1) + "k";
+    return n.toLocaleString("de-DE");
+}
+
+function fmtPct(v) {
+    return v ? v.toFixed(2) + "%" : "–";
+}
+
+function fmtX(v) {
+    return v ? v.toFixed(2) + "x" : "–";
+}
+
+function humanize(r) {
+    switch (r) {
+        case "last_7d":
+            return "Letzte 7 Tage";
+        case "last_30d":
+            return "Letzte 30 Tage";
+        default:
+            return r;
+    }
+}
+
+function escape(str) {
+    return String(str || "").replace(/[&<>"']/g, (s) => ({
         "&": "&amp;",
         "<": "&lt;",
         ">": "&gt;",
