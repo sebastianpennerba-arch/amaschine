@@ -2260,3 +2260,10 @@ console.log("📝 HINWEIS: Füge das CSS aus SENSEI_CSS in deine styles.css ein!
     opacity: 0;
     transform: translateY(-3px);
 }
+
+.badge-demo {
+    opacity: 0;
+}
+.badge-demo.show {
+    opacity: 1;
+}
