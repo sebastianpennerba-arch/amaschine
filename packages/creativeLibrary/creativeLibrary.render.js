@@ -1,117 +1,122 @@
 // packages/creativeLibrary/creativeLibrary.render.js
-// Rendering der Creative Library Cards in #creativeLibraryGrid.
+// Rendert die Creative Library Grid-/Group-/Cards-Ausgabe im Root-Container
+// Container-ID aus index.html: #creativeLibraryGrid
 
-function fEuro(v) {
-    const n = Number(v || 0);
-    return n.toLocaleString("de-DE", {
-        style: "currency",
-        currency: "EUR",
-        maximumFractionDigits: 2
-    });
-}
+import { showToast } from "../../uiCore.js";
 
-function fPct(v) {
-    const n = Number(v || 0);
-    return `${n.toFixed(2)}%`;
-}
-
-function fInt(v) {
-    const n = Number(v || 0);
-    return n.toLocaleString("de-DE");
-}
-
-export function renderCreativeLibrary(state) {
+/**
+ * Rendert die Creative Library:
+ * - normale Creative Cards
+ * - gruppierte Cards (wenn groupBy aktiv)
+ * - Demo-Badge
+ */
+export function renderCreativeLibrary({ creatives = [], demoMode }) {
     const container = document.getElementById("creativeLibraryGrid");
-    if (!container) return;
+    if (!container) {
+        console.warn("[CreativeLibraryRender] #creativeLibraryGrid missing");
+        return;
+    }
 
-    const items = state?.items || [];
-
-    if (!items.length) {
+    if (!creatives.length) {
         container.innerHTML = `
-            <p style="color:var(--text-secondary); font-size:13px;">
-                Keine Creatives gefunden. Verbinde Meta oder aktiviere den Demo-Modus.
-            </p>
+            <div class="creative-empty">
+                Keine Creatives gefunden.
+            </div>
         `;
         return;
     }
 
-    const html = items
-        .map((c) => {
-            const badge =
-                typeof c.rank === "number"
-                    ? `<div class="creative-rank-badge">#${c.rank}</div>`
-                    : "";
+    // Prüfe, ob gruppierte Ergebnisse existieren (__group Marker)
+    const hasGroups = creatives.some((c) => c.__group);
 
-            return `
-                <div class="creative-library-item" data-creative-id="${c.id}">
-                    <div class="creative-media-container-library">
-                        ${
-                            c.thumbnail
-                                ? `<img src="${c.thumbnail}" alt="${c.name}">`
-                                : `<div class="creative-faux-thumb">${(c.name || "Ad")
-                                      .substring(0, 2)
-                                      .toUpperCase()}</div>`
-                        }
-                        <div class="platform-badge">${c.platform || "META"}</div>
-                        ${badge}
-                    </div>
-                    <div class="creative-stats">
-                        <div class="creative-name-library">${c.name}</div>
-                        <div class="creative-meta">
-                            ${c.campaignName || "Unbekannte Kampagne"} 
-                            ${c.adsetName ? " • " + c.adsetName : ""}
-                        </div>
+    if (hasGroups) {
+        container.innerHTML = renderGroupedCreatives(creatives, demoMode);
+    } else {
+        container.innerHTML = renderFlatCreatives(creatives, demoMode);
+    }
+}
 
-                        <div class="creative-kpi-list">
-                            <div class="creative-kpi-line">
-                                <span class="creative-kpi-label">Spend</span>
-                                <span class="creative-kpi-value">${fEuro(c.spend)}</span>
-                            </div>
-                            <div class="creative-kpi-line">
-                                <span class="creative-kpi-label">ROAS</span>
-                                <span class="creative-kpi-value">${(c.roas || 0).toFixed(
-                                    2
-                                )}x</span>
-                            </div>
-                            <div class="creative-kpi-line">
-                                <span class="creative-kpi-label">CTR</span>
-                                <span class="creative-kpi-value">${fPct(c.ctr)}</span>
-                            </div>
-                            <div class="creative-kpi-line">
-                                <span class="creative-kpi-label">CPM</span>
-                                <span class="creative-kpi-value">${fEuro(c.cpm)}</span>
-                            </div>
-                        </div>
+/* ============================================================
+   FLACHE RENDERING (Standard Grid)
+============================================================ */
 
-                        <div class="kpi-bar-visual">
-                            <span class="kpi-label-small">ROAS</span>
-                            <div class="kpi-slider-track">
-                                <div 
-                                    class="kpi-slider-fill fill-positive" 
-                                    style="width:${Math.min((c.roas || 0) * 20, 100)}%">
-                                </div>
-                            </div>
-                        </div>
+function renderFlatCreatives(list, demoMode) {
+    return `
+        <div class="creative-grid">
+            ${list.map((item) => renderCreativeCard(item, demoMode)).join("")}
+        </div>
+    `;
+}
 
-                        <div class="kpi-bar-visual">
-                            <span class="kpi-label-small">Spend</span>
-                            <div class="kpi-slider-track">
-                                <div 
-                                    class="kpi-slider-fill fill-spend" 
-                                    style="width:80%">
-                                </div>
-                            </div>
-                        </div>
+/* ============================================================
+   GROUPED RENDERING
+============================================================ */
 
-                        <div class="creative-footer-kpis">
-                            <span>Impr: ${fInt(c.impressions)}</span>
-                            <span>Clicks: ${fInt(c.clicks)}</span>
-                        </div>
-                    </div>
+function renderGroupedCreatives(list, demoMode) {
+    let html = "";
+    let currentGroup = null;
+
+    list.forEach((entry) => {
+        if (entry.__group) {
+            // Gruppen-Titel
+            html += `
+                <div class="creative-group-title">
+                    <span>${escapeHtml(entry.label)}</span>
+                    <span class="count">${entry.count} Creatives</span>
                 </div>
+                <div class="creative-grid">
             `;
-        })
-        .join("");
+            currentGroup = entry.label;
+        } else {
+            // Creative Card
+            html += renderCreativeCard(entry, demoMode);
+        }
 
-    container.innerHTML = html;
+        // Check ob nächster Eintrag ein neuer Group-Header wird → dann schließen wir das grid
+        const next = list[list.indexOf(entry) + 1];
+        if ((entry.__group === false || entry.__group == null) && (!next || next.__group)) {
+            html += `</div>`;
+        }
+    });
+
+    return html;
+}
+
+/* ============================================================
+   CARD TEMPLATE
+============================================================ */
+
+function renderCreativeCard(item, demoMode) {
+    return `
+        <div class="creative-card" data-creative-id="${item.id}">
+            <div class="creative-thumb">
+                <img src="${item.thumbnail}" alt="${escapeHtml(item.name)}" />
+                ${demoMode ? `<span class="badge-demo-corner">DEMO</span>` : ""}
+            </div>
+
+            <div class="creative-info">
+                <div class="creative-title">${escapeHtml(item.name)}</div>
+                <div class="creative-kpis">
+                    <span>ROAS: ${fmt(item.roas)}x</span>
+                    <span>CTR: ${fmt(item.ctr)}%</span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+/* ============================================================
+   HELPERS
+============================================================ */
+
+function fmt(v) {
+    if (v == null || v === "") return "—";
+    return Number(v).toFixed(2);
+}
+
+function escapeHtml(str) {
+    return (str + "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
 }
