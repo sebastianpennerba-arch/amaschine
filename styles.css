@@ -622,12 +622,21 @@ body {
     transition: transform 0.18s ease, box-shadow 0.18s ease;
     border: 1px solid var(--border);
     min-height: 320px;
+    max-width: 380px;   /* NEU */
+    margin-left: auto;  /* NEU */
+    margin-right: auto; /* NEU */
+}
+
 }
 
 .creative-library-item:hover {
     transform: translateY(-3px);
     box-shadow: 0 16px 40px rgba(15, 23, 42, 0.18);
     border-color: rgba(99, 102, 241, 0.6);
+}
+
+#creativeLibraryGrid {
+    justify-content: center;  /* NEU */
 }
 
 /* oberer Bereich: großes Bild */
