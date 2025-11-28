@@ -1,282 +1,382 @@
-// sensei.js – FINAL VERSION (Elite Sensei Layer P4)
+// sensei.js – Sensei v1 (Demo) + v2 (KI via API)
 
+import { runSenseiDemoAnalysis } from "./sensei-demo-engine.js";
 import { AppState } from "./state.js";
-import { showToast, openModal } from "./uiCore.js";
 
 /**
- * Entry-Point aus app.js
- * app.js ruft: updateSenseiView(dataConnected)
+ * URL deines Sensei-Backends.
+ * Wenn du auf Render/Hetzner hostest:
+ * - lokal:        http://localhost:3000/api/sensei/analyze
+ * - Produktion:   https://signalone-backend.onrender.com/api/sensei/analyze
  */
-export function updateSenseiView(hasData) {
-    const panel = document.getElementById("senseiPanelContainer");
-    const insightsBox = document.getElementById("senseiInsightsContainer");
-    const alertsBox = document.getElementById("senseiAlertsContainer");
-    const performerBox = document.getElementById("senseiTopPerformersContainer");
+const SENSEI_API_URL = "https://signalone-backend.onrender.com/api/sensei/analyze";
 
-    if (!panel || !insightsBox || !alertsBox || !performerBox) return;
+/* ----------------------------------------------------------
+   PUBLIC ENTRYPOINT
+----------------------------------------------------------- */
 
-    if (!hasData) {
-        panel.innerHTML = `
-            <div class="card hero-empty">
-                <p>Keine Daten geladen. Verbinde Meta Ads oder aktiviere Demo Mode für den Sensei.</p>
-            </div>
-        `;
-        insightsBox.innerHTML = "";
-        alertsBox.innerHTML = "";
-        performerBox.innerHTML = "";
-        return;
-    }
+export function updateSenseiView(isConnected) {
+    const runBtn = document.getElementById("runSenseiBtn");
+    const output = document.getElementById("senseiOutput");
+    const loading = document.getElementById("senseiLoading");
 
-    const campaigns = AppState.meta?.campaigns || [];
-    const insights = AppState.meta?.insightsByCampaign || {};
+    if (!runBtn || !output || !loading) return;
 
-    if (!campaigns.length) {
-        panel.innerHTML = `
-            <div class="card hero-empty">
-                <p>Keine Kampagnen im Zeitraum ${humanize(AppState.timeRangePreset)} gefunden.</p>
-            </div>
-        `;
-        return;
-    }
+    runBtn.onclick = async () => {
+        // Reset / Loading
+        loading.classList.remove("hidden");
+        output.classList.add("hidden");
+        output.innerHTML = "";
 
-    const decorated = decorateCampaigns(campaigns, insights);
+        try {
+            let result;
 
-    // Core Sensei Metrics
-    const metrics = buildSenseiMetrics(decorated);
+            const isDemo = !!AppState.settings?.demoMode;
 
-    // Render
-    insightsBox.innerHTML = renderBriefing(metrics);
-    alertsBox.innerHTML = renderAlerts(metrics);
-    performerBox.innerHTML = renderTopPerformers(metrics);
-}
+            if (isDemo) {
+                // DEMO-MODUS → Regelbasierte Analyse
+                await fakeDelay(800);
+                result = runSenseiDemoAnalysis();
+            } else {
+                // LIVE-MODUS → Backend + KI
+                result = await runSenseiLiveAnalysis();
+            }
 
-/* ============================================================
-   DATA PREP
-============================================================ */
-
-function decorateCampaigns(campaigns, insightsByCampaign) {
-    return campaigns.map((c) => {
-        const ins = insightsByCampaign[c.id] || {};
-        const spend = num(ins.spend ?? ins.spend_total);
-        const rev = num(ins.revenue ?? ins.purchase_value);
-        const impressions = num(ins.impressions);
-        const clicks = num(ins.clicks);
-        const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
-        const roas = spend > 0 ? rev / spend : 0;
-
-        return {
-            ...c,
-            metrics: { spend, rev, impressions, clicks, ctr, roas }
-        };
-    });
-}
-
-function buildSenseiMetrics(list) {
-    let spend = 0;
-    let revenue = 0;
-    let clicks = 0;
-    let impressions = 0;
-    const sorted = [...list].sort((a, b) => (b.metrics.roas || 0) - (a.metrics.roas || 0));
-
-    list.forEach((c) => {
-        spend += c.metrics.spend;
-        revenue += c.metrics.rev;
-        clicks += c.metrics.clicks;
-        impressions += c.metrics.impressions;
-    });
-
-    const overallRoas = spend > 0 ? revenue / spend : 0;
-    const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
-
-    return {
-        list,
-        top: sorted.slice(0, 3),
-        bottom: sorted.slice(-3),
-        spend,
-        revenue,
-        overallRoas,
-        ctr,
-        impressions,
-        clicks
+            loading.classList.add("hidden");
+            output.classList.remove("hidden");
+            output.innerHTML = renderSenseiOutput(result);
+        } catch (err) {
+            console.error("Sensei Fehler:", err);
+            loading.classList.add("hidden");
+            output.classList.remove("hidden");
+            output.innerHTML = `
+                <div class="sensei-section">
+                    <h3>Fehler</h3>
+                    <p style="color:var(--danger);">
+                        Sensei konnte die Analyse nicht abschließen.
+                        Bitte überprüfe die Verbindung oder versuche es später erneut.
+                    </p>
+                </div>
+            `;
+        }
     };
 }
 
-/* ============================================================
-   BRIEFING (AI/Consulting Style)
-============================================================ */
+/* ----------------------------------------------------------
+   LIVE-MODUS: Aufruf Backend / KI
+----------------------------------------------------------- */
 
-function renderBriefing(m) {
-    const demo = AppState.settings?.demoMode;
+async function runSenseiLiveAnalysis() {
+    const payload = buildSenseiPayloadFromAppState();
 
-    const badge =
-        m.overallRoas >= 3
-            ? { cls: "success", label: "Elite Performance" }
-            : m.overallRoas >= 1.5
-            ? { cls: "warning", label: "OK – aber ausbaufähig" }
-            : { cls: "critical", label: "Unter Wasser" };
-
-    return `
-        <div class="card briefing-card">
-            <span class="priority-badge ${badge.cls}">${badge.label}</span>
-            <div class="briefing-content">
-                <p>
-                    ROAS gesamt: <strong>${fmtX(m.overallRoas)}</strong> · 
-                    Spend: <strong>${fmtE(m.spend)}</strong> · 
-                    Revenue: <strong>${fmtE(m.revenue)}</strong>
-                </p>
-
-                <p>
-                    CTR: <strong>${fmtPct(m.ctr)}</strong> · 
-                    Impressions: <strong>${fmt(m.impressions)}</strong> ·
-                    Clicks: <strong>${fmt(m.clicks)}</strong>
-                </p>
-
-                <p>
-                    ${
-                        m.overallRoas >= 3
-                            ? "Account liefert Top-Performance. Fokus: kontrolliertes Skalieren & Creative Diversifikation."
-                            : m.overallRoas >= 1.5
-                            ? "Solide Basis. Fokus: Testing von Creatives, Offers und Audience Clustering."
-                            : "Account gefährdet. Fokus: Performance retten über Creative-First-Testing & Kampagnen-Konsolidierung."
-                    }
-                </p>
-                ${
-                    demo
-                        ? `<p><em>Hinweis: Demo Mode aktiv → Werte sind simuliert.</em></p>`
-                        : ""
-                }
-            </div>
-        </div>
-    `;
-}
-
-/* ============================================================
-   ALERTS
-============================================================ */
-
-function renderAlerts(m) {
-    const alerts = [];
-
-    if (m.overallRoas < 1) {
-        alerts.push(alert(
-            "critical",
-            "ROAS unter 1.0",
-            "Der Account verliert Geld. Dringend Maßnahmen nötig: Kampagnen pausieren, Creative-Testing intensivieren."
-        ));
-    }
-
-    if (m.ctr < 0.7) {
-        alerts.push(alert(
-            "warning",
-            "CTR sehr niedrig",
-            "Deine CTR ist niedrig – Creative Hook / Thumbnail / Messaging überprüfen."
-        ));
-    }
-
-    if (m.top[0]?.metrics.roas >= 4) {
-        alerts.push(alert(
-            "success",
-            "Skalierungspotenzial erkannt",
-            `Top Kampagne: ${escape(m.top[0].name)} mit ROAS ${fmtX(m.top[0].metrics.roas)}`
-        ));
-    }
-
-    if (!alerts.length) {
-        alerts.push(alert(
-            "info",
-            "Keine kritischen Probleme",
-            "Sensei hat aktuell keine kritischen Auffälligkeiten gefunden."
-        ));
-    }
-
-    return alerts.join("");
-}
-
-function alert(type, title, msg) {
-    return `
-        <div class="alert-card alert-${type}">
-            <div class="alert-icon"><i class="fas fa-bolt"></i></div>
-            <div class="alert-content">
-                <div class="alert-title">${escape(title)}</div>
-                <div class="alert-message">${escape(msg)}</div>
-            </div>
-        </div>
-    `;
-}
-
-/* ============================================================
-   TOP PERFORMERS
-============================================================ */
-
-function renderTopPerformers(m) {
-    return m.top
-        .map(
-            (c, idx) => `
-        <article class="top-performer-card">
-            <div class="performer-rank">#${idx + 1}</div>
-            <div class="performer-content">
-                <div class="performer-name">${escape(c.name || c.campaign_name)}</div>
-                <div class="performer-metrics">
-                    <span class="metric-badge roas">ROAS ${fmtX(c.metrics.roas)}</span>
-                    <span class="metric-badge spend">${fmtE(c.metrics.spend)}</span>
-                    <span class="metric-badge ctr">${fmtPct(c.metrics.ctr)} CTR</span>
-                </div>
-            </div>
-        </article>
-    `
-        )
-        .join("");
-}
-
-/* ============================================================
-   HELPERS
-============================================================ */
-
-function num(v) {
-    const n = Number(v);
-    return isNaN(n) ? 0 : n;
-}
-
-function fmtE(v) {
-    return Number(v || 0).toLocaleString("de-DE", {
-        style: "currency",
-        currency: "EUR",
-        maximumFractionDigits: 0
+    const res = await fetch(SENSEI_API_URL, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
     });
-}
 
-function fmt(v) {
-    const n = Number(v || 0);
-    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
-    if (n >= 1_000) return (n / 1_000).toFixed(1) + "k";
-    return n.toLocaleString("de-DE");
-}
-
-function fmtPct(v) {
-    return v ? v.toFixed(2) + "%" : "–";
-}
-
-function fmtX(v) {
-    return v ? v.toFixed(2) + "x" : "–";
-}
-
-function humanize(r) {
-    switch (r) {
-        case "last_7d":
-            return "Letzte 7 Tage";
-        case "last_30d":
-            return "Letzte 30 Tage";
-        default:
-            return r;
+    if (!res.ok) {
+        throw new Error("Sensei API Antwort war nicht OK: " + res.status);
     }
+
+    const data = await res.json();
+
+    // Erwartete Struktur:
+    // {
+    //   summary, actions, risks, opportunities, testing, forecast, funnel
+    // }
+    // Wenn das Backend was anderes liefert, fallbacken wir hart.
+    return normalizeSenseiResult(data);
 }
 
-function escape(str) {
-    return String(str || "").replace(/[&<>"']/g, (s) => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#039;"
-    }[s]));
+/**
+ * Aggregiert die wichtigsten Daten aus dem AppState für die KI.
+ * Diese Struktur wird an das Backend geschickt.
+ */
+function buildSenseiPayloadFromAppState() {
+    const account = {
+        id: AppState.selectedAccountId || "live_account",
+        name:
+            (AppState.meta?.adAccounts || []).find(
+                (a) => a.id === AppState.selectedAccountId
+            )?.name || "Live Meta Account",
+        currency:
+            (AppState.meta?.adAccounts || [])[0]?.currency || "EUR"
+    };
+
+    const dashboard = AppState.dashboardMetrics || {
+        spend: 0,
+        impressions: 0,
+        clicks: 0,
+        ctr: 0,
+        cpm: 0,
+        roas: 0,
+        scopeLabel: "Keine Auswahl",
+        timeRangeLabel: "Unbekannt"
+    };
+
+    const campaigns = (AppState.meta?.campaigns || []).map((c) => {
+        const insight = AppState.meta?.insightsByCampaign?.[c.id] || {};
+        return {
+            id: c.id,
+            name: c.name,
+            status: c.status || c.effective_status || "UNKNOWN",
+            objective: c.objective || "UNKNOWN",
+            spend: Number(insight.spend || 0),
+            impressions: Number(insight.impressions || 0),
+            clicks: Number(insight.clicks || 0),
+            ctr: Number(insight.ctr || 0),
+            roas: Number(insight.roas || 0)
+        };
+    });
+
+    const creatives = (AppState.meta?.ads || []).map((ad) => {
+        let thumb =
+            ad.creative?.object_story_spec?.video_data?.thumbnail_url ||
+            ad.creative?.object_story_spec?.link_data?.picture ||
+            null;
+
+        return {
+            id: ad.id,
+            name: ad.name || "Anzeige",
+            campaign_id: ad.campaign_id || null,
+            configured_status: ad.configured_status,
+            effective_status: ad.effective_status,
+            thumbnail: thumb
+        };
+    });
+
+    // Platzhalter – später können wir echte Logs / Alerts / Tests aus DB ziehen
+    const alerts = [];
+    const testing = [];
+
+    // Funnel ist im Live-Modus noch nicht implementiert → Backend kann aus KPIs ableiten
+    const funnel = null;
+
+    return {
+        mode: "live",
+        account,
+        dashboard,
+        campaigns,
+        creatives,
+        alerts,
+        testing,
+        funnel
+    };
+}
+
+/**
+ * Stellt sicher, dass das Ergebnis ein sinnvolles Objekt für das UI ist.
+ */
+function normalizeSenseiResult(raw) {
+    if (!raw || typeof raw !== "object") {
+        return {
+            summary: "Sensei hat keine verwertbare Antwort geliefert.",
+            actions: [],
+            risks: [],
+            opportunities: [],
+            testing: [],
+            forecast: null,
+            funnel: null
+        };
+    }
+
+    return {
+        summary: raw.summary || "Sensei-Analyse abgeschlossen.",
+        actions: Array.isArray(raw.actions) ? raw.actions : [],
+        risks: Array.isArray(raw.risks) ? raw.risks : [],
+        opportunities: Array.isArray(raw.opportunities)
+            ? raw.opportunities
+            : [],
+        testing: Array.isArray(raw.testing) ? raw.testing : [],
+        forecast: raw.forecast || null,
+        funnel: raw.funnel || null
+    };
+}
+
+/* ----------------------------------------------------------
+   UI-Rendering
+----------------------------------------------------------- */
+
+function renderSenseiOutput(data) {
+    return `
+        <div class="sensei-section">
+            <h3>Zusammenfassung</h3>
+            <p>${escapeHtml(data.summary)}</p>
+        </div>
+
+        ${renderList("Aktionen", data.actions)}
+        ${renderList("Risiken", data.risks)}
+        ${renderList("Chancen", data.opportunities)}
+        ${renderTesting(data.testing)}
+        ${renderForecast(data.forecast)}
+        ${renderFunnel(data.funnel)}
+    `;
+}
+
+function renderList(title, items = []) {
+    if (!items.length) return "";
+    return `
+        <div class="sensei-section">
+            <h3>${title}</h3>
+            <ul>
+                ${items
+                    .map(
+                        (i) => `
+                    <li>
+                        <strong>${escapeHtml(i.title || "")}</strong><br>
+                        <span>${escapeHtml(i.message || "")}</span><br>
+                        ${
+                            i.priority
+                                ? `<small>Priorität: ${escapeHtml(
+                                      i.priority
+                                  )}</small>`
+                                : ""
+                        }
+                    </li>`
+                    )
+                    .join("")}
+            </ul>
+        </div>
+    `;
+}
+
+function renderTesting(tests = []) {
+    if (!tests.length) return "";
+    return `
+        <div class="sensei-section">
+            <h3>Testing</h3>
+            <ul>
+                ${tests
+                    .map(
+                        (t) => `
+                <li>
+                    <strong>${escapeHtml(t.title || "")}</strong><br>
+                    ${
+                        t.status
+                            ? `<small>Status: ${escapeHtml(
+                                  t.status
+                              )}</small><br>`
+                            : ""
+                    }
+                    <div>${escapeHtml(t.findings || "")}</div>
+                    ${
+                        t.next
+                            ? `<em>Nächster Schritt: ${escapeHtml(
+                                  t.next
+                              )}</em>`
+                            : ""
+                    }
+                </li>`
+                    )
+                    .join("")}
+            </ul>
+        </div>
+    `;
+}
+
+function renderForecast(fc) {
+    if (!fc) return "";
+    return `
+        <div class="sensei-section">
+            <h3>Prognose (7 Tage)</h3>
+            ${
+                fc.roas != null
+                    ? `<p><strong>ROAS:</strong> ${Number(
+                          fc.roas
+                      ).toFixed(2)}x</p>`
+                    : ""
+            }
+            ${
+                fc.revenue != null
+                    ? `<p><strong>Umsatz:</strong> ${Number(
+                          fc.revenue
+                      ).toLocaleString("de-DE")} €</p>`
+                    : ""
+            }
+            ${
+                fc.spend != null
+                    ? `<p><strong>Ausgaben:</strong> ${Number(
+                          fc.spend
+                      ).toLocaleString("de-DE")} €</p>`
+                    : ""
+            }
+            ${
+                fc.confidence != null
+                    ? `<p><strong>Konfidenz:</strong> ${(
+                          Number(fc.confidence) * 100
+                      ).toFixed(1)}%</p>`
+                    : ""
+            }
+            ${
+                fc.message
+                    ? `<small>${escapeHtml(fc.message)}</small>`
+                    : ""
+            }
+        </div>
+    `;
+}
+
+function renderFunnel(f) {
+    if (!f) return "";
+    const stages = ["tof", "mof", "bof"];
+
+    return `
+        <div class="sensei-section">
+            <h3>Funnel-Analyse</h3>
+            ${stages
+                .filter((s) => f[s])
+                .map((stage) => {
+                    const data = f[stage];
+                    const label =
+                        stage === "tof"
+                            ? "Top Funnel"
+                            : stage === "mof"
+                            ? "Middle Funnel"
+                            : "Bottom Funnel";
+                    return `
+                    <div class="funnel-block">
+                        <strong>${label}</strong><br>
+                        ${
+                            data.score != null
+                                ? `Score: ${data.score}<br>`
+                                : ""
+                        }
+                        ${
+                            data.issues?.length
+                                ? `Probleme: ${data.issues
+                                      .map(escapeHtml)
+                                      .join(", ")}<br>`
+                                : ""
+                        }
+                        ${
+                            data.opportunities?.length
+                                ? `Chancen: ${data.opportunities
+                                      .map(escapeHtml)
+                                      .join(", ")}`
+                                : ""
+                        }
+                    </div>`;
+                })
+                .join("")}
+        </div>
+    `;
+}
+
+/* ----------------------------------------------------------
+   Helper
+----------------------------------------------------------- */
+
+function escapeHtml(str) {
+    if (!str && str !== 0) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
+
+function fakeDelay(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
 }
