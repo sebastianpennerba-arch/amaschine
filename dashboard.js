@@ -346,346 +346,87 @@ function renderSenseiDailyBriefing() {
     // Berechne dynamische Werte aus Demo-Daten
     const topCampaign = [...demoCampaigns].sort((a, b) => b.roas - a.roas)[0];
     const worstCampaign = [...demoCampaigns].sort((a, b) => a.roas - b.roas)[0];
-    
+
     const budgetReallocation = Math.round(worstCampaign.spend * 0.3);
     const budgetIncrease = Math.round(topCampaign.spend * 0.5);
-    const weeklySavings = Math.round(budgetReallocation * 7);
-    
-    // Creative Fatigue Detection
-    const fatigueCreatives = demoCreatives.filter(c => c.performance === "Schwach");
-    
-    // Top Creator
-    const topCreator = demoCreators[0]; // Mia
-
-    const today = new Date().toLocaleDateString("de-DE", {
-        weekday: "long",
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric"
-    });
 
     container.innerHTML = `
         <div class="sensei-briefing-section">
-            <!-- Header -->
-            <div class="sensei-header">
-                <div class="sensei-icon">🧠</div>
-                <div class="sensei-header-content">
-                    <h3 class="sensei-title">SENSEI STRATEGY CENTER</h3>
-                    <p class="sensei-subtitle">Dein AI-gestützter Action Plan für Heute</p>
+            <h3 class="section-title">🧠 Sensei Strategie für Heute (${new Date().toLocaleDateString(
+                "de-DE"
+            )})</h3>
+            
+            <div class="briefing-card priority-1">
+                <div class="priority-badge critical">PRIORITÄT 1: BUDGET REALLOCATION 🔴</div>
+                <div class="briefing-content">
+                    <div class="action-line">
+                        ├─ Reduziere "${worstCampaign.name}" um 30% (-${fEuro(
+        budgetReallocation
+    )}/Tag)
+                    </div>
+                    <div class="action-line">
+                        └─ Erhöhe "${topCampaign.name}" um 50% (+${fEuro(
+        budgetIncrease
+    )}/Tag)
+                    </div>
+                    <div class="action-reason">
+                        <strong>Grund:</strong> ROAS Differenz von ${worstCampaign.roas.toFixed(
+                            1
+                        )}x → ${topCampaign.roas.toFixed(
+        1
+    )}x. Sparst ca. ${fEuro(budgetReallocation * 7)}/Woche
+                    </div>
+                    <button class="btn-primary btn-apply-action" data-action="budget-reallocation">
+                        Jetzt umsetzen
+                    </button>
                 </div>
             </div>
 
-            <!-- Greeting -->
-            <div class="sensei-greeting">
-                <h4 class="greeting-text">Guten Morgen! 👋</h4>
-                <p class="greeting-date">${today}</p>
-                <p class="greeting-message">Hier sind deine priorisierten Empfehlungen:</p>
-            </div>
-
-            <!-- URGENT SECTION -->
-            <div class="sensei-section urgent-section">
-                <h4 class="section-header urgent-header">
-                    ⚠️ DRINGEND (nächste 2 Stunden):
-                </h4>
-
-                <!-- Priority 1: Budget Leak -->
-                <div class="briefing-card priority-critical">
-                    <div class="priority-badge badge-critical">
-                        🔴 PRIORITÄT 1: BUDGET LEAK DETECTED
+            <div class="briefing-card priority-2">
+                <div class="priority-badge warning">PRIORITÄT 2: CREATIVE ROTATION ⚡</div>
+                <div class="briefing-content">
+                    <div class="action-line">
+                        ├─ Pausiere: Creatives mit ROAS <2x
                     </div>
-                    <div class="briefing-content">
-                        <p class="briefing-description">
-                            Kampagne "${worstCampaign.name}" verbrennt Geld ineffizient.
-                        </p>
-                        <div class="action-tree">
-                            <div class="action-line">
-                                <span class="tree-connector">├─</span>
-                                <span>Reduziere Budget um 30% (-${fEuro(budgetReallocation)}/Tag)</span>
-                            </div>
-                            <div class="action-line">
-                                <span class="tree-connector">└─</span>
-                                <span>Erhöhe "${topCampaign.name}" um 50% (+${fEuro(budgetIncrease)}/Tag)</span>
-                            </div>
-                        </div>
-                        <div class="impact-box">
-                            <div class="impact-label">💰 Grund:</div>
-                            <div class="impact-text">
-                                ROAS Differenz von ${worstCampaign.roas.toFixed(1)}x → ${topCampaign.roas.toFixed(1)}x
-                                <br>
-                                <strong>Sparst ${fEuro(weeklySavings)}/Woche</strong>
-                            </div>
-                        </div>
-                        <div class="action-buttons">
-                            <button class="btn-action btn-primary" data-action="budget-reallocation">
-                                💰 Jetzt umsetzen
-                            </button>
-                            <button class="btn-action btn-secondary" data-action="budget-simulation">
-                                📊 Simulation ansehen
-                            </button>
-                        </div>
+                    <div class="action-line">
+                        └─ Aktiviere: 3 neue Varianten von Creator "Mia"
                     </div>
-                </div>
-
-                <!-- Priority 2: Scaling Opportunity -->
-                <div class="briefing-card priority-success">
-                    <div class="priority-badge badge-success">
-                        🟢 SCALING OPPORTUNITY
+                    <div class="action-reason">
+                        <strong>Grund:</strong> Mia's Creatives performen 42% über Durchschnitt
                     </div>
-                    <div class="briefing-content">
-                        <p class="briefing-description">
-                            "${topCampaign.name}" läuft außergewöhnlich gut.
-                        </p>
-                        <div class="action-tree">
-                            <div class="action-line">
-                                <span class="tree-connector">├─</span>
-                                <span>Budget erhöhen um ${fEuro(budgetIncrease)}/Tag</span>
-                            </div>
-                            <div class="action-line">
-                                <span class="tree-connector">└─</span>
-                                <span>Erwarteter zusätzlicher Revenue: ${fEuro(budgetIncrease * topCampaign.roas)}/Tag</span>
-                            </div>
-                        </div>
-                        <div class="impact-box">
-                            <div class="impact-label">📈 Details:</div>
-                            <div class="impact-text">
-                                ROI: 580% | Risiko: <strong class="text-success">Niedrig</strong>
-                                <br>
-                                Aktueller ROAS: ${topCampaign.roas.toFixed(1)}x (stabil)
-                            </div>
-                        </div>
-                        <div class="action-buttons">
-                            <button class="btn-action btn-success" data-action="scale-campaign">
-                                🚀 Budget erhöhen
-                            </button>
-                            <button class="btn-action btn-secondary" data-action="show-simulation">
-                                🔮 Simulation
-                            </button>
-                        </div>
-                    </div>
+                    <button class="btn-primary btn-apply-action" data-action="creative-rotation">
+                        Rotation starten
+                    </button>
                 </div>
             </div>
 
-            <!-- RECOMMENDED SECTION -->
-            <div class="sensei-section recommended-section">
-                <h4 class="section-header recommended-header">
-                    📋 HEUTE EMPFOHLEN:
-                </h4>
-
-                <!-- Priority 3: Creative Refresh -->
-                <div class="briefing-card priority-warning">
-                    <div class="priority-badge badge-warning">
-                        🎬 CREATIVE REFRESH NEEDED
+            <div class="briefing-card priority-3">
+                <div class="priority-badge info">PRIORITÄT 3: TESTING OPPORTUNITY 🎯</div>
+                <div class="briefing-content">
+                    <div class="action-line">
+                        ├─ Hook Test starten: "Problem/Solution" vs "Testimonial"
                     </div>
-                    <div class="briefing-content">
-                        <p class="briefing-description">
-                            ${fatigueCreatives.length} Creatives zeigen Ermüdungszeichen (>21 Tage laufend).
-                        </p>
-                        <div class="action-tree">
-                            <div class="action-line">
-                                <span class="tree-connector">├─</span>
-                                <span>Durchschnittlicher CTR Drop: -38%</span>
-                            </div>
-                            <div class="action-line">
-                                <span class="tree-connector">└─</span>
-                                <span>Neue Varianten mit Top-Performer ${topCreator.name} erstellen</span>
-                            </div>
-                        </div>
-                        <div class="impact-box">
-                            <div class="impact-label">💡 Empfehlung:</div>
-                            <div class="impact-text">
-                                Pausiere alte Creatives und teste 3 neue Varianten.
-                                <br>
-                                Erwarteter CTR Uplift: <strong>+42%</strong>
-                            </div>
-                        </div>
-                        <div class="action-buttons">
-                            <button class="btn-action btn-warning" data-action="creative-refresh">
-                                🎨 Neue Varianten erstellen
-                            </button>
-                            <button class="btn-action btn-secondary" data-action="show-fatigue-list">
-                                📋 Liste zeigen
-                            </button>
-                        </div>
+                    <div class="action-line">
+                        └─ Budget: €150/Tag für 3 Tage
                     </div>
-                </div>
-
-                <!-- Priority 4: Testing Opportunity -->
-                <div class="briefing-card priority-info">
-                    <div class="priority-badge badge-info">
-                        🧪 TESTING OPPORTUNITY
+                    <div class="action-reason">
+                        <strong>Erwartung:</strong> +0.8x ROAS Uplift basierend auf Historie
                     </div>
-                    <div class="briefing-content">
-                        <p class="briefing-description">
-                            Hook-Test kann ausgewertet werden - klarer Winner erkennbar.
-                        </p>
-                        <div class="action-tree">
-                            <div class="action-line">
-                                <span class="tree-connector">├─</span>
-                                <span>Winner: "Problem/Solution" Hook (+35% ROAS)</span>
-                            </div>
-                            <div class="action-line">
-                                <span class="tree-connector">└─</span>
-                                <span>Nächster Test: Budget €150/Tag für 3 Tage</span>
-                            </div>
-                        </div>
-                        <div class="impact-box">
-                            <div class="impact-label">🎯 Erwartung:</div>
-                            <div class="impact-text">
-                                +0.8x ROAS Uplift basierend auf historischen Daten
-                            </div>
-                        </div>
-                        <div class="action-buttons">
-                            <button class="btn-action btn-info" data-action="conclude-test">
-                                ✅ Test abschließen
-                            </button>
-                            <button class="btn-action btn-success" data-action="scale-winner">
-                                🚀 Winner skalieren
-                            </button>
-                        </div>
-                    </div>
+                    <button class="btn-secondary btn-apply-action" data-action="testing">
+                        Test erstellen
+                    </button>
                 </div>
             </div>
 
-            <!-- STRATEGIC INSIGHT -->
-            <div class="sensei-strategic-insight">
-                <div class="insight-header">
-                    <div class="insight-icon">💡</div>
-                    <h4 class="insight-title">STRATEGISCHER HINWEIS</h4>
+            <div class="impact-summary">
+                <h4>💰 Geschätzter Impact:</h4>
+                <div class="impact-metrics">
+                    <span>+€2,100 Revenue/Tag</span>
+                    <span>+0.6x ROAS in 7 Tagen</span>
                 </div>
-                <div class="insight-content">
-                    <p class="insight-text">
-                        Deine <strong>Top 3 Creatives</strong> generieren 68% des Revenues, 
-                        aber erhalten nur 42% des Budgets. Eine Umschichtung würde die 
-                        Performance signifikant steigern.
-                    </p>
-                    <div class="impact-metrics-grid">
-                        <div class="impact-metric">
-                            <div class="metric-icon">💰</div>
-                            <div class="metric-value">+€2,100</div>
-                            <div class="metric-label">Revenue/Tag</div>
-                        </div>
-                        <div class="impact-metric">
-                            <div class="metric-icon">📈</div>
-                            <div class="metric-value">+0.6x</div>
-                            <div class="metric-label">ROAS in 7 Tagen</div>
-                        </div>
-                        <div class="impact-metric">
-                            <div class="metric-icon">⚡</div>
-                            <div class="metric-value">4 Tage</div>
-                            <div class="metric-label">Bis Break-Even</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- FOOTER ACTIONS -->
-            <div class="sensei-footer">
-                <button class="sensei-footer-btn" data-action="show-all-recommendations">
-                    📊 Alle Empfehlungen
-                </button>
-                <button class="sensei-footer-btn" data-action="weekly-report">
-                    📈 Weekly Report
-                </button>
-                <button class="sensei-footer-btn" data-action="strategy-call">
-                    🎯 Strategy Call
-                </button>
             </div>
         </div>
     `;
-
-    // EVENT LISTENERS für alle Action-Buttons
-    attachSenseiActionListeners();
-}
-
-/* -----------------------------------------------------------
-    EVENT HANDLERS für Sensei Actions
------------------------------------------------------------ */
-
-function attachSenseiActionListeners() {
-    document.querySelectorAll(".btn-action").forEach((btn) => {
-        btn.addEventListener("click", function () {
-            const action = this.getAttribute("data-action");
-            handleSenseiAction(action, this);
-        });
-    });
-
-    document.querySelectorAll(".sensei-footer-btn").forEach((btn) => {
-        btn.addEventListener("click", function () {
-            const action = this.getAttribute("data-action");
-            handleSenseiFooterAction(action);
-        });
-    });
-}
-
-function handleSenseiAction(action, buttonEl) {
-    const actions = {
-        "budget-reallocation": {
-            title: "Budget-Umschichtung",
-            message:
-                "Budget wird umgeschichtet:\n• -30% auf Low-Performer\n• +50% auf Top-Performer\n\nErwartete Savings: €2,940/Woche"
-        },
-        "budget-simulation": {
-            title: "Budget-Simulation",
-            message:
-                "Öffne Budget-Simulator...\n(Feature kommt in Phase 2)"
-        },
-        "scale-campaign": {
-            title: "Kampagne skalieren",
-            message:
-                "Budget wird erhöht um 50%.\n\nErwarteter zusätzlicher Revenue:\n€3,944/Tag bei 5.8x ROAS"
-        },
-        "show-simulation": {
-            title: "Skalierungs-Simulation",
-            message: "Öffne Simulator...\n(Feature kommt in Phase 2)"
-        },
-        "creative-refresh": {
-            title: "Creative Refresh",
-            message:
-                "Neue Creative-Varianten werden vorbereitet.\n\n• 3x neue Hooks mit Mia\n• Pause alte Creatives\n• Test-Budget: €300/Tag"
-        },
-        "show-fatigue-list": {
-            title: "Creative Fatigue Liste",
-            message: "Öffne Liste der ermüdeten Creatives...\n(Wird zur Creative Library navigieren)"
-        },
-        "conclude-test": {
-            title: "Test abschließen",
-            message:
-                "Hook-Test wird abgeschlossen.\n\nWinner: Problem/Solution (+35% ROAS)\nLoser werden pausiert."
-        },
-        "scale-winner": {
-            title: "Winner skalieren",
-            message:
-                "Winner-Creative wird skaliert.\n\nBudget: +€680/Tag\nErwartung: +€3,944 Revenue/Tag"
-        }
-    };
-
-    const actionData = actions[action] || {
-        title: "Aktion",
-        message: "Aktion wird ausgeführt..."
-    };
-
-    alert(
-        `🧠 SENSEI: ${actionData.title}\n\n${actionData.message}\n\n(Demo-Modus – keine echte API-Aktion)`
-    );
-
-    // Button State ändern
-    buttonEl.disabled = true;
-    buttonEl.classList.remove("btn-primary", "btn-secondary", "btn-success", "btn-warning", "btn-info");
-    buttonEl.classList.add("btn-completed");
-    buttonEl.innerHTML = "✓ Umgesetzt";
-}
-
-function handleSenseiFooterAction(action) {
-    const actions = {
-        "show-all-recommendations": "Alle Empfehlungen werden geladen...",
-        "weekly-report": "Weekly Report wird generiert...",
-        "strategy-call": "Strategy Call wird vorbereitet..."
-    };
-
-    alert(
-        `${actions[action]}\n\n(Demo-Modus – Feature kommt in Phase 2-3)`
-    );
-}
 
     // EVENT LISTENERS für Action-Buttons
     document.querySelectorAll(".btn-apply-action").forEach((btn) => {
