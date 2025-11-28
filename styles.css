@@ -1799,3 +1799,163 @@ nav.sidebar {
   display: flex;
   justify-content: space-between;
 }
+
+/* ===========================================================
+   CAMPAIGN MANAGER – VISION PRO TITANIUM PREMIUM
+   =========================================================== */
+
+/* Wrapper Panel */
+.campaign-table-wrapper {
+  background: radial-gradient(circle at 0% 0%, #ffffff 97%, #f1f4fc 100%);
+  border-radius: 20px;
+  border: 1px solid rgba(148,163,184,0.48);
+  box-shadow:
+      0 28px 80px rgba(15, 23, 42, 0.20),
+      0 0 0 0.6px rgba(255,255,255,0.98) inset;
+  backdrop-filter: blur(18px);
+  overflow: hidden;
+  margin-top: 16px;
+}
+
+/* Table Structure */
+.campaign-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  color: #0f172a;
+}
+
+/* HEADER */
+.campaign-table thead {
+  background: rgba(247, 249, 255, 0.92);
+  backdrop-filter: blur(6px);
+}
+
+.campaign-table th {
+  padding: 12px 18px;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+/* BODY */
+.campaign-table td {
+  padding: 13px 18px;
+  border-bottom: 1px solid rgba(226,232,240,0.82);
+  color: #0f172a;
+}
+
+.campaign-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Hover Effect – Vision Glass Lift */
+.campaign-table tbody tr:hover td {
+  background: rgba(241, 245, 255, 0.85);
+  backdrop-filter: blur(8px);
+  transition: background 0.18s ease;
+}
+
+/* Status Pills */
+.campaign-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid rgba(148,163,184,0.6);
+  background: rgba(248,250,252,0.96);
+  color: #475569;
+  transition: all .15s ease;
+}
+
+/* ACTIVE */
+.campaign-status-pill.active {
+  background: var(--color-success-soft);
+  border-color: var(--color-success);
+  color: #166534;
+  box-shadow: 0 0 10px rgba(16,185,129,0.15);
+}
+
+/* PAUSED */
+.campaign-status-pill.paused {
+  background: var(--color-warning-soft);
+  border-color: var(--color-warning);
+  color: #92400e;
+  box-shadow: 0 0 10px rgba(245,158,11,0.15);
+}
+
+/* TESTING */
+.campaign-status-pill.testing {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+  color: #075985;
+  box-shadow: 0 0 10px rgba(14,165,233,0.15);
+}
+
+/* Campaign Name Stylings */
+.campaign-name {
+  font-weight: 600;
+  font-size: 0.92rem;
+  letter-spacing: 0.01em;
+}
+
+/* Adset / Details muted */
+.campaign-sub {
+  color: #64748b;
+  font-size: 0.78rem;
+  margin-top: 2px;
+}
+
+/* KPI Cells (ROAS, CPC, CPM etc.) */
+.campaign-kpi {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.campaign-kpi-label {
+  display: block;
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin-top: 3px;
+}
+
+/* Action Cell (Optional Icons) */
+.campaign-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.campaign-action-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(148,163,184,0.4);
+  background: rgba(255,255,255,0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+
+.campaign-action-icon:hover {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: rgba(79,70,229,0.9);
+  box-shadow:
+      0 10px 22px rgba(15,23,42,0.24),
+      0 0 0 1px rgba(255,255,255,1) inset;
+  transform: translateY(-2px);
+}
