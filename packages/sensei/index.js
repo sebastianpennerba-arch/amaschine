@@ -1,767 +1,243 @@
 // packages/sensei/index.js
-// Sensei – AI Performance Coach Dashboard
-// Nutzt Brand-Kontext (AppState.selectedBrandId) & Demo-/Live-Mode (env.useDemoMode)
+// Sensei Strategy Center – Vision Pro Titanium
+// Render-Funktion wird von app.js via dynamic import aufgerufen.
 
-export function render(rootEl, AppState, env = {}) {
-  if (!rootEl) return;
+export function render(root, AppState, { useDemoMode }) {
+  const DemoData = window.SignalOneDemo?.DemoData || null;
 
-  const useDemo =
-    typeof env.useDemoMode === "boolean" ? env.useDemoMode : true;
-  const timeframe = env.timeframe || "30d"; // "7d" | "30d" | "90d"
+  const brand = getCurrentBrand(AppState, DemoData);
+  const brandName = brand?.name || "Deine Brand";
+  const modeLabel = useDemoMode ? "Demo-Modus" : "Live-Modus";
 
-  const demo = window.SignalOneDemo && window.SignalOneDemo.DemoData;
-  const brands = demo && demo.brands ? demo.brands : [];
+  root.innerHTML = `
+    <div class="view-header">
+      <div>
+        <h2>Sensei Strategy Center</h2>
+        <p class="view-subtitle">
+          Tägliche Account-Entscheidungen für <strong>${escapeHtml(
+            brandName
+          )}</strong> im ${modeLabel}.
+        </p>
+      </div>
+    </div>
 
-  let brandId = AppState.selectedBrandId;
-  if (!brandId && brands.length) {
-    brandId = brands[0].id;
-  }
-  const brand =
-    brands.find((b) => b.id === brandId) || (brands.length ? brands[0] : null);
+    <div class="sensei-layout">
+      <!-- Linke Seite: Prompt + Output -->
+      <div class="sensei-card">
+        <div class="sensei-card-header">
+          <div>
+            <div class="sensei-card-title">Täglicher Action Plan</div>
+            <div class="sensei-card-subtitle">
+              Sensei analysiert Spend, ROAS und Tests und priorisiert deine nächsten Schritte.
+            </div>
+          </div>
+          <div class="sensei-ai-pill">AI Sensei</div>
+        </div>
 
-  rootEl.innerHTML = "";
+        <div class="sensei-prompt-area">
+          <label class="sensei-prompt-label">
+            Was möchtest du optimieren?
+          </label>
+          <textarea
+            id="senseiPrompt"
+            class="sensei-prompt-textarea"
+            placeholder="z.B. „Fokus auf Profit in Q4, mehr UGC + weniger Broad Spend“"
+          ></textarea>
 
-  // Live-Guard
-  if (!useDemo && !AppState.metaConnected) {
-    const msg = document.createElement("p");
-    msg.textContent =
-      "Live-Modus aktiv. Sensei wird echte Performance-Insights generieren, sobald die Meta-Anbindung fertig ist. Aktuell kannst du den Demo-Modus nutzen.";
-    rootEl.appendChild(msg);
-    return;
-  }
+          <button id="senseiGenerateButton" class="sensei-generate-button" type="button">
+            Action Plan generieren
+          </button>
 
-  const senseiData = getSenseiDataForBrand(brand ? brand.id : null, timeframe);
+          <div id="senseiOutput" class="sensei-output">
+            <h4>Empfohlene Actions für heute</h4>
+            ${initialPlanHtml(brand)}
+          </div>
+        </div>
+      </div>
 
-  // ---------------------------------------------------------------------------
-  // HEADER (Hero)
-  // ---------------------------------------------------------------------------
+      <!-- Rechte Seite: Insight Stack -->
+      <div class="sensei-sidebar-stack">
+        <div class="sensei-insight-card">
+          <div class="sensei-insight-title">Account Pulse</div>
+          <div class="sensei-insight-meta">
+            ${brand
+              ? `Brand: ${escapeHtml(brand.name)} · Vertikal: ${
+                  brand.vertical
+                }`
+              : "Brand nicht gewählt – oben im Topbar Werbekonto wählen."}
+          </div>
+          <div class="sensei-tag-row" style="margin-top:6px;">
+            <span class="sensei-tag">ROAS 30d: ${
+              brand?.roas30d != null ? brand.roas30d.toFixed(1) : "n/a"
+            }</span>
+            <span class="sensei-tag">Spend 30d: ${
+              brand ? formatCurrency(brand.spend30d) : "n/a"
+            }</span>
+            <span class="sensei-tag">Health: ${formatHealth(
+              brand?.campaignHealth
+            )}</span>
+          </div>
+        </div>
 
-  const header = document.createElement("div");
-  header.className = "dashboard-hero";
+        <div class="sensei-insight-card">
+          <div class="sensei-insight-title">Prioritäten heute</div>
+          <ul style="padding-left:16px;margin:6px 0 0 0;font-size:0.82rem;">
+            <li>1–2 Kampagnen skalieren, 1–2 pausieren – kein Mikromanagement.</li>
+            <li>1 neues Test-Szenario statt 10 kleine Änderungen.</li>
+            <li>Creator mit beständigem ROAS bevorzugen.</li>
+          </ul>
+        </div>
 
-  const statusChip = document.createElement("div");
-  statusChip.className = "dashboard-hero-status";
-  statusChip.textContent = brand
-    ? `${brand.name} • Sensei AI aktiv`
-    : "Kein Werbekonto ausgewählt";
+        <div class="sensei-insight-card">
+          <div class="sensei-insight-title">Sensei-Status</div>
+          <div class="sensei-insight-meta">
+            Quelle: ${useDemoMode ? "Demo-Daten" : "Meta + interne Insights"}
+          </div>
+          <div class="sensei-tag-row">
+            <span class="sensei-tag">Daily Plan</span>
+            <span class="sensei-tag">Budget Sim</span>
+            <span class="sensei-tag">Testing</span>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  const title = document.createElement("h2");
-  title.className = "dashboard-hero-title";
-  title.textContent = "Sensei – AI Performance Coach";
+    <div class="sensei-card" style="margin-top:20px;">
+      <div class="sensei-card-header">
+        <div class="sensei-card-title">Testing & Budget Roadmap</div>
+        <div class="sensei-card-subtitle">Nächste 7 Tage – Fokus & Struktur</div>
+      </div>
+      <ul style="font-size:0.86rem; margin:0 0 4px 18px; padding:0;">
+        <li><strong>Tag 1–2:</strong> Creative Hooks testen, Winner isolieren, Budget neutral halten.</li>
+        <li><strong>Tag 3–4:</strong> Winner konsolidieren, schwache Adsets abschalten, Top 3 Creatives skalieren.</li>
+        <li><strong>Tag 5–6:</strong> neue Audience-Hypothese testen (Broad, LAL, Interest Stack).</li>
+        <li><strong>Tag 7:</strong> Sensei Review → ROAS-Delta & Budget-Reallocation für neue Woche.</li>
+      </ul>
+    </div>
+  `;
 
-  const subtitle = document.createElement("p");
-  subtitle.className = "dashboard-hero-subtitle";
-  if (brand) {
-    subtitle.textContent = useDemo
-      ? "Sensei analysiert deinen Demo-Account so, wie später deine echten Meta-Daten: Kampagnen, Creatives, Hooks und Skalierung."
-      : "Sensei ist im Live-Modus bereit. Sobald Meta angebunden ist, erhältst du hier tägliche AI-Insights auf Basis realer Daten.";
-  } else {
-    subtitle.textContent =
-      "Wähle oben ein Werbekonto, damit Sensei die passenden Insights generieren kann.";
-  }
+  const promptEl = root.querySelector("#senseiPrompt");
+  const outputEl = root.querySelector("#senseiOutput");
+  const buttonEl = root.querySelector("#senseiGenerateButton");
 
-  header.appendChild(statusChip);
-  header.appendChild(title);
-  header.appendChild(subtitle);
-
-  // Timeframe Filter
-  const filters = document.createElement("div");
-  filters.className = "creative-filters";
-
-  const timeframeSelect = document.createElement("select");
-  [
-    { value: "7d", label: "Zeitraum: Letzte 7 Tage" },
-    { value: "30d", label: "Letzte 30 Tage" },
-    { value: "90d", label: "Letzte 90 Tage" },
-  ].forEach((opt) => {
-    const o = document.createElement("option");
-    o.value = opt.value;
-    o.textContent = opt.label;
-    timeframeSelect.appendChild(o);
-  });
-  timeframeSelect.value = timeframe;
-
-  const info = document.createElement("span");
-  info.style.fontSize = "0.85rem";
-  info.style.color = "var(--color-text-muted)";
-  info.textContent =
-    "Sensei simuliert hier bereits die Logik, wie sie später mit Live-Daten funktioniert.";
-
-  filters.appendChild(timeframeSelect);
-  filters.appendChild(info);
-
-  // Summary Text
-  const summary = document.createElement("p");
-  summary.style.margin = "0 0 12px";
-  summary.style.fontSize = "0.85rem";
-  summary.style.color = "var(--color-text-muted)";
-  if (brand) {
-    summary.textContent = `Zeitraum: ${formatTimeframe(timeframe)} • Brand: ${
-      brand.name
-    } • Fokus: ${senseiData.focus}`;
-  } else {
-    summary.textContent = "Kein Brand ausgewählt.";
-  }
-
-  rootEl.appendChild(header);
-  rootEl.appendChild(filters);
-  rootEl.appendChild(summary);
-
-  // ---------------------------------------------------------------------------
-  // MAIN GRID (Premium AI Dashboard Layout)
-  // Links: Top Actions + Scaling
-  // Rechts: Critical Alerts + Fatigue
-  // ---------------------------------------------------------------------------
-
-  const mainGrid = document.createElement("div");
-  mainGrid.style.display = "grid";
-  mainGrid.style.gridTemplateColumns = "minmax(0, 2.1fr) minmax(0, 1.4fr)";
-  mainGrid.style.gap = "16px";
-  mainGrid.style.marginBottom = "24px";
-
-  const leftCol = document.createElement("div");
-  const rightCol = document.createElement("div");
-
-  // ----- Card: Today's Top Actions -----------------------------------------
-
-  const actionsCard = document.createElement("div");
-  actionsCard.className = "sensei-card";
-  const actionsTitle = document.createElement("h3");
-  actionsTitle.textContent = "Today's Top Recommendations";
-  actionsCard.appendChild(actionsTitle);
-
-  const actionsList = document.createElement("ol");
-  actionsList.style.margin = "6px 0 0";
-  actionsList.style.paddingLeft = "18px";
-  actionsList.style.fontSize = "0.9rem";
-
-  senseiData.topActions.forEach((a) => {
-    const li = document.createElement("li");
-    li.style.marginBottom = "4px";
-    const strong = document.createElement("strong");
-    strong.textContent = a.title + ": ";
-    const span = document.createElement("span");
-    span.textContent = a.text;
-    li.appendChild(strong);
-    li.appendChild(span);
-    actionsList.appendChild(li);
-  });
-
-  actionsCard.appendChild(actionsList);
-  leftCol.appendChild(actionsCard);
-
-  // ----- Card: Scaling Opportunities ---------------------------------------
-
-  const scaleCard = document.createElement("div");
-  scaleCard.className = "sensei-card";
-  const scaleTitle = document.createElement("h3");
-  scaleTitle.textContent = "Scaling Opportunities";
-  scaleCard.appendChild(scaleTitle);
-
-  const scaleList = document.createElement("ul");
-  scaleList.style.margin = "6px 0 0";
-  scaleList.style.paddingLeft = "18px";
-  scaleList.style.fontSize = "0.9rem";
-
-  senseiData.scaling.forEach((s) => {
-    const li = document.createElement("li");
-    li.style.marginBottom = "4px";
-    li.textContent = s;
-    scaleList.appendChild(li);
-  });
-
-  scaleCard.appendChild(scaleList);
-  leftCol.appendChild(scaleCard);
-
-  // ----- Right: Critical Alerts + Fatigue ----------------------------------
-
-  const alertCard = document.createElement("div");
-  alertCard.className = "sensei-card";
-  const alertTitle = document.createElement("h3");
-  alertTitle.textContent = "Critical Alerts";
-  alertCard.appendChild(alertTitle);
-
-  if (!senseiData.criticalAlerts.length) {
-    const p = document.createElement("p");
-    p.style.fontSize = "0.9rem";
-    p.style.color = "var(--color-text-muted)";
-    p.textContent =
-      "Aktuell keine kritischen Alerts. Sensei überwacht weiterhin deine Kampagnen & Creatives.";
-    alertCard.appendChild(p);
-  } else {
-    const list = document.createElement("ul");
-    list.style.margin = "6px 0 0";
-    list.style.paddingLeft = "18px";
-    list.style.fontSize = "0.9rem";
-    senseiData.criticalAlerts.forEach((a) => {
-      const li = document.createElement("li");
-      li.style.marginBottom = "4px";
-      li.textContent = a;
-      list.appendChild(li);
+  if (buttonEl && outputEl && promptEl) {
+    buttonEl.addEventListener("click", () => {
+      const text = (promptEl.value || "").trim();
+      const plan = generatePlan(text, brand, useDemoMode);
+      outputEl.innerHTML = plan;
     });
-    alertCard.appendChild(list);
   }
+}
 
-  const fatigueCard = document.createElement("div");
-  fatigueCard.className = "sensei-card";
-  const fatigueTitle = document.createElement("h3");
-  fatigueTitle.textContent = "Creative Fatigue & Risk";
-  fatigueCard.appendChild(fatigueTitle);
+function getCurrentBrand(AppState, DemoData) {
+  if (!DemoData || !DemoData.brands) return null;
+  const id = AppState.selectedBrandId;
+  if (!id) return DemoData.brands[0] || null;
+  return DemoData.brands.find((b) => b.id === id) || DemoData.brands[0] || null;
+}
 
-  const fatigueList = document.createElement("ul");
-  fatigueList.style.margin = "6px 0 0";
-  fatigueList.style.paddingLeft = "18px";
-  fatigueList.style.fontSize = "0.9rem";
+function initialPlanHtml(brand) {
+  const health = formatHealth(brand?.campaignHealth);
+  return `
+    <p style="margin:0 0 6px 0;">
+      Basierend auf deinem aktuellen Setup (Health: <strong>${health}</strong>) schlägt Sensei folgende Schritte vor:
+    </p>
+    <ul style="margin:0; padding-left:16px;">
+      <li>1–2 kampagnen mit schlechtem ROAS einfrieren und Budget auf Top-Kampagnen verlagern.</li>
+      <li>neue UGC-Variante mit starkem Hook testen (vertikal: ${
+        brand?.vertical || "Standard"
+      }).</li>
+      <li>Testing Slot für morgen reservieren, statt 24/7 alles anzufassen.</li>
+    </ul>
+  `;
+}
 
-  senseiData.fatigue.forEach((f) => {
-    const li = document.createElement("li");
-    li.style.marginBottom = "4px";
-    li.textContent = f;
-    fatigueList.appendChild(li);
-  });
-  fatigueCard.appendChild(fatigueList);
+function generatePlan(promptText, brand, useDemoMode) {
+  const label = brand?.name || "dein Account";
+  const roas = brand?.roas30d != null ? brand.roas30d.toFixed(1) : "n/a";
+  const spend = brand ? formatCurrency(brand.spend30d) : "n/a";
 
-  rightCol.appendChild(alertCard);
-  rightCol.appendChild(fatigueCard);
+  const baseIntro = `
+    <h4>Sensei Action Plan für ${escapeHtml(label)}</h4>
+    <p style="margin:0 0 8px 0;font-size:0.86rem;">
+      Ausgangslage: ROAS 30 Tage <strong>${roas}</strong>, Spend <strong>${spend}</strong>.
+      Quelle: ${useDemoMode ? "Demo-Daten" : "Meta + interne Engine"}.
+    </p>
+  `;
 
-  mainGrid.appendChild(leftCol);
-  mainGrid.appendChild(rightCol);
+  const normalizedPrompt = promptText.toLowerCase();
 
-  rootEl.appendChild(mainGrid);
+  const blocks = [];
 
-  // ---------------------------------------------------------------------------
-  // SECOND ROW – Hook Performance & Creator Snapshot (volle Breite)
-  // ---------------------------------------------------------------------------
-
-  const bottomGrid = document.createElement("div");
-  bottomGrid.style.display = "grid";
-  bottomGrid.style.gridTemplateColumns = "minmax(0, 2fr) minmax(0, 1.6fr)";
-  bottomGrid.style.gap = "16px";
-
-  // Hook Performance Card
-  const hooksCard = document.createElement("div");
-  hooksCard.className = "sensei-card";
-  const hooksTitle = document.createElement("h3");
-  hooksTitle.textContent = "Hook Performance Breakdown";
-  hooksCard.appendChild(hooksTitle);
-
-  const hooksList = document.createElement("ul");
-  hooksList.style.listStyle = "none";
-  hooksList.style.margin = "8px 0 0";
-  hooksList.style.paddingLeft = "0";
-
-  senseiData.hooks.forEach((h) => {
-    const li = document.createElement("li");
-    li.style.display = "flex";
-    li.style.alignItems = "center";
-    li.style.gap = "8px";
-    li.style.marginBottom = "6px";
-
-    const label = document.createElement("div");
-    label.style.minWidth = "120px";
-    label.style.fontSize = "0.85rem";
-    label.style.fontWeight = "500";
-    label.textContent = h.name;
-
-    const barWrapper = document.createElement("div");
-    barWrapper.style.flex = "1";
-    barWrapper.style.height = "6px";
-    barWrapper.style.borderRadius = "999px";
-    barWrapper.style.background = "#e0ddd8";
-
-    const bar = document.createElement("div");
-    bar.style.height = "100%";
-    bar.style.borderRadius = "999px";
-    bar.style.width = `${h.score}%`;
-    bar.style.background =
-      "linear-gradient(90deg, var(--color-primary), #7e9e7a)";
-
-    barWrapper.appendChild(bar);
-
-    const kpi = document.createElement("div");
-    kpi.style.display = "flex";
-    kpi.style.flexDirection = "column";
-    kpi.style.alignItems = "flex-end";
-    kpi.style.fontSize = "0.78rem";
-
-    const line1 = document.createElement("span");
-    line1.textContent = `${h.roas.toFixed(1)}x ROAS • ${h.share}% Spend`;
-
-    const line2 = document.createElement("span");
-    line2.style.color = "var(--color-text-soft)";
-    line2.textContent = h.comment;
-
-    kpi.appendChild(line1);
-    kpi.appendChild(line2);
-
-    li.appendChild(label);
-    li.appendChild(barWrapper);
-    li.appendChild(kpi);
-
-    hooksList.appendChild(li);
-  });
-
-  hooksCard.appendChild(hooksList);
-  bottomGrid.appendChild(hooksCard);
-
-  // Creator Snapshot Card
-  const creatorCard = document.createElement("div");
-  creatorCard.className = "sensei-card";
-  const creatorTitle = document.createElement("h3");
-  creatorTitle.textContent = "Creator Performance Snapshot";
-  creatorCard.appendChild(creatorTitle);
-
-  const creatorList = document.createElement("ul");
-  creatorList.style.margin = "8px 0 0";
-  creatorList.style.paddingLeft = "18px";
-  creatorList.style.fontSize = "0.9rem";
-
-  senseiData.creators.forEach((c) => {
-    const li = document.createElement("li");
-    li.style.marginBottom = "6px";
-
-    const line1 = document.createElement("div");
-    line1.innerHTML = `<strong>${c.name}</strong> • ${c.role} • ROAS ${c.roas.toFixed(
-      1
-    )}x • Spend ${formatCurrency(c.spend)}`;
-
-    const line2 = document.createElement("div");
-    line2.style.fontSize = "0.8rem";
-    line2.style.color = "var(--color-text-soft)";
-    line2.textContent = c.comment;
-
-    li.appendChild(line1);
-    li.appendChild(line2);
-    creatorList.appendChild(li);
-  });
-
-  creatorCard.appendChild(creatorList);
-  bottomGrid.appendChild(creatorCard);
-
-  rootEl.appendChild(bottomGrid);
-
-  // ---------------------------------------------------------------------------
-  // Interaktion: Timeframe-Select
-  // ---------------------------------------------------------------------------
-
-  timeframeSelect.addEventListener("change", () => {
-    const tf = timeframeSelect.value;
-    // Re-Render Sensei-View mit neuem Zeitraum
-    render(rootEl, AppState, {
-      ...env,
-      timeframe: tf,
-    });
-    if (window.SignalOne && window.SignalOne.showToast) {
-      window.SignalOne.showToast(
-        `Sensei aktualisiert Insights für ${formatTimeframe(tf)}.`,
-        "success"
-      );
+  if (!normalizedPrompt) {
+    blocks.push(`
+      <p style="margin:0 0 6px 0;">Du hast keinen Fokus angegeben – Sensei nutzt den Default-Plan:</p>
+      <ul style="margin:0 0 8px 0; padding-left:16px;">
+        <li><strong>Budget:</strong> schwache Adsets (unter Ziel-ROAS) um 20–30% senken, Top-Adsets um 10–15% erhöhen.</li>
+        <li><strong>Creatives:</strong> 2 neue Hooks testen, 1 bewährtes Creative duplizieren mit neuem Angle.</li>
+        <li><strong>Testing:</strong> maximal 1–2 parallele Tests gleichzeitig – kein „alles auf einmal“.</li>
+      </ul>
+    `);
+  } else {
+    if (normalizedPrompt.includes("profit") || normalizedPrompt.includes("roas")) {
+      blocks.push(`
+        <p style="margin:0 0 4px 0;"><strong>1. Profit-Sicherung</strong></p>
+        <ul style="margin:0 0 8px 0; padding-left:16px;">
+          <li>alle kampagnen mit ROAS &lt; Zielwert um 30–40% senken oder pausieren.</li>
+          <li>Top 2–3 Kampagnen mit stabilen Ergebnissen leicht skalieren (max. +15%).</li>
+          <li>Kein Broad-Experiment über Nacht – Tests tagsüber kontrolliert ausspielen.</li>
+        </ul>
+      `);
     }
-  });
-}
 
-// ---------------------------------------------------------------------------
-// DEMO-INTELLIGENCE – je Brand eigene AI-Insights
-// ---------------------------------------------------------------------------
+    if (normalizedPrompt.includes("ugc") || normalizedPrompt.includes("creative")) {
+      blocks.push(`
+        <p style="margin:0 0 4px 0;"><strong>2. Creative-Fokus (UGC)</strong></p>
+        <ul style="margin:0 0 8px 0; padding-left:16px;">
+          <li>mindestens 1 Hook-basierten UGC-Spot mit hartem Pattern Interrupt testen.</li>
+          <li>Winning Creative aus den letzten 14 Tagen duplizieren mit neuem Intro (1–3 Sekunden).</li>
+          <li>Sensei empfiehlt: 70% Budget auf etablierte Creatives, 30% auf neue Tests.</li>
+        </ul>
+      `);
+    }
 
-function getSenseiDataForBrand(brandId, timeframe) {
-  // Fallback Generic
-  const generic = {
-    focus: "generelle Performance",
-    topActions: [
-      {
-        title: "Structure Check",
-        text: "Überprüfe deine Kampagnenstruktur und stelle sicher, dass Budget auf die besten Kampagnen konzentriert ist.",
-      },
-      {
-        title: "Creative Refresh",
-        text: "Plane einen Creative-Refresh für unterperformende Ads, bevor Fatigue sichtbar wird.",
-      },
-      {
-        title: "Retargeting",
-        text: "Nutze Retargeting-Kampagnen, um den Traffic der letzten Tage effizient zu monetarisieren.",
-      },
-    ],
-    scaling: [
-      "Analysiere deine besten Kampagnen der letzten 30 Tage und erhöhe deren Budget schrittweise.",
-      "Teste neue Hooks auf Basis der Creatives mit der höchsten CTR.",
-    ],
-    criticalAlerts: [],
-    fatigue: [
-      "Noch keine harten Fatigue-Signale erkannt – trotzdem neue Creatives vorbereiten.",
-    ],
-    hooks: [
-      {
-        name: "Standard-Hook",
-        score: 60,
-        roas: 3.1,
-        share: 40,
-        comment: "Solide Performance, aber kein echter Winner.",
-      },
-    ],
-    creators: [
-      {
-        name: "Generic Creator",
-        role: "UGC Creator",
-        spend: 10000,
-        roas: 3.5,
-        comment: "Konstante Performance ohne große Ausschläge nach oben oder unten.",
-      },
-    ],
-  };
+    if (normalizedPrompt.includes("scale") || normalizedPrompt.includes("skalieren")) {
+      blocks.push(`
+        <p style="margin:0 0 4px 0;"><strong>3. Skaliertaktik</strong></p>
+        <ul style="margin:0 0 8px 0; padding-left:16px;">
+          <li>Skalierung in 10–20% Schritten alle 48 Stunden bei stabilen KPIs.</li>
+          <li>Keine simultane Budget- + Bid-Änderung – immer nur eine Variable.</li>
+          <li>Bei ROAS-Drop &gt; 20%: Budget-Rollback &amp; Sensei Review im Testing Log.</li>
+        </ul>
+      `);
+    }
 
-  const tfLabel =
-    timeframe === "7d" ? "letzten 7 Tage" : timeframe === "90d" ? "letzten 90 Tage" : "letzten 30 Tage";
-
-  switch (brandId) {
-    case "acme_fashion":
-      return {
-        focus: `Fashion Evergreen Scaling (${tfLabel})`,
-        topActions: [
-          {
-            title: "UGC-Winner kopieren",
-            text: "Skaliere den UGC-Winner „Outfit in 10 Sekunden“ in eine eigene Scale-Kampagne mit Broad & Lookalike-Zielgruppen.",
-          },
-          {
-            title: "Schwache Hooks abschalten",
-            text: "Schalte Creatives mit ROAS < 2.0x und niedriger CTR in der Hook-Battle-Kampagne ab, um Budget zu fokussieren.",
-          },
-          {
-            title: "Story-Ads nachziehen",
-            text: "Nutze Varianten des UGC-Winners als Story-Format, um zusätzliche Touchpoints in Mobilumgebungen zu gewinnen.",
-          },
-        ],
-        scaling: [
-          "Erhöhe das Budget der besten Scale-Kampagne um 20–25 %, solange ROAS über 4.5x bleibt.",
-          "Kombiniere die besten Hooks aus ‚Hook Battle Q4‘ mit dem UGC-Winner für neue Creative-Varianten.",
-          "Teste 1–2 internationale Zielmärkte mit lokalisierten Hooks und Untertiteln.",
-        ],
-        criticalAlerts:
-          timeframe === "7d"
-            ? [
-                "ROAS ist in den letzten 7 Tagen leicht gesunken (ca. -0.4x) – mögliche Fatigue bei Bestsellern.",
-              ]
-            : [
-                "Mehrere alte Static-Creatives sind noch aktiv, liefern aber deutlich schwächere Performance.",
-              ],
-        fatigue: [
-          "In Lookalike-Zielgruppen ist die Frequenz einzelner Winner-Creatives deutlich angestiegen.",
-          "Hook-Varianten mit langen Intros verlieren gegenüber kurzen, klaren Hooks. Sensei empfiehlt, introspektive Szenen zu kürzen.",
-        ],
-        hooks: [
-          {
-            name: "Fast Try-On",
-            score: 92,
-            roas: 6.4,
-            share: 38,
-            comment: "Klarer Gewinner – starker ROAS und hohe CTR.",
-          },
-          {
-            name: "Outfit Fail Fix",
-            score: 78,
-            roas: 4.1,
-            share: 24,
-            comment: "Gute Performance, aber noch Luft nach oben mit klarerem CTA.",
-          },
-          {
-            name: "Lookbook Overview",
-            score: 63,
-            roas: 3.0,
-            share: 18,
-            comment: "Solide, aber eher unterstützend als primärer Scale-Treiber.",
-          },
-        ],
-        creators: [
-          {
-            name: "Lena – Fashion Creator",
-            role: "UGC / TikTok-Style",
-            spend: 14890,
-            roas: 6.1,
-            comment:
-              "Lieferte die stärksten Evergreen-Winner. Weitere Kooperationen sehr sinnvoll.",
-          },
-          {
-            name: "Mia – Storytelling",
-            role: "UGC Story",
-            spend: 7120,
-            roas: 3.8,
-            comment:
-              "Gute Watchtime, aber Hook braucht Optimierung. Storytelling-Strang ausbauen.",
-          },
-        ],
-      };
-
-    case "techgadgets_pro":
-      return {
-        focus: `Tech Launch & Retargeting (${tfLabel})`,
-        topActions: [
-          {
-            title: "Retargeting stärken",
-            text: "Skaliere die Retargeting-Kampagne mit Produktdemo & Unboxing, da hier der ROAS klar über Prospecting liegt.",
-          },
-          {
-            title: "Prospecting vereinfachen",
-            text: "Reduziere die Anzahl an Zielgruppen im Launch-Funnel, um Budget auf die besten Segmente zu konzentrieren.",
-          },
-          {
-            title: "Feature-Hook testen",
-            text: "Teste Hooks, die das Hauptproblem der Zielgruppe in den ersten 2 Sekunden auf den Punkt bringen (z. B. Akkulaufzeit, Geschwindigkeit).",
-          },
-        ],
-        scaling: [
-          "Erhöhe das Budget der Retargeting-Kampagne in 10 %-Schritten und überwache ROAS & Frequenz.",
-          "Dupliziere die beste Prospecting-Struktur in einen neuen Ad-Set-Test mit Broad-Zielgruppen.",
-          "Nutze Unboxing-Creatives stärker im Warm-Traffic, wo Vertrauen bereits vorhanden ist.",
-        ],
-        criticalAlerts: [
-          "CPM in einigen Prospecting-Ad-Sets deutlich erhöht – möglicher Wettbewerb oder zu enge Zielgruppen.",
-        ],
-        fatigue: [
-          "Unboxing-Creative zeigt leichte Fatigue; Watchtime bleibt stabil, CTR sinkt.",
-          "Ad-Kombinationen mit zu vielen technischen Details verlieren kalte Zielgruppen früh.",
-        ],
-        hooks: [
-          {
-            name: "Problem → Lösung",
-            score: 88,
-            roas: 4.5,
-            share: 42,
-            comment: "Starke Klarheit im Value Proposition – ideal für kalte Zielgruppen.",
-          },
-          {
-            name: "Unboxing / First Impression",
-            score: 74,
-            roas: 3.4,
-            share: 27,
-            comment: "Gut für warme Zielgruppen; schwächer im kalten Prospecting.",
-          },
-          {
-            name: "Specs Overview",
-            score: 59,
-            roas: 2.6,
-            share: 17,
-            comment: "Eher Retargeting-Hook, nicht als Scale-Hook geeignet.",
-          },
-        ],
-        creators: [
-          {
-            name: "Tom – Tech Reviewer",
-            role: "Review / Demo",
-            spend: 12980,
-            roas: 4.3,
-            comment:
-              "Ideal für Conversion-orientierte Kampagnen – glaubwürdig und strukturiert.",
-          },
-          {
-            name: "Alex – Creator",
-            role: "Unboxing",
-            spend: 6840,
-            roas: 3.1,
-            comment:
-              "Starker Fit im Middle-Funnel, sollte in Zukunft mehr auf Benefits als auf Packaging fokussieren.",
-          },
-        ],
-      };
-
-    case "beautylux_cosmetics":
-      return {
-        focus: `Beauty UGC & Transformation (${tfLabel})`,
-        topActions: [
-          {
-            title: "Top-Transformation skalieren",
-            text: "Skaliere die Before/After-Routine-Winner in neue Kampagnenstrukturen mit unterschiedlicher Tageszeit (Morgen/Abend).",
-          },
-          {
-            title: "Skin Concerns clustern",
-            text: "Erstelle Kampagnen pro Skin-Concern (Akne, Anti-Aging, Hyperpigmentation) basierend auf den besten UGC-Creatives.",
-          },
-          {
-            title: "Routine-Bundles testen",
-            text: "Nutze Bundles mit höherem AOV in Retargeting-Kampagnen, da hier Vertrauen bereits vorhanden ist.",
-          },
-        ],
-        scaling: [
-          "Erhöhe das Budget auf Kampagnen mit ROAS > 6.0x, solange CTR > 3.5 % bleibt.",
-          "Teste kürzere Varianten der besten Transformation-Creatives für Stories & Reels.",
-          "Nutze Creator-Testimonials gezielt im Retargeting, um Skepsis abzubauen.",
-        ],
-        criticalAlerts: [
-          "Einige ältere Ingredient-Creatives mit komplexen Claims zeigen sinkenden ROAS.",
-        ],
-        fatigue: [
-          "Bestperformende Transformation-Ads erreichen hohe Frequenz; irgendwann droht Creative Burnout.",
-          "Hook-Varianten ohne klares Before/After verlieren deutlich an Performance.",
-        ],
-        hooks: [
-          {
-            name: "Transformation",
-            score: 96,
-            roas: 7.4,
-            share: 44,
-            comment: "Klarer Winner-Hook – bildet die Kernbotschaft ideal ab.",
-          },
-          {
-            name: "Ingredient Education",
-            score: 81,
-            roas: 5.1,
-            share: 29,
-            comment: "Sehr stark bei warmen Zielgruppen, ideal für Retargeting.",
-          },
-          {
-            name: "Routine Breakdown",
-            score: 70,
-            roas: 4.0,
-            share: 19,
-            comment: "Gut, aber kann von klareren Vorher/Nachher-Visuals profitieren.",
-          },
-        ],
-        creators: [
-          {
-            name: "Sophie – Skinfluencer",
-            role: "UGC / Routine",
-            spend: 17840,
-            roas: 7.0,
-            comment:
-              "Ihre Routine-Videos liefern konstant überdurchschnittliche Performance – weitere Kollaborationen empfohlen.",
-          },
-          {
-            name: "Dermatology Expert",
-            role: "Expert POV",
-            spend: 7420,
-            roas: 4.6,
-            comment:
-              "Ideal, um Trust im oberen Funnel aufzubauen. Mehr kurze Snippets testen.",
-          },
-        ],
-      };
-
-    case "fitlife_supplements":
-      return {
-        focus: `Fitness Progress & Coaching (${tfLabel})`,
-        topActions: [
-          {
-            title: "Progress-Stories hervorheben",
-            text: "Nutze 30-Tage-Progress-Stories als Haupt-Creatives im Scale-Stack und erstelle Varianten mit unterschiedlichen Körpertypen.",
-          },
-          {
-            title: "Coach POV strukturieren",
-            text: "Erstelle klarere Calls-to-Action in Coach-POV-Videos, um mehr Click-Throughs zu generieren.",
-          },
-          {
-            title: "Bundles & Subscriptions",
-            text: "Teste Abonnement-Angebote im Retargeting, um den LTV zu erhöhen.",
-          },
-        ],
-        scaling: [
-          "Erhöhe das Budget auf Progress-Story-Creatives mit ROAS > 4.5x.",
-          "Nutze zusätzliche Hook-Varianten, die „vorher/nachher“ noch stärker emotionalisieren.",
-        ],
-        criticalAlerts: [],
-        fatigue: [
-          "Die immer gleichen Trainings-Szenen können auf Dauer repetitiv wirken – mehr Alltagsszenen testen.",
-        ],
-        hooks: [
-          {
-            name: "Progress Journey",
-            score: 90,
-            roas: 5.0,
-            share: 41,
-            comment: "Sehr starke emotionale Bindung, gut für Scale geeignet.",
-          },
-          {
-            name: "Coach Advice",
-            score: 76,
-            roas: 3.9,
-            share: 27,
-            comment: "Gut, aber hängt stark von der Klarheit des Offers ab.",
-          },
-        ],
-        creators: [
-          {
-            name: "Jonas – Fitness Creator",
-            role: "Progress / Journey",
-            spend: 10980,
-            roas: 4.8,
-            comment:
-              "Ideal für kalte und warme Zielgruppen, besonders in Reels.",
-          },
-          {
-            name: "Coach Lisa",
-            role: "Coach / Trainer",
-            spend: 6240,
-            roas: 3.6,
-            comment:
-              "Stark im Mittelfunnel; mehr Fokus auf konkrete Ergebnisse steigert die Performance.",
-          },
-        ],
-      };
-
-    case "homezen_living":
-      return {
-        focus: `Interior Makeover & Inspiration (${tfLabel})`,
-        topActions: [
-          {
-            title: "Bestes Makeover skalieren",
-            text: "Skaliere das Wohnzimmer-Makeover-Video mit zusätzlichen Varianten zu anderen Räumen (Schlafzimmer, Küche).",
-          },
-          {
-            title: "Inspirations- vs. Performance-Creatives trennen",
-            text: "Trenne Moodboard-Ads klar von Conversion-Kampagnen – nutze sie eher zur Inspiration.",
-          },
-          {
-            title: "Produkt-Fokus erhöhen",
-            text: "Zeige die konkreten Produkte stärker im Video statt nur die Gesamtstimmung.",
-          },
-        ],
-        scaling: [
-          "Teste mehr Short-Form-Clips aus dem längeren Makeover-Video.",
-          "Nutze Karussells mit Vorher/Nachher-Bildern im Retargeting.",
-        ],
-        criticalAlerts: [
-          "ROAS insgesamt unter Benchmark; Kampagne befindet sich eher in explorativer Testphase.",
-        ],
-        fatigue: [
-          "Makeover-Ads nutzen sich schneller ab als expected – hoher Wow-Faktor, aber begrenzte Variabilität.",
-        ],
-        hooks: [
-          {
-            name: "Room Transformation",
-            score: 82,
-            roas: 4.0,
-            share: 36,
-            comment: "Bester Hook, braucht aber klareren Produktfokus.",
-          },
-          {
-            name: "Mood / Vibe",
-            score: 63,
-            roas: 2.7,
-            share: 22,
-            comment: "Gut für Inspiration, schwach für direkte Conversions.",
-          },
-        ],
-        creators: [
-          {
-            name: "Anna – Interior Creator",
-            role: "Makeover",
-            spend: 8420,
-            roas: 4.1,
-            comment:
-              "Ihre Makeover-Videos funktionieren gut – Product Callouts noch prominenter einsetzen.",
-          },
-        ],
-      };
-
-    default:
-      return generic;
+    if (!blocks.length) {
+      blocks.push(`
+        <p style="margin:0 0 6px 0;">
+          Fokus erkannt: <strong>${escapeHtml(promptText)}</strong>.  
+          Sensei mappt das auf ein balanciertes Vorgehen:
+        </p>
+        <ul style="margin:0 0 8px 0; padding-left:16px;">
+          <li>1 Bereich aggressiv optimieren (z.B. Creatives oder Budget), alles andere nur monitoren.</li>
+          <li>Testing Log nutzen, um Hypothesen sauber zu dokumentieren.</li>
+          <li>Sensei nach 48 Stunden erneut ausführen und deltas auswerten.</li>
+        </ul>
+      `);
+    }
   }
-}
 
-// ---------------------------------------------------------------------------
-// Helper
-// ---------------------------------------------------------------------------
+  blocks.push(`
+    <p style="margin:8px 0 0 0;font-size:0.8rem;color:#6b7280;">
+      Hinweis: Dies ist eine strategische Empfehlung. Feintuning erfolgt über Testing Log & Creator Insights.
+    </p>
+  `);
+
+  return baseIntro + blocks.join("");
+}
 
 function formatCurrency(value) {
-  if (!value || isNaN(value)) value = 0;
+  if (typeof value !== "number") return "n/a";
   return new Intl.NumberFormat("de-DE", {
     style: "currency",
     currency: "EUR",
@@ -769,13 +245,18 @@ function formatCurrency(value) {
   }).format(value);
 }
 
-function formatTimeframe(tf) {
-  switch (tf) {
-    case "7d":
-      return "letzte 7 Tage";
-    case "90d":
-      return "letzte 90 Tage";
-    default:
-      return "letzte 30 Tage";
-  }
+function formatHealth(health) {
+  if (!health) return "n/a";
+  if (health === "good") return "Stark";
+  if (health === "warning") return "Beobachten";
+  if (health === "critical") return "Kritisch";
+  return health;
+}
+
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
