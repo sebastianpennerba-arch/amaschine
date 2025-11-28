@@ -1,5 +1,5 @@
 /* ============================================================
-   UI CORE – kompatibel mit neuer app.js (FINAL VERSION)
+   UI CORE – DEMO-STABLE VERSION
 ============================================================ */
 
 import { AppState } from "./state.js";
@@ -9,13 +9,9 @@ import { AppState } from "./state.js";
 ============================================================ */
 
 export function checkMetaConnection() {
-    const hasToken = !!AppState.meta?.accessToken;
     const isDemo = AppState.settings?.demoMode;
-
-    // DEMO MODE → als "verbunden" behandeln
     if (isDemo) return true;
-
-    // Echte Verbindung
+    const hasToken = !!AppState.meta?.accessToken;
     return hasToken === true;
 }
 
@@ -41,7 +37,7 @@ export function updateMetaStatusIndicator(state) {
     else if (state === "connected-demo") {
         topbar.classList.remove("meta-status-disconnected");
         topbar.classList.add("meta-status-connected");
-        topbar.innerHTML = `<i class="fas fa-magic"></i> <span>Demo Mode</span>`;
+        topbar.innerHTML = `<i class="fas fa-magic"></i> <span>Meta: Demo Mode</span>`;
 
         sidebar.className = "status-indicator status-yellow";
         sidebarLabel.textContent = "Meta Ads (Demo Mode)";
@@ -80,7 +76,7 @@ export function showDemoBadge(isActive, presetName = "") {
 }
 
 /* ============================================================
-   GREETING (Guten Tag!)
+   GREETING
 ============================================================ */
 
 export function updateGreeting() {
@@ -98,12 +94,14 @@ export function updateGreeting() {
 }
 
 /* ============================================================
-   DATE & TIME (Live Clock)
+   DATE & TIME
 ============================================================ */
 
 export function initDateTime() {
     const dateEl = document.getElementById("currentDate");
     const timeEl = document.getElementById("currentTime");
+
+    if (!dateEl || !timeEl) return;
 
     const update = () => {
         const d = new Date();
@@ -129,8 +127,8 @@ export function initSidebarNavigation(onSwitch) {
             const view = item.dataset.view;
             if (!view) return;
 
-            // aktive Klasse setzen
-            document.querySelectorAll(".menu-item")
+            document
+                .querySelectorAll(".menu-item")
                 .forEach((i) => i.classList.remove("active"));
             item.classList.add("active");
 
@@ -140,7 +138,7 @@ export function initSidebarNavigation(onSwitch) {
 }
 
 /* ============================================================
-   SYSTEM HEALTH / UI HEALTH INDICATORS
+   SYSTEM HEALTH
 ============================================================ */
 
 export function updateHealthStatus() {
@@ -154,11 +152,9 @@ export function updateHealthStatus() {
 
     if (!sysDot || !campDot) return;
 
-    // System always OK (Mock)
     sysDot.className = "status-indicator status-green";
     sysLbl.textContent = "System Health (OK)";
 
-    // Campaign health depends on data
     const hasData = (AppState.meta?.campaigns || []).length > 0;
 
     if (hasData) {
@@ -196,7 +192,7 @@ export function showToast(message, type = "info", duration = 3000) {
 }
 
 /* ============================================================
-   MODAL SYSTEM (Apple Style)
+   MODAL SYSTEM
 ============================================================ */
 
 export function openModal(html) {
@@ -242,19 +238,12 @@ export function applyTheme(theme) {
 }
 
 /* ============================================================
-   DEBUG CONSOLE
+   DEBUG CONSOLE → DEAKTIVIERT (kein schwarzer Balken)
 ============================================================ */
 
 export function debugLog(...args) {
-    let box = document.getElementById("debugConsole");
-
-    if (!box) {
-        box = document.createElement("div");
-        box.id = "debugConsole";
-        box.className = "debug-console";
-        document.body.appendChild(box);
+    // Nur Konsole, kein DOM
+    if (typeof console !== "undefined") {
+        console.log("[SignalOne]", ...args);
     }
-
-    box.innerHTML += args.join(" ") + "<br>";
-    box.scrollTop = box.scrollHeight;
 }
