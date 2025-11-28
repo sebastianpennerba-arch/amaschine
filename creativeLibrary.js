@@ -1,298 +1,133 @@
-// creativeLibrary.js – SignalOne.cloud
-// Datads-Level Creative Library (Full KPIs, Grouping, Ranking, Bars)
-// --------------------------------------------------------------
+// creativeLibrary.js – SignalOne.cloud – FIXED VERSION + DEMO MODE
+// Enthält: updateCreativeLibraryView + renderCreativeLibrary
 
 import { AppState } from "./state.js";
 import { fetchMetaAds } from "./metaApi.js";
 import { showToast, openModal } from "./uiCore.js";
+import { demoCreatives } from "./demoData.js";
 
-let filtersInitialized = false;
+/* -------------------------------------------------------
+   DEMO-HELPER: Demo-Creatives in „Meta-Ads-Format“ mappen
+---------------------------------------------------------*/
 
-/* ================================================================
-   1. Insights / Metrics Helpers
-==================================================================*/
+function buildDemoAdsFromCreatives() {
+    if (!Array.isArray(demoCreatives)) return [];
 
-function getInsights(ad) {
-    return ad?.insights?.data?.[0] || {};
-}
-
-function getAction(ins, type) {
-    const list = ins?.actions;
-    if (!Array.isArray(list)) return 0;
-    const entry = list.find((a) => a.action_type === type);
-    return entry ? Number(entry.value || 0) : 0;
-}
-
-function getActionValue(ins, type) {
-    const list = ins?.action_values;
-    if (!Array.isArray(list)) return 0;
-    const entry = list.find((a) => a.action_type === type);
-    return entry ? Number(entry.value || 0) : 0;
-}
-
-function getAdMetrics(ad) {
-    const ins = getInsights(ad);
-
-    const spend = Number(ins.spend || 0);
-    const impressions = Number(ins.impressions || 0);
-    const clicks = Number(ins.clicks || 0);
-
-    const purchases =
-        getAction(ins, "purchase") ||
-        getAction(ins, "offsite_conversion.purchase") ||
-        getAction(ins, "website_purchase");
-
-    const revenue =
-        getActionValue(ins, "purchase") ||
-        getActionValue(ins, "offsite_conversion.purchase") ||
-        getActionValue(ins, "website_purchase");
-
-    const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
-    const roas = spend > 0 && revenue > 0 ? revenue / spend : 0;
-    const cpp = purchases > 0 ? spend / purchases : 0;
-    const cpc = clicks > 0 ? spend / clicks : 0;
-
-    const hooks =
-        getAction(ins, "link_click") ||
-        getAction(ins, "post_engagement") ||
-        0;
-
-    const videoPlays =
-        getAction(ins, "video_plays") ||
-        getAction(ins, "video_10s_views") ||
-        0;
-
-    const hookToClickRatio = hooks > 0 ? (clicks / hooks) * 100 : 0;
-    const thumbstopRatio =
-        impressions > 0 && videoPlays > 0
-            ? (videoPlays / impressions) * 100
+    return demoCreatives.map((c, idx) => {
+        const spend = Number(c.spend || 0);
+        const impressions = Number(c.impressions || 0);
+        const clicks = Number(c.clicks || 0);
+        const ctr = c.ctr != null
+            ? Number(c.ctr)
+            : impressions
+            ? (clicks / impressions) * 100
             : 0;
+        const roas = Number(c.roas || 0);
+        const revenue = c.revenue || spend * roas;
+        const cpc = clicks ? spend / clicks : 0;
+        const cpm = impressions ? (spend / impressions) * 1000 : 0;
 
-    return {
-        spend,
-        impressions,
-        clicks,
-        ctr,
-        roas,
-        cpp,
-        cpc,
-        purchases,
-        revenue,
-        hookToClickRatio,
-        thumbstopRatio
-    };
-}
-
-/* ================================================================
-   2. Creative Type + Thumbnail
-==================================================================*/
-
-function getAdType(ad) {
-    const spec = ad?.creative?.object_story_spec;
-    if (!spec) return "static";
-    if (spec.video_data) return "video";
-    if (spec.carousel_data) return "carousel";
-    if (spec.link_data) return "static";
-    return "static";
-}
-
-function getAdThumbnail(ad) {
-    const creative = ad.creative || {};
-
-    if (creative.thumbnail_url) return creative.thumbnail_url;
-
-    const spec = creative.object_story_spec || {};
-
-    if (spec.video_data?.thumbnail_url) return spec.video_data.thumbnail_url;
-    if (spec.link_data?.image_url) return spec.link_data.image_url;
-
-    return null;
-}
-
-/* ================================================================
-   3. Grouping Logic
-==================================================================*/
-
-function getGroupKey(ad, mode) {
-    const creative = ad.creative || {};
-    const spec = creative.object_story_spec || {};
-
-    switch (mode) {
-        case "creative":
-            return creative.id || ad.creative_id || ad.id;
-
-        case "ad_name":
-            return (ad.name || "").trim() || "Unnamed Ad";
-
-        case "headline":
-            return (
-                spec?.link_data?.message ||
-                spec?.video_data?.title ||
-                spec?.link_data?.name ||
-                "Ohne Headline"
-            );
-
-        case "landing_page":
-            return (
-                spec?.link_data?.link ||
-                spec?.link_data?.link_url ||
-                "Ohne Landing Page"
-            );
-
-        case "post_id":
-            return creative.object_story_id || ad.id;
-
-        default:
-            return ad.id;
-    }
-}
-
-function getGroupLabel(ad, mode) {
-    const creative = ad.creative || {};
-    const spec = creative.object_story_spec || {};
-
-    switch (mode) {
-        case "creative":
-            return `Creative ${creative.id || ad.id}`;
-
-        case "ad_name":
-            return ad.name || "Unnamed Ad";
-
-        case "headline":
-            return (
-                spec?.link_data?.message ||
-                spec?.video_data?.title ||
-                spec?.link_data?.name ||
-                "Ohne Headline"
-            );
-
-        case "landing_page":
-            return (
-                spec?.link_data?.link ||
-                spec?.link_data?.link_url ||
-                "Ohne Landing Page"
-            );
-
-        case "post_id":
-            return `Post ${creative.object_story_id || ad.id}`;
-
-        default:
-            return ad.name || `Ad ${ad.id}`;
-    }
-}
-
-function groupAds(ads, mode) {
-    if (!mode || mode === "none") {
-        return ads.map((ad) => {
-            const metrics = getAdMetrics(ad);
-            return { key: ad.id, label: getGroupLabel(ad, "none"), ads: [ad], metrics };
-        });
-    }
-
-    const map = new Map();
-
-    ads.forEach((ad) => {
-        const key = getGroupKey(ad, mode);
-        const label = getGroupLabel(ad, mode);
-        if (!map.has(key)) {
-            map.set(key, { key, label, ads: [] });
-        }
-        map.get(key).ads.push(ad);
-    });
-
-    const groups = [];
-
-    for (const [, group] of map.entries()) {
-        let agg = {
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            purchases: 0,
-            revenue: 0,
-            hookToClickRatio: 0,
-            thumbstopRatio: 0
+        return {
+            id: c.id || `demo_ad_${idx}`,
+            name: c.name || `Demo Creative ${idx + 1}`,
+            creative: {
+                object_story_spec: {
+                    // Wir nutzen link_data als Standard (Static/Image)
+                    link_data: {
+                        name: c.name || "",
+                        link: c.landingPage || c.url || "#",
+                        image_hash: c.thumbnail || "",
+                        call_to_action: {
+                            type: "SHOP_NOW"
+                        }
+                    }
+                }
+            },
+            insights: {
+                data: [
+                    {
+                        spend: spend.toFixed(2),
+                        impressions,
+                        clicks,
+                        ctr,
+                        cpc,
+                        cpm,
+                        purchase_roas: [{ value: roas }],
+                        revenue,
+                        purchases: c.purchases || Math.round(revenue / 50)
+                    }
+                ]
+            }
         };
-
-        group.ads.forEach((ad) => {
-            const m = getAdMetrics(ad);
-            agg.spend += m.spend;
-            agg.impressions += m.impressions;
-            agg.clicks += m.clicks;
-            agg.purchases += m.purchases;
-            agg.revenue += m.revenue;
-            agg.hookToClickRatio += m.hookToClickRatio;
-            agg.thumbstopRatio += m.thumbstopRatio;
-        });
-
-        agg.ctr =
-            agg.impressions > 0
-                ? (agg.clicks / agg.impressions) * 100
-                : 0;
-
-        agg.roas =
-            agg.spend > 0 && agg.revenue > 0 ? agg.revenue / agg.spend : 0;
-
-        agg.cpp = agg.purchases > 0 ? agg.spend / agg.purchases : 0;
-        agg.cpc = agg.clicks > 0 ? agg.spend / agg.clicks : 0;
-
-        group.metrics = agg;
-        groups.push(group);
-    }
-
-    return groups;
+    });
 }
 
-/* ================================================================
-   4. Core API
-==================================================================*/
+/* -------------------------------------------------------
+   VIEW UPDATE (lädt Ads + ruft Renderer)
+---------------------------------------------------------*/
 
 export async function updateCreativeLibraryView(initialLoad = false) {
     const grid = document.getElementById("creativeLibraryGrid");
     if (!grid) return;
 
-    initCreativeLibraryFiltersOnce();
+    grid.innerHTML = "";
 
-    if (!AppState.metaConnected) {
-        grid.innerHTML = "<p style='color:var(--text-secondary);'>Nicht verbunden.</p>";
-        return;
-    }
+    const isDemo = !!AppState.settings?.demoMode;
 
-    if (!AppState.selectedAccountId) {
-        grid.innerHTML = "<p style='color:var(--text-secondary);'>Kein Werbekonto gewählt.</p>";
-        return;
-    }
+    // DEMO MODE: Kein Meta-Token? -> Nutze Demo-Creatives wie echte Daten
+    if ((!AppState.metaConnected || !AppState.meta.accessToken) && isDemo) {
+        AppState.meta.ads = buildDemoAdsFromCreatives();
+        AppState.creativesLoaded = true;
 
-    if (initialLoad || !AppState.creativesLoaded) {
-        try {
-            const ads = await fetchMetaAds(AppState.selectedAccountId);
-            AppState.meta.ads = Array.isArray(ads) ? ads : [];
-            AppState.creativesLoaded = true;
-        } catch (err) {
-            console.error(err);
-            showToast("Fehler beim Laden der Creatives.", "error");
+        if (!AppState.meta.ads.length) {
+            grid.innerHTML = "<p>Demo-Account hat aktuell keine Creatives definiert.</p>";
             return;
         }
+
+        renderCreativeLibrary();
+        return;
+    }
+
+    // Nicht verbunden (und kein Demo)?
+    if (!AppState.metaConnected || !AppState.meta.accessToken) {
+        grid.innerHTML = "<p>Verbinde dich mit Meta, um Creatives zu laden.</p>";
+        return;
+    }
+
+    // Kein Account gewählt?
+    if (!AppState.selectedAccountId) {
+        grid.innerHTML = "<p>Wähle ein Werbekonto in der Topbar.</p>";
+        return;
+    }
+
+    // Beim ersten Aufruf: Creatives laden (LIVE)
+    if (initialLoad || !AppState.creativesLoaded) {
+        try {
+            const res = await fetchMetaAds(AppState.selectedAccountId);
+            const arr = res?.data?.data || res?.data || [];
+
+            AppState.meta.ads = Array.isArray(arr) ? arr : [];
+            AppState.creativesLoaded = true;
+
+        } catch (err) {
+            console.error("Creative Load Error:", err);
+            showToast("Fehler beim Laden der Creatives.", "error");
+            AppState.meta.ads = [];
+        }
+    }
+
+    // Wenn weiterhin keine Creatives vorhanden:
+    if (!AppState.meta.ads.length) {
+        grid.innerHTML = "<p>Keine Creatives gefunden.</p>";
+        return;
     }
 
     renderCreativeLibrary();
 }
 
-function initCreativeLibraryFiltersOnce() {
-    if (filtersInitialized) return;
-    filtersInitialized = true;
-
-    ["creativeSearch", "creativeSort", "creativeType", "creativeGroupBy"].forEach(
-        (id) => {
-            const el = document.getElementById(id);
-            if (el) el.addEventListener("input", () => renderCreativeLibrary());
-            if (el) el.addEventListener("change", () => renderCreativeLibrary());
-        }
-    );
-}
-
-/* ================================================================
-   5. RENDER – Datads Full Card Layout
-==================================================================*/
+/* -------------------------------------------------------
+   RENDERER – Wird von app.js dynamisch aufgerufen
+---------------------------------------------------------*/
 
 export function renderCreativeLibrary() {
     const grid = document.getElementById("creativeLibraryGrid");
@@ -300,184 +135,310 @@ export function renderCreativeLibrary() {
 
     const search = document.getElementById("creativeSearch")?.value?.toLowerCase() || "";
     const sort = document.getElementById("creativeSort")?.value || "roas_desc";
-    const typeFilter = document.getElementById("creativeType")?.value || "all";
+    const type = document.getElementById("creativeType")?.value || "all";
     const groupBy = document.getElementById("creativeGroupBy")?.value || "none";
 
     let ads = [...(AppState.meta.ads || [])];
 
-    if (typeFilter !== "all") {
-        ads = ads.filter((ad) => getAdType(ad) === typeFilter);
+    /* FILTER: TYPE -------------------------------------*/
+    if (type !== "all") {
+        ads = ads.filter(ad => {
+            const c = ad.creative;
+            if (!c) return false;
+            const story = c.object_story_spec || {};
+            const adType = story.video_data
+                ? "video"
+                : story.link_data
+                ? "static"
+                : "static";
+            return adType === type;
+        });
     }
 
+    /* FILTER: SEARCH -----------------------------------*/
     if (search.length > 0) {
-        ads = ads.filter((ad) => (ad.name || "").toLowerCase().includes(search));
+        ads = ads.filter(ad =>
+            (ad.name || "").toLowerCase().includes(search)
+        );
     }
 
-    let groups = groupAds(ads, groupBy);
+    /* SORT ---------------------------------------------*/
+    ads.sort((a, b) => {
+        const aIns = a.insights?.data?.[0] || {};
+        const bIns = b.insights?.data?.[0] || {};
 
-    groups.sort((a, b) => {
-        const ma = a.metrics;
-        const mb = b.metrics;
+        const aSpend = Number(aIns.spend || 0);
+        const bSpend = Number(bIns.spend || 0);
 
-        if (sort === "roas_desc") return mb.roas - ma.roas;
-        if (sort === "spend_desc") return mb.spend - ma.spend;
-        if (sort === "spend_asc") return ma.spend - mb.spend;
-        return 0;
+        const aRoas = Array.isArray(aIns.purchase_roas)
+            ? Number(aIns.purchase_roas?.[0]?.value || 0)
+            : 0;
+
+        const bRoas = Array.isArray(bIns.purchase_roas)
+            ? Number(bIns.purchase_roas?.[0]?.value || 0)
+            : 0;
+
+        const aCtr = Number(aIns.ctr || 0);
+        const bCtr = Number(bIns.ctr || 0);
+
+        switch (sort) {
+            case "spend_desc":
+                return bSpend - aSpend;
+            case "spend_asc":
+                return aSpend - bSpend;
+            case "ctr_desc":
+                return bCtr - aCtr;
+            case "ctr_asc":
+                return aCtr - bCtr;
+            case "roas_asc":
+                return aRoas - bRoas;
+            case "roas_desc":
+            default:
+                return bRoas - aRoas;
+        }
     });
 
-    const frag = document.createDocumentFragment();
+    /* GROUPING -----------------------------------------*/
+    let groups = {};
+    if (groupBy === "none") {
+        groups["__all__"] = ads;
+    } else {
+        ads.forEach((ad) => {
+            let key = "";
+            switch (groupBy) {
+                case "creative":
+                    key = ad.creative?.id || ad.id || "Unknown Creative";
+                    break;
+                case "ad_name":
+                    key = ad.name || "Ohne Namen";
+                    break;
+                case "headline":
+                    key =
+                        ad.creative?.object_story_spec?.link_data?.name ||
+                        ad.creative?.object_story_spec?.video_data?.title ||
+                        "Ohne Headline";
+                    break;
+                case "landing_page":
+                    key =
+                        ad.creative?.object_story_spec?.link_data?.link ||
+                        ad.creative?.object_story_spec?.video_data?.call_to_action?.value
+                            ?.link ||
+                        "Ohne Landing Page";
+                    break;
+                case "post_id":
+                    key =
+                        ad.creative?.object_story_spec?.page_id ||
+                        ad.creative?.effective_object_story_id ||
+                        "Ohne Post ID";
+                    break;
+                default:
+                    key = "__all__";
+                    break;
+            }
+            if (!groups[key]) groups[key] = [];
+            groups[key].push(ad);
+        });
+    }
+
+    /* RENDER -------------------------------------------*/
     grid.innerHTML = "";
 
-    groups.forEach((group, index) => {
-        const anyAd = group.ads[0];
-        const m = group.metrics;
+    const groupKeys = Object.keys(groups);
+    if (!groupKeys.length) {
+        grid.innerHTML = "<p>Keine Creatives gefunden.</p>";
+        return;
+    }
 
-        const thumb = getAdThumbnail(anyAd);
-        const adType = getAdType(anyAd);
+    groupKeys.forEach((groupKey) => {
+        const items = groups[groupKey];
+        if (!items || !items.length) return;
 
-        const purchases = m.purchases || 0;
-        const cpp = m.cpp || 0;
-        const spend = m.spend || 0;
-        const hcr = m.hookToClickRatio || 0;
-        const tsr = m.thumbstopRatio || 0;
-        const cpc = m.cpc || 0;
-        const ctr = m.ctr || 0;
-        const roas = m.roas || 0;
-        const clicks = m.clicks || 0;
+        const groupWrapper = document.createElement("div");
+        groupWrapper.className = "creative-group";
 
-        const kp = (v, s = "", d = 2) =>
-            v > 0 ? v.toFixed(d) + s : "--";
-
-        const roasWidth = Math.min(roas * 20, 100);
-        const spendNorm = Math.min(spend / 10, 100);
-
-        const card = document.createElement("div");
-        card.className = "creative-library-item";
-
-        card.innerHTML = `
-            <div class="creative-media-container-library">
-                ${
-                    thumb
-                        ? `<img src="${thumb}" alt="${group.label}" />`
-                        : `<div class="creative-faux-thumb">${
-                              adType === "video" ? "▶" : "?"
-                          }</div>`
-                }
-                ${
-                    groupBy !== "none"
-                        ? `<div class="creative-rank-badge">#${index + 1}</div>`
-                        : ""
-                }
-            </div>
-
-            <div class="creative-stats">
-                <div class="creative-name-library">${group.label}</div>
-                <div class="creative-meta">${group.ads.length} Ad${
-            group.ads.length > 1 ? "s" : ""
-        } • ${adType}</div>
-
-                <div class="creative-kpi-line"><span class="creative-kpi-label">Purchases</span><span class="creative-kpi-value">${purchases}</span></div>
-                <div class="creative-kpi-line"><span class="creative-kpi-label">Cost per Purchase</span><span class="creative-kpi-value">€${kp(cpp)}</span></div>
-                <div class="creative-kpi-line"><span class="creative-kpi-label">Spend</span><span class="creative-kpi-value">€${kp(spend)}</span></div>
-                <div class="creative-kpi-line"><span class="creative-kpi-label">Hook → Click Ratio</span><span class="creative-kpi-value">${kp(hcr, "%", 1)}</span></div>
-                <div class="creative-kpi-line"><span class="creative-kpi-label">Thumbstop Ratio</span><span class="creative-kpi-value">${kp(tsr, "%", 1)}</span></div>
-                <div class="creative-kpi-line"><span class="creative-kpi-label">CPC</span><span class="creative-kpi-value">€${kp(cpc, "", 3)}</span></div>
-                <div class="creative-kpi-line"><span class="creative-kpi-label">CTR</span><span class="creative-kpi-value">${kp(ctr, "%")}</span></div>
-
-                <div class="kpi-bar-visual">
-                    <span class="kpi-label-small">ROAS</span>
-                    <div class="kpi-slider-track">
-                        <div class="kpi-slider-fill ${
-                            roas >= 2 ? "fill-positive" : "fill-negative"
-                        }" style="width:${roasWidth}%"></div>
-                    </div>
-                </div>
-
-                <div class="kpi-bar-visual">
-                    <span class="kpi-label-small">Spend</span>
-                    <div class="kpi-slider-track">
-                        <div class="kpi-slider-fill fill-spend" style="width:${spendNorm}%"></div>
-                    </div>
-                </div>
-
-                <div class="creative-footer-kpis">
-                    <span>ROAS: ${kp(roas, "x")}</span>
-                    <span>CTR: ${kp(ctr, "%")}</span>
-                    <span>Clicks: ${clicks}</span>
-                </div>
-            </div>
+        // Headline + farbige Unterstreichung (Datads-Style, über CSS)
+        const titleEl = document.createElement("h3");
+        titleEl.className = "creative-group-title";
+        titleEl.innerHTML = `
+            <span>${groupKey === "__all__" ? "Alle Creatives" : groupKey}</span>
+            <span class="creative-group-underline"></span>
         `;
+        groupWrapper.appendChild(titleEl);
 
-        card.addEventListener("click", () => openCreativeModal(group));
-        frag.appendChild(card);
+        const groupGrid = document.createElement("div");
+        groupGrid.className = "creative-grid";
+
+        items.forEach((ad) => {
+            const c = ad.creative || {};
+            const story = c.object_story_spec || {};
+            const ins = ad.insights?.data?.[0] || {};
+
+            const spend = Number(ins.spend || 0);
+            const impressions = Number(ins.impressions || 0);
+            const clicks = Number(ins.clicks || 0);
+            const roas = Array.isArray(ins.purchase_roas)
+                ? Number(ins.purchase_roas?.[0]?.value || 0)
+                : 0;
+            const ctr = ins.ctr != null
+                ? Number(ins.ctr)
+                : impressions
+                ? (clicks / impressions) * 100
+                : 0;
+            const cpm = impressions ? (spend / impressions) * 1000 : 0;
+
+            const thumb =
+                story.link_data?.image_hash ||
+                story.video_data?.picture ||
+                "https://via.placeholder.com/600x600.png?text=Creative";
+
+            const card = document.createElement("article");
+            card.className = "creative-card";
+            card.addEventListener("click", () => openCreativeDetail(ad));
+
+            card.innerHTML = `
+                <div class="creative-thumb">
+                    <img src="${thumb}" alt="${ad.name || "Creative"}" />
+                </div>
+                <div class="creative-body">
+                    <div class="creative-title-row">
+                        <h4 class="creative-name">${ad.name || "Ohne Namen"}</h4>
+                        <span class="creative-pill">
+                            ${roas ? `${roas.toFixed(2)}x ROAS` : "n/a"}
+                        </span>
+                    </div>
+                    <div class="creative-metrics">
+                        <div class="metric-pill">
+                            <span class="label">Spend</span>
+                            <span class="value">${spend.toLocaleString("de-DE", {
+                                style: "currency",
+                                currency: "EUR",
+                                maximumFractionDigits: 0
+                            })}</span>
+                        </div>
+                        <div class="metric-pill">
+                            <span class="label">CTR</span>
+                            <span class="value">${ctr.toFixed(2)}%</span>
+                        </div>
+                        <div class="metric-pill">
+                            <span class="label">CPM</span>
+                            <span class="value">${cpm.toLocaleString("de-DE", {
+                                style: "currency",
+                                currency: "EUR",
+                                maximumFractionDigits: 2
+                            })}</span>
+                        </div>
+                        <div class="metric-pill">
+                            <span class="label">Impr.</span>
+                            <span class="value">${impressions.toLocaleString("de-DE")}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            groupGrid.appendChild(card);
+        });
+
+        groupWrapper.appendChild(groupGrid);
+        grid.appendChild(groupWrapper);
     });
-
-    grid.appendChild(frag);
 }
 
-/* ================================================================
-   6. Creative Modal
-==================================================================*/
+/* -------------------------------------------------------
+   DETAIL MODAL
+---------------------------------------------------------*/
 
-function openCreativeModal(group) {
-    const m = group.metrics;
-    const anyAd = group.ads[0];
-    const thumb = getAdThumbnail(anyAd);
-    const adType = getAdType(anyAd);
+function openCreativeDetail(ad) {
+    const c = ad.creative || {};
+    const story = c.object_story_spec || {};
+    const ins = ad.insights?.data?.[0] || {};
 
-    const kp = (v, s = "", d = 2) =>
-        v > 0 ? v.toFixed(d) + s : "--";
+    const spend = Number(ins.spend || 0);
+    const impressions = Number(ins.impressions || 0);
+    const clicks = Number(ins.clicks || 0);
+    const roas = Array.isArray(ins.purchase_roas)
+        ? Number(ins.purchase_roas?.[0]?.value || 0)
+        : 0;
+    const ctr = ins.ctr != null
+        ? Number(ins.ctr)
+        : impressions
+        ? (clicks / impressions) * 100
+        : 0;
+    const cpm = impressions ? (spend / impressions) * 1000 : 0;
+
+    const thumb =
+        story.link_data?.image_hash ||
+        story.video_data?.picture ||
+        "https://via.placeholder.com/600x600.png?text=Creative";
 
     const html = `
-        <div class="modal-section">
-            <div class="modal-section-title">Creative Group</div>
-            <div class="modal-row" style="align-items:flex-start;">
-                <div style="flex:1;">
-                    <div style="font-weight:700; font-size:16px; margin-bottom:6px;">${group.label}</div>
-                    <div style="font-size:13px;color:var(--text-secondary);">
-                        ${group.ads.length} Ad${group.ads.length > 1 ? "s" : ""} • Typ: ${adType}
+        <div class="creative-modal-layout">
+            <div class="creative-modal-left">
+                <div class="creative-modal-thumb">
+                    <img src="${thumb}" alt="${ad.name || "Creative"}" />
+                </div>
+                <div class="creative-modal-meta">
+                    <p><strong>Name:</strong> ${ad.name || "-"}</p>
+                    <p><strong>ID:</strong> ${ad.id || "-"}</p>
+                </div>
+            </div>
+            <div class="creative-modal-right">
+                <h3>Performance</h3>
+                <div class="creative-modal-metrics">
+                    <div class="metric-pill">
+                        <span class="label">Spend</span>
+                        <span class="value">${spend.toLocaleString("de-DE", {
+                            style: "currency",
+                            currency: "EUR",
+                            maximumFractionDigits: 0
+                        })}</span>
+                    </div>
+                    <div class="metric-pill">
+                        <span class="label">ROAS</span>
+                        <span class="value">${roas ? roas.toFixed(2) + "x" : "n/a"}</span>
+                    </div>
+                    <div class="metric-pill">
+                        <span class="label">CTR</span>
+                        <span class="value">${ctr.toFixed(2)}%</span>
+                    </div>
+                    <div class="metric-pill">
+                        <span class="label">CPM</span>
+                        <span class="value">${cpm.toLocaleString("de-DE", {
+                            style: "currency",
+                            currency: "EUR",
+                            maximumFractionDigits: 2
+                        })}</span>
+                    </div>
+                    <div class="metric-pill">
+                        <span class="label">Impressions</span>
+                        <span class="value">${impressions.toLocaleString("de-DE")}</span>
+                    </div>
+                    <div class="metric-pill">
+                        <span class="label">Clicks</span>
+                        <span class="value">${clicks.toLocaleString("de-DE")}</span>
                     </div>
                 </div>
 
-                <div style="width:160px;height:100px;border-radius:10px;overflow:hidden;border:1px solid var(--border);">
-                ${
-                    thumb
-                        ? `<img src="${thumb}" style="width:100%;height:100%;object-fit:cover;"/>`
-                        : `<div class="creative-faux-thumb" style="height:100%;">${
-                              adType === "video" ? "▶" : "?"
-                          }</div>`
-                }
+                <div class="creative-modal-actions">
+                    <button class="btn-danger" data-action="pause">Pausieren</button>
+                    <button class="btn-primary" data-action="duplicate">Duplizieren für Test</button>
+                    <button class="btn-secondary" data-action="open-report">In Report aufnehmen</button>
                 </div>
             </div>
-        </div>
-
-        <div class="modal-section">
-            <div class="modal-section-title">Performance (aggregiert)</div>
-
-            <div class="modal-kpis-grid">
-                <div class="metric-chip"><div class="metric-label">Purchases</div><div class="metric-value">${m.purchases}</div></div>
-                <div class="metric-chip"><div class="metric-label">CPP</div><div class="metric-value">€${kp(m.cpp)}</div></div>
-                <div class="metric-chip"><div class="metric-label">Spend</div><div class="metric-value">€${kp(m.spend)}</div></div>
-                <div class="metric-chip"><div class="metric-label">ROAS</div><div class="metric-value">${kp(m.roas, "x")}</div></div>
-                <div class="metric-chip"><div class="metric-label">CTR</div><div class="metric-value">${kp(m.ctr, "%")}</div></div>
-                <div class="metric-chip"><div class="metric-label">CPC</div><div class="metric-value">€${kp(m.cpc, "", 3)}</div></div>
-                <div class="metric-chip"><div class="metric-label">Hook → Click</div><div class="metric-value">${kp(m.hookToClickRatio, "%", 1)}</div></div>
-                <div class="metric-chip"><div class="metric-label">Thumbstop Ratio</div><div class="metric-value">${kp(m.thumbstopRatio, "%", 1)}</div></div>
-            </div>
-        </div>
-
-        <div class="modal-section">
-            <div class="modal-section-title">Enthaltene Ads</div>
-            <ul style="max-height:200px;overflow:auto;font-size:13px;padding-left:18px;">
-                ${group.ads
-                    .map(
-                        (ad) =>
-                            `<li><strong>${ad.name || "Ohne Namen"}</strong> – ID: ${ad.id}</li>`
-                    )
-                    .join("")}
-            </ul>
         </div>
     `;
 
-    openModal("Creative Details", html);
+    openModal("Creative-Details", html);
+
+    // Simple Demo-Action-Handler (später: echte API-Calls)
+    const body = document.getElementById("modalBody");
+    if (body) {
+        body.querySelectorAll(".creative-modal-actions button").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                const action = btn.getAttribute("data-action");
+                alert(
+                    `Aktion "${action}" wird vorbereitet...\n\n(Demo-Modus – keine echte API-Aktion. Im Live-Modus würde hier die Meta API aufgerufen.)`
+                );
+            });
+        });
+    }
 }
