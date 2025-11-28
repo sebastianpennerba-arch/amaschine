@@ -1,6 +1,6 @@
 // packages/creativeLibrary/creativeLibrary.demo.js
-// Demo-Datenstruktur für Creative Library (Stub).
+// Demo-Creatives für Creative Library (aus demoData.js).
 
-export const DemoCreatives = [
-    // Später: realistische Demo-Creatives nach deinem DatAds-Kill-Konzept.
-];
+import { demoCreatives } from "../../demoData.js";
+
+export { demoCreatives };
