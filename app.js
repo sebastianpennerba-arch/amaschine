@@ -1,329 +1,217 @@
-// app.js – Orchestrator für SignalOne
-// DEMO MODE + LIVE MODE vollständig integriert
-// (100% kompatibel zur aktuellen Architektur)
+import { AppState } from "./state.js";
+import { ui, showToast, switchView, updateSidebarActiveItem, updateMetaStatusIndicator, showDemoBadge } from "./uiCore.js";
+import { demoData } from "./demoData.js";
+import { MetaApi } from "./metaApi.js";
 
-import {
-    AppState,
-    setDemoMode
-} from "./state.js";
+/* ============================================================
+   APP INITIALISIERUNG
+============================================================ */
 
-import {
-    DEMO_DATA_PRESETS
-} from "./demoData.js";
-
-import {
-    updateSidebarActiveItem,
-    showToast,
-    updateMetaStatusBadge
-} from "./uiCore.js";
-
-import {
-    fetchMetaAdAccounts,
-    fetchMetaCampaigns,
-    fetchMetaAds,
-    fetchMetaUser,
-    exchangeMetaCodeForToken
-} from "./metaApi.js";
-
-// Feature Views
-import { updateDashboardView } from "./dashboard.js";
-import { updateCreativeLibraryView } from "./creativeLibrary.js";
-import { updateCampaignsView } from "./campaigns.js";
-import { updateSenseiView } from "./sensei.js";
-import { updateReportsView } from "./reports.js";
-import { updateTestingLogView } from "./testingLog.js";
-
-
-// =========================================================
-// INIT APP
-// =========================================================
 document.addEventListener("DOMContentLoaded", () => {
-    initApp();
+    initializeNavigation();
+    initializeSettingsButton();
+    initializeDemoMode();
+    initializeViewBoot();
+
+    console.log("🚀 SignalOne App gestartet");
 });
 
-function initApp() {
-    // -----------------------------
-    // A) CHECK FOR DEMO MODE
-    // -----------------------------
+
+/* ============================================================
+   1) DEMO MODE BOOTSTRAP
+============================================================ */
+
+function initializeDemoMode() {
     const urlParams = new URLSearchParams(window.location.search);
-    const demoParam = urlParams.get("demo");
-    const presetParam = urlParams.get("preset");
 
-    const persistedDemo = window.localStorage.getItem("signalone_demo") === "1";
-    const persistedPreset = window.localStorage.getItem("signalone_demo_preset");
-
-    if (demoParam === "1" || persistedDemo) {
-        const presetId = presetParam || persistedPreset || "scaling_store";
-        enableDemoMode(presetId);
-    } else {
-        // Start regulären Meta Connect Flow
-        initMetaOAuthFlow();
+    // URL-Flag überschreibt UI-Settings
+    if (urlParams.get("demo") === "1") {
+        AppState.settings.demoMode = true;
     }
 
-    // Navigation setzen
-    initNavigation();
-
-    // Grund-UI
-    updateUI();
-}
-
-
-
-// =========================================================
-// DEMO MODE
-// =========================================================
-function enableDemoMode(presetId) {
-    if (!DEMO_DATA_PRESETS[presetId]) {
-        console.warn("[DEMO] Unbekanntes Preset → fallback: scaling_store");
-        presetId = "scaling_store";
-    }
-
-    // State setzen
-    setDemoMode(true, presetId);
-
-    // Demo Badge sichtbar machen
-    const badge = document.querySelector("[data-role='demo-badge']");
-    if (badge) {
-        badge.style.display = "inline-flex";
-        badge.textContent = `Demo: ${DEMO_DATA_PRESETS[presetId].label}`;
-    }
-
-    // Demo laden
-    loadDemoPreset(presetId);
-
-    showToast("success", `Demo Mode aktiviert (${DEMO_DATA_PRESETS[presetId].label})`);
-}
-
-function disableDemoMode() {
-    setDemoMode(false, null);
-    window.location.href = window.location.pathname; // Reload ohne Demo
-}
-
-
-// =========================================================
-// DEMO PRESET LOADER
-// =========================================================
-function loadDemoPreset(presetId) {
-    const preset = DEMO_DATA_PRESETS[presetId];
-    if (!preset) return;
-
-    AppState.metaConnected = true;
-
-    AppState.meta.user = preset.user;
-    AppState.meta.adAccounts = preset.adAccounts;
-    AppState.meta.campaigns = preset.campaigns;
-    AppState.meta.creatives = preset.creatives;
-    AppState.meta.insightsByCampaign = preset.insightsByCampaign;
-
-    // Defaults auswählen
-    if (preset.adAccounts.length > 0) {
-        AppState.selectedAccountId = preset.adAccounts[0].id;
-    }
-
-    if (preset.campaigns.length > 0) {
-        AppState.selectedCampaignId = preset.campaigns[0].id;
-    }
-
-    // UI Refresh
-    updateUI();
-    updateAllViews();
-}
-
-function updateAllViews() {
-    updateDashboardView();
-    updateCreativeLibraryView();
-    updateCampaignsView();
-    updateSenseiView();
-    updateReportsView();
-    updateTestingLogView();
-}
-
-
-
-// =========================================================
-// LIVE MODE → META CONNECT FLOW
-// =========================================================
-async function initMetaOAuthFlow() {
-    // 1. Prüfen: Ist ein OAuth Code in der URL?
-    await handleMetaOAuthRedirectIfPresent();
-
-    // 2. Wenn Meta verbunden → Daten laden
-    if (AppState.metaConnected && AppState.meta.accessToken) {
-        await loadLiveMetaInitialData();
-    }
-
-    // 3. UI aktualisieren
-    updateUI();
-}
-
-async function handleMetaOAuthRedirectIfPresent() {
-    const url = new URL(window.location.href);
-    const code = url.searchParams.get("code");
-
-    if (!code) return;
-
-    try {
-        const token = await exchangeMetaCodeForToken(code);
-        AppState.meta.accessToken = token;
-        AppState.metaConnected = true;
-
-        // URL aufräumen
-        url.searchParams.delete("code");
-        window.history.replaceState({}, "", url.toString());
-
-        showToast("success", "Meta erfolgreich verbunden!");
-    } catch (err) {
-        console.error("[Meta OAuth] Fehler beim Token-Austausch:", err);
-        showToast("error", "Meta OAuth Fehler");
-    }
-}
-
-async function loadLiveMetaInitialData() {
-    try {
-        // User
-        AppState.meta.user = await fetchMetaUser();
-
-        // Accounts
-        const accounts = await fetchMetaAdAccounts();
-        AppState.meta.adAccounts = accounts;
-
-        if (accounts.length > 0) {
-            AppState.selectedAccountId = accounts[0].id;
-        }
-
-        // Campaigns
-        if (AppState.selectedAccountId) {
-            const campaigns = await fetchMetaCampaigns(AppState.selectedAccountId);
-            AppState.meta.campaigns = campaigns;
-
-            if (campaigns.length > 0) {
-                AppState.selectedCampaignId = campaigns[0].id;
-            }
-
-            // Ads (inkl. Creatives)
-            const ads = await fetchMetaAds(AppState.selectedAccountId);
-            AppState.meta.creatives = ads; // je nach Metasystem evtl. ads → creatives map
-        }
-
-        showToast("success", "Live Meta Daten geladen");
-
-        updateAllViews();
-    } catch (err) {
-        console.error("[Meta Load] Fehler beim Laden:", err);
-        showToast("error", "Fehler beim Laden der Meta-Daten");
+    if (AppState.settings.demoMode) {
+        console.log("🟣 Demo Mode aktiv — Demo Daten werden geladen");
+        loadDemoData();
+        showDemoBadge(true);
+        updateMetaStatusIndicator("connected-demo");
     }
 }
 
 
+/* Demo-Daten in den globalen AppState laden */
+function loadDemoData() {
+    AppState.meta.adAccounts = demoData.adAccounts;
+    AppState.meta.campaigns = demoData.campaigns;
+    AppState.meta.ads = demoData.ads;
+    AppState.meta.creatives = demoData.creatives;
+    AppState.meta.insightsByCampaign = demoData.insights;
+    AppState.meta.user = demoData.user;
 
-// =========================================================
-// GENERISCHE HELFER: LOADERS (Demo oder Live)
-// =========================================================
-export async function loadAdAccounts() {
-    if (AppState.demoMode) {
-        return AppState.meta.adAccounts;
-    }
-    const accounts = await fetchMetaAdAccounts();
-    AppState.meta.adAccounts = accounts;
-    return accounts;
-}
+    AppState.selectedAccountId = demoData.adAccounts[0]?.id || null;
 
-export async function loadCampaignsForAccount(accountId) {
-    if (AppState.demoMode) {
-        return AppState.meta.campaigns.filter(c => c.accountId === accountId);
-    }
-    const campaigns = await fetchMetaCampaigns(accountId);
-    AppState.meta.campaigns = campaigns;
-    return campaigns;
-}
-
-export async function loadAdsForAccount(accountId) {
-    if (AppState.demoMode) {
-        return AppState.meta.creatives;
-    }
-    const ads = await fetchMetaAds(accountId);
-    AppState.meta.creatives = ads;
-    return ads;
+    showToast("Demo-Daten erfolgreich geladen.", "info");
 }
 
 
+/* ============================================================
+   2) NAVIGATION / VIEW HANDLING
+============================================================ */
 
-// =========================================================
-// NAVIGATION (VIEW SWITCHING)
-// =========================================================
-function initNavigation() {
-    // FIX: index.html nutzt data-view, nicht data-nav
-    const navItems = document.querySelectorAll("[data-view]");
+function initializeNavigation() {
+    const navItems = document.querySelectorAll(".nav-item");
 
     navItems.forEach(item => {
-        item.addEventListener("click", (event) => {
-            event.preventDefault();
-            const view = item.getAttribute("data-view");
+        item.addEventListener("click", () => {
+            const view = item.dataset.view;
 
-            AppState.currentView = view;
-            updateSidebarActiveItem(view);
-            showView(view);
+            switchView(view);
+            updateSidebarActiveItem(item);
+            updatePageTitle(view);
+
+            bootView(view);
         });
     });
 }
 
-function showView(viewId) {
-    document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
-    const target = document.getElementById(viewId);
-    if (target) target.classList.remove("hidden");
+function updatePageTitle(viewID) {
+    const titles = {
+        dashboardView: "Dashboard",
+        creativesView: "Creative Library",
+        campaignsView: "Campaigns",
+        senseiView: "Sensei Strategy",
+        reportsView: "Reports",
+        testingLogView: "Testing Log"
+    };
 
-    updateUI();
-    updateView(viewId);
-}
-
-function updateView(viewId) {
-    switch (viewId) {
-        case "dashboardView":
-            updateDashboardView();
-            break;
-        case "creativesView":
-            updateCreativeLibraryView();
-            break;
-        case "campaignsView":
-            updateCampaignsView();
-            break;
-        case "senseiView":
-            updateSenseiView();
-            break;
-        case "reportsView":
-            updateReportsView();
-            break;
-        case "testingLogView":
-            updateTestingLogView();
-            break;
-    }
+    const title = titles[viewID] || "SignalOne";
+    document.getElementById("pageTitle").textContent = title;
 }
 
 
+/* ============================================================
+   3) SETTINGS BUTTON (Topbar)
+============================================================ */
 
-// =========================================================
-// UI UPDATE
-// =========================================================
-function updateUI() {
-    updateMetaStatusBadge({
-        connected: AppState.metaConnected,
-        demoMode: AppState.demoMode
+function initializeSettingsButton() {
+    const settingsBtn = document.getElementById("settingsButton");
+
+    settingsBtn.addEventListener("click", () => {
+        ui.openSettingsModal(AppState.settings);
     });
+}
 
-    updateSidebarActiveItem(AppState.currentView);
 
-    // Demo Badge togglen
-    const badge = document.querySelector("[data-role='demo-badge']");
-    if (badge) {
-        if (AppState.demoMode) {
-            badge.style.display = "inline-flex";
+/* ============================================================
+   4) VIEW-BOOTSTRAP LOGIK
+============================================================ */
 
-            // falls Label im Preset vorhanden → anzeigen, sonst ID
-            const preset = AppState.demoPresetId && DEMO_DATA_PRESETS[AppState.demoPresetId];
-            const label = preset?.label || AppState.demoPresetId || "Demo Mode";
-            badge.textContent = `Demo: ${label}`;
-        } else {
-            badge.style.display = "none";
-        }
+function initializeViewBoot() {
+    // initialer View
+    bootView(AppState.currentView);
+}
+
+/**
+ * Bootet den passenden View (lädt Daten wenn nötig).
+ */
+function bootView(view) {
+    if (view === "dashboardView") {
+        import("./dashboard.js").then(module => module.renderDashboard());
+    }
+
+    if (view === "creativesView") {
+        import("./creativeLibrary.js").then(module => module.renderCreativeLibrary());
+    }
+
+    if (view === "campaignsView") {
+        import("./campaigns.js").then(module => module.renderCampaigns());
+    }
+
+    if (view === "senseiView") {
+        import("./sensei.js").then(module => module.renderSensei());
+    }
+
+    if (view === "reportsView") {
+        import("./reports.js").then(module => module.renderReports());
+    }
+
+    if (view === "testingLogView") {
+        import("./testingLog.js").then(module => module.renderTestingLog());
     }
 }
+
+
+/* ============================================================
+   5) META CONNECT / GATEKEEPER
+============================================================ */
+
+export async function connectMeta() {
+    if (AppState.settings.demoMode) {
+        showToast("Demo Mode aktiv – echter Meta Login deaktiviert.", "warning");
+        return;
+    }
+
+    try {
+        const token = await MetaApi.login();
+
+        if (!token) {
+            showToast("Meta Login fehlgeschlagen.", "error");
+            return;
+        }
+
+        AppState.metaConnected = true;
+        AppState.meta.accessToken = token;
+
+        updateMetaStatusIndicator("connected");
+        showToast("Meta erfolgreich verbunden!", "success");
+
+        await loadMetaData();
+
+    } catch (err) {
+        showToast("Meta-Verbindung fehlgeschlagen.", "error");
+        console.error(err);
+    }
+}
+
+
+/** Gatekeeper für echte Live-Daten */
+async function requireMetaConnection() {
+    if (AppState.settings.demoMode) return true;
+
+    if (!AppState.metaConnected) {
+        showToast("Bitte zuerst Meta verbinden.", "warning");
+        updateMetaStatusIndicator("disconnected");
+        return false;
+    }
+
+    return true;
+}
+
+
+/* ============================================================
+   6) LIVE-DATEN (falls Meta verbunden)
+============================================================ */
+
+async function loadMetaData() {
+    if (!(await requireMetaConnection())) return;
+
+    const accounts = await MetaApi.getAdAccounts();
+    AppState.meta.adAccounts = accounts || [];
+
+    const campaigns = await MetaApi.getCampaigns(AppState.selectedAccountId);
+    AppState.meta.campaigns = campaigns || [];
+
+    const creatives = await MetaApi.getCreatives(AppState.selectedAccountId);
+    AppState.meta.creatives = creatives || [];
+
+    showToast("Meta-Daten geladen.", "success");
+}
+
+
+/* ============================================================
+   EXPORTS
+============================================================ */
+export const App = {
+    bootView,
+    loadDemoData,
+    connectMeta
+};
