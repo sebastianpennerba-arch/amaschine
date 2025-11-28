@@ -1,12 +1,12 @@
-// creativeLibrary.js
-// Legacy-Shim: leitet die alte API auf das neue Creative Library Package um.
+// campaigns.js
+// Legacy-Shim, kompatibel zu app.js
 
-import CreativesPackage from "./packages/creativeLibrary/index.js";
+import CampaignsPackage from "./packages/campaigns/index.js";
 
-/**
- * Alte öffentliche API für die Creative Library.
- * Wird jetzt intern über das Creative Library Package gerendert.
- */
-export async function updateCreativeLibraryView(connected) {
-    return CreativesPackage.render({ connected });
+export function updateCampaignsView(connected) {
+    return CampaignsPackage.render({ connected });
+}
+
+export function initCampaigns() {
+    if (CampaignsPackage.init) CampaignsPackage.init();
 }
