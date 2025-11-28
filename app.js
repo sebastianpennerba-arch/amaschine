@@ -1,618 +1,871 @@
-// app.js – DEMO-MODE STABLE VERSION (SignalOne.cloud Frontend Orchestrator)
-
-import { AppState, META_OAUTH_CONFIG } from "./state.js";
-import {
-    checkMetaConnection,
-    updateMetaStatusIndicator,
-    showDemoBadge,
-    updateGreeting,
-    initDateTime,
-    initSidebarNavigation,
-    updateHealthStatus,
-    showToast,
-    openModal,
-    applyTheme,
-    debugLog
-} from "./uiCore.js";
-
-import {
-    exchangeMetaCodeForToken,
-    fetchMetaUser,
-    fetchMetaAdAccounts,
-    fetchMetaCampaigns,
-    fetchMetaAds
-} from "./metaApi.js";
-
-import { updateDashboardView } from "./dashboard.js";
-import { updateCreativeLibraryView } from "./creativeLibrary.js";
-import { updateCampaignsView } from "./campaigns.js";
-import { updateSenseiView } from "./sensei.js";
-import { updateReportsView } from "./reports.js";
-import { updateTestingLogView } from "./testingLog.js";
-
-/* ============================================================
-   CONSTANTS & STORAGE
-============================================================ */
-
-const STORAGE_KEYS = {
-    SETTINGS: "signalone_settings_v1",
-    META_TOKEN: "signalone_meta_access_token"
+// Simple global app state
+const appState = {
+  currentView: "dashboardView",
+  demoMode: true,
+  metaConnected: false,
+  selectedAccount: "demo-small",
+  timeRange: "30d",
+  notifications: 0,
+  tests: [],
 };
 
-/* ============================================================
-   DEMO PRESETS (small_store)
-============================================================ */
+// --- Demo data -------------------------------------------------------------
 
-const DEMO_PRESETS = {
-    small_store: {
-        label: "Small Store (Meta Ads)",
-        meta: {
-            accessToken: null,
-            adAccounts: [
-                {
-                    id: "act_1234567890",
-                    name: "Demo Small Store",
-                    currency: "EUR"
-                }
-            ],
-            campaigns: [
-                {
-                    id: "cmp_demo_1",
-                    name: "Prospecting – Broad – DE",
-                    status: "ACTIVE",
-                    objective: "PURCHASE",
-                    account_id: "act_1234567890",
-                    daily_budget: 80
-                },
-                {
-                    id: "cmp_demo_2",
-                    name: "Retargeting – 30 Tage",
-                    status: "ACTIVE",
-                    objective: "RETARGETING",
-                    account_id: "act_1234567890",
-                    daily_budget: 40
-                },
-                {
-                    id: "cmp_demo_3",
-                    name: "Testing – New Creatives",
-                    status: "PAUSED",
-                    objective: "TESTING",
-                    account_id: "act_1234567890",
-                    daily_budget: 20
-                }
-            ],
-            ads: [
-                {
-                    id: "ad_demo_1",
-                    ad_name: "UGC Hook – Testimonial",
-                    campaign_id: "cmp_demo_1",
-                    creative_type: "video",
-                    thumbnail_url: null,
-                    metrics: {
-                        spend: 1200,
-                        revenue: 5200,
-                        impressions: 180000,
-                        clicks: 5400,
-                        ctr: 3,
-                        roas: 4.3
-                    }
-                },
-                {
-                    id: "ad_demo_2",
-                    ad_name: "Static Offer – 20% Rabatt",
-                    campaign_id: "cmp_demo_2",
-                    creative_type: "static",
-                    thumbnail_url: null,
-                    metrics: {
-                        spend: 600,
-                        revenue: 2100,
-                        impressions: 90000,
-                        clicks: 2200,
-                        ctr: 2.4,
-                        roas: 3.5
-                    }
-                },
-                {
-                    id: "ad_demo_3",
-                    ad_name: "Carousel – Produktwelt",
-                    campaign_id: "cmp_demo_1",
-                    creative_type: "carousel",
-                    thumbnail_url: null,
-                    metrics: {
-                        spend: 300,
-                        revenue: 650,
-                        impressions: 45000,
-                        clicks: 900,
-                        ctr: 2.0,
-                        roas: 2.17
-                    }
-                }
-            ],
-            insightsByCampaign: {
-                cmp_demo_1: {
-                    spend: 1500,
-                    revenue: 5850,
-                    impressions: 225000,
-                    clicks: 6300,
-                    ctr: 2.8,
-                    roas: 3.9
-                },
-                cmp_demo_2: {
-                    spend: 700,
-                    revenue: 2500,
-                    impressions: 95000,
-                    clicks: 2400,
-                    ctr: 2.5,
-                    roas: 3.57
-                },
-                cmp_demo_3: {
-                    spend: 250,
-                    revenue: 150,
-                    impressions: 30000,
-                    clicks: 450,
-                    ctr: 1.5,
-                    roas: 0.6
-                }
-            },
-            user: {
-                name: "Demo Advertiser",
-                id: "user_demo_1"
-            }
-        }
-    }
+const demoKpiByRange = {
+  "7d": {
+    spend: 950,
+    revenue: 3450,
+    roas: 3.63,
+    impressions: 89000,
+    clicks: 2200,
+  },
+  "30d": {
+    spend: 2450,
+    revenue: 8500,
+    roas: 2.69,
+    impressions: 350000,
+    clicks: 9200,
+  },
+  mtd: {
+    spend: 1800,
+    revenue: 6300,
+    roas: 3.5,
+    impressions: 270000,
+    clicks: 7200,
+  },
+  prev_month: {
+    spend: 2100,
+    revenue: 7300,
+    roas: 3.2,
+    impressions: 290000,
+    clicks: 8100,
+  },
 };
 
-/* ============================================================
-   INIT
-============================================================ */
+const demoCampaigns = [
+  {
+    id: "camp_ugc_scale",
+    name: "UGC Scale Test",
+    objective: "Sales",
+    dailyBudget: 680,
+    spend: 18420,
+    roas: 5.8,
+    ctr: 3.9,
+    impressions: 210000,
+    status: "active",
+    sensei: "+50% Budget empfohlen",
+  },
+  {
+    id: "camp_brand_static",
+    name: "Brand Awareness Static",
+    objective: "Awareness",
+    dailyBudget: 420,
+    spend: 12890,
+    roas: 2.1,
+    ctr: 1.4,
+    impressions: 180000,
+    status: "active",
+    sensei: "-30% Budget, auf UGC umstellen",
+  },
+  {
+    id: "camp_ret_cold",
+    name: "Retargeting Cold",
+    objective: "Sales",
+    dailyBudget: 260,
+    spend: 8340,
+    roas: 1.3,
+    ctr: 0.9,
+    impressions: 99000,
+    status: "paused",
+    sensei: "9 Loser pausieren, 6 Winner behalten",
+  },
+  {
+    id: "camp_hook_battle",
+    name: "Testing: Hook Battle",
+    objective: "Test",
+    dailyBudget: 150,
+    spend: 2100,
+    roas: 4.2,
+    ctr: 3.1,
+    impressions: 46000,
+    status: "active",
+    sensei: "Ergebnis in 24h auswerten",
+  },
+];
 
-document.addEventListener("DOMContentLoaded", () => {
-    safeInit();
-});
+const demoCreatives = [
+  {
+    id: "cr_mia_v3",
+    name: "Mia_Hook_Problem_Solution_v3",
+    format: "video",
+    status: "winner",
+    roas: 6.8,
+    ctr: 4.1,
+    spend: 12340,
+    creator: "Mia",
+    tags: ["#Winner", "#UGC", "#Problem/Solution"],
+  },
+  {
+    id: "cr_tom_v1",
+    name: "Tom_Testimonial_ShortForm_v1",
+    format: "video",
+    status: "winner",
+    roas: 5.9,
+    ctr: 3.8,
+    spend: 8400,
+    creator: "Tom",
+    tags: ["#Winner", "#UGC", "#Testimonial"],
+  },
+  {
+    id: "cr_lisa_v2",
+    name: "Lisa_BeforeAfter_Showcase_v2",
+    format: "video",
+    status: "winner",
+    roas: 5.2,
+    ctr: 3.5,
+    spend: 6100,
+    creator: "Lisa",
+    tags: ["#Testing", "#Before/After"],
+  },
+  {
+    id: "cr_generic_static",
+    name: "Generic_Product_Static_v12",
+    format: "static",
+    status: "loser",
+    roas: 1.2,
+    ctr: 0.9,
+    spend: 3200,
+    creator: "Stock",
+    tags: ["#Loser", "#Static"],
+  },
+];
 
-function safeInit() {
-    try {
-        initApp();
-    } catch (e) {
-        console.error("Init error:", e);
-        showToast("Fehler beim Initialisieren der Anwendung.", "error");
-    }
+// --- Helpers ---------------------------------------------------------------
+
+function qs(selector) {
+  return document.querySelector(selector);
 }
 
-function initApp() {
-    debugLog("SignalOne App init…");
-
-    // Settings laden
-    loadSettingsFromStorage();
-
-    // HART: Demo Mode erzwingen – stabiler Zustand
-    AppState.settings.theme = "light";
-    AppState.settings.demoMode = true;
-    AppState.settings.demoPreset = "small_store";
-    saveSettingsToStorage();
-
-    applyTheme(AppState.settings.theme || "light");
-
-    updateGreeting();
-    initDateTime();
-
-    initSidebarNavigation(handleViewSwitch);
-    initTopbarControls();
-    initMetaStripe();
-    initSettingsButton();
-    initNotificationButton();
-
-    // KEIN Live-Meta. Immer Demo.
-    loadDemoPreset(AppState.settings.demoPreset || "small_store");
-    renderAllViews(true);
-    updateMetaStatusIndicator("connected-demo");
-    updateDemoStripe(true);
-    showDemoBadge(true, DEMO_PRESETS[AppState.settings.demoPreset || "small_store"].label);
-
-    updateHealthStatus();
+function qsa(selector) {
+  return Array.from(document.querySelectorAll(selector));
 }
 
-/* ============================================================
-   SETTINGS & STORAGE
-============================================================ */
-
-function loadSettingsFromStorage() {
-    try {
-        const raw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-        if (!raw) return;
-        const parsed = JSON.parse(raw);
-        if (parsed && typeof parsed === "object") {
-            AppState.settings = {
-                ...AppState.settings,
-                ...parsed
-            };
-        }
-    } catch (e) {
-        console.warn("Settings load error", e);
-    }
+function formatCurrency(amount) {
+  const rounded = Math.round(amount * 100) / 100;
+  return new Intl.NumberFormat("de-DE", {
+    style: "currency",
+    currency: "EUR",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(rounded);
 }
 
-function saveSettingsToStorage() {
-    try {
-        localStorage.setItem(
-            STORAGE_KEYS.SETTINGS,
-            JSON.stringify(AppState.settings)
-        );
-    } catch (e) {
-        console.warn("Settings save error", e);
-    }
+function formatNumber(value) {
+  return new Intl.NumberFormat("de-DE").format(Math.round(value));
 }
 
-function loadMetaTokenFromStorage() {
-    try {
-        const token = localStorage.getItem(STORAGE_KEYS.META_TOKEN);
-        if (token) {
-            AppState.meta.accessToken = token;
-        }
-    } catch (e) {
-        console.warn("Meta token load error", e);
-    }
+// --- Data Gatekeeper -------------------------------------------------------
+
+function hasDataSource() {
+  return appState.demoMode || appState.metaConnected;
 }
 
-function saveMetaToken(token) {
-    AppState.meta.accessToken = token;
-    try {
-        localStorage.setItem(STORAGE_KEYS.META_TOKEN, token);
-    } catch (e) {
-        console.warn("Meta token save error", e);
-    }
+// --- Toasts ----------------------------------------------------------------
+
+function showToast(message, type = "info") {
+  const container = qs("#toastContainer");
+  if (!container) return;
+
+  const el = document.createElement("div");
+  el.className = "toast";
+  el.textContent = message;
+
+  if (type === "success") {
+    el.style.background = "#16a34a";
+  } else if (type === "warning") {
+    el.style.background = "#f59e0b";
+  } else if (type === "error") {
+    el.style.background = "#dc2626";
+  }
+
+  container.appendChild(el);
+  setTimeout(() => {
+    el.remove();
+  }, 3200);
 }
 
-/* ============================================================
-   META STRIPE / CONNECT
-============================================================ */
+// --- Modal -----------------------------------------------------------------
 
-function initMetaStripe() {
-    const btn = document.getElementById("connectMetaButton");
-    if (!btn) return;
-
-    btn.addEventListener("click", () => {
-        // In dieser stabilen Version: Nur Demo-Info anzeigen
-        openModal(`
-            <div class="modal-title">Meta Connect (Demo)</div>
-            <p style="margin-bottom:1rem;">
-                Diese Version von SignalOne läuft im stabilen Demo Mode.<br/>
-                Echte Meta-OAuth-Verbindung ist hier deaktiviert.
-            </p>
-            <button class="btn-primary" id="closeMetaInfoBtn">
-                Verstanden
-            </button>
-        `);
-
-        document
-            .getElementById("closeMetaInfoBtn")
-            ?.addEventListener("click", () => {
-                const overlay = document.getElementById("globalModalOverlay");
-                if (overlay) overlay.classList.remove("visible");
-            });
-    });
+function openModal(title, html) {
+  const overlay = qs("#modalOverlay");
+  qs("#modalTitle").textContent = title;
+  qs("#modalBody").innerHTML = html;
+  overlay.classList.remove("hidden");
 }
 
-function updateDemoStripe(isDemo) {
-    const stripe = document.getElementById("metaConnectStripe");
-    const text = document.getElementById("metaStripeText");
-    const btn = document.getElementById("connectMetaButton");
+function closeModal() {
+  qs("#modalOverlay").classList.add("hidden");
+}
 
-    if (!stripe || !text || !btn) return;
+// --- View handling ---------------------------------------------------------
 
-    if (isDemo) {
-        stripe.classList.add("demo-active");
-        stripe.classList.remove("connected");
-        text.innerHTML = `<i class="fas fa-magic"></i> Demo Mode aktiv – Daten werden simuliert`;
-        btn.textContent = "Info zu Meta Connect";
-    } else if (checkMetaConnection()) {
-        stripe.classList.remove("demo-active");
-        stripe.classList.add("connected");
-        text.innerHTML = `<i class="fas fa-check-circle"></i> Mit Meta Ads verbunden`;
-        btn.textContent = "Meta neu verbinden";
+function switchView(viewId) {
+  appState.currentView = viewId;
+
+  qsa(".view").forEach((v) => {
+    if (v.id === viewId) {
+      v.classList.add("is-active");
     } else {
-        stripe.classList.remove("demo-active");
-        stripe.classList.remove("connected");
-        text.innerHTML = `<i class="fas fa-plug"></i> Nicht mit Meta Ads verbunden`;
-        btn.textContent = "Mit Meta verbinden";
+      v.classList.remove("is-active");
     }
+  });
+
+  qsa(".sidebar-item").forEach((btn) => {
+    const target = btn.getAttribute("data-view");
+    if (!target) return;
+    if (target === viewId) {
+      btn.classList.add("is-active");
+    } else {
+      btn.classList.remove("is-active");
+    }
+  });
+
+  renderCurrentView();
 }
 
-/* ============================================================
-   (Live OAuth bleibt als Stub, wird nicht genutzt)
-============================================================ */
+// --- Rendering -------------------------------------------------------------
 
-function startMetaOAuthFlow() {
-    showToast("Meta OAuth Flow ist in dieser Demo-Version deaktiviert.", "info");
+function renderTopbar() {
+  // datetime
+  const now = new Date();
+  const formatted = now.toLocaleString("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  qs("#topbarDateTime").textContent = formatted;
+
+  // demo toggle labels
+  qs("#demoModeLabel").textContent = appState.demoMode ? "Aktiv" : "Aus";
+  const settingsToggle = qs("#settingsDemoToggle");
+  if (settingsToggle) {
+    settingsToggle.checked = appState.demoMode;
+  }
+
+  // meta status
+  const metaPill = qs("#metaStatusPill");
+  const indicator = metaPill.querySelector(".status-indicator");
+  const labelSpan = metaPill.querySelector("span:nth-child(2)");
+  const metaConnectLabel = qs("#metaConnectLabel");
+
+  if (appState.metaConnected) {
+    indicator.className = "status-indicator status-indicator-ok";
+    labelSpan.textContent = "Meta Ads (Live)";
+    metaConnectLabel.textContent = "Meta verbunden";
+  } else {
+    indicator.className = "status-indicator status-indicator-offline";
+    labelSpan.textContent = appState.demoMode
+      ? "Meta Ads (Demo Modus)"
+      : "Meta Ads (Offline)";
+    metaConnectLabel.textContent = "Mit Meta verbinden";
+  }
+
+  // campaign health simple heuristic
+  const campaignHealthPill = qs("#campaignHealthPill");
+  const campIndicator = campaignHealthPill.querySelector(".status-indicator");
+  const campLabel = campaignHealthPill.querySelector("span:nth-child(2)");
+
+  if (!hasDataSource()) {
+    campIndicator.className = "status-indicator status-indicator-na";
+    campLabel.textContent = "Campaign Health (n/a)";
+  } else {
+    const avgRoas =
+      demoCampaigns.reduce((sum, c) => sum + c.roas, 0) / demoCampaigns.length;
+    if (avgRoas >= 3) {
+      campIndicator.className = "status-indicator status-indicator-ok";
+      campLabel.textContent = "Campaign Health (stabil)";
+    } else {
+      campIndicator.className = "status-indicator status-indicator-offline";
+      campLabel.textContent = "Campaign Health (Risiko)";
+    }
+  }
+
+  // notifications
+  qs("#notificationCount").textContent = appState.notifications.toString();
 }
 
-/* ============================================================
-   META DATA BOOTSTRAP (Live Mode - ungenutzt hier)
-============================================================ */
+function renderDashboard() {
+  const noDataEl = qs("#dashboardNoData");
+  const contentEl = qs("#dashboardContent");
+  const subtitleEl = qs("#dashboardSubtitle");
 
-async function bootstrapMetaData() {
-    const token = AppState.meta.accessToken;
-    if (!token) {
-        throw new Error("No meta token");
-    }
+  if (!hasDataSource()) {
+    noDataEl.classList.remove("hidden");
+    contentEl.classList.add("hidden");
+    subtitleEl.textContent =
+      "Keine Datenquelle aktiv. Demo Mode: AUS · Meta: nicht verbunden.";
+    return;
+  }
 
-    debugLog("Bootstrapping Meta Daten…");
+  noDataEl.classList.add("hidden");
+  contentEl.classList.remove("hidden");
 
-    const [user, adAccounts] = await Promise.all([
-        fetchMetaUser(token),
-        fetchMetaAdAccounts(token)
-    ]);
+  subtitleEl.textContent = appState.demoMode
+    ? "Demo Modus aktiv – Daten werden simuliert."
+    : "Live-Daten über Meta Marketing API.";
 
-    if (!adAccounts || !adAccounts.length) {
-        throw new Error("Keine AdAccounts gefunden");
-    }
+  const kpiKey = appState.timeRange;
+  const kpi = demoKpiByRange[kpiKey] || demoKpiByRange["30d"];
 
-    AppState.meta.user = user;
-    AppState.meta.adAccounts = adAccounts;
+  qs("#kpiSpend").textContent = formatCurrency(kpi.spend);
+  qs("#kpiRevenue").textContent = formatCurrency(kpi.revenue);
+  qs("#kpiRoas").textContent = kpi.roas.toFixed(2) + "x";
+  qs("#kpiImpressions").textContent = formatNumber(kpi.impressions) + "k";
+  qs("#kpiClicksMeta").textContent = "Clicks: " + formatNumber(kpi.clicks / 1000) + "k";
 
-    AppState.selectedAccountId = adAccounts[0].id;
+  // Spend distribution
+  const container = qs("#spendBars");
+  container.innerHTML = "";
+  const totalSpend = demoCampaigns.reduce((sum, c) => sum + c.spend, 0);
 
-    const [campaigns, ads] = await Promise.all([
-        fetchMetaCampaigns(AppState.selectedAccountId, token),
-        fetchMetaAds(AppState.selectedAccountId, token)
-    ]);
+  demoCampaigns.forEach((c) => {
+    const row = document.createElement("div");
+    row.className = "spend-row";
 
-    AppState.meta.campaigns = campaigns || [];
-    AppState.meta.ads = ads || [];
+    const label = document.createElement("div");
+    label.className = "spend-row-label";
+    label.textContent = c.name;
 
-    initAccountSelect();
+    const value = document.createElement("div");
+    value.className = "spend-row-value";
+    value.textContent = formatCurrency(c.spend);
 
-    debugLog(
-        "Meta Daten geladen:",
-        "Accounts:",
-        adAccounts.length,
-        "Campaigns:",
-        AppState.meta.campaigns.length
+    const barWrap = document.createElement("div");
+    barWrap.className = "spend-row-bar-wrap";
+
+    const bar = document.createElement("div");
+    bar.className = "spend-row-bar";
+    const pct = totalSpend ? (c.spend / totalSpend) * 100 : 0;
+    bar.style.width = pct.toFixed(1) + "%";
+
+    barWrap.appendChild(bar);
+    row.append(label, value, barWrap);
+    container.appendChild(row);
+  });
+
+  // Sensei briefing
+  const s = demoKpiByRange["30d"];
+  const briefingLines = [
+    `Deine Ergebnisse sind stabil, aber du verschenkst Potenzial.`,
+    `Fokus: Kampagnen „UGC Scale Test“ und „Testing: Hook Battle“.`,
+    `Empfehlung: Budget von „Brand Awareness Static“ (ROAS 2.1x) Richtung UGC-Kampagnen verschieben.`,
+    `Dieses Briefing basiert auf aggregierten Kampagnen-Insights der letzten ${
+      appState.timeRange === "7d" ? "7 Tage" : "30 Tage"
+    }.`,
+  ];
+  const senseiText = qs("#senseiBriefingText");
+  senseiText.innerHTML = briefingLines.map((l) => `<p>${l}</p>`).join("");
+}
+
+function renderCreativeLibrary() {
+  const noDataEl = qs("#creativeLibraryNoData");
+  const container = qs("#creativeLibraryContent");
+
+  if (!hasDataSource()) {
+    noDataEl.classList.add("hidden");
+    container.innerHTML = "";
+    noDataEl.classList.remove("hidden");
+    return;
+  }
+
+  noDataEl.classList.add("hidden");
+
+  const searchValue = qs("#creativeSearchInput").value.trim().toLowerCase();
+  const formatFilter = qs("#creativeFormatFilter").value;
+  const sortValue = qs("#creativeSortSelect").value;
+
+  let list = [...demoCreatives];
+
+  if (formatFilter !== "all") {
+    list = list.filter((c) => c.format === formatFilter);
+  }
+
+  if (searchValue) {
+    list = list.filter((c) =>
+      c.name.toLowerCase().includes(searchValue) ||
+      c.creator.toLowerCase().includes(searchValue)
     );
+  }
 
-    updateMetaStatusIndicator("connected");
-    updateDemoStripe(false);
+  list.sort((a, b) => {
+    if (sortValue === "roas_desc") return b.roas - a.roas;
+    if (sortValue === "spend_desc") return b.spend - a.spend;
+    if (sortValue === "spend_asc") return a.spend - b.spend;
+    return 0;
+  });
+
+  container.innerHTML = "";
+
+  list.forEach((c) => {
+    const card = document.createElement("article");
+    card.className = "creative-card";
+    card.setAttribute("data-id", c.id);
+
+    card.innerHTML = `
+      <div class="creative-thumb"></div>
+      <div class="creative-name">${c.name}</div>
+      <div class="creative-meta-row">
+        <span>${c.format.toUpperCase()}</span>
+        <span>ROAS ${c.roas.toFixed(1)}x</span>
+      </div>
+      <div class="creative-meta-row">
+        <span>CTR ${c.ctr.toFixed(1)}%</span>
+        <span>${formatCurrency(c.spend)}</span>
+      </div>
+      <div class="creative-tags">
+        ${c.tags.map((t) => `<span class="tag-pill">${t}</span>`).join("")}
+      </div>
+    `;
+
+    card.addEventListener("click", () => {
+      openCreativeModal(c);
+    });
+
+    container.appendChild(card);
+  });
 }
 
-/* ============================================================
-   DEMO MODE DATA
-============================================================ */
-
-function loadDemoPreset(presetKey) {
-    const preset = DEMO_PRESETS[presetKey] || DEMO_PRESETS.small_store;
-    const meta = preset.meta;
-
-    AppState.meta.accessToken = null;
-    AppState.meta.adAccounts = meta.adAccounts || [];
-    AppState.meta.campaigns = meta.campaigns || [];
-    AppState.meta.ads = meta.ads || [];
-    AppState.meta.creatives = meta.ads || [];
-    AppState.meta.insightsByCampaign = meta.insightsByCampaign || {};
-    AppState.meta.user = meta.user || null;
-
-    AppState.selectedAccountId = meta.adAccounts?.[0]?.id || null;
-
-    initAccountSelect();
+function openCreativeModal(creative) {
+  const html = `
+    <p><strong>Format:</strong> ${creative.format.toUpperCase()}</p>
+    <p><strong>Creator:</strong> ${creative.creator}</p>
+    <p><strong>ROAS:</strong> ${creative.roas.toFixed(1)}x</p>
+    <p><strong>CTR:</strong> ${creative.ctr.toFixed(1)}%</p>
+    <p><strong>Spend:</strong> ${formatCurrency(creative.spend)}</p>
+    <p style="margin-top:8px;">
+      🧠 <strong>Sensei Insight:</strong><br/>
+      Dieses Creative gehört zu deinen Top-Performern. Produziere 2–3 Varianten mit ähnlichem Hook-Aufbau.
+    </p>
+  `;
+  openModal(creative.name, html);
 }
 
-/* ============================================================
-   TOPBAR CONTROLS
-============================================================ */
+function renderCampaigns() {
+  const noDataEl = qs("#campaignsNoData");
+  const tbody = qs("#campaignsTableBody");
 
-function initTopbarControls() {
-    const accountSelect = document.getElementById("accountSelect");
-    const globalRange = document.getElementById("timeRangeSelect");
-    const dashboardRange = document.getElementById("dashboardTimeRange");
+  if (!hasDataSource()) {
+    noDataEl.classList.remove("hidden");
+    tbody.innerHTML = "";
+    return;
+  }
 
-    if (accountSelect) {
-        accountSelect.addEventListener("change", () => {
-            AppState.selectedAccountId = accountSelect.value || null;
-            renderAllViews(hasData());
-        });
-    }
+  noDataEl.classList.add("hidden");
 
-    const handleRangeChange = (value) => {
-        AppState.timeRangePreset = value || "last_30d";
-        if (dashboardRange && dashboardRange.value !== AppState.timeRangePreset) {
-            dashboardRange.value = AppState.timeRangePreset;
-        }
-        if (globalRange && globalRange.value !== AppState.timeRangePreset) {
-            globalRange.value = AppState.timeRangePreset;
-        }
-        updateDashboardView(hasData());
-        updateSenseiView(hasData());
-        updateReportsView(hasData());
+  const statusFilter = qs("#campaignStatusFilter").value;
+  let list = [...demoCampaigns];
+
+  if (statusFilter !== "all") {
+    list = list.filter((c) => c.status === statusFilter);
+  }
+
+  tbody.innerHTML = "";
+
+  list.forEach((c) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>
+        <span class="status-chip ${
+          c.status === "active"
+            ? "status-live"
+            : c.status === "paused"
+            ? "status-geplant"
+            : "status-done"
+        }">
+          ${c.status === "active" ? "Running" : c.status === "paused" ? "Paused" : "Deleted"}
+        </span>
+      </td>
+      <td>${c.name}</td>
+      <td>${c.objective}</td>
+      <td>${formatCurrency(c.dailyBudget)}</td>
+      <td>${formatCurrency(c.spend)}</td>
+      <td>${c.roas.toFixed(1)}x</td>
+      <td>${c.ctr.toFixed(1)}%</td>
+      <td>${formatNumber(c.impressions / 1000)}k</td>
+      <td>${c.sensei}</td>
+    `;
+
+    tr.addEventListener("click", () => openCampaignModal(c));
+    tbody.appendChild(tr);
+  });
+}
+
+function openCampaignModal(c) {
+  const html = `
+    <p><strong>Objective:</strong> ${c.objective}</p>
+    <p><strong>Spend:</strong> ${formatCurrency(c.spend)}</p>
+    <p><strong>ROAS:</strong> ${c.roas.toFixed(1)}x</p>
+    <p><strong>CTR:</strong> ${c.ctr.toFixed(1)}%</p>
+    <p><strong>Impressions:</strong> ${formatNumber(c.impressions)}</p>
+    <p style="margin-top:8px;"><strong>Sensei Empfehlung:</strong> ${c.sensei}</p>
+  `;
+  openModal(c.name, html);
+}
+
+function renderSensei() {
+  const noDataEl = qs("#senseiNoData");
+  const container = qs("#senseiContent");
+
+  if (!hasDataSource()) {
+    noDataEl.classList.remove("hidden");
+    container.innerHTML = "";
+    return;
+  }
+
+  noDataEl.classList.add("hidden");
+
+  container.innerHTML = "";
+
+  const cards = [
+    {
+      title: "Budget Leak detected",
+      body: 'Kampagne "Brand Awareness Static" verbrennt Budget. Reduziere um 30% und verlagere auf UGC-Kampagnen.',
+    },
+    {
+      title: "Scaling Opportunity",
+      body: 'Kampagne "UGC Scale Test" ist Top-Performer. Erhöhe Budget um 50% für die nächsten 7 Tage.',
+    },
+    {
+      title: "Creative Fatigue",
+      body: "15 Creatives laufen >21 Tage. Plane Refresh-Varianten mit gleichen Hooks, aber neuen Visuals.",
+    },
+    {
+      title: "Testing Decision",
+      body: '"Hook Battle" Test ist entscheidungsreif. Winner: Problem/Solution (+35% ROAS). Skalieren empfohlen.',
+    },
+  ];
+
+  cards.forEach((card) => {
+    const el = document.createElement("article");
+    el.className = "sensei-card";
+    el.innerHTML = `
+      <div class="sensei-card-title">${card.title}</div>
+      <div class="sensei-card-body">${card.body}</div>
+    `;
+    container.appendChild(el);
+  });
+}
+
+function renderReports() {
+  // nothing dynamic until user clicks buttons
+}
+
+function renderTestingLog() {
+  const tbody = qs("#testingLogTableBody");
+  tbody.innerHTML = "";
+
+  if (!appState.tests.length) {
+    // seed with a few demo tests
+    appState.tests = [
+      {
+        id: 47,
+        name: "Hook Battle – Problem vs. Testimonial",
+        hyp: "Problem/Solution Hooks performen besser als Testimonials.",
+        kpi: "ROAS",
+        status: "live",
+      },
+      {
+        id: 46,
+        name: "Creator Battle – Mia vs. Sarah",
+        hyp: "Authentische UGC Creator schlagen Influencer.",
+        kpi: "ROAS",
+        status: "done",
+      },
+    ];
+  }
+
+  appState.tests.forEach((t) => {
+    const tr = document.createElement("tr");
+    const statusClass =
+      t.status === "planned"
+        ? "status-geplant"
+        : t.status === "live"
+        ? "status-live"
+        : "status-done";
+
+    const statusLabel =
+      t.status === "planned" ? "Geplant" : t.status === "live" ? "Laufend" : "Abgeschlossen";
+
+    tr.innerHTML = `
+      <td>#${t.id}</td>
+      <td>${t.name}</td>
+      <td>${t.hyp}</td>
+      <td>${t.kpi}</td>
+      <td><span class="status-chip ${statusClass}">${statusLabel}</span></td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+}
+
+function renderSettings() {
+  // settings toggle is handled in renderTopbar()
+}
+
+function renderCurrentView() {
+  renderTopbar();
+
+  switch (appState.currentView) {
+    case "dashboardView":
+      renderDashboard();
+      break;
+    case "creativeLibraryView":
+      renderCreativeLibrary();
+      break;
+    case "campaignsView":
+      renderCampaigns();
+      break;
+    case "senseiView":
+      renderSensei();
+      break;
+    case "reportsView":
+      renderReports();
+      break;
+    case "testingLogView":
+      renderTestingLog();
+      break;
+    case "settingsView":
+      renderSettings();
+      break;
+    default:
+      break;
+  }
+}
+
+// --- Meta Connect Simulation ----------------------------------------------
+
+function handleMetaConnectClick() {
+  if (appState.metaConnected) {
+    showToast("Meta-Verbindung bereits aktiv (Demo Simulation).", "info");
+    return;
+  }
+
+  // Simple mock: instant connect in Phase 1
+  appState.metaConnected = true;
+  appState.demoMode = false;
+  appState.notifications += 1;
+
+  showToast("Meta-Demo-Verbindung hergestellt. Live-Modus vorbereitet.", "success");
+  renderCurrentView();
+}
+
+// --- Reports Export -------------------------------------------------------
+
+function createSnapshot(scope) {
+  const base = {
+    account: appState.selectedAccount,
+    timeRange: appState.timeRange,
+    demoMode: appState.demoMode,
+    metaConnected: appState.metaConnected,
+  };
+
+  if (scope === "account") {
+    return {
+      ...base,
+      kpi: demoKpiByRange[appState.timeRange] || demoKpiByRange["30d"],
     };
+  }
 
-    if (globalRange) {
-        globalRange.value = AppState.timeRangePreset || "last_30d";
-        globalRange.addEventListener("change", () => {
-            handleRangeChange(globalRange.value);
-        });
-    }
+  if (scope === "campaigns") {
+    return {
+      ...base,
+      campaigns: demoCampaigns,
+    };
+  }
 
-    if (dashboardRange) {
-        dashboardRange.value = AppState.timeRangePreset || "last_30d";
-        dashboardRange.addEventListener("change", () => {
-            handleRangeChange(dashboardRange.value);
-        });
-    }
+  if (scope === "creatives") {
+    return {
+      ...base,
+      creatives: demoCreatives,
+    };
+  }
+
+  return base;
 }
 
-function initAccountSelect() {
-    const select = document.getElementById("accountSelect");
-    if (!select) return;
+function handleExportClick(scope) {
+  if (!hasDataSource()) {
+    showToast("Keine Datenquelle aktiv. Demo oder Meta verbinden.", "warning");
+    return;
+  }
 
-    const accounts = AppState.meta?.adAccounts || [];
+  const snapshot = createSnapshot(scope);
+  const preview = qs("#reportsPreview");
+  preview.textContent = JSON.stringify(snapshot, null, 2);
 
-    const current = AppState.selectedAccountId || "";
-    select.innerHTML = "";
-
-    if (!accounts.length) {
-        const opt = document.createElement("option");
-        opt.value = "";
-        opt.textContent = "Keine Accounts";
-        select.appendChild(opt);
-        return;
-    }
-
-    accounts.forEach((acc) => {
-        const opt = document.createElement("option");
-        opt.value = acc.id;
-        opt.textContent = acc.name || acc.id;
-        if (acc.id === current) opt.selected = true;
-        select.appendChild(opt);
-    });
+  showToast("JSON Snapshot im Preview angezeigt.", "success");
 }
 
-/* ============================================================
-   SETTINGS MODAL
-============================================================ */
+// --- Testing Log Modal ----------------------------------------------------
 
-function initSettingsButton() {
-    const btn = document.getElementById("openSettingsButton");
-    if (!btn) return;
+function handleAddTest() {
+  const id = appState.tests.length ? appState.tests[appState.tests.length - 1].id + 1 : 1;
+  const name = prompt("Testname:");
+  if (!name) return;
+  const hyp = prompt("Hypothese:");
+  if (!hyp) return;
 
+  appState.tests.push({
+    id,
+    name,
+    hyp,
+    kpi: "ROAS",
+    status: "planned",
+  });
+
+  showToast("Test hinzugefügt.", "success");
+  renderTestingLog();
+}
+
+// --- Event wiring ---------------------------------------------------------
+
+function wireSidebarNavigation() {
+  qsa(".sidebar-item").forEach((btn) => {
+    const viewId = btn.getAttribute("data-view");
+    if (!viewId) return;
+    btn.addEventListener("click", () => switchView(viewId));
+  });
+}
+
+function wireTopbarControls() {
+  qs("#demoModeToggle").addEventListener("click", () => {
+    appState.demoMode = !appState.demoMode;
+    if (!appState.demoMode && !appState.metaConnected) {
+      showToast("Demo deaktiviert. Bitte Meta verbinden, um Daten zu sehen.", "warning");
+    }
+    renderCurrentView();
+  });
+
+  qs("#metaConnectButton").addEventListener("click", handleMetaConnectClick);
+
+  qs("#accountSelect").addEventListener("change", (e) => {
+    appState.selectedAccount = e.target.value;
+    showToast("Account gewechselt (Demo).", "info");
+    renderCurrentView();
+  });
+
+  const mainTime = qs("#timeRangeSelect");
+  const dashTime = qs("#dashboardTimeRangeSelect");
+
+  mainTime.addEventListener("change", (e) => {
+    appState.timeRange = e.target.value;
+    dashTime.value = appState.timeRange;
+    renderCurrentView();
+  });
+
+  dashTime.addEventListener("change", (e) => {
+    appState.timeRange = e.target.value;
+    mainTime.value = appState.timeRange;
+    renderCurrentView();
+  });
+
+  qs("#notificationButton").addEventListener("click", () => {
+    showToast("Keine neuen Benachrichtigungen.", "info");
+  });
+
+  qs("#profileButton").addEventListener("click", () => {
+    openModal(
+      "Profil",
+      `<p><strong>Name:</strong> Sebastian</p>
+       <p><strong>Rolle:</strong> Owner</p>
+       <p><strong>Demo-Modus:</strong> ${
+         appState.demoMode ? "Aktiv" : "Inaktiv"
+       }</p>`
+    );
+  });
+}
+
+function wireDashboardEmptyActions() {
+  qs("#emptyEnableDemo").addEventListener("click", () => {
+    appState.demoMode = true;
+    showToast("Demo Mode aktiviert.", "success");
+    renderCurrentView();
+  });
+
+  qs("#emptyConnectMeta").addEventListener("click", () => {
+    handleMetaConnectClick();
+  });
+}
+
+function wireCreativeLibraryControls() {
+  const fields = [
+    "#creativeSearchInput",
+    "#creativeFormatFilter",
+    "#creativeSortSelect",
+  ];
+  fields.forEach((sel) => {
+    const el = qs(sel);
+    if (el) {
+      el.addEventListener("input", renderCreativeLibrary);
+      el.addEventListener("change", renderCreativeLibrary);
+    }
+  });
+}
+
+function wireCampaignControls() {
+  qs("#campaignStatusFilter").addEventListener("change", renderCampaigns);
+}
+
+function wireReportsControls() {
+  qsa("[data-export]").forEach((btn) => {
     btn.addEventListener("click", () => {
-        openSettingsModal();
+      const scope = btn.getAttribute("data-export");
+      handleExportClick(scope);
     });
+  });
 }
 
-function openSettingsModal() {
-    const themeIsDark = AppState.settings.theme === "dark";
-    const preset = AppState.settings.demoPreset || "small_store";
-
-    openModal(`
-        <div class="modal-title">Settings (Demo)</div>
-        <div class="modal-form">
-            <label class="switch-row">
-                <span>Dark Mode</span>
-                <label class="switch">
-                    <input type="checkbox" id="settingsThemeToggle" ${
-                        themeIsDark ? "checked" : ""
-                    } />
-                    <span class="slider round"></span>
-                </label>
-            </label>
-
-            <div class="settings-section">
-                <div class="settings-section-title">Demo Preset</div>
-                <select id="settingsDemoPreset">
-                    <option value="small_store" ${
-                        preset === "small_store" ? "selected" : ""
-                    }>Small Store (Meta Ads)</option>
-                </select>
-                <p class="settings-help">
-                    Diese Version läuft ausschließlich im Demo Mode mit simulierten Daten.
-                </p>
-            </div>
-        </div>
-
-        <button class="btn-primary" id="settingsSaveBtn">Speichern</button>
-    `);
-
-    document
-        .getElementById("settingsSaveBtn")
-        ?.addEventListener("click", () => saveSettingsFromModal());
+function wireTestingLogControls() {
+  qs("#addTestButton").addEventListener("click", handleAddTest);
 }
 
-function saveSettingsFromModal() {
-    const themeToggle = document.getElementById("settingsThemeToggle");
-    const presetSelect = document.getElementById("settingsDemoPreset");
-
-    const newTheme = themeToggle?.checked ? "dark" : "light";
-    const newPreset = presetSelect?.value || "small_store";
-
-    AppState.settings.theme = newTheme;
-    AppState.settings.demoMode = true;
-    AppState.settings.demoPreset = newPreset;
-
-    applyTheme(newTheme);
-    saveSettingsToStorage();
-
-    loadDemoPreset(newPreset);
-    updateMetaStatusIndicator("connected-demo");
-    updateDemoStripe(true);
-    showDemoBadge(true, DEMO_PRESETS[newPreset].label);
-    renderAllViews(hasData());
-
-    showToast("Settings gespeichert.", "success");
+function wireSettingsControls() {
+  qs("#settingsDemoToggle").addEventListener("change", (e) => {
+    appState.demoMode = e.target.checked;
+    renderCurrentView();
+  });
 }
 
-/* ============================================================
-   NOTIFICATIONS MOCK
-============================================================ */
-
-function initNotificationButton() {
-    const btn = document.getElementById("notificationsButton");
-    if (!btn) return;
-
-    btn.addEventListener("click", () => {
-        openModal(`
-            <div class="modal-title">Benachrichtigungen</div>
-            <p>Das Notification-System ist noch im Aufbau.</p>
-        `);
-    });
-}
-
-/* ============================================================
-   VIEW HANDLING
-============================================================ */
-
-function handleViewSwitch(viewId) {
-    const views = document.querySelectorAll(".view");
-    views.forEach((v) => v.classList.add("hidden"));
-
-    const active = document.getElementById(viewId);
-    if (active) {
-        active.classList.remove("hidden");
+function wireModal() {
+  qs("#modalCloseButton").addEventListener("click", closeModal);
+  qs("#modalCancelButton").addEventListener("click", closeModal);
+  qs("#modalOverlay").addEventListener("click", (e) => {
+    if (e.target.id === "modalOverlay") {
+      closeModal();
     }
-
-    AppState.currentView = viewId;
-
-    const dataConnected = hasData();
-
-    switch (viewId) {
-        case "dashboardView":
-            updateDashboardView(dataConnected);
-            break;
-        case "creativesView":
-            updateCreativeLibraryView(dataConnected);
-            break;
-        case "campaignsView":
-            updateCampaignsView(dataConnected);
-            break;
-        case "senseiView":
-            updateSenseiView(dataConnected);
-            break;
-        case "reportsView":
-            updateReportsView(dataConnected);
-            break;
-        case "testingLogView":
-            updateTestingLogView(dataConnected);
-            break;
-        default:
-            break;
-    }
+  });
 }
 
-function renderAllViews(dataConnected) {
-    const firstView = AppState.currentView || "dashboardView";
-    handleViewSwitch(firstView);
+// --- Init ------------------------------------------------------------------
 
-    updateMetaStatusIndicator("connected-demo");
-    updateDemoStripe(true);
+function init() {
+  // Initial range sync
+  qs("#timeRangeSelect").value = appState.timeRange;
+  qs("#dashboardTimeRangeSelect").value = appState.timeRange;
+
+  wireSidebarNavigation();
+  wireTopbarControls();
+  wireDashboardEmptyActions();
+  wireCreativeLibraryControls();
+  wireCampaignControls();
+  wireReportsControls();
+  wireTestingLogControls();
+  wireSettingsControls();
+  wireModal();
+
+  renderCurrentView();
 }
 
-function hasData() {
-    const meta = AppState.meta || {};
-    return (meta.campaigns && meta.campaigns.length > 0) || false;
-}
-
-/* ============================================================
-   EXPORTS
-============================================================ */
-
-export function isDemoMode() {
-    return !!AppState.settings.demoMode;
-}
+document.addEventListener("DOMContentLoaded", init);
