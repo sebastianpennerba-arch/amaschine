@@ -325,3 +325,5 @@ function updateUI() {
         }
     }
 }
+
+badge.classList.add("show");
