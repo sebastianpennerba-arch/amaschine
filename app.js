@@ -7,7 +7,7 @@ import {
     initSidebarNavigation,
     initDateTime,
     checkMetaConnection,
-    openModal,
+    openModal, // aktuell nicht verwendet, aber belassen
     updateHealthStatus
 } from "./uiCore.js";
 
@@ -22,7 +22,7 @@ import {
 
 import { updateDashboardView } from "./dashboard.js";
 import { updateCampaignsView } from "./campaigns.js";
-import { updateCreativeLibraryView, renderCreativeLibrary } from "./creativeLibrary.js";
+import { updateCreativeLibraryView } from "./creativeLibrary.js";
 import { updateSenseiView } from "./sensei.js";
 import { updateReportsView } from "./reports.js";
 import { updateTestingLogView } from "./testingLog.js";
@@ -45,10 +45,16 @@ function ensureSettings() {
     }
     return AppState.settings;
 }
-function isDemoMode() { return !!ensureSettings().demoMode; }
+function isDemoMode() {
+    return !!ensureSettings().demoMode;
+}
 function saveSettingsToStorage() {
-    try { localStorage.setItem("signalone_settings_v1", JSON.stringify(AppState.settings)); }
-    catch {}
+    try {
+        localStorage.setItem(
+            "signalone_settings_v1",
+            JSON.stringify(AppState.settings)
+        );
+    } catch {}
 }
 function loadSettingsFromStorage() {
     try {
@@ -57,7 +63,8 @@ function loadSettingsFromStorage() {
     } catch {}
 }
 function applyThemeFromSettings() {
-    document.documentElement.dataset.theme = ensureSettings().theme === "dark" ? "dark" : "light";
+    document.documentElement.dataset.theme =
+        ensureSettings().theme === "dark" ? "dark" : "light";
 }
 function applyDashboardTimeRangeFromSettings() {
     const s = ensureSettings();
@@ -87,12 +94,16 @@ function isCacheValid(e) {
     return Date.now() - e.fetchedAt < getCacheTtlMs();
 }
 function clearMetaCache() {
-    AppState.metaCache = { adAccounts: null, campaignsByAccount: {}, adsByAccount: {} };
+    AppState.metaCache = {
+        adAccounts: null,
+        campaignsByAccount: {},
+        adsByAccount: {}
+    };
 }
 
 /* VIEW HANDLER */
 function showView(id) {
-    document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
+    document.querySelectorAll(".view").forEach((v) => v.classList.add("hidden"));
     const el = document.getElementById(id);
     if (el) el.classList.remove("hidden");
     AppState.currentView = id;
@@ -163,7 +174,10 @@ async function handleMetaOAuthRedirectIfPresent() {
     showToast("Token wird abgeholt…", "info");
 
     try {
-        const token = await exchangeMetaCodeForToken(code, META_OAUTH_CONFIG.redirectUri);
+        const token = await exchangeMetaCodeForToken(
+            code,
+            META_OAUTH_CONFIG.redirectUri
+        );
         if (!token) {
             showToast("OAuth Fehler", "error");
             return;
@@ -174,18 +188,19 @@ async function handleMetaOAuthRedirectIfPresent() {
         persistMetaToken(token);
         clearMetaCache();
 
-        try { AppState.meta.user = await fetchMetaUser(token); } catch {}
+        try {
+            AppState.meta.user = await fetchMetaUser(token);
+        } catch {}
 
         await loadAdAccountsAndCampaigns();
         updateUI();
         showToast("Meta verbunden!", "success");
 
-        /* 🔥 POPUP SCHLIESSEN – DAS FEHLTE!!! */
+        // POPUP CLOSE
         if (window.opener) {
             window.opener.location.reload();
             window.close();
         }
-
     } catch (e) {
         showToast("Verbindung fehlgeschlagen", "error");
     }
@@ -202,9 +217,15 @@ function loadMetaTokenFromStorage() {
         clearMetaCache();
 
         fetchMetaUser(t)
-            .then(u => { AppState.meta.user = u; return loadAdAccountsAndCampaigns(); })
+            .then((u) => {
+                AppState.meta.user = u;
+                return loadAdAccountsAndCampaigns();
+            })
             .then(() => updateUI())
-            .catch(() => { AppState.metaConnected = false; AppState.meta.accessToken = null; });
+            .catch(() => {
+                AppState.metaConnected = false;
+                AppState.meta.accessToken = null;
+            });
     } catch {}
 }
 
@@ -212,9 +233,12 @@ function loadMetaTokenFromStorage() {
 async function loadAdAccountsAndCampaigns() {
     ensureMetaCache();
     const token = AppState.meta.accessToken;
-    if (!token) { AppState.meta.adAccounts = []; return; }
+    if (!token) {
+        AppState.meta.adAccounts = [];
+        return;
+    }
 
-    /* ACCOUNTS */
+    // ACCOUNTS
     if (isCacheValid(AppState.metaCache.adAccounts)) {
         AppState.meta.adAccounts = AppState.metaCache.adAccounts.data;
     } else {
@@ -226,7 +250,7 @@ async function loadAdAccountsAndCampaigns() {
     if (AppState.meta.adAccounts.length > 0 && !AppState.selectedAccountId)
         AppState.selectedAccountId = AppState.meta.adAccounts[0].id;
 
-    /* CAMPAIGNS */
+    // CAMPAIGNS
     if (AppState.selectedAccountId) {
         const acc = AppState.selectedAccountId;
         const cache = AppState.metaCache.campaignsByAccount[acc];
@@ -236,7 +260,10 @@ async function loadAdAccountsAndCampaigns() {
         } else {
             const data = await fetchMetaCampaigns(acc, token);
             AppState.meta.campaigns = data;
-            AppState.metaCache.campaignsByAccount[acc] = { data, fetchedAt: Date.now() };
+            AppState.metaCache.campaignsByAccount[acc] = {
+                data,
+                fetchedAt: Date.now()
+            };
         }
     }
 
@@ -250,14 +277,23 @@ function updateAccountAndCampaignSelectors() {
     if (!accSel || !campSel) return;
 
     accSel.innerHTML = AppState.meta.adAccounts.length
-        ? AppState.meta.adAccounts.map(a =>
-            `<option value="${a.id}" ${a.id === AppState.selectedAccountId ? "selected" : ""}>${a.name}</option>`
-        ).join("")
+        ? AppState.meta.adAccounts
+              .map(
+                  (a) =>
+                      `<option value="${a.id}" ${
+                          a.id === AppState.selectedAccountId ? "selected" : ""
+                      }>${a.name}</option>`
+              )
+              .join("")
         : `<option value="">Kein Werbekonto gefunden</option>`;
 
     const ops = [`<option value="">Alle Kampagnen</option>`];
-    (AppState.meta.campaigns || []).forEach(c =>
-        ops.push(`<option value="${c.id}" ${c.id === AppState.selectedCampaignId ? "selected" : ""}>${c.name}</option>`)
+    (AppState.meta.campaigns || []).forEach((c) =>
+        ops.push(
+            `<option value="${c.id}" ${
+                c.id === AppState.selectedCampaignId ? "selected" : ""
+            }>${c.name}</option>`
+        )
     );
     campSel.innerHTML = ops.join("");
 }
@@ -267,7 +303,10 @@ async function loadCreativesForCurrentSelection() {
     ensureMetaCache();
     const token = AppState.meta.accessToken;
     const acc = AppState.selectedAccountId;
-    if (!acc || !token) { AppState.meta.ads = []; return; }
+    if (!acc || !token) {
+        AppState.meta.ads = [];
+        return;
+    }
 
     const cache = AppState.metaCache.adsByAccount[acc];
     if (isCacheValid(cache)) {
@@ -293,7 +332,8 @@ function applyDashboardNoDataState() {
 }
 function applyDemoDashboardState() {
     const k = document.getElementById("dashboardKpiContainer");
-    if (k) k.innerHTML = `
+    if (k)
+        k.innerHTML = `
         <div class="kpi-grid">
             <div class="kpi-card"><div class="kpi-label">ROAS</div><div class="kpi-value">3,8x</div></div>
             <div class="kpi-card"><div class="kpi-label">Spend</div><div class="kpi-value">12.340 €</div></div>
@@ -328,6 +368,240 @@ function updateUI() {
     updateHealthStatus();
 }
 
+/* -------------------------------------------------
+   APPLE-STYLE MODAL SYSTEM (für Settings/Profil/Notifications)
+-------------------------------------------------- */
+
+function getModalElements() {
+    const overlay = document.getElementById("modalOverlay");
+    const titleEl = document.getElementById("modalTitle");
+    const bodyEl = document.getElementById("modalBody");
+    const closeBtn = document.getElementById("modalCloseButton");
+    return { overlay, titleEl, bodyEl, closeBtn };
+}
+
+function openSystemModal(title, bodyHtml) {
+    const { overlay, titleEl, bodyEl } = getModalElements();
+    if (!overlay || !titleEl || !bodyEl) return;
+
+    titleEl.textContent = title || "";
+    bodyEl.innerHTML = bodyHtml || "";
+    overlay.classList.add("visible");
+}
+
+function closeSystemModal() {
+    const { overlay, bodyEl } = getModalElements();
+    if (!overlay) return;
+    overlay.classList.remove("visible");
+    if (bodyEl) bodyEl.innerHTML = "";
+}
+
+/* SETTINGS MODAL */
+
+function openSettingsModal() {
+    const s = ensureSettings();
+
+    const bodyHtml = `
+        <div class="modal-section">
+            <div class="modal-section-title">Darstellung</div>
+            <div class="modal-row">
+                <label for="settingsTheme">Theme</label>
+                <select id="settingsTheme">
+                    <option value="light" ${s.theme === "light" ? "selected" : ""}>Light</option>
+                    <option value="dark" ${s.theme === "dark" ? "selected" : ""}>Dark</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="modal-section">
+            <div class="modal-section-title">Performance & Daten</div>
+            <div class="modal-row">
+                <label for="settingsCacheTtl">Meta Cache TTL (Minuten)</label>
+                <input type="number" id="settingsCacheTtl" min="1" max="120" value="${Number(
+                    s.metaCacheTtlMinutes || 15
+                )}">
+            </div>
+            <div class="modal-row">
+                <label for="settingsDefaultRange">Standard-Zeitraum Dashboard</label>
+                <select id="settingsDefaultRange">
+                    <option value="today" ${
+                        s.defaultTimeRange === "today" ? "selected" : ""
+                    }>Heute</option>
+                    <option value="yesterday" ${
+                        s.defaultTimeRange === "yesterday" ? "selected" : ""
+                    }>Gestern</option>
+                    <option value="last_7d" ${
+                        s.defaultTimeRange === "last_7d" ? "selected" : ""
+                    }>Letzte 7 Tage</option>
+                    <option value="last_30d" ${
+                        s.defaultTimeRange === "last_30d" ? "selected" : ""
+                    }>Letzte 30 Tage</option>
+                    <option value="this_month" ${
+                        s.defaultTimeRange === "this_month" ? "selected" : ""
+                    }>Aktueller Monat</option>
+                    <option value="last_month" ${
+                        s.defaultTimeRange === "last_month" ? "selected" : ""
+                    }>Letzter Monat</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="modal-section">
+            <div class="modal-section-title">Demo Modus</div>
+            <div class="modal-row">
+                <label for="settingsDemoMode">Demo Mode aktivieren</label>
+                <select id="settingsDemoMode">
+                    <option value="true" ${s.demoMode ? "selected" : ""}>Ja</option>
+                    <option value="false" ${!s.demoMode ? "selected" : ""}>Nein</option>
+                </select>
+            </div>
+        </div>
+
+        <button id="settingsSaveButton" class="primary-btn">
+            Speichern
+        </button>
+    `;
+
+    openSystemModal("Einstellungen", bodyHtml);
+
+    // Events erst nach Render hinzufügen
+    const themeSelect = document.getElementById("settingsTheme");
+    const ttlInput = document.getElementById("settingsCacheTtl");
+    const rangeSelect = document.getElementById("settingsDefaultRange");
+    const demoSelect = document.getElementById("settingsDemoMode");
+    const saveBtn = document.getElementById("settingsSaveButton");
+
+    if (saveBtn) {
+        saveBtn.addEventListener("click", () => {
+            const settings = ensureSettings();
+            settings.theme = themeSelect?.value === "dark" ? "dark" : "light";
+
+            const ttlVal = Number(ttlInput?.value || 15);
+            settings.metaCacheTtlMinutes = isNaN(ttlVal) ? 15 : Math.max(1, ttlVal);
+
+            settings.defaultTimeRange =
+                rangeSelect?.value || settings.defaultTimeRange || "last_30d";
+
+            settings.demoMode = demoSelect?.value === "true";
+
+            saveSettingsToStorage();
+            applyThemeFromSettings();
+            applyDashboardTimeRangeFromSettings();
+
+            showToast("Einstellungen gespeichert.", "success");
+            closeSystemModal();
+            updateUI();
+        });
+    }
+}
+
+/* PROFILE MODAL */
+
+function openProfileModal() {
+    const user = AppState.meta?.user;
+    const isConnected = AppState.metaConnected;
+
+    const name = user?.name || "Unbekannt";
+    const id = user?.id || "n/a";
+    const email = user?.email || "nicht verfügbar";
+
+    const bodyHtml = `
+        <div class="modal-section">
+            <div class="modal-section-title">Meta Profil</div>
+            <div class="modal-row">
+                <label>Name</label>
+                <span>${name}</span>
+            </div>
+            <div class="modal-row">
+                <label>User ID</label>
+                <span>${id}</span>
+            </div>
+            <div class="modal-row">
+                <label>E-Mail</label>
+                <span>${email}</span>
+            </div>
+            <div class="modal-row">
+                <label>Status</label>
+                <span>${isConnected ? "Verbunden ✅" : "Getrennt ❌"}</span>
+            </div>
+        </div>
+
+        <div class="modal-section">
+            <div class="modal-section-title">Verbindung</div>
+            <p style="font-size:13px; color:var(--text-secondary); line-height:1.5;">
+                Du kannst die Meta-Verbindung hier trennen. Beim nächsten Login wird ein neuer Token geholt.
+            </p>
+            <button id="disconnectMetaFromProfile" class="primary-btn">
+                Meta Verbindung trennen
+            </button>
+        </div>
+    `;
+
+    openSystemModal("Profil", bodyHtml);
+
+    const btn = document.getElementById("disconnectMetaFromProfile");
+    if (btn) {
+        btn.addEventListener("click", () => {
+            disconnectMeta();
+            showToast("Meta Verbindung getrennt.", "info");
+            closeSystemModal();
+        });
+    }
+}
+
+/* NOTIFICATIONS MODAL */
+
+function openNotificationsModal() {
+    const list = AppState.notifications || [];
+
+    let bodyHtml = "";
+
+    if (!list.length) {
+        bodyHtml = `
+            <div class="modal-section">
+                <div class="modal-section-title">Benachrichtigungen</div>
+                <p class="notification-empty">
+                    Keine neuen Benachrichtigungen.
+                </p>
+            </div>
+        `;
+    } else {
+        const items = list
+            .map(
+                (n) => `
+            <div class="notification-item">
+                <div class="notification-title">${n.title || "Notification"}</div>
+                <div class="notification-message">
+                    ${n.message || ""}
+                </div>
+                <div class="notification-meta">
+                    ${n.timestamp || ""}
+                </div>
+            </div>
+        `
+            )
+            .join("");
+
+        bodyHtml = `
+            <div class="modal-section">
+                <div class="modal-section-title">Benachrichtigungen</div>
+                <div class="notification-list">
+                    ${items}
+                </div>
+            </div>
+        `;
+    }
+
+    openSystemModal("Benachrichtigungen", bodyHtml);
+
+    // Badge & State zurücksetzen
+    const badge = document.getElementById("notificationsBadge");
+    if (badge) {
+        badge.classList.add("hidden");
+        badge.textContent = "0";
+    }
+}
+
 /* INIT */
 document.addEventListener("DOMContentLoaded", async () => {
     ensureSettings();
@@ -349,7 +623,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const d = document.getElementById("disconnectMetaButton");
     if (d) d.addEventListener("click", disconnectMeta);
 
-    // NEW: Zeitbereich-Änderung beeinflusst das Dashboard
+    // Zeitbereich-Änderung beeinflusst das Dashboard
     const timeRange = document.getElementById("dashboardTimeRange");
     if (timeRange) {
         timeRange.addEventListener("change", (e) => {
@@ -366,22 +640,57 @@ document.addEventListener("DOMContentLoaded", async () => {
     await handleMetaOAuthRedirectIfPresent();
 
     const acc = document.getElementById("brandSelect");
-    if (acc) acc.addEventListener("change", async e => {
-        AppState.selectedAccountId = e.target.value || null;
-        AppState.selectedCampaignId = null;
-        AppState.dashboardLoaded = false;
-        AppState.campaignsLoaded = false;
-        AppState.creativesLoaded = false;
-        clearMetaCache();
-        await loadAdAccountsAndCampaigns();
-        updateUI();
-    });
+    if (acc)
+        acc.addEventListener("change", async (e) => {
+            AppState.selectedAccountId = e.target.value || null;
+            AppState.selectedCampaignId = null;
+            AppState.dashboardLoaded = false;
+            AppState.campaignsLoaded = false;
+            AppState.creativesLoaded = false;
+            clearMetaCache();
+            await loadAdAccountsAndCampaigns();
+            updateUI();
+        });
 
     const camp = document.getElementById("campaignGroupSelect");
-    if (camp) camp.addEventListener("change", e => {
-        AppState.selectedCampaignId = e.target.value || null;
-        AppState.dashboardLoaded = false;
-        AppState.creativesLoaded = false;
-        updateUI();
-    });
+    if (camp)
+        camp.addEventListener("change", (e) => {
+            AppState.selectedCampaignId = e.target.value || null;
+            AppState.dashboardLoaded = false;
+            AppState.creativesLoaded = false;
+            updateUI();
+        });
+
+    // 🔘 SETTINGS BUTTON (Sidebar)
+    const settingsBtn = document.getElementById("openSettingsButton");
+    if (settingsBtn) {
+        settingsBtn.addEventListener("click", () => {
+            openSettingsModal();
+        });
+    }
+
+    // 🔘 PROFILE BUTTON (Topbar)
+    const profileBtn = document.getElementById("profileButton");
+    if (profileBtn) {
+        profileBtn.addEventListener("click", () => {
+            openProfileModal();
+        });
+    }
+
+    // 🔘 NOTIFICATIONS BUTTON (Topbar)
+    const notificationsBtn = document.getElementById("notificationsButton");
+    if (notificationsBtn) {
+        notificationsBtn.addEventListener("click", () => {
+            openNotificationsModal();
+        });
+    }
+
+    // Modal Close Handling (Apple-Style)
+    const { overlay, closeBtn } = getModalElements();
+    if (closeBtn) closeBtn.addEventListener("click", closeSystemModal);
+    if (overlay) {
+        overlay.addEventListener("click", (e) => {
+            if (e.target === overlay) closeSystemModal();
+        });
+    }
 });
