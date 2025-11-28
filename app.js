@@ -349,6 +349,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     const d = document.getElementById("disconnectMetaButton");
     if (d) d.addEventListener("click", disconnectMeta);
 
+    // NEW: Zeitbereich-Änderung beeinflusst das Dashboard
+    const timeRange = document.getElementById("dashboardTimeRange");
+    if (timeRange) {
+        timeRange.addEventListener("change", (e) => {
+            const value = e.target.value || "last_30d";
+            AppState.timeRangePreset = value;
+            const s = ensureSettings();
+            s.defaultTimeRange = value;
+            saveSettingsToStorage();
+            AppState.dashboardLoaded = false;
+            updateUI();
+        });
+    }
+
     await handleMetaOAuthRedirectIfPresent();
 
     const acc = document.getElementById("brandSelect");
