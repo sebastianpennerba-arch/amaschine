@@ -4,7 +4,7 @@ import { demoData } from "./demoData.js";
 import { MetaApi } from "./metaApi.js";
 
 /* ============================================================
-   APP INITIALISIERUNG
+   APP START
 ============================================================ */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -18,13 +18,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 /* ============================================================
-   1) DEMO MODE BOOTSTRAP
+   1) DEMO MODE INITIALISIERUNG
 ============================================================ */
 
 function initializeDemoMode() {
     const urlParams = new URLSearchParams(window.location.search);
 
-    // URL-Flag überschreibt UI-Settings
+    // Query-Flag lädt Demo Mode
     if (urlParams.get("demo") === "1") {
         AppState.settings.demoMode = true;
     }
@@ -37,24 +37,34 @@ function initializeDemoMode() {
     }
 }
 
-
-/* Demo-Daten in den globalen AppState laden */
+/** Demo-Daten korrekt aus den Presets laden */
 function loadDemoData() {
-    AppState.meta.adAccounts = demoData.adAccounts;
-    AppState.meta.campaigns = demoData.campaigns;
-    AppState.meta.ads = demoData.ads;
-    AppState.meta.creatives = demoData.creatives;
-    AppState.meta.insightsByCampaign = demoData.insights;
-    AppState.meta.user = demoData.user;
+    // 1) Dein Haupt-Preset auswählen
+    const preset = demoData.small_store;
 
-    AppState.selectedAccountId = demoData.adAccounts[0]?.id || null;
+    if (!preset) {
+        console.error("❌ Demo Mode Fehler: small_store Preset nicht gefunden!");
+        showToast("Demo-Daten konnten nicht geladen werden.", "error");
+        return;
+    }
+
+    // 2) State befüllen
+    AppState.meta.adAccounts = preset.adAccounts || [];
+    AppState.meta.campaigns = preset.campaigns || [];
+    AppState.meta.creatives = preset.creatives || [];
+    AppState.meta.insightsByCampaign = preset.insightsByCampaign || {};
+    AppState.meta.user = preset.user || null;
+
+    // 3) Account auswählen
+    AppState.selectedAccountId = preset.adAccounts[0]?.id || null;
 
     showToast("Demo-Daten erfolgreich geladen.", "info");
+    console.log("Demo Daten geladen:", preset);
 }
 
 
 /* ============================================================
-   2) NAVIGATION / VIEW HANDLING
+   2) SIDEBAR + NAVIGATION
 ============================================================ */
 
 function initializeNavigation() {
@@ -67,7 +77,6 @@ function initializeNavigation() {
             switchView(view);
             updateSidebarActiveItem(item);
             updatePageTitle(view);
-
             bootView(view);
         });
     });
@@ -84,17 +93,19 @@ function updatePageTitle(viewID) {
     };
 
     const title = titles[viewID] || "SignalOne";
-    document.getElementById("pageTitle").textContent = title;
+    const el = document.getElementById("pageTitle");
+    if (el) el.textContent = title;
 }
 
 
 /* ============================================================
-   3) SETTINGS BUTTON (Topbar)
+   3) SETTINGS BUTTON
 ============================================================ */
 
 function initializeSettingsButton() {
     const settingsBtn = document.getElementById("settingsButton");
 
+    if (!settingsBtn) return;
     settingsBtn.addEventListener("click", () => {
         ui.openSettingsModal(AppState.settings);
     });
@@ -102,51 +113,42 @@ function initializeSettingsButton() {
 
 
 /* ============================================================
-   4) VIEW-BOOTSTRAP LOGIK
+   4) VIEW BOOTSTRAPPING
 ============================================================ */
 
 function initializeViewBoot() {
-    // initialer View
     bootView(AppState.currentView);
 }
 
-/**
- * Bootet den passenden View (lädt Daten wenn nötig).
- */
 function bootView(view) {
     if (view === "dashboardView") {
-        import("./dashboard.js").then(module => module.renderDashboard());
+        import("./dashboard.js").then(m => m.renderDashboard());
     }
-
-    if (view === "creativesView") {
-        import("./creativeLibrary.js").then(module => module.renderCreativeLibrary());
+    else if (view === "creativesView") {
+        import("./creativeLibrary.js").then(m => m.renderCreativeLibrary());
     }
-
-    if (view === "campaignsView") {
-        import("./campaigns.js").then(module => module.renderCampaigns());
+    else if (view === "campaignsView") {
+        import("./campaigns.js").then(m => m.renderCampaigns());
     }
-
-    if (view === "senseiView") {
-        import("./sensei.js").then(module => module.renderSensei());
+    else if (view === "senseiView") {
+        import("./sensei.js").then(m => m.renderSensei());
     }
-
-    if (view === "reportsView") {
-        import("./reports.js").then(module => module.renderReports());
+    else if (view === "reportsView") {
+        import("./reports.js").then(m => m.renderReports());
     }
-
-    if (view === "testingLogView") {
-        import("./testingLog.js").then(module => module.renderTestingLog());
+    else if (view === "testingLogView") {
+        import("./testingLog.js").then(m => m.renderTestingLog());
     }
 }
 
 
 /* ============================================================
-   5) META CONNECT / GATEKEEPER
+   5) META CONNECT (nur Live, Demo blockiert)
 ============================================================ */
 
 export async function connectMeta() {
     if (AppState.settings.demoMode) {
-        showToast("Demo Mode aktiv – echter Meta Login deaktiviert.", "warning");
+        showToast("Demo Mode aktiv – Live Login deaktiviert.", "warning");
         return;
     }
 
@@ -167,13 +169,17 @@ export async function connectMeta() {
         await loadMetaData();
 
     } catch (err) {
-        showToast("Meta-Verbindung fehlgeschlagen.", "error");
         console.error(err);
+        showToast("Meta Verbindung fehlgeschlagen.", "error");
+        updateMetaStatusIndicator("disconnected");
     }
 }
 
 
-/** Gatekeeper für echte Live-Daten */
+/* ============================================================
+   6) LIVE META DATEN (falls Meta verbunden)
+============================================================ */
+
 async function requireMetaConnection() {
     if (AppState.settings.demoMode) return true;
 
@@ -186,29 +192,28 @@ async function requireMetaConnection() {
     return true;
 }
 
-
-/* ============================================================
-   6) LIVE-DATEN (falls Meta verbunden)
-============================================================ */
-
 async function loadMetaData() {
     if (!(await requireMetaConnection())) return;
 
-    const accounts = await MetaApi.getAdAccounts();
+    const accounts = await MetaApi.fetchMetaAdAccounts();
     AppState.meta.adAccounts = accounts || [];
 
-    const campaigns = await MetaApi.getCampaigns(AppState.selectedAccountId);
+    if (accounts?.length > 0) {
+        AppState.selectedAccountId = accounts[0].id;
+    }
+
+    const campaigns = await MetaApi.fetchMetaCampaigns(AppState.selectedAccountId);
     AppState.meta.campaigns = campaigns || [];
 
-    const creatives = await MetaApi.getCreatives(AppState.selectedAccountId);
+    const creatives = await MetaApi.fetchMetaAds(AppState.selectedAccountId);
     AppState.meta.creatives = creatives || [];
 
-    showToast("Meta-Daten geladen.", "success");
+    showToast("Echte Meta-Daten geladen.", "success");
 }
 
 
 /* ============================================================
-   EXPORTS
+   EXPORT
 ============================================================ */
 export const App = {
     bootView,
