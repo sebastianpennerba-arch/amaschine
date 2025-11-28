@@ -25,10 +25,7 @@
 
       <div class="sidebar-footer">
         <div class="sidebar-status-row">
-          <span
-            class="status-dot status-dot-meta"
-            id="sidebarMetaDot"
-          ></span>
+          <span class="status-dot status-dot-meta" id="sidebarMetaDot"></span>
           <span id="sidebarMetaLabel">Meta Ads: Getrennt</span>
         </div>
         <div class="sidebar-status-row">
@@ -46,11 +43,7 @@
           <span id="sidebarCampaignLabel">Campaign Health: n/a</span>
         </div>
 
-        <button
-          id="demoToggle"
-          class="sidebar-footer-button"
-          type="button"
-        >
+        <button id="demoToggle" class="sidebar-footer-button" type="button">
           Demo-Modus: AN
         </button>
 
@@ -69,11 +62,8 @@
       <header id="topbar">
         <div class="topbar-left">
           <div class="topbar-greeting">
-            <div
-              class="topbar-greeting-title"
-              id="topbarGreeting"
-            >
-              Guten Morgen, SignalOne User!
+            <div class="topbar-greeting-title" id="topbarGreeting">
+              Guten Morgen, SignalOne Nutzer!
             </div>
             <div class="topbar-greeting-meta">
               <span id="topbarDate">Datum: ––</span>
@@ -87,16 +77,10 @@
 
         <div class="topbar-right">
           <div class="topbar-select-group">
-            <select
-              id="brandSelect"
-              class="topbar-select"
-            >
+            <select id="brandSelect" class="topbar-select">
               <option value="">Werbekonto auswählen</option>
             </select>
-            <select
-              id="campaignSelect"
-              class="topbar-select"
-            >
+            <select id="campaignSelect" class="topbar-select">
               <option value="">Kampagne auswählen</option>
             </select>
           </div>
@@ -109,17 +93,8 @@
               <i class="fa-solid fa-circle"></i>
               <span id="metaStatusLabel">Meta nicht verbunden</span>
             </span>
-            <span
-              id="modeBadge"
-              class="mode-badge"
-            >
-              Modus: Demo
-            </span>
-            <button
-              id="metaConnectButton"
-              class="meta-button"
-              type="button"
-            >
+            <span id="modeBadge" class="mode-badge">Modus: Demo</span>
+            <button id="metaConnectButton" class="meta-button" type="button">
               Meta verbinden
             </button>
           </div>
@@ -159,59 +134,30 @@
 
       <main id="mainContent">
         <!-- Views – Backbone-Struktur bleibt bestehen -->
-        <section
-          id="dashboardView"
-          class="view active"
-        ></section>
-        <section
-          id="creativeLibraryView"
-          class="view"
-        ></section>
-        <section
-          id="campaignsView"
-          class="view"
-        ></section>
-        <section
-          id="senseiView"
-          class="view"
-        ></section>
-        <section
-          id="testingLogView"
-          class="view"
-        ></section>
-        <section
-          id="reportsView"
-          class="view"
-        ></section>
-        <section
-          id="creatorInsightsView"
-          class="view"
-        ></section>
-        <section
-          id="analyticsView"
-          class="view"
-        ></section>
-        <section
-          id="teamView"
-          class="view"
-        ></section>
-        <section
-          id="brandsView"
-          class="view"
-        ></section>
-        <section
-          id="shopifyView"
-          class="view"
-        ></section>
-        <section
-          id="roastView"
-          class="view"
-        ></section>
-        <section
-          id="onboardingView"
-          class="view"
-        ></section>
+        <section id="dashboardView" class="view active"></section>
+        <section id="creativeLibraryView" class="view"></section>
+        <section id="campaignsView" class="view"></section>
+        <section id="senseiView" class="view"></section>
+        <section id="testingLogView" class="view"></section>
+        <section id="reportsView" class="view"></section>
+        <section id="creatorInsightsView" class="view"></section>
+        <section id="analyticsView" class="view"></section>
+        <section id="teamView" class="view"></section>
+        <section id="brandsView" class="view"></section>
+        <section id="shopifyView" class="view"></section>
+        <section id="roastView" class="view"></section>
+        <section id="onboardingView" class="view"></section>
       </main>
+    </div>
+
+    <!-- Global Loader Overlay -->
+    <div id="globalLoader" class="global-loader hidden">
+      <div class="global-loader-inner">
+        <div class="loader-dot"></div>
+        <div class="loader-dot"></div>
+        <div class="loader-dot"></div>
+        <span>Lade Daten…</span>
+      </div>
     </div>
 
     <!-- Toast Container -->
@@ -230,10 +176,7 @@
         aria-labelledby="modalTitle"
       >
         <header class="modal-header">
-          <h2
-            id="modalTitle"
-            class="modal-title"
-          ></h2>
+          <h2 id="modalTitle" class="modal-title"></h2>
           <button
             id="modalCloseButton"
             class="modal-close"
@@ -243,10 +186,7 @@
             &times;
           </button>
         </header>
-        <div
-          id="modalBody"
-          class="modal-body"
-        ></div>
+        <div id="modalBody" class="modal-body"></div>
       </div>
     </div>
 
