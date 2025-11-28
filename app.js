@@ -28,6 +28,30 @@ import { initSettings } from "./settings.js";
 
 import MetaAuth from "./packages/metaAuth/index.js";
 
+document.addEventListener("DOMContentLoaded", async () => {
+  ensureSettings();
+  loadSettingsFromStorage();
+  applyThemeFromSettings();
+  applyDashboardTimeRangeFromSettings();
+
+  await MetaAuth.init({
+    clearMetaCache,
+    onAfterTokenRestore: async () => {
+      await loadAdAccountsAndCampaigns();
+      updateUI();
+    },
+    onAfterConnect: async () => {
+      await loadAdAccountsAndCampaigns();
+      updateUI();
+    },
+    onAfterDisconnect: () => {
+      updateUI();
+    }
+  });
+
+  // ...
+});
+
 const DEFAULT_CACHE_TTL_MS = 15 * 60 * 1000;
 
 /* SETTINGS */
