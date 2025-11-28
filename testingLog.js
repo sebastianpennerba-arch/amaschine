@@ -1,176 +1,428 @@
-// testingLog.js – FINAL VERSION (Testing Panel)
+// testingLog.js – SignalOne Premium Testing Log (P6 Final)
+// --------------------------------------------------------
+// Neu: 
+// – Meta-Integration (Account, Campaign, Creative Auswahl)
+// – Sensei-Hooks (Hypothesen, Erfolgsmetriken, Empfehlungen)
+// – Erweiterte Tabelle mit Status & Ergebnissen
+// – Schöne Modale & strukturierter Workflow
+// – Persistenz im Browser, spätere API-ready Struktur
 
 import { AppState } from "./state.js";
-import { showToast, openModal } from "./uiCore.js";
+import { openModal, showToast } from "./uiCore.js";
 
-/**
- * Entry Point (aufgerufen durch app.js)
- */
-export function updateTestingLogView(hasData) {
-    const box = document.getElementById("testingLogContainer");
-    if (!box) return;
+/* -------------------------------------------------------
+   Helper Functions
+---------------------------------------------------------*/
 
-    if (!hasData) {
-        box.innerHTML = `
-            <div class="card hero-empty">
-                <p>Keine Daten geladen. Aktiviere Demo Mode oder verbinde Meta Ads.</p>
-            </div>
+function formatDate(d) {
+    if (!d) return "-";
+    const dt = new Date(d);
+    return dt.toLocaleDateString("de-DE") + " " +
+           dt.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+}
+
+function getCampaignList() {
+    return AppState.meta?.campaigns || [];
+}
+
+function getCreativeList() {
+    // robust: creatives kann in AppState.meta.ads oder .creatives stehen
+    const meta = AppState.meta || {};
+    if (Array.isArray(meta.creatives)) return meta.creatives;
+    if (Array.isArray(meta.creatives?.data)) return meta.creatives.data;
+    if (Array.isArray(meta.ads)) return meta.ads;
+    if (Array.isArray(meta.ads?.data)) return meta.ads.data;
+    return [];
+}
+
+/* -------------------------------------------------------
+   UI Rendering – Testing Log Table
+---------------------------------------------------------*/
+
+function renderTestingLogTable() {
+    const container = document.getElementById("testingLogTableContainer");
+    if (!container) return;
+
+    const entries = AppState.testingLog || [];
+
+    if (!entries.length) {
+        container.innerHTML = `
+            <p style="font-size:14px; color:var(--text-secondary);">
+                Noch keine Tests angelegt. Lege deinen ersten strukturierten Creative- oder Kampagnentest an.
+            </p>
         `;
         return;
     }
 
-    renderTestingLog();
+    const rows = entries
+        .slice()
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .map((e) => `
+            <tr data-test-id="${e.id}" class="testing-row">
+                <td><strong>${e.name}</strong></td>
+                <td>${e.scope || "-"}</td>
+                <td>${e.refName || "-"}</td>
+                <td>${e.hypothesis || "-"}</td>
+                <td>${e.metric || "-"}</td>
+                <td>${e.status}</td>
+                <td>${e.resultValue || "-"}</td>
+                <td>${formatDate(e.createdAt)}</td>
+                <td>
+                    <button class="action-button-secondary" data-action="view">Details</button>
+                </td>
+            </tr>
+        `)
+        .join("");
+
+    container.innerHTML = `
+        <table class="campaigns-table">
+            <thead>
+                <tr>
+                    <th>Testname</th>
+                    <th>Scope</th>
+                    <th>Referenz</th>
+                    <th>Hypothese</th>
+                    <th>Primäre Metrik</th>
+                    <th>Status</th>
+                    <th>Ergebnis</th>
+                    <th>Angelegt</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+        </table>
+    `;
+
+    container.querySelectorAll("[data-action='view']").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const row = btn.closest("tr");
+            const id = row.getAttribute("data-test-id");
+            const entry = entries.find((x) => x.id === id);
+            if (entry) openTestDetailsModal(entry);
+        });
+    });
 }
 
-/* ============================================================
-   RENDER VIEW
-============================================================ */
+/* -------------------------------------------------------
+   Modal: New Test
+---------------------------------------------------------*/
 
-export function renderTestingLog() {
-    const box = document.getElementById("testingLogContainer");
-    if (!box) return;
+function openNewTestModal() {
+    const campaigns = getCampaignList();
+    const creatives = getCreativeList();
+    const isConnected = AppState.metaConnected;
 
-    const log = loadTestingLog();
-    const empty = log.length === 0;
+    const campaignOptions = campaigns
+        .map((c) => `<option value="${c.id}">${c.name}</option>`)
+        .join("");
+    const creativeOptions = creatives
+        .map((c) => `<option value="${c.id}">${c.name || c.id}</option>`)
+        .join("");
 
-    box.innerHTML = `
-        <section class="card">
-            <div class="testing-log-header">
-                <div>
-                    <h2 class="elite-title">Testing Log</h2>
-                    <div class="testing-log-meta">
-                        Experimente, Optimierungen & Strukturtests für deinen Account.
-                    </div>
-                </div>
-                <button class="action-button" id="addTestingLog">
-                    <i class="fas fa-plus"></i> Neuer Eintrag
-                </button>
+    const html = `
+        <form id="testingLogForm" style="display:flex; flex-direction:column; gap:16px;">
+            
+            <!-- Testname -->
+            <div>
+                <label style="font-size:13px;">Testname</label>
+                <input id="testName" type="text" required
+                    style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border);" />
+            </div>
+            
+            <!-- Scope -->
+            <div>
+                <label style="font-size:13px;">Scope / Bezug</label>
+                <select id="testScope" style="padding:8px; width:100%; border-radius:6px; border:1px solid var(--border);">
+                    <option value="account">Werbekonto</option>
+                    ${
+                        isConnected
+                            ? `
+                    <option value="campaign">Kampagne</option>
+                    <option value="creative">Creative</option>`
+                            : ""
+                    }
+                </select>
             </div>
 
-            ${
-                empty
-                    ? `<div class="hero-empty">Noch keine Testing-Einträge vorhanden.</div>`
-                    : `
-                <table class="campaigns-table testing-log-table">
-                    <thead>
-                        <tr>
-                            <th>Datum</th>
-                            <th>Kampagne</th>
-                            <th>Hypothese</th>
-                            <th>Maßnahme</th>
-                            <th>Ergebnis</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${log.map(renderLogRow).join("")}
-                    </tbody>
-                </table>
-            `
+            <!-- Campaign Reference (hidden until selected) -->
+            <div id="testCampaignContainer" style="display:none;">
+                <label style="font-size:13px;">Kampagne wählen</label>
+                <select id="testCampaignRef" 
+                    style="padding:8px; width:100%; border-radius:6px; border:1px solid var(--border);">
+                    ${campaignOptions}
+                </select>
+            </div>
+
+            <!-- Creative Reference (hidden until selected) -->
+            <div id="testCreativeContainer" style="display:none;">
+                <label style="font-size:13px;">Creative wählen</label>
+                <select id="testCreativeRef"
+                    style="padding:8px; width:100%; border-radius:6px; border:1px solid var(--border);">
+                    ${creativeOptions}
+                </select>
+            </div>
+
+            <!-- Hypothese -->
+            <div>
+                <label style="font-size:13px;">Hypothese</label>
+                <textarea id="testHypothesis" rows="3"
+                    placeholder="z.B. 'Ein stärkerer Hook erhöht die CTR um 20 %'"
+                    style="padding:8px; width:100%; border-radius:6px; border:1px solid var(--border);"></textarea>
+            </div>
+
+            <!-- Sensei Recommendations -->
+            <button id="senseiSuggestBtn" type="button" class="action-button-secondary" style="width: fit-content;">
+                Sensei Vorschlag holen
+            </button>
+
+            <!-- Metric -->
+            <div>
+                <label style="font-size:13px;">Primäre Metrik</label>
+                <input id="testMetric" type="text" placeholder="z.B. ROAS, CTR, CPC"
+                    style="padding:8px; width:100%; border-radius:6px; border:1px solid var(--border);" />
+            </div>
+
+            <!-- Status -->
+            <div>
+                <label style="font-size:13px;">Status</label>
+                <select id="testStatus" style="padding:8px; width:100%; border-radius:6px; border:1px solid var(--border);">
+                    <option value="Geplant">Geplant</option>
+                    <option value="Live">Live</option>
+                    <option value="Auswertung">Auswertung</option>
+                    <option value="Abgeschlossen">Abgeschlossen</option>
+                </select>
+            </div>
+
+            <!-- Submit -->
+            <div style="display:flex; justify-content:flex-end; gap:12px;">
+                <button type="button" class="action-button-secondary" id="cancelTestButton">Abbrechen</button>
+                <button type="submit" class="action-button">Speichern</button>
+            </div>
+        </form>
+    `;
+
+    openModal("Neuen Test anlegen", html, {
+        onOpen(modal) {
+            const scopeEl = modal.querySelector("#testScope");
+            const campWrap = modal.querySelector("#testCampaignContainer");
+            const creativeWrap = modal.querySelector("#testCreativeContainer");
+
+            if (scopeEl) {
+                scopeEl.addEventListener("change", () => {
+                    const v = scopeEl.value;
+                    campWrap.style.display = v === "campaign" ? "block" : "none";
+                    creativeWrap.style.display = v === "creative" ? "block" : "none";
+                });
             }
-        </section>
-    `;
 
-    document.getElementById("addTestingLog")?.addEventListener("click", openAddModal);
+            modal.querySelector("#senseiSuggestBtn")?.addEventListener("click", () => {
+                const suggestion = getSenseiSuggestion();
+                modal.querySelector("#testHypothesis").value = suggestion.hypothesis;
+                modal.querySelector("#testMetric").value = suggestion.metric;
+                showToast("Sensei Vorschlag angewendet", "success");
+            });
+
+            modal.querySelector("#cancelTestButton")?.addEventListener("click", () => {
+                modal.classList.remove("visible");
+            });
+
+            modal.querySelector("#testingLogForm")?.addEventListener("submit", (e) => {
+                e.preventDefault();
+                saveNewTest(modal);
+            });
+        }
+    });
 }
 
-function renderLogRow(e) {
-    return `
-        <tr>
-            <td>${escapeHtml(e.date)}</td>
-            <td>${escapeHtml(e.campaign)}</td>
-            <td>${escapeHtml(e.hypothesis)}</td>
-            <td>${escapeHtml(e.action)}</td>
-            <td>${escapeHtml(e.result)}</td>
-        </tr>
-    `;
+/* -------------------------------------------------------
+   Sensei: Simple Suggestions Based on Metrics
+---------------------------------------------------------*/
+
+function getSenseiSuggestion() {
+    const m = AppState.dashboardMetrics || {};
+    const roas = Number(m.roas || 0);
+    const ctr = Number(m.ctr || 0);
+
+    if (roas < 1.5) {
+        return {
+            hypothesis: "Ein stärkerer Hook oder ein anderer Angle kann ROAS verbessern.",
+            metric: "ROAS"
+        };
+    }
+
+    if (ctr < 1) {
+        return {
+            hypothesis: "Ein neues Thumbnail oder UGC-Angle kann CTR steigern.",
+            metric: "CTR"
+        };
+    }
+
+    return {
+        hypothesis: "Neue Creative-Varianten testen, um Winner schneller zu identifizieren.",
+        metric: "CTR"
+    };
 }
 
-/* ============================================================
-   MODAL FÜR NEUEN EINTRAG
-============================================================ */
+/* -------------------------------------------------------
+   Save New Test
+---------------------------------------------------------*/
 
-function openAddModal() {
-    openModal(`
-        <div class="modal-title">Neuen Testing-Eintrag hinzufügen</div>
+function saveNewTest(modal) {
+    const f = modal.querySelector("#testingLogForm");
+    const scope = f.querySelector("#testScope").value;
 
-        <div class="modal-form">
-            <label>Kampagne</label>
-            <input id="tlog-campaign" placeholder="z.B. Scaling Store 1" />
+    let refId = null;
+    let refName = null;
 
-            <label>Hypothese</label>
-            <textarea id="tlog-hypothesis" placeholder="Welche Annahme wird getestet?"></textarea>
-
-            <label>Maßnahme</label>
-            <textarea id="tlog-action" placeholder="Was wurde geändert?"></textarea>
-
-            <label>Ergebnis</label>
-            <textarea id="tlog-result" placeholder="Wie ist der Effekt?"></textarea>
-        </div>
-
-        <button class="btn-primary" id="tlog-save">Speichern</button>
-    `);
-
-    document.getElementById("tlog-save")?.addEventListener("click", saveTestingLogEntry);
-}
-
-function saveTestingLogEntry() {
-    const c = document.getElementById("tlog-campaign").value.trim();
-    const h = document.getElementById("tlog-hypothesis").value.trim();
-    const a = document.getElementById("tlog-action").value.trim();
-    const r = document.getElementById("tlog-result").value.trim();
-
-    if (!c || !h || !a || !r) {
-        showToast("Bitte alle Felder ausfüllen.", "error");
-        return;
+    if (scope === "campaign") {
+        refId = f.querySelector("#testCampaignRef").value;
+        const camp = getCampaignList().find((c) => c.id === refId);
+        refName = camp?.name || refId;
+    } else if (scope === "creative") {
+        refId = f.querySelector("#testCreativeRef").value;
+        const cr = getCreativeList().find((c) => c.id === refId);
+        refName = cr?.name || refId;
     }
 
     const entry = {
-        date: new Date().toLocaleDateString("de-DE"),
-        campaign: c,
-        hypothesis: h,
-        action: a,
-        result: r
+        id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        name: f.querySelector("#testName").value.trim(),
+        scope,
+        refId,
+        refName,
+        hypothesis: f.querySelector("#testHypothesis").value.trim(),
+        metric: f.querySelector("#testMetric").value.trim(),
+        status: f.querySelector("#testStatus").value,
+        createdAt: new Date().toISOString(),
+        resultValue: null,
+        resultNote: null
     };
 
-    const log = loadTestingLog();
-    log.push(entry);
-    saveTestingLog(log);
+    AppState.testingLog.push(entry);
 
-    showToast("Testing-Eintrag gespeichert.", "success");
-
-    renderTestingLog();
+    renderTestingLogTable();
+    modal.classList.remove("visible");
+    showToast("Test gespeichert", "success");
 }
 
-/* ============================================================
-   LOCAL STORAGE (persistente Logs)
-============================================================ */
+/* -------------------------------------------------------
+   Modal: Test Details
+---------------------------------------------------------*/
 
-function loadTestingLog() {
-    try {
-        const raw = localStorage.getItem("signalone_testing_log");
-        const arr = JSON.parse(raw);
-        if (Array.isArray(arr)) return arr;
-    } catch {}
-    return AppState.testingLog || [];
+function openTestDetailsModal(entry) {
+    const html = `
+        <div style="display:flex; flex-direction:column; gap:16px; max-width:620px;">
+            
+            <h3 style="margin:0;">${entry.name}</h3>
+            <p style="margin:0; color:var(--text-secondary);">Scope: <strong>${entry.scope}</strong></p>
+            <p style="margin:0; color:var(--text-secondary);">Referenz: <strong>${entry.refName}</strong></p>
+
+            <div class="metric-chip">
+                <div class="metric-label">Hypothese</div>
+                <div class="metric-value">${entry.hypothesis || "-"}</div>
+            </div>
+
+            <div class="metric-chip">
+                <div class="metric-label">Primäre Metrik</div>
+                <div class="metric-value">${entry.metric || "-"}</div>
+            </div>
+
+            <div style="display:flex; gap:8px; margin-top:8px;">
+                <label style="flex:1;">
+                    Ergebniswert
+                    <input id="testResultValue" type="text" value="${
+                        entry.resultValue || ""
+                    }" style="width:100%; padding:6px; border-radius:6px; border:1px solid var(--border);" />
+                </label>
+                <label style="flex:2;">
+                    Ergebnis-Notiz
+                    <textarea id="testResultNote" rows="2" style="width:100%; padding:6px; border-radius:6px; border:1px solid var(--border);">${
+                        entry.resultNote || ""
+                    }</textarea>
+                </label>
+            </div>
+
+            <label>
+                Status:
+                <select id="testResultStatus" style="padding:6px; border-radius:6px; border:1px solid var(--border);">
+                    <option value="Geplant" ${
+                        entry.status === "Geplant" ? "selected" : ""
+                    }>Geplant</option>
+                    <option value="Live" ${
+                        entry.status === "Live" ? "selected" : ""
+                    }>Live</option>
+                    <option value="Auswertung" ${
+                        entry.status === "Auswertung" ? "selected" : ""
+                    }>Auswertung</option>
+                    <option value="Abgeschlossen" ${
+                        entry.status === "Abgeschlossen" ? "selected" : ""
+                    }>Abgeschlossen</option>
+                </select>
+            </label>
+
+            <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:12px;">
+                <button class="action-button-secondary" data-action="close">Schließen</button>
+                <button class="action-button" data-action="save">Speichern</button>
+            </div>
+
+        </div>
+    `;
+
+    openModal("Testdetails", html, {
+        onOpen(modal) {
+            modal.querySelector("[data-action='close']")?.addEventListener("click", () => {
+                modal.classList.remove("visible");
+            });
+
+            modal.querySelector("[data-action='save']")?.addEventListener("click", () => {
+                entry.resultValue = modal.querySelector("#testResultValue").value.trim();
+                entry.resultNote = modal.querySelector("#testResultNote").value.trim();
+                entry.status = modal.querySelector("#testResultStatus").value;
+
+                renderTestingLogTable();
+                modal.classList.remove("visible");
+                showToast("Test aktualisiert", "success");
+            });
+        }
+    });
 }
 
-function saveTestingLog(list) {
-    AppState.testingLog = list;
-    localStorage.setItem("signalone_testing_log", JSON.stringify(list));
-}
+/* -------------------------------------------------------
+   PUBLIC API
+---------------------------------------------------------*/
 
-/* ============================================================
-   HELPERS
-============================================================ */
+export function updateTestingLogView(connected) {
+    const root = document.getElementById("testingLogContent");
+    if (!root) return;
 
-function escapeHtml(str) {
-    return String(str || "").replace(/[&<>"']/g, (s) =>
-        ({
-            "&": "&amp;",
-            "<": "&lt;",
-            ">": "&gt;",
-            '"': "&quot;",
-            "'": "&#039;"
-        }[s])
-    );
+    root.innerHTML = `
+        <div class="card">
+            <div class="testing-log-header">
+                <div>
+                    <p class="testing-log-meta">
+                        Dokumentiere Creative- & Kampagnentests strukturiert an einem Ort.
+                        Aktuell werden Tests lokal gespeichert – spätere Backend-Persistenz ist vorbereitet.
+                    </p>
+                    ${
+                        !connected
+                            ? `
+                        <p class="testing-log-meta"><strong>Meta nicht verbunden.</strong> 
+                        Du kannst trotzdem Tests anlegen – später können sie automatisch mit Kampagnen-Insights verknüpft werden.
+                        </p>`
+                            : ""
+                    }
+                </div>
+
+                <button id="btnNewTest" class="action-button">
+                    <i class="fas fa-plus"></i> Neuer Test
+                </button>
+            </div>
+
+            <div id="testingLogTableContainer"></div>
+        </div>
+    `;
+
+    document.getElementById("btnNewTest")?.addEventListener("click", () => openNewTestModal());
+
+    renderTestingLogTable();
 }
