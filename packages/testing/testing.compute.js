@@ -1,37 +1,40 @@
-// packages/testing/testing.compute.js
-// Local Storage + Demo Mode + State Builder
+/*
+ * Testing Log Compute
+ * Verwaltet Testcases, Vorhersagen und Auswertungen.
+ */
 
-import { AppState } from "../../state.js";
-import { demoTestingLog } from "./testing.demo.js";
+export function createTest(id, name, hypothesisOrVariants) {
+  const hypothesis =
+    typeof hypothesisOrVariants === "string"
+      ? hypothesisOrVariants
+      : "Strukturierter A/B-Test mit mehreren Varianten.";
 
-const STORAGE_KEY = "signalone_testing_log_v1";
+  const variants =
+    Array.isArray(hypothesisOrVariants) && hypothesisOrVariants.length
+      ? hypothesisOrVariants
+      : [];
 
-export function buildTestingState({ connected }) {
-    const demoMode = !!AppState.settings?.demoMode;
-
-    let items = [];
-
-    if (demoMode || !connected) {
-        items = demoTestingLog;
-    } else {
-        try {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (raw) items = JSON.parse(raw);
-        } catch (err) {
-            console.warn("Testing Log corrupted", err);
-        }
-    }
-
-    return {
-        mode: demoMode ? "demo" : "live",
-        items
-    };
+  return {
+    id,
+    name,
+    hypothesis,
+    variants,
+    metrics: {},
+    prediction: null,
+    status: "running",
+    learnings: "",
+    nextSteps: "",
+  };
 }
 
-export function saveTestingState(items) {
-    try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-    } catch (err) {
-        console.error("Cannot save testing log", err);
-    }
+export function predictWinner(test) {
+  // Placeholder für Prediction-Logik
+  if (test.variants && test.variants.length > 1) {
+    // Einfach: erste Variante als "vermuteter" Gewinner
+    return `Wahrscheinlicher Gewinner: ${test.variants[0]}`;
+  }
+  if (test.variants && test.variants.length === 1) {
+    return `Einzige Variante im Test: ${test.variants[0]}`;
+  }
+  return null;
 }
