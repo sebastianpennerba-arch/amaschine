@@ -1,108 +1,77 @@
 // packages/campaigns/campaigns.compute.js
-// Berechnungs- & Format-Helfer für Campaigns
+// Berechnungs-Engine für Kampagnen (Demo + Live)
 
 import { AppState } from "../../state.js";
+import { demoCampaigns } from "./campaigns.demo.js";
+import { applyCampaignFilters } from "./campaigns.filters.js";
 
-export function formatMoney(val) {
-    if (val == null || isNaN(val)) return "-";
-    return new Intl.NumberFormat("de-DE", {
-        style: "currency",
-        currency: "EUR",
-        maximumFractionDigits: 2
-    }).format(val || 0);
+function safeNumber(v) {
+    const n = Number(v);
+    return isNaN(n) ? 0 : n;
 }
 
-export function formatInteger(val) {
-    if (val == null || isNaN(val)) return "-";
-    return new Intl.NumberFormat("de-DE").format(val || 0);
+function mapDemoCampaigns() {
+    return demoCampaigns.map((c, idx) => ({
+        id: c.id || `demo-campaign-${idx}`,
+        name: c.name || "Demo Campaign",
+        status: c.status || "ACTIVE",
+        objective: c.objective || "SALES",
+        dailyBudget: safeNumber(c.dailyBudget || c.budget),
+        spend: safeNumber(c.spend),
+        roas: safeNumber(c.roas),
+        ctr: safeNumber(c.ctr),
+        impressions: safeNumber(c.impressions),
+        clicks: safeNumber(c.clicks)
+    }));
 }
 
-export function formatPercent(val) {
-    if (val == null || isNaN(val)) return "-";
-    return `${Number(val).toFixed(2)}%`;
-}
+function mapLiveCampaigns() {
+    const campaigns = AppState.meta?.campaigns || [];
+    const insightsMap = AppState.meta?.insightsByCampaign || {};
 
-export function formatRoas(val) {
-    if (val == null || isNaN(val)) return "-";
-    return `${Number(val).toFixed(2)}x`;
-}
+    return campaigns.map((c, idx) => {
+        const m = insightsMap[c.id] || {};
+        const spend = safeNumber(m.spend);
+        const impressions = safeNumber(m.impressions);
+        const clicks = safeNumber(m.clicks);
+        const ctr = impressions > 0 ? (clicks / impressions) * 100 : safeNumber(m.ctr);
+        const roas = safeNumber(m.roas);
 
-export function getCampaignInsights(campaign) {
-    if (!campaign || !campaign.id) return {};
-    const map = AppState.meta?.insightsByCampaign || {};
-    const raw = map[campaign.id] || {};
-
-    const spend =
-        raw.spend_30d ??
-        raw.spend ??
-        raw.spend_value ??
-        raw.spend_eur ??
-        null;
-
-    const roas =
-        raw.roas_30d ??
-        raw.roas ??
-        raw.purchase_roas ??
-        null;
-
-    const ctr = raw.ctr_30d ?? raw.ctr ?? null;
-    const impressions = raw.impressions_30d ?? raw.impressions ?? null;
-
-    return {
-        spend,
-        roas,
-        ctr,
-        impressions
-    };
-}
-
-export function getStatusLabel(campaign) {
-    const status = campaign.status || campaign.effective_status || "UNKNOWN";
-    switch (status) {
-        case "ACTIVE":
-            return { label: "Aktiv", className: "status-pill active" };
-        case "PAUSED":
-            return { label: "Pausiert", className: "status-pill paused" };
-        case "DELETED":
-            return { label: "Gelöscht", className: "status-pill deleted" };
-        default:
-            return { label: status, className: "status-pill unknown" };
-    }
-}
-
-export function sortCampaignsBySpend(campaigns) {
-    const list = Array.isArray(campaigns) ? campaigns : [];
-    return [...list].sort((a, b) => {
-        const ia = getCampaignInsights(a).spend || 0;
-        const ib = getCampaignInsights(b).spend || 0;
-        return ib - ia;
+        return {
+            id: c.id || `live-campaign-${idx}`,
+            name: c.name || "Campaign",
+            status: c.status || "UNKNOWN",
+            objective: c.objective || "UNKNOWN",
+            dailyBudget: safeNumber(c.daily_budget || c.lifetime_budget),
+            spend,
+            roas,
+            ctr,
+            impressions,
+            clicks
+        };
     });
 }
 
-export function buildSenseiCampaignInsight(campaign, insights) {
-    const roas = Number(insights.roas ?? 0);
-    const ctr = Number(insights.ctr ?? 0);
-    const spend = Number(insights.spend ?? 0);
+export async function buildCampaignsState({ connected, filters }) {
+    const demoMode = !!AppState.settings?.demoMode;
 
-    if (!spend) {
-        return "Noch zu wenig Daten, um eine sinnvolle Empfehlung zu geben. Lass die Kampagne etwas länger laufen oder erhöhe das Budget.";
+    let baseCampaigns;
+    let mode = "live";
+
+    if (demoMode || !connected) {
+        baseCampaigns = mapDemoCampaigns();
+        mode = demoMode ? "demo" : "disconnected";
+    } else {
+        baseCampaigns = mapLiveCampaigns();
+        mode = "live";
     }
 
-    if (roas >= 4 && ctr >= 3) {
-        return "Top Performer: Diese Kampagne gehört zu deinen stärksten Setups. Sensei Empfehlung: Budget schrittweise (+20–30 %) erhöhen, solange ROAS stabil über 4x bleibt.";
-    }
+    const items = applyCampaignFilters(baseCampaigns, filters || {});
 
-    if (roas >= 2 && ctr >= 2) {
-        return "Solide Performance. Nutze die Kampagne als Benchmark und teste neue Creatives innerhalb dieses Setups, um weitere Winner zu finden.";
-    }
-
-    if (roas < 1.5 && ctr < 1.5) {
-        return "Warnsignal: ROAS und CTR sind niedrig. Sensei Empfehlung: Budget begrenzen, schwache Creatives pausieren und einen strukturierten Hook- oder Offer-Test starten.";
-    }
-
-    if (roas < 1.5 && ctr >= 2) {
-        return "CTR ist okay, aber ROAS zieht nicht nach. Angebot, Pricing oder Funnel nach dem Klick prüfen – die Anzeige holt die Leute rein, aber sie konvertieren nicht.";
-    }
-
-    return "Gemischtes Bild. Behalte die Kampagne im Auge und nutze sie vor allem als Test-Bühne für neue Creatives und Hooks.";
+    return {
+        mode,
+        items,
+        baseItems: baseCampaigns,
+        filters: filters || {}
+    };
 }
