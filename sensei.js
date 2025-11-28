@@ -1,260 +1,382 @@
-// sensei.js – SignalOne.cloud – Sensei Strategy (Demo + Live-ready)
+// sensei.js – Sensei v1 (Demo) + v2 (KI via API)
 
+import { runSenseiDemoAnalysis } from "./sensei-demo-engine.js";
 import { AppState } from "./state.js";
-import { demoCampaigns, demoCreatives, demoAlerts, demoForecast } from "./demoData.js";
 
-function fEuro(v) {
-    return new Intl.NumberFormat("de-DE", {
-        style: "currency",
-        currency: "EUR",
-        maximumFractionDigits: 0
-    }).format(v || 0);
-}
-function fPct(v) {
-    return `${(Number(v || 0)).toFixed(2)}%`;
-}
-function fInt(v) {
-    return (Number(v || 0)).toLocaleString("de-DE");
-}
+/**
+ * URL deines Sensei-Backends.
+ * Wenn du auf Render/Hetzner hostest:
+ * - lokal:        http://localhost:3000/api/sensei/analyze
+ * - Produktion:   https://signalone-backend.onrender.com/api/sensei/analyze
+ */
+const SENSEI_API_URL = "https://signalone-backend.onrender.com/api/sensei/analyze";
 
-function getDemoMetrics() {
-    if (!Array.isArray(demoCampaigns) || !demoCampaigns.length) {
-        return {
-            spend: 0,
-            roas: 0,
-            ctr: 0,
-            cpm: 0,
-            impressions: 0,
-            clicks: 0,
-            revenue: 0
-        };
-    }
+/* ----------------------------------------------------------
+   PUBLIC ENTRYPOINT
+----------------------------------------------------------- */
 
-    let spend = 0;
-    let revenue = 0;
-    let impressions = 0;
-    let clicks = 0;
+export function updateSenseiView(isConnected) {
+    const runBtn = document.getElementById("runSenseiBtn");
+    const output = document.getElementById("senseiOutput");
+    const loading = document.getElementById("senseiLoading");
 
-    demoCampaigns.forEach((c) => {
-        spend += Number(c.spend || 0);
-        revenue += Number(c.revenue || 0);
-        impressions += Number(c.impressions || 0);
-        clicks += Number(c.clicks || 0);
-    });
+    if (!runBtn || !output || !loading) return;
 
-    const roas = spend ? revenue / spend : 0;
-    const ctr = impressions ? (clicks / impressions) * 100 : 0;
-    const cpm = impressions ? (spend / impressions) * 1000 : 0;
+    runBtn.onclick = async () => {
+        // Reset / Loading
+        loading.classList.remove("hidden");
+        output.classList.add("hidden");
+        output.innerHTML = "";
 
-    return { spend, revenue, impressions, clicks, roas, ctr, cpm };
-}
+        try {
+            let result;
 
-function getLiveMetricsFallback() {
-    // Falls Dashboard-Metriken bereits berechnet wurden, nutze sie:
-    if (AppState.dashboardMetrics) return AppState.dashboardMetrics;
+            const isDemo = !!AppState.settings?.demoMode;
 
-    // Minimaler Fallback, bis Live-Engine voll implementiert ist.
-    return {
-        spend: 0,
-        revenue: 0,
-        impressions: 0,
-        clicks: 0,
-        roas: 0,
-        ctr: 0,
-        cpm: 0
+            if (isDemo) {
+                // DEMO-MODUS → Regelbasierte Analyse
+                await fakeDelay(800);
+                result = runSenseiDemoAnalysis();
+            } else {
+                // LIVE-MODUS → Backend + KI
+                result = await runSenseiLiveAnalysis();
+            }
+
+            loading.classList.add("hidden");
+            output.classList.remove("hidden");
+            output.innerHTML = renderSenseiOutput(result);
+        } catch (err) {
+            console.error("Sensei Fehler:", err);
+            loading.classList.add("hidden");
+            output.classList.remove("hidden");
+            output.innerHTML = `
+                <div class="sensei-section">
+                    <h3>Fehler</h3>
+                    <p style="color:var(--danger);">
+                        Sensei konnte die Analyse nicht abschließen.
+                        Bitte überprüfe die Verbindung oder versuche es später erneut.
+                    </p>
+                </div>
+            `;
+        }
     };
 }
 
-export function updateSenseiView(connected) {
-    const root = document.getElementById("senseiContent");
-    if (!root) return;
+/* ----------------------------------------------------------
+   LIVE-MODUS: Aufruf Backend / KI
+----------------------------------------------------------- */
 
-    const isDemo = !!AppState.settings?.demoMode;
+async function runSenseiLiveAnalysis() {
+    const payload = buildSenseiPayloadFromAppState();
 
-    if (!connected && !isDemo) {
-        root.innerHTML = `
-            <div class="card">
-                <p style="font-size:14px; color:var(--text-secondary);">
-                    Verbinde dein Meta Ads Konto oder aktiviere den Demo-Modus in den Settings, 
-                    damit Sensei deine Daten analysieren kann.
-                </p>
-            </div>
-        `;
-        return;
+    const res = await fetch(SENSEI_API_URL, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+        throw new Error("Sensei API Antwort war nicht OK: " + res.status);
     }
 
-    const metrics = isDemo ? getDemoMetrics() : getLiveMetricsFallback();
+    const data = await res.json();
 
-    const topCampaign =
-        isDemo && Array.isArray(demoCampaigns) && demoCampaigns.length
-            ? [...demoCampaigns].sort((a, b) => b.roas - a.roas)[0]
-            : null;
+    // Erwartete Struktur:
+    // {
+    //   summary, actions, risks, opportunities, testing, forecast, funnel
+    // }
+    // Wenn das Backend was anderes liefert, fallbacken wir hart.
+    return normalizeSenseiResult(data);
+}
 
-    const worstCampaign =
-        isDemo && Array.isArray(demoCampaigns) && demoCampaigns.length
-            ? [...demoCampaigns].sort((a, b) => a.roas - b.roas)[0]
-            : null;
+/**
+ * Aggregiert die wichtigsten Daten aus dem AppState für die KI.
+ * Diese Struktur wird an das Backend geschickt.
+ */
+function buildSenseiPayloadFromAppState() {
+    const account = {
+        id: AppState.selectedAccountId || "live_account",
+        name:
+            (AppState.meta?.adAccounts || []).find(
+                (a) => a.id === AppState.selectedAccountId
+            )?.name || "Live Meta Account",
+        currency:
+            (AppState.meta?.adAccounts || [])[0]?.currency || "EUR"
+    };
 
-    const topCreativesDemo =
-        isDemo && Array.isArray(demoCreatives)
-            ? [...demoCreatives].sort((a, b) => b.roas - a.roas).slice(0, 3)
-            : [];
+    const dashboard = AppState.dashboardMetrics || {
+        spend: 0,
+        impressions: 0,
+        clicks: 0,
+        ctr: 0,
+        cpm: 0,
+        roas: 0,
+        scopeLabel: "Keine Auswahl",
+        timeRangeLabel: "Unbekannt"
+    };
 
-    const riskAlerts = isDemo && Array.isArray(demoAlerts) ? demoAlerts.slice(0, 3) : [];
-    const forecast = isDemo && demoForecast ? demoForecast : null;
+    const campaigns = (AppState.meta?.campaigns || []).map((c) => {
+        const insight = AppState.meta?.insightsByCampaign?.[c.id] || {};
+        return {
+            id: c.id,
+            name: c.name,
+            status: c.status || c.effective_status || "UNKNOWN",
+            objective: c.objective || "UNKNOWN",
+            spend: Number(insight.spend || 0),
+            impressions: Number(insight.impressions || 0),
+            clicks: Number(insight.clicks || 0),
+            ctr: Number(insight.ctr || 0),
+            roas: Number(insight.roas || 0)
+        };
+    });
 
-    root.innerHTML = `
-        <div class="sensei-briefing-section">
-            <h3 class="section-title">🧠 Sensei Strategy Overview (${new Date().toLocaleDateString(
-                "de-DE"
-            )})</h3>
-            
-            <div class="briefing-card priority-1">
-                <div class="priority-badge critical">Account Health</div>
-                <div class="briefing-content">
-                    <div class="impact-metrics">
-                        <span>Spend: ${fEuro(metrics.spend)}</span>
-                        <span>ROAS: ${metrics.roas.toFixed(2)}x</span>
-                        <span>CTR: ${fPct(metrics.ctr)}</span>
-                        <span>CPM: ${fEuro(metrics.cpm)}</span>
-                    </div>
-                </div>
-            </div>
+    const creatives = (AppState.meta?.ads || []).map((ad) => {
+        let thumb =
+            ad.creative?.object_story_spec?.video_data?.thumbnail_url ||
+            ad.creative?.object_story_spec?.link_data?.picture ||
+            null;
 
-            <div class="briefing-card priority-2">
-                <div class="priority-badge warning">Scaling Playbook</div>
-                <div class="briefing-content">
+        return {
+            id: ad.id,
+            name: ad.name || "Anzeige",
+            campaign_id: ad.campaign_id || null,
+            configured_status: ad.configured_status,
+            effective_status: ad.effective_status,
+            thumbnail: thumb
+        };
+    });
+
+    // Platzhalter – später können wir echte Logs / Alerts / Tests aus DB ziehen
+    const alerts = [];
+    const testing = [];
+
+    // Funnel ist im Live-Modus noch nicht implementiert → Backend kann aus KPIs ableiten
+    const funnel = null;
+
+    return {
+        mode: "live",
+        account,
+        dashboard,
+        campaigns,
+        creatives,
+        alerts,
+        testing,
+        funnel
+    };
+}
+
+/**
+ * Stellt sicher, dass das Ergebnis ein sinnvolles Objekt für das UI ist.
+ */
+function normalizeSenseiResult(raw) {
+    if (!raw || typeof raw !== "object") {
+        return {
+            summary: "Sensei hat keine verwertbare Antwort geliefert.",
+            actions: [],
+            risks: [],
+            opportunities: [],
+            testing: [],
+            forecast: null,
+            funnel: null
+        };
+    }
+
+    return {
+        summary: raw.summary || "Sensei-Analyse abgeschlossen.",
+        actions: Array.isArray(raw.actions) ? raw.actions : [],
+        risks: Array.isArray(raw.risks) ? raw.risks : [],
+        opportunities: Array.isArray(raw.opportunities)
+            ? raw.opportunities
+            : [],
+        testing: Array.isArray(raw.testing) ? raw.testing : [],
+        forecast: raw.forecast || null,
+        funnel: raw.funnel || null
+    };
+}
+
+/* ----------------------------------------------------------
+   UI-Rendering
+----------------------------------------------------------- */
+
+function renderSenseiOutput(data) {
+    return `
+        <div class="sensei-section">
+            <h3>Zusammenfassung</h3>
+            <p>${escapeHtml(data.summary)}</p>
+        </div>
+
+        ${renderList("Aktionen", data.actions)}
+        ${renderList("Risiken", data.risks)}
+        ${renderList("Chancen", data.opportunities)}
+        ${renderTesting(data.testing)}
+        ${renderForecast(data.forecast)}
+        ${renderFunnel(data.funnel)}
+    `;
+}
+
+function renderList(title, items = []) {
+    if (!items.length) return "";
+    return `
+        <div class="sensei-section">
+            <h3>${title}</h3>
+            <ul>
+                ${items
+                    .map(
+                        (i) => `
+                    <li>
+                        <strong>${escapeHtml(i.title || "")}</strong><br>
+                        <span>${escapeHtml(i.message || "")}</span><br>
+                        ${
+                            i.priority
+                                ? `<small>Priorität: ${escapeHtml(
+                                      i.priority
+                                  )}</small>`
+                                : ""
+                        }
+                    </li>`
+                    )
+                    .join("")}
+            </ul>
+        </div>
+    `;
+}
+
+function renderTesting(tests = []) {
+    if (!tests.length) return "";
+    return `
+        <div class="sensei-section">
+            <h3>Testing</h3>
+            <ul>
+                ${tests
+                    .map(
+                        (t) => `
+                <li>
+                    <strong>${escapeHtml(t.title || "")}</strong><br>
                     ${
-                        topCampaign && worstCampaign
-                            ? `
-                    <div class="action-line">
-                        ├─ Reduziere "${worstCampaign.name}" um 30% (ca. ${fEuro(
-                                  (worstCampaign.spend || 0) * 0.3
-                              )}/Tag frei)
-                    </div>
-                    <div class="action-line">
-                        └─ Erhöhe "${topCampaign.name}" um 50% (+${fEuro(
-                                  (topCampaign.spend || 0) * 0.5
-                              )}/Tag auf Gewinner)
-                    </div>
-                    <div class="action-reason">
-                        <strong>Grund:</strong> ROAS-Spanne von ${worstCampaign.roas.toFixed(
-                            1
-                        )}x zu ${topCampaign.roas.toFixed(
-                                  1
-                              )}x – Budget-Umschichtung bringt direkten Uplift.
-                    </div>
-                    <button class="btn-primary sensei-action" data-action="apply-scaling">
-                        Scaling-Empfehlung anwenden
-                    </button>
-                    `
-                            : `<div class="action-line">Keine Kampagnendaten im Demo gefunden.</div>`
+                        t.status
+                            ? `<small>Status: ${escapeHtml(
+                                  t.status
+                              )}</small><br>`
+                            : ""
                     }
-                </div>
-            </div>
-
-            <div class="briefing-card priority-3">
-                <div class="priority-badge info">Creative Pipeline</div>
-                <div class="briefing-content">
+                    <div>${escapeHtml(t.findings || "")}</div>
                     ${
-                        topCreativesDemo.length
-                            ? topCreativesDemo
-                                  .map(
-                                      (c, idx) => `
-                            <div class="action-line">
-                                ${idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉"} ${c.name}
-                                – ${c.roas.toFixed(2)}x ROAS | ${fEuro(c.spend)} Spend | CTR ${fPct(
-                                          c.ctr
-                                      )}
-                            </div>
-                        `
-                                  )
-                                  .join("")
-                            : `<div class="action-line">Noch keine Demo-Creatives definiert.</div>`
+                        t.next
+                            ? `<em>Nächster Schritt: ${escapeHtml(
+                                  t.next
+                              )}</em>`
+                            : ""
                     }
-                    <div class="action-reason">
-                        <strong>Testing-Idee:</strong> Dupliziere Top-Creatives in neue Hooks (Problem/Solution, Testimonial, UGC).
-                    </div>
-                    <button class="btn-secondary sensei-action" data-action="open-testing-log">
-                        Test im Testing Log anlegen
-                    </button>
-                </div>
-            </div>
+                </li>`
+                    )
+                    .join("")}
+            </ul>
+        </div>
+    `;
+}
 
+function renderForecast(fc) {
+    if (!fc) return "";
+    return `
+        <div class="sensei-section">
+            <h3>Prognose (7 Tage)</h3>
             ${
-                forecast
-                    ? `
-            <div class="impact-summary">
-                <h4>📈 Forecast (Demo)</h4>
-                <div class="impact-metrics">
-                    <span>${forecast.roasUplift || "+0.6x ROAS möglich"}</span>
-                    <span>${forecast.revenueUplift || "+€2.100 Revenue/Tag"}</span>
-                </div>
-            </div>
-            `
+                fc.roas != null
+                    ? `<p><strong>ROAS:</strong> ${Number(
+                          fc.roas
+                      ).toFixed(2)}x</p>`
+                    : ""
+            }
+            ${
+                fc.revenue != null
+                    ? `<p><strong>Umsatz:</strong> ${Number(
+                          fc.revenue
+                      ).toLocaleString("de-DE")} €</p>`
+                    : ""
+            }
+            ${
+                fc.spend != null
+                    ? `<p><strong>Ausgaben:</strong> ${Number(
+                          fc.spend
+                      ).toLocaleString("de-DE")} €</p>`
+                    : ""
+            }
+            ${
+                fc.confidence != null
+                    ? `<p><strong>Konfidenz:</strong> ${(
+                          Number(fc.confidence) * 100
+                      ).toFixed(1)}%</p>`
+                    : ""
+            }
+            ${
+                fc.message
+                    ? `<small>${escapeHtml(fc.message)}</small>`
                     : ""
             }
         </div>
-
-        ${
-            riskAlerts.length
-                ? `
-        <div class="card" style="margin-top:24px;">
-            <h3 class="section-title">⚡ Risiko-Radar</h3>
-            <div class="alerts-grid">
-                ${riskAlerts
-                    .map((a) => {
-                        const icon =
-                            a.severity === "Hoch"
-                                ? "🔴"
-                                : a.severity === "Mittel"
-                                ? "🟡"
-                                : "🟢";
-                        const className =
-                            a.severity === "Hoch"
-                                ? "alert-critical"
-                                : a.severity === "Mittel"
-                                ? "alert-warning"
-                                : "alert-success";
-                        return `
-                            <div class="alert-card ${className}">
-                                <div class="alert-icon">${icon}</div>
-                                <div class="alert-content">
-                                    <div class="alert-title">${a.title}</div>
-                                    <div class="alert-message">${a.message}</div>
-                                    <div class="alert-meta">${a.timestamp}</div>
-                                </div>
-                            </div>
-                        `;
-                    })
-                    .join("")}
-            </div>
-        </div>
-        `
-                : ""
-        }
     `;
+}
 
-    // Simple Action-Handler (Demo, live-ready)
-    root.querySelectorAll(".sensei-action").forEach((btn) => {
-        btn.addEventListener("click", () => {
-            const action = btn.getAttribute("data-action");
-            let msg = "";
-            if (action === "apply-scaling") {
-                msg =
-                    "Scaling-Playbook wird angewendet...\n\n(Demo-Modus – im Live-Modus würde jetzt ein Meta-API-Call vorbereitet werden.)";
-            } else if (action === "open-testing-log") {
-                msg =
-                    "Testing-Szenario wird im Testing Log vorbereitet...\n\n(Demo-Modus – im Live-Modus würdest du direkt in den Testing-View springen.)";
-            } else {
-                msg = "Sensei-Aktion wird vorbereitet (Demo).";
-            }
+function renderFunnel(f) {
+    if (!f) return "";
+    const stages = ["tof", "mof", "bof"];
 
-            alert(msg);
-            btn.disabled = true;
-            btn.textContent = "✓ Geplant";
-            btn.classList.remove("btn-primary", "btn-secondary");
-            btn.classList.add("btn-success");
-        });
-    });
+    return `
+        <div class="sensei-section">
+            <h3>Funnel-Analyse</h3>
+            ${stages
+                .filter((s) => f[s])
+                .map((stage) => {
+                    const data = f[stage];
+                    const label =
+                        stage === "tof"
+                            ? "Top Funnel"
+                            : stage === "mof"
+                            ? "Middle Funnel"
+                            : "Bottom Funnel";
+                    return `
+                    <div class="funnel-block">
+                        <strong>${label}</strong><br>
+                        ${
+                            data.score != null
+                                ? `Score: ${data.score}<br>`
+                                : ""
+                        }
+                        ${
+                            data.issues?.length
+                                ? `Probleme: ${data.issues
+                                      .map(escapeHtml)
+                                      .join(", ")}<br>`
+                                : ""
+                        }
+                        ${
+                            data.opportunities?.length
+                                ? `Chancen: ${data.opportunities
+                                      .map(escapeHtml)
+                                      .join(", ")}`
+                                : ""
+                        }
+                    </div>`;
+                })
+                .join("")}
+        </div>
+    `;
+}
+
+/* ----------------------------------------------------------
+   Helper
+----------------------------------------------------------- */
+
+function escapeHtml(str) {
+    if (!str && str !== 0) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
+
+function fakeDelay(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
 }
