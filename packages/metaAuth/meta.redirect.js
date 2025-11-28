@@ -19,7 +19,7 @@ export async function handleMetaOAuthRedirectCore({ onToken } = {}) {
     if (!code) return false;
 
     // Code aus der URL entfernen
-    window.history.replaceState({}, "", "/");
+    window.history.replaceState({}, "", META_OAUTH_CONFIG.redirectUri || "/");
     showToast("Token wird abgeholt…", "info");
 
     try {
