@@ -1,4 +1,6 @@
 // app.js – FINAL VERSION (SignalOne.cloud Frontend Orchestrator)
+document.getElementById("debugConsole")?.remove();
+window.debugLog = () => {};
 
 import { AppState, META_OAUTH_CONFIG } from "./state.js";
 import {
