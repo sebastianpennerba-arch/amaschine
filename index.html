@@ -5,54 +5,212 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SignalOne – Dashboard</title>
     <link rel="stylesheet" href="styles.css" />
+    <!-- Icon-Font nur für UI-Icons, kein Framework -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      referrerpolicy="no-referrer"
+    />
   </head>
   <body>
-    <!-- Sidebar Navigation -->
+    <!-- Sidebar Navigation (Grundgerüst bleibt erhalten) -->
     <nav class="sidebar">
       <div class="sidebar-header">
         <div class="sidebar-logo">SignalOne</div>
       </div>
+
       <ul class="sidebar-nav" id="navbar">
         <!-- Navigation wird von app.js dynamisch gefüllt -->
       </ul>
+
       <div class="sidebar-footer">
-        <button id="demoToggle" class="sidebar-footer-button" type="button">
+        <div class="sidebar-status-row">
+          <span
+            class="status-dot status-dot-meta"
+            id="sidebarMetaDot"
+          ></span>
+          <span id="sidebarMetaLabel">Meta Ads: Getrennt</span>
+        </div>
+        <div class="sidebar-status-row">
+          <span
+            class="status-dot status-dot-system"
+            id="sidebarSystemDot"
+          ></span>
+          <span id="sidebarSystemLabel">System Health: OK</span>
+        </div>
+        <div class="sidebar-status-row">
+          <span
+            class="status-dot status-dot-campaign"
+            id="sidebarCampaignDot"
+          ></span>
+          <span id="sidebarCampaignLabel">Campaign Health: n/a</span>
+        </div>
+
+        <button
+          id="demoToggle"
+          class="sidebar-footer-button"
+          type="button"
+        >
           Demo-Modus: AN
+        </button>
+
+        <button
+          id="settingsButton"
+          class="sidebar-footer-button sidebar-footer-button-secondary"
+          type="button"
+        >
+          Settings
         </button>
       </div>
     </nav>
 
-    <!-- App Shell -->
+    <!-- App Shell (Topbar + Main) -->
     <div class="app-shell">
       <header id="topbar">
         <div class="topbar-left">
-          <span id="topbarViewTitle">Dashboard</span>
+          <div class="topbar-greeting">
+            <div
+              class="topbar-greeting-title"
+              id="topbarGreeting"
+            >
+              Guten Morgen, SignalOne User!
+            </div>
+            <div class="topbar-greeting-meta">
+              <span id="topbarDate">Datum: ––</span>
+              <span class="divider">|</span>
+              <span id="topbarTime">Zeit: ––</span>
+              <span class="divider">|</span>
+              <span class="topbar-version">Version: S1-0.9-b</span>
+            </div>
+          </div>
         </div>
+
         <div class="topbar-right">
-          <button id="metaConnectButton" class="meta-button" type="button">
-            Meta verbinden
-          </button>
-          <span id="metaStatusBadge" class="badge badge-offline">
-            Meta nicht verbunden
-          </span>
+          <div class="topbar-select-group">
+            <select
+              id="brandSelect"
+              class="topbar-select"
+            >
+              <option value="">Werbekonto auswählen</option>
+            </select>
+            <select
+              id="campaignSelect"
+              class="topbar-select"
+            >
+              <option value="">Kampagne auswählen</option>
+            </select>
+          </div>
+
+          <div class="topbar-status-group">
+            <span
+              id="metaStatusBadge"
+              class="badge badge-offline meta-status-pill"
+            >
+              <i class="fa-solid fa-circle"></i>
+              <span id="metaStatusLabel">Meta nicht verbunden</span>
+            </span>
+            <span
+              id="modeBadge"
+              class="mode-badge"
+            >
+              Modus: Demo
+            </span>
+            <button
+              id="metaConnectButton"
+              class="meta-button"
+              type="button"
+            >
+              Meta verbinden
+            </button>
+          </div>
+
+          <div class="topbar-icon-group">
+            <button
+              class="icon-button"
+              id="profileButton"
+              type="button"
+              title="Profil"
+            >
+              <i class="fa-regular fa-user"></i>
+            </button>
+            <button
+              class="icon-button"
+              id="notificationsButton"
+              type="button"
+              title="Benachrichtigungen"
+            >
+              <i class="fa-regular fa-bell"></i>
+              <span
+                class="notification-dot hidden"
+                id="notificationsDot"
+              ></span>
+            </button>
+            <button
+              class="icon-button"
+              id="logoutButton"
+              type="button"
+              title="Abmelden"
+            >
+              <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+          </div>
         </div>
       </header>
 
       <main id="mainContent">
-        <!-- Wichtige Views – dürfen laut Architektur nicht entfernt werden -->
-        <section id="dashboardView" class="view active"></section>
-        <section id="creativeLibraryView" class="view"></section>
-        <section id="campaignsView" class="view"></section>
-        <section id="senseiView" class="view"></section>
-        <section id="testingLogView" class="view"></section>
-        <section id="reportsView" class="view"></section>
-        <section id="creatorInsightsView" class="view"></section>
-        <section id="analyticsView" class="view"></section>
-        <section id="teamView" class="view"></section>
-        <section id="brandsView" class="view"></section>
-        <section id="shopifyView" class="view"></section>
-        <section id="roastView" class="view"></section>
-        <section id="onboardingView" class="view"></section>
+        <!-- Views – Backbone-Struktur bleibt bestehen -->
+        <section
+          id="dashboardView"
+          class="view active"
+        ></section>
+        <section
+          id="creativeLibraryView"
+          class="view"
+        ></section>
+        <section
+          id="campaignsView"
+          class="view"
+        ></section>
+        <section
+          id="senseiView"
+          class="view"
+        ></section>
+        <section
+          id="testingLogView"
+          class="view"
+        ></section>
+        <section
+          id="reportsView"
+          class="view"
+        ></section>
+        <section
+          id="creatorInsightsView"
+          class="view"
+        ></section>
+        <section
+          id="analyticsView"
+          class="view"
+        ></section>
+        <section
+          id="teamView"
+          class="view"
+        ></section>
+        <section
+          id="brandsView"
+          class="view"
+        ></section>
+        <section
+          id="shopifyView"
+          class="view"
+        ></section>
+        <section
+          id="roastView"
+          class="view"
+        ></section>
+        <section
+          id="onboardingView"
+          class="view"
+        ></section>
       </main>
     </div>
 
@@ -60,7 +218,11 @@
     <div id="toastContainer"></div>
 
     <!-- Zentrales Modal-System -->
-    <div id="modalOverlay" class="modal-overlay hidden" aria-hidden="true">
+    <div
+      id="modalOverlay"
+      class="modal-overlay hidden"
+      aria-hidden="true"
+    >
       <div
         class="modal-shell"
         role="dialog"
@@ -68,7 +230,10 @@
         aria-labelledby="modalTitle"
       >
         <header class="modal-header">
-          <h2 id="modalTitle" class="modal-title"></h2>
+          <h2
+            id="modalTitle"
+            class="modal-title"
+          ></h2>
           <button
             id="modalCloseButton"
             class="modal-close"
@@ -78,7 +243,10 @@
             &times;
           </button>
         </header>
-        <div id="modalBody" class="modal-body"></div>
+        <div
+          id="modalBody"
+          class="modal-body"
+        ></div>
       </div>
     </div>
 
