@@ -1970,3 +1970,151 @@ body {
     font-size: 13px;
     color: var(--text-secondary);
 }
+
+/* =======================================
+   SIGNALONE – CAMPAIGN DEEP DIVE MODAL
+======================================= */
+
+.campaign-modal-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.campaign-modal-col {
+    flex: 1 1 320px;
+    min-width: 0;
+}
+
+.campaign-modal-section {
+    margin-bottom: 16px;
+}
+
+.campaign-modal-section h3,
+.campaign-modal-section h4 {
+    margin: 0 0 8px 0;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.campaign-meta-line {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 2px 0;
+}
+
+.campaign-trend-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.campaign-trend-neutral {
+    background: rgba(148, 163, 184, 0.12);
+    color: var(--text-secondary);
+}
+
+.campaign-trend-good {
+    background: rgba(22, 163, 74, 0.12);
+    color: #16a34a;
+}
+
+.campaign-trend-bad {
+    background: rgba(220, 38, 38, 0.12);
+    color: #dc2626;
+}
+
+.campaign-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.kpi-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 13px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    background: rgba(15, 23, 42, 0.02);
+}
+
+.kpi-row-label {
+    color: var(--text-secondary);
+}
+
+.kpi-row-value {
+    font-weight: 600;
+}
+
+.campaign-note {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 6px;
+}
+
+.campaign-sensei-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.campaign-story {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.campaign-actions-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.campaign-linked-list {
+    list-style: none;
+    padding-left: 0;
+    margin: 4px 0 0 0;
+    font-size: 13px;
+}
+
+.campaign-linked-list li {
+    margin-bottom: 2px;
+}
+
+/* einfache Status-Pills, falls noch nicht vorhanden */
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.status-pill.active {
+    background: rgba(34,197,94,0.1);
+    color: #22c55e;
+}
+
+.status-pill.paused {
+    background: rgba(234,179,8,0.12);
+    color: #eab308;
+}
+
+.status-pill.deleted {
+    background: rgba(148,163,184,0.18);
+    color: #64748b;
+}
+
+.status-pill.unknown {
+    background: rgba(148,163,184,0.18);
+    color: #64748b;
+}
