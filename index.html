@@ -145,7 +145,6 @@
         <section class="view" id="dashboardView">
             <h2 class="elite-title">Meta Performance Dashboard</h2>
 
-            <!-- Neuer Header: Summary links, Zeitraum rechts -->
             <div class="view-header">
                 <div
                     id="dashboardMetaSummary"
@@ -168,25 +167,12 @@
                 </div>
             </div>
 
-            <!-- KPIs -->
             <div id="dashboardKpiContainer"></div>
-
-            <!-- Chart -->
             <div id="dashboardChartContainer"></div>
-
-            <!-- 🚨 ALERTS SECTION -->
             <div id="dashboardAlertsContainer"></div>
-
-            <!-- 🧠 SENSEI DAILY BRIEFING -->
             <div id="dashboardSenseiBriefingContainer"></div>
-
-            <!-- 🏆 TOP PERFORMERS -->
             <div id="dashboardTopPerformersContainer"></div>
-
-            <!-- 💀 BOTTOM PERFORMERS -->
             <div id="dashboardBottomPerformersContainer"></div>
-
-            <!-- Top Campaigns (Hero) -->
             <div id="dashboardHeroCreativesContainer"></div>
         </section>
 
@@ -195,10 +181,7 @@
             <h2 class="elite-title">Creative Library (Live-Daten)</h2>
 
             <div class="card">
-                <div
-                    class="filter-bar"
-                    style="display: flex; gap: 15px; align-items: center"
-                >
+                <div class="filter-bar" style="display:flex; gap:15px; align-items:center; flex-wrap:wrap;">
                     <input
                         type="text"
                         id="creativeSearch"
@@ -210,12 +193,24 @@
                             border: 1px solid var(--border);
                         "
                     />
+
+                    <!-- Neu: Grouping Dropdown -->
+                    <select id="creativeGroupBy">
+                        <option value="none">Keine Gruppierung</option>
+                        <option value="creative">Group by Creative</option>
+                        <option value="ad_name">Group by Ad Name</option>
+                        <option value="headline">Group by Headline</option>
+                        <option value="landing_page">Group by Landing Page</option>
+                        <option value="post_id">Group by Post ID</option>
+                    </select>
+
                     <select id="creativeType">
                         <option value="all">Alle Typen</option>
                         <option value="static">Static / Image</option>
                         <option value="video">Video</option>
                         <option value="carousel">Carousel</option>
                     </select>
+
                     <select id="creativeSort">
                         <option value="roas_desc">ROAS (absteigend)</option>
                         <option value="spend_desc">Spend (absteigend)</option>
