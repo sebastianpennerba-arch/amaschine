@@ -603,32 +603,40 @@ body {
 /* --- CREATIVE LIBRARY VIEW --- */
 #creativeLibraryGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: var(--spacing-main);
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
     align-items: stretch;
 }
 
+/* Karten sollen immer gleich aussehen, egal ob 1 oder 10000 Stück */
 .creative-library-item {
-    padding: 0;
     display: flex;
+    flex-direction: column;
+    background-color: var(--color-card);
+    border-radius: 18px;
+    box-shadow: var(--shadow-soft);
     overflow: hidden;
     cursor: pointer;
-    transition: box-shadow 0.3s, transform 0.3s;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-soft);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    border: 1px solid var(--border);
+    min-height: 320px;
 }
 
 .creative-library-item:hover {
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.15);
-    transform: translateY(-1px);
+    transform: translateY(-3px);
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.18);
+    border-color: rgba(99, 102, 241, 0.6);
 }
 
+/* oberer Bereich: großes Bild */
 .creative-media-container-library {
-    width: 150px;
-    flex-shrink: 0;
+    width: 100%;
+    height: 210px;
     position: relative;
+    overflow: hidden;
+    background: radial-gradient(circle at 10% 20%, #EEF2FF 0%, #E0F2FE 50%, #DBEAFE 100%);
 }
 
 .creative-media-container-library img,
@@ -639,80 +647,138 @@ body {
     display: block;
 }
 
-.platform-badge {
-    position: absolute;
-    top: 5px;
-    left: 5px;
-    color: white;
-    background-color: #000;
-    border-radius: 4px;
-    padding: 5px 8px;
-    font-size: 12px;
+.creative-faux-thumb {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #EEF2FF, #E0F2FE);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 38px;
+    font-weight: 800;
+    color: var(--color-primary);
 }
 
+.platform-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    color: white;
+    background-color: #000;
+    border-radius: 12px;
+    padding: 5px 10px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* unterer Bereich: KPIs */
 .creative-stats {
     flex-grow: 1;
-    padding: var(--spacing-inner);
+    padding: 14px 16px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .creative-name-library {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
-    margin-bottom: 5px;
+    margin-bottom: 2px;
+    color: var(--text-primary);
 }
 
 .creative-meta {
     font-size: 12px;
     color: var(--text-secondary);
-    margin-bottom: 10px;
+    margin-bottom: 6px;
 }
 
+/* KPI-Liste wie bei Datads */
+.creative-kpi-list {
+    font-size: 12px;
+    color: var(--text-primary);
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.creative-kpi-line {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2px;
+}
+
+.creative-kpi-label {
+    color: var(--text-secondary);
+}
+
+.creative-kpi-value {
+    font-weight: 600;
+}
+
+/* Slider-Balken */
 .kpi-bar-visual {
     display: flex;
     align-items: center;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
     gap: 8px;
 }
 
 .kpi-label-small {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-secondary);
-    width: 100px;
+    width: 80px;
 }
 
 .kpi-slider-track {
     flex-grow: 1;
     height: 6px;
     background-color: var(--border);
-    border-radius: 3px;
+    border-radius: 999px;
     overflow: hidden;
 }
 
 .kpi-slider-fill {
     height: 100%;
-    transition: width 0.5s;
-}
-.fill-positive {
-    background-color: var(--success);
-}
-.fill-negative {
-    background-color: var(--danger);
-}
-.fill-spend {
-    background-color: var(--color-primary);
+    transition: width 0.35s ease-out;
 }
 
+.fill-positive {
+    background: linear-gradient(90deg, #22C55E, #16A34A);
+}
+.fill-negative {
+    background: linear-gradient(90deg, #F97316, #EF4444);
+}
+.fill-spend {
+    background: linear-gradient(90deg, #6366F1, #0EA5E9);
+}
+
+/* Footer-KPIs */
 .creative-footer-kpis {
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
     border-top: 1px solid var(--border);
     margin-top: 10px;
-    padding-top: 10px;
-}
-.kpi-footer-item {
-    font-size: 12px;
-    font-weight: 600;
+    padding-top: 8px;
+    font-size: 11px;
     color: var(--text-secondary);
+}
+
+.creative-footer-kpis span {
+    font-weight: 600;
+}
+
+/* Ranking-Badge (optional, wenn wir Grouping / Top-List machen) */
+.creative-rank-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #FBBF24;
+    color: #111827;
+    border-radius: 999px;
+    padding: 3px 9px;
+    font-size: 11px;
+    font-weight: 800;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
 }
 
 /* --- CAMPAIGNS TABLE --- */
