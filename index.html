@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,125 +9,116 @@
     <link rel="stylesheet" href="./styles.css" />
 
     <!-- Remix Icons -->
-    <link
-        href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css"
-        rel="stylesheet"
-    />
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet" />
 </head>
 
 <body>
 
-<div class="layout">
+    <div class="layout">
 
-    <!-- ==========================
-         SIDEBAR (UNVERÄNDERT)
-    =========================== -->
-    <nav class="sidebar">
-        <h2>SignalOne</h2>
+        <!-- ======================================
+             SIDEBAR (NICHT VERÄNDERT)
+        ======================================= -->
+        <nav class="sidebar">
+            <h2>SignalOne</h2>
 
-        <div class="nav-item" data-view="dashboardView">Dashboard</div>
-        <div class="nav-item" data-view="creativesView">Creatives</div>
-        <div class="nav-item" data-view="campaignsView">Campaigns</div>
-        <div class="nav-item" data-view="senseiView">Sensei</div>
-        <div class="nav-item" data-view="reportsView">Reports</div>
-        <div class="nav-item" data-view="testingLogView">Testing Log</div>
-    </nav>
+            <div class="nav-item" data-view="dashboardView">Dashboard</div>
+            <div class="nav-item" data-view="creativesView">Creatives</div>
+            <div class="nav-item" data-view="campaignsView">Campaigns</div>
+            <div class="nav-item" data-view="senseiView">Sensei</div>
+            <div class="nav-item" data-view="reportsView">Reports</div>
+            <div class="nav-item" data-view="testingLogView">Testing Log</div>
+        </nav>
 
-    <!-- ==========================
-         MAIN WRAPPER
-    =========================== -->
-    <div class="main-wrapper">
+        <!-- ======================================
+             MAIN WRAPPER
+        ======================================= -->
+        <div class="main-wrapper">
 
-        <!-- ==========================
-             TOPBAR
-        =========================== -->
-        <header class="topbar">
-            <div class="topbar-left">
-                <h1 id="pageTitle">Dashboard</h1>
-            </div>
+            <!-- ======================================
+                 TOPBAR
+            ======================================= -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1 id="pageTitle">Dashboard</h1>
+                </div>
 
-            <div class="topbar-right">
+                <div class="topbar-right">
 
-                <!-- 🔥 DEMO MODE BADGE (NEU & EINZIGES HTML UPDATE) -->
-                <span class="badge-demo" data-role="demo-badge" style="display:none;"></span>
+                    <!-- DEMO MODE BADGE -->
+                    <span class="badge-demo" data-role="demo-badge" style="display:none;"></span>
 
-                <div id="metaStatusIndicator"></div>
+                    <div id="metaStatusIndicator"></div>
 
-                <button id="settingsButton" class="icon-button" title="Einstellungen">
-                    <i class="ri-settings-3-line"></i>
-                </button>
-            </div>
-        </header>
+                    <button id="settingsButton" class="icon-button" title="Einstellungen">
+                        <i class="ri-settings-3-line"></i>
+                    </button>
+                </div>
+            </header>
 
-        <!-- ==========================
-             VIEWS (ALLE UNVERÄNDERT)
-        =========================== -->
-        <main class="content">
+            <!-- ======================================
+                 VIEWS (NICHT VERÄNDERT)
+            ======================================= -->
+            <main class="content">
 
-            <!-- Dashboard -->
-            <section id="dashboardView" class="view">
-                <h2>Dashboard</h2>
-                <div id="dashboardContent"></div>
-            </section>
+                <section id="dashboardView" class="view">
+                    <h2>Dashboard</h2>
+                    <div id="dashboardContent"></div>
+                </section>
 
-            <!-- Creative Library -->
-            <section id="creativesView" class="view hidden">
-                <h2>Creative Library</h2>
-                <div id="creativeLibraryContent"></div>
-            </section>
+                <section id="creativesView" class="view hidden">
+                    <h2>Creative Library</h2>
+                    <div id="creativeLibraryContent"></div>
+                </section>
 
-            <!-- Campaign Manager -->
-            <section id="campaignsView" class="view hidden">
-                <h2>Campaigns</h2>
-                <div id="campaignsContent"></div>
-            </section>
+                <section id="campaignsView" class="view hidden">
+                    <h2>Campaigns</h2>
+                    <div id="campaignsContent"></div>
+                </section>
 
-            <!-- Sensei AI Layer -->
-            <section id="senseiView" class="view hidden">
-                <h2>Sensei Strategy</h2>
-                <div id="senseiContent"></div>
-            </section>
+                <section id="senseiView" class="view hidden">
+                    <h2>Sensei Strategy</h2>
+                    <div id="senseiContent"></div>
+                </section>
 
-            <!-- Reports -->
-            <section id="reportsView" class="view hidden">
-                <h2>Reports</h2>
-                <div id="reportsContent"></div>
-            </section>
+                <section id="reportsView" class="view hidden">
+                    <h2>Reports</h2>
+                    <div id="reportsContent"></div>
+                </section>
 
-            <!-- Testing Log -->
-            <section id="testingLogView" class="view hidden">
-                <h2>Testing Log</h2>
-                <div id="testingLogContent"></div>
-            </section>
+                <section id="testingLogView" class="view hidden">
+                    <h2>Testing Log</h2>
+                    <div id="testingLogContent"></div>
+                </section>
 
-        </main>
+            </main>
+        </div>
     </div>
-</div>
 
-<!-- ==========================
-     SCRIPTS (REIHENFOLGE WICHTIG!)
-=========================== -->
+    <!-- ======================================
+         SCRIPTS (REIHENFOLGE WICHTIG)
+    ======================================= -->
 
-<!-- Utilities & Core -->
-<script type="module" src="./uiCore.js"></script>
-<script type="module" src="./state.js"></script>
+    <!-- Core -->
+    <script type="module" src="./uiCore.js"></script>
+    <script type="module" src="./state.js"></script>
 
-<!-- API Layer -->
-<script type="module" src="./metaApi.js"></script>
+    <!-- API -->
+    <script type="module" src="./metaApi.js"></script>
 
-<!-- Features -->
-<script type="module" src="./dashboard.js"></script>
-<script type="module" src="./creativeLibrary.js"></script>
-<script type="module" src="./campaigns.js"></script>
-<script type="module" src="./sensei.js"></script>
-<script type="module" src="./reports.js"></script>
-<script type="module" src="./testingLog.js"></script>
+    <!-- Feature Modules -->
+    <script type="module" src="./dashboard.js"></script>
+    <script type="module" src="./creativeLibrary.js"></script>
+    <script type="module" src="./campaigns.js"></script>
+    <script type="module" src="./sensei.js"></script>
+    <script type="module" src="./reports.js"></script>
+    <script type="module" src="./testingLog.js"></script>
 
-<!-- DEMO DATA MUSS vor app.js laden -->
-<script type="module" src="./demoData.js"></script>
+    <!-- Demo Data -->
+    <script type="module" src="./demoData.js"></script>
 
-<!-- BOOTSTRAP (immer ganz unten) -->
-<script type="module" src="./app.js"></script>
+    <!-- App Root -->
+    <script type="module" src="./app.js"></script>
 
 </body>
 </html>
