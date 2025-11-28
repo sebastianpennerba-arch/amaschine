@@ -520,7 +520,7 @@ function wireBrandAndCampaignSelects() {
       populateCampaignSelect();
       updateCampaignHealthUI();
       updateTopbarGreeting();
-      // Bei Brand-Wechsel Dashboard/Campaigns neu laden
+      // Bei Brand-Wechsel aktuelle View neu laden
       loadModule(AppState.currentModule);
     });
   }
@@ -669,7 +669,11 @@ async function loadModule(key) {
   }
 
   // Meta-Guard: ohne Meta und ohne Demo keine Daten
-  if (modulesRequiringMeta.includes(key) && !AppState.metaConnected && !useDemoMode()) {
+  if (
+    modulesRequiringMeta.includes(key) &&
+    !AppState.metaConnected &&
+    !useDemoMode()
+  ) {
     section.innerHTML =
       "<p>Dieses Modul benötigt eine Meta-Verbindung oder den Demo-Modus.</p>";
     showToast("Bitte Meta verbinden oder Demo-Modus aktivieren.", "warning");
@@ -896,6 +900,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ---- Globale API exponieren (optional für Packages / Debugging) ----------
+
+window.SignalOneDemo = {
+  DemoData,
+};
 
 window.SignalOne = {
   AppState,
