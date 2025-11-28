@@ -1,66 +1,79 @@
 // packages/campaigns/campaigns.table.js
-// Tabellen-Rendering für Kampagnen
+// Rendering der Kampagnentabelle in #campaignsTableBody
 
-import {
-    getCampaignInsights,
-    formatMoney,
-    formatRoas,
-    formatPercent,
-    formatInteger,
-    getStatusLabel
-} from "./campaigns.compute.js";
+function fEuro(v) {
+    const n = Number(v || 0);
+    return n.toLocaleString("de-DE", {
+        style: "currency",
+        currency: "EUR",
+        maximumFractionDigits: 2
+    });
+}
 
-export function renderCampaignsTable(sortedCampaigns, tbody, onOpenDetails) {
+function fPct(v) {
+    const n = Number(v || 0);
+    return `${n.toFixed(2)}%`;
+}
+
+function fInt(v) {
+    const n = Number(v || 0);
+    return n.toLocaleString("de-DE");
+}
+
+function renderStatusPill(status) {
+    const s = (status || "UNKNOWN").toUpperCase();
+    let cls = "status-pill unknown";
+    let label = s;
+
+    if (s === "ACTIVE") {
+        cls = "status-pill active";
+        label = "Active";
+    } else if (s === "PAUSED") {
+        cls = "status-pill paused";
+        label = "Paused";
+    }
+
+    return `<span class="${cls}">${label}</span>`;
+}
+
+export function renderCampaignsTable(campaigns) {
+    const tbody = document.getElementById("campaignsTableBody");
     if (!tbody) return;
 
-    tbody.innerHTML = sortedCampaigns
-        .map((c) => {
-            const insights = getCampaignInsights(c);
-            const spend30 =
-                insights.spend != null ? formatMoney(insights.spend) : "-";
-            const roas30 = formatRoas(insights.roas);
-            const ctr30 = formatPercent(insights.ctr);
-            const imp30 = formatInteger(insights.impressions);
+    if (!campaigns.length) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="9">
+                    <span style="color: var(--text-secondary); font-size:14px;">
+                        Keine Kampagnen gefunden. Verbinde Meta oder aktiviere Demo Mode.
+                    </span>
+                </td>
+            </tr>
+        `;
+        return;
+    }
 
-            const { label: statusLabel, className: statusClass } =
-                getStatusLabel(c);
-            const objective = c.objective || "Unbekannt";
-
-            return `
-        <tr data-campaign-id="${c.id || ""}" class="campaign-row">
-          <td>
-            <div class="campaign-name-cell">
-              <span class="campaign-name-main">${c.name || "Unbenannte Kampagne"}</span>
-              <span class="campaign-name-sub">${objective}</span>
-            </div>
-          </td>
-          <td>${spend30}</td>
-          <td>${roas30}</td>
-          <td>${ctr30}</td>
-          <td>${imp30}</td>
-          <td>
-            <span class="${statusClass}">
-              ${statusLabel}
-            </span>
-          </td>
-          <td>
-            <button class="action-button-secondary" data-role="openCampaignDetails" data-campaign-id="${c.id}">
-              Details
-            </button>
-          </td>
+    const rows = campaigns
+        .map(
+            (c) => `
+        <tr data-campaign-id="${c.id}">
+            <td>${renderStatusPill(c.status)}</td>
+            <td>${c.name}</td>
+            <td>${c.objective || "n/a"}</td>
+            <td>${fEuro(c.dailyBudget)}</td>
+            <td>${fEuro(c.spend)}</td>
+            <td>${(c.roas || 0).toFixed(2)}x</td>
+            <td>${fPct(c.ctr)}</td>
+            <td>${fInt(c.impressions)}</td>
+            <td>
+                <button class="action-button-secondary campaign-details-btn" data-campaign-id="${
+                    c.id
+                }">Details</button>
+            </td>
         </tr>
-      `;
-        })
+    `
+        )
         .join("");
 
-    tbody
-        .querySelectorAll("[data-role='openCampaignDetails']")
-        .forEach((btn) => {
-            btn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                const id = btn.getAttribute("data-campaign-id");
-                const campaign = sortedCampaigns.find((c) => c.id === id);
-                if (campaign) onOpenDetails(campaign);
-            });
-        });
+    tbody.innerHTML = rows;
 }
