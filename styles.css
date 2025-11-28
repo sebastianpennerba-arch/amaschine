@@ -2379,3 +2379,198 @@ nav.sidebar {
       0 30px 80px rgba(15,23,42,0.32),
       0 0 0 0.6px rgba(255,255,255,1) inset;
 }
+
+/* ===========================================================
+   TYPOGRAPHY + SPACING LEVELING – VISION PRO TITANIUM
+   =========================================================== */
+
+/* GLOBAL TYPO */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "Segoe UI", sans-serif;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+  color: #0f172a;
+}
+
+/* HEADINGS */
+h1, h2, h3, h4 {
+  margin: 0 0 10px;
+  font-weight: 600;
+  color: #0f172a;
+  letter-spacing: 0.03em;
+}
+
+h1 {
+  font-size: 1.85rem;
+}
+
+h2 {
+  font-size: 1.35rem;
+  margin-bottom: 14px;
+}
+
+h3 {
+  font-size: 1.12rem;
+  margin-bottom: 10px;
+}
+
+h4 {
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+/* SUBTITLES */
+.subtitle,
+.view-subtitle {
+  font-size: 0.88rem;
+  color: #64748b;
+  margin-bottom: 16px;
+  letter-spacing: 0.01em;
+}
+
+/* SECTION TITLES */
+.section-title {
+  font-size: 1.14rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 10px;
+  letter-spacing: 0.05em;
+}
+
+/* BODY TEXT */
+p, span, li, td, th {
+  line-height: 1.45;
+  font-size: 0.90rem;
+}
+
+/* GENERAL PADDING CORRECTION */
+.view {
+  padding: 26px 26px 50px;
+}
+
+/* CARD SPACING CORRECTION */
+.card,
+.metric-card,
+.dashboard-card,
+.sensei-card,
+.report-card,
+.log-card,
+.creative-library-item {
+  padding: 18px 20px;
+  letter-spacing: 0.02em;
+}
+
+/* ELEMENT RHYTHM: unify spacing between blocks */
+.view > * + * {
+  margin-top: 24px;
+}
+
+/* TABLE TYPO */
+table {
+  font-size: 0.90rem;
+  letter-spacing: 0.01em;
+}
+
+table th {
+  font-size: 0.75rem !important;
+  letter-spacing: 0.05em !important;
+}
+
+table td {
+  font-size: 0.88rem;
+}
+
+/* KPI TEXT Adjustment */
+.metric-label {
+  font-size: 0.73rem !important;
+  letter-spacing: 0.16em;
+}
+
+.metric-value {
+  font-size: 1.62rem !important;
+  font-weight: 700;
+}
+
+.metric-subtext {
+  font-size: 0.82rem;
+}
+
+/* INPUTS / SELECTS TEXT */
+input,
+select,
+textarea {
+  font-size: 0.86rem;
+  letter-spacing: 0.01em;
+  padding: 8px 12px !important;
+}
+
+/* BUTTON TEXT */
+button {
+  font-size: 0.86rem;
+  letter-spacing: 0.01em;
+  font-weight: 500;
+}
+
+/* SIDEBAR TEXT */
+.sidebar-nav-button,
+.sidebar-nav button {
+  font-size: 0.90rem !important;
+  letter-spacing: 0.01em;
+}
+
+/* TOPBAR TEXT */
+.topbar-greeting-title {
+  font-size: 1.12rem !important;
+  letter-spacing: 0.08em !important;
+}
+
+.topbar-greeting-meta {
+  font-size: 0.82rem !important;
+}
+
+.topbar-select {
+  font-size: 0.86rem !important;
+}
+
+/* BADGES */
+.badge,
+.mode-badge,
+.campaign-status-pill,
+.creative-kpi-badge {
+  font-size: 0.75rem !important;
+}
+
+/* SPACING FIXES FOR LARGE PANELS */
+.dashboard-section {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.campaign-table-wrapper {
+  padding: 0 !important;
+}
+
+/* GRID TUNING */
+.kpi-grid {
+  gap: 24px !important;
+}
+
+.creative-grid {
+  gap: 26px !important;
+}
+
+/* LIST RHYTHM */
+li + li {
+  margin-top: 6px;
+}
+
+/* TITLE HARMONY */
+.view-header h2 {
+  margin-bottom: 4px;
+  letter-spacing: 0.06em;
+}
+
+.view-header {
+  margin-bottom: 22px;
+}
