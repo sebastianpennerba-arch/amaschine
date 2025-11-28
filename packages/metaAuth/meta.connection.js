@@ -3,10 +3,7 @@
 
 import { AppState } from "../../state.js";
 
-/**
- * Setzt Token + metaConnected-Flag im globalen State.
- */
-export function applyTokenToState(token) {
+export function ensureMetaState() {
     if (!AppState.meta) {
         AppState.meta = {
             accessToken: null,
@@ -18,6 +15,13 @@ export function applyTokenToState(token) {
             creatives: []
         };
     }
+}
+
+/**
+ * Setzt Token + metaConnected-Flag im globalen State.
+ */
+export function applyTokenToState(token) {
+    ensureMetaState();
     AppState.meta.accessToken = token || null;
     AppState.metaConnected = !!token;
 }
@@ -26,6 +30,8 @@ export function applyTokenToState(token) {
  * Vollständiger Disconnect – setzt Meta-Teil des State auf Nullzustand zurück.
  */
 export function hardDisconnectMeta() {
+    ensureMetaState();
+
     AppState.metaConnected = false;
     AppState.meta = {
         accessToken: null,
