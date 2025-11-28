@@ -1,5 +1,6 @@
 // creativeLibrary.js – SignalOne.cloud
 // Datads-Level Creative Library (Full KPIs, Grouping, Ranking, Bars)
+// + Creative Deep Dive Modal
 // --------------------------------------------------------------
 
 import { AppState } from "./state.js";
@@ -194,10 +195,13 @@ function groupAds(ads, mode) {
     ads.forEach((ad) => {
         const key = getGroupKey(ad, mode);
         const label = getGroupLabel(ad, mode);
-        if (!map.has(key)) {
-            map.set(key, { key, label, ads: [] });
+        const existing = map.get(key);
+
+        if (existing) {
+            existing.ads.push(ad);
+        } else {
+            map.set(key, { key, label, ads: [ad], metrics: null });
         }
-        map.get(key).ads.push(ad);
     });
 
     const groups = [];
@@ -284,8 +288,9 @@ function initCreativeLibraryFiltersOnce() {
     ["creativeSearch", "creativeSort", "creativeType", "creativeGroupBy"].forEach(
         (id) => {
             const el = document.getElementById(id);
-            if (el) el.addEventListener("input", () => renderCreativeLibrary());
-            if (el) el.addEventListener("change", () => renderCreativeLibrary());
+            if (!el) return;
+            el.addEventListener("input", () => renderCreativeLibrary());
+            el.addEventListener("change", () => renderCreativeLibrary());
         }
     );
 }
@@ -298,7 +303,8 @@ export function renderCreativeLibrary() {
     const grid = document.getElementById("creativeLibraryGrid");
     if (!grid) return;
 
-    const search = document.getElementById("creativeSearch")?.value?.toLowerCase() || "";
+    const search =
+        document.getElementById("creativeSearch")?.value?.toLowerCase() || "";
     const sort = document.getElementById("creativeSort")?.value || "roas_desc";
     const typeFilter = document.getElementById("creativeType")?.value || "all";
     const groupBy = document.getElementById("creativeGroupBy")?.value || "none";
@@ -310,7 +316,9 @@ export function renderCreativeLibrary() {
     }
 
     if (search.length > 0) {
-        ads = ads.filter((ad) => (ad.name || "").toLowerCase().includes(search));
+        ads = ads.filter((ad) =>
+            (ad.name || "").toLowerCase().includes(search)
+        );
     }
 
     let groups = groupAds(ads, groupBy);
@@ -416,8 +424,28 @@ export function renderCreativeLibrary() {
 }
 
 /* ================================================================
-   6. Creative Modal
+   6. Creative Deep Dive Modal
 ==================================================================*/
+
+function buildSenseiSnapshot(m) {
+    if (!m || !m.spend) {
+        return "Noch zu wenig Daten für eine ernsthafte Bewertung. Lass den Creative länger laufen oder erhöhe das Budget.";
+    }
+
+    if (m.roas >= 3 && m.ctr >= 2) {
+        return "🔥 Sensei sagt: Das ist ein Winner. Skalieren mit +20–30% Budget pro Tag, solange ROAS stabil bleibt.";
+    }
+
+    if (m.roas >= 1.5) {
+        return "⚖️ Solider Creative. Leichtes Upscaling testen und parallel neue Varianten launchen.";
+    }
+
+    if (m.roas > 0 && m.ctr < 1) {
+        return "⚠️ Hook ist schwach. CTR ist niedrig – teste aggressivere Hooks und klarere Problem-Statements in den ersten 3 Sekunden.";
+    }
+
+    return "🧊 Performance aktuell unter Durchschnitt. Budget eher begrenzen und aus den Hooks/Angles für neue Tests lernen.";
+}
 
 function openCreativeModal(group) {
     const m = group.metrics;
@@ -428,56 +456,122 @@ function openCreativeModal(group) {
     const kp = (v, s = "", d = 2) =>
         v > 0 ? v.toFixed(d) + s : "--";
 
+    const adRows = group.ads
+        .map((ad) => {
+            const mm = getAdMetrics(ad);
+            const link =
+                ad.permalink_url ||
+                ad.creative?.object_story_spec?.link_data?.link ||
+                ad.creative?.object_story_spec?.link_data?.link_url ||
+                "";
+
+            return `
+                <tr>
+                    <td>${ad.name || "Ohne Namen"}</td>
+                    <td>${kp(mm.roas, "x")}</td>
+                    <td>€${kp(mm.cpp)}</td>
+                    <td>${mm.purchases || 0}</td>
+                    <td>${kp(mm.ctr, "%", 1)}</td>
+                    <td>${kp(mm.hookToClickRatio, "%", 1)}</td>
+                    <td>${kp(mm.thumbstopRatio, "%", 1)}</td>
+                    <td>${link ? `<a href="${link}" target="_blank" rel="noopener noreferrer">Öffnen</a>` : "–"}</td>
+                </tr>
+            `;
+        })
+        .join("");
+
+    const senseiText = buildSenseiSnapshot(m);
+
     const html = `
-        <div class="modal-section">
-            <div class="modal-section-title">Creative Group</div>
-            <div class="modal-row" style="align-items:flex-start;">
-                <div style="flex:1;">
-                    <div style="font-weight:700; font-size:16px; margin-bottom:6px;">${group.label}</div>
-                    <div style="font-size:13px;color:var(--text-secondary);">
-                        ${group.ads.length} Ad${group.ads.length > 1 ? "s" : ""} • Typ: ${adType}
+        <div class="creative-modal-layout">
+            <div class="creative-modal-col">
+                <div class="modal-section">
+                    <div class="modal-section-title">Creative Group</div>
+                    <div class="modal-row" style="align-items:flex-start;">
+                        <div style="flex:1;">
+                            <div style="font-weight:700; font-size:16px; margin-bottom:6px;">${group.label}</div>
+                            <div style="font-size:13px;color:var(--text-secondary);">
+                                ${group.ads.length} Ad${group.ads.length > 1 ? "s" : ""} • Typ: ${adType}
+                            </div>
+                        </div>
+
+                        <div class="creative-modal-thumb">
+                            ${
+                                thumb
+                                    ? `<img src="${thumb}" alt="${group.label}" />`
+                                    : `<div class="creative-faux-thumb">${
+                                          adType === "video" ? "▶" : "?"
+                                      }</div>`
+                            }
+                        </div>
                     </div>
                 </div>
 
-                <div style="width:160px;height:100px;border-radius:10px;overflow:hidden;border:1px solid var(--border);">
-                ${
-                    thumb
-                        ? `<img src="${thumb}" style="width:100%;height:100%;object-fit:cover;"/>`
-                        : `<div class="creative-faux-thumb" style="height:100%;">${
-                              adType === "video" ? "▶" : "?"
-                          }</div>`
-                }
+                <div class="modal-section">
+                    <div class="modal-section-title">Performance (aggregiert)</div>
+
+                    <div class="modal-kpis-grid">
+                        <div class="metric-chip"><div class="metric-label">Purchases</div><div class="metric-value">${m.purchases || 0}</div></div>
+                        <div class="metric-chip"><div class="metric-label">CPP</div><div class="metric-value">€${kp(m.cpp)}</div></div>
+                        <div class="metric-chip"><div class="metric-label">Spend</div><div class="metric-value">€${kp(m.spend)}</div></div>
+                        <div class="metric-chip"><div class="metric-label">ROAS</div><div class="metric-value">${kp(m.roas, "x")}</div></div>
+                        <div class="metric-chip"><div class="metric-label">CTR</div><div class="metric-value">${kp(m.ctr, "%", 1)}</div></div>
+                        <div class="metric-chip"><div class="metric-label">CPC</div><div class="metric-value">€${kp(m.cpc, "", 3)}</div></div>
+                        <div class="metric-chip"><div class="metric-label">Hook → Click</div><div class="metric-value">${kp(m.hookToClickRatio, "%", 1)}</div></div>
+                        <div class="metric-chip"><div class="metric-label">Thumbstop Ratio</div><div class="metric-value">${kp(m.thumbstopRatio, "%", 1)}</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="creative-modal-col">
+                <div class="modal-section">
+                    <div class="modal-section-title">Performance Story</div>
+                    <p class="creative-modal-copy">
+                        ROAS: <strong>${kp(m.roas, "x")}</strong>,
+                        Spend: <strong>€${kp(m.spend)}</strong>,
+                        CTR: <strong>${kp(m.ctr, "%", 1)}</strong>,
+                        Purchases: <strong>${m.purchases || 0}</strong>.
+                    </p>
+                    <p class="creative-modal-copy">
+                        Hook → Click: <strong>${kp(m.hookToClickRatio, "%", 1)}</strong>,
+                        Thumbstop: <strong>${kp(m.thumbstopRatio, "%", 1)}</strong>
+                        – ideal für einen ersten Eindruck, wie stark dein Creative im Scroll-Strom performt.
+                    </p>
+                </div>
+
+                <div class="modal-section">
+                    <div class="modal-section-title">Varianten-Vergleich</div>
+                    <div class="creative-modal-table-wrapper">
+                        <table class="creative-modal-table">
+                            <thead>
+                                <tr>
+                                    <th>Ad</th>
+                                    <th>ROAS</th>
+                                    <th>CPP</th>
+                                    <th>Purch.</th>
+                                    <th>CTR</th>
+                                    <th>Hook→Click</th>
+                                    <th>Thumbstop</th>
+                                    <th>Meta</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${adRows || `<tr><td colspan="8" style="text-align:center;color:var(--text-secondary);">Keine Einzel-Varianten gefunden.</td></tr>`}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <div class="modal-section-title">Sensei Snapshot</div>
+                    <div class="sensei-snapshot">
+                        <div class="sensei-label">🧠 Sensei Insight</div>
+                        <div class="sensei-text">${senseiText}</div>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <div class="modal-section">
-            <div class="modal-section-title">Performance (aggregiert)</div>
-
-            <div class="modal-kpis-grid">
-                <div class="metric-chip"><div class="metric-label">Purchases</div><div class="metric-value">${m.purchases}</div></div>
-                <div class="metric-chip"><div class="metric-label">CPP</div><div class="metric-value">€${kp(m.cpp)}</div></div>
-                <div class="metric-chip"><div class="metric-label">Spend</div><div class="metric-value">€${kp(m.spend)}</div></div>
-                <div class="metric-chip"><div class="metric-label">ROAS</div><div class="metric-value">${kp(m.roas, "x")}</div></div>
-                <div class="metric-chip"><div class="metric-label">CTR</div><div class="metric-value">${kp(m.ctr, "%")}</div></div>
-                <div class="metric-chip"><div class="metric-label">CPC</div><div class="metric-value">€${kp(m.cpc, "", 3)}</div></div>
-                <div class="metric-chip"><div class="metric-label">Hook → Click</div><div class="metric-value">${kp(m.hookToClickRatio, "%", 1)}</div></div>
-                <div class="metric-chip"><div class="metric-label">Thumbstop Ratio</div><div class="metric-value">${kp(m.thumbstopRatio, "%", 1)}</div></div>
-            </div>
-        </div>
-
-        <div class="modal-section">
-            <div class="modal-section-title">Enthaltene Ads</div>
-            <ul style="max-height:200px;overflow:auto;font-size:13px;padding-left:18px;">
-                ${group.ads
-                    .map(
-                        (ad) =>
-                            `<li><strong>${ad.name || "Ohne Namen"}</strong> – ID: ${ad.id}</li>`
-                    )
-                    .join("")}
-            </ul>
-        </div>
     `;
 
-    openModal("Creative Details", html);
+    openModal("Creative Deep Dive", html);
 }
