@@ -23,6 +23,14 @@
 
     --border: #1F2937;
 
+    /* Legacy color aliases mapped to new dark theme */
+    --color-bg: var(--color-background);
+    --color-text-main: var(--text-primary);
+    --color-text-soft: var(--text-secondary);
+    --color-border-subtle: rgba(15, 23, 42, 0.85);
+    --color-surface: var(--surface);
+    --color-surface-muted: #020617;
+    
     /* Tiefe & Schatten für den AI-Console Look */
     --shadow-soft: 0 18px 45px rgba(0, 0, 0, 0.7);
     --shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.55);
