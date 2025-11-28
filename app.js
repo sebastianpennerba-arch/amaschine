@@ -1,4 +1,4 @@
-// app.js – FINAL VERSION (mit Dashboard-Package)
+// app.js – Backbone mit Package-Architektur (Dashboard, Campaigns, Creatives)
 
 import { AppState, META_OAUTH_CONFIG } from "./state.js";
 import {
@@ -19,11 +19,11 @@ import {
     fetchMetaAds
 } from "./metaApi.js";
 
-// Dashboard läuft jetzt komplett über das Package:
+// 🔹 Packages
 import DashboardPackage from "./packages/dashboard/index.js";
+import CampaignsPackage from "./packages/campaigns/index.js";
+import CreativesPackage from "./packages/creatives/index.js";
 
-import { updateCampaignsView } from "./campaigns.js";
-import { updateCreativeLibraryView } from "./creativeLibrary.js";
 import { updateSenseiView } from "./sensei.js";
 import { updateReportsView } from "./reports.js";
 import { updateTestingLogView } from "./testingLog.js";
@@ -268,6 +268,7 @@ async function loadAdAccountsAndCampaigns() {
         }
     }
 
+    AppState.campaignsLoaded = true;
     updateAccountAndCampaignSelectors();
 }
 
@@ -299,7 +300,7 @@ function updateAccountAndCampaignSelectors() {
     campSel.innerHTML = ops.join("");
 }
 
-/* ADS / CREATIVES */
+/* ADS / CREATIVES – (aktuell nicht genutzt vom Package, aber safe) */
 async function loadCreativesForCurrentSelection() {
     ensureMetaCache();
     const token = AppState.meta.accessToken;
@@ -321,10 +322,6 @@ async function loadCreativesForCurrentSelection() {
     AppState.creativesLoaded = true;
     AppState.metaCache.adsByAccount[acc] = { data, fetchedAt: Date.now() };
 }
-async function ensureCreativesLoadedAndRender() {
-    if (!AppState.creativesLoaded) await loadCreativesForCurrentSelection();
-    updateCreativeLibraryView(true);
-}
 
 /* UI UPDATE */
 function updateUI() {
@@ -334,17 +331,18 @@ function updateUI() {
     updateGreeting();
     updateAccountAndCampaignSelectors();
 
-    // Dashboard komplett über DashboardPackage
     if (AppState.currentView === "dashboardView") {
-        // async – wird nicht awaited, wie vorher bei updateDashboardView
         DashboardPackage.render({ connected, demo });
     }
 
-    if (AppState.currentView === "campaignsView") updateCampaignsView(connected);
-    if (AppState.currentView === "creativesView") {
-        if (connected) ensureCreativesLoadedAndRender();
-        else updateCreativeLibraryView(false);
+    if (AppState.currentView === "campaignsView") {
+        CampaignsPackage.render({ connected });
     }
+
+    if (AppState.currentView === "creativesView") {
+        CreativesPackage.render({ connected });
+    }
+
     if (AppState.currentView === "senseiView") updateSenseiView(connected);
     if (AppState.currentView === "reportsView") updateReportsView(connected);
     if (AppState.currentView === "testingLogView")
@@ -449,7 +447,6 @@ function openSettingsModal() {
 
     openSystemModal("Einstellungen", bodyHtml);
 
-    // Events erst nach Render hinzufügen
     const themeSelect = document.getElementById("settingsTheme");
     const ttlInput = document.getElementById("settingsCacheTtl");
     const rangeSelect = document.getElementById("settingsDefaultRange");
@@ -579,7 +576,6 @@ function openNotificationsModal() {
 
     openSystemModal("Benachrichtigungen", bodyHtml);
 
-    // Badge & State zurücksetzen
     const badge = document.getElementById("notificationsBadge");
     if (badge) {
         badge.classList.add("hidden");
@@ -596,8 +592,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     loadMetaTokenFromStorage();
     applyDashboardTimeRangeFromSettings();
 
-    // Dashboard-Package initialisieren
+    // Packages initialisieren
     DashboardPackage.init();
+    CampaignsPackage.init();
+    CreativesPackage.init();
 
     showView(AppState.currentView);
     initSidebarNavigation(showView);
@@ -611,7 +609,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const d = document.getElementById("disconnectMetaButton");
     if (d) d.addEventListener("click", disconnectMeta);
 
-    // Zeitbereich-Änderung beeinflusst das Dashboard
+    // Zeitbereich Dashboard
     const timeRange = document.getElementById("dashboardTimeRange");
     if (timeRange) {
         timeRange.addEventListener("change", (e) => {
@@ -621,7 +619,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             s.defaultTimeRange = value;
             saveSettingsToStorage();
             AppState.dashboardLoaded = false;
-            DashboardPackage.update({ connected: checkMetaConnection(), demo: isDemoMode() });
+            DashboardPackage.update({
+                connected: checkMetaConnection(),
+                demo: isDemoMode()
+            });
         });
     }
 
@@ -649,7 +650,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             updateUI();
         });
 
-    // 🔘 SETTINGS BUTTON (Sidebar)
     const settingsBtn = document.getElementById("openSettingsButton");
     if (settingsBtn) {
         settingsBtn.addEventListener("click", () => {
@@ -657,7 +657,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // 🔘 PROFILE BUTTON (Topbar)
     const profileBtn = document.getElementById("profileButton");
     if (profileBtn) {
         profileBtn.addEventListener("click", () => {
@@ -665,7 +664,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // 🔘 NOTIFICATIONS BUTTON (Topbar)
     const notificationsBtn = document.getElementById("notificationsButton");
     if (notificationsBtn) {
         notificationsBtn.addEventListener("click", () => {
@@ -673,7 +671,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // Modal Close Handling (Apple-Style)
     const { overlay, closeBtn } = getModalElements();
     if (closeBtn) closeBtn.addEventListener("click", closeSystemModal);
     if (overlay) {
