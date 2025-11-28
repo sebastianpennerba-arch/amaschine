@@ -2,5 +2,5 @@
 import { render as renderroast } from "./render.js";
 
 export function render(container, AppState) {
-  renderDashboard(container, AppState);
+  renderroast(container, AppState);
 }
