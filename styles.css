@@ -1679,3 +1679,10 @@ input:checked + .slider:before {
         grid-template-columns: 1fr;
     }
 }
+
+.topbar-meta-status.meta-status-disconnected {
+    border-color: rgba(239, 68, 68, 0.6);
+    color: var(--danger);
+    background: rgba(239, 68, 68, 0.08);
+}
+
