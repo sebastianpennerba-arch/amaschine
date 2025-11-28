@@ -1,5 +1,5 @@
 // dashboard.js
-// Legacy-Shim: wird von app.js importiert und reicht ans DashboardPackage weiter.
+// Legacy-Shim: wird von app.js importiert und reicht an das Dashboard-Package weiter.
 
 import DashboardPackage from "./packages/dashboard/index.js";
 
@@ -8,5 +8,7 @@ export async function updateDashboardView(connected) {
 }
 
 export function initDashboard() {
-    if (DashboardPackage.init) DashboardPackage.init();
+    if (typeof DashboardPackage.init === "function") {
+        DashboardPackage.init();
+    }
 }
