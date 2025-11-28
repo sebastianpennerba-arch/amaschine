@@ -53,10 +53,10 @@ export const AppState = {
         creativeLayout: "grid",
 
         /* Demo Mode (True/False) */
-        demoMode: false,
+        demoMode: true,
 
         /* Demo-Preset (Vorschlag A) */
-        demoPreset: null
+        demoPreset: "small_store"
     },
 
     /* Meta-Daten-CACHE */
