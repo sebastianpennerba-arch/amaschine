@@ -1,24 +1,58 @@
 // packages/campaigns/index.js
-// Public API für Kampagnen-View
+// Public API für Campaigns View (P3).
 
-import { renderCampaignsView } from "./campaigns.render.js";
+import { buildCampaignsState } from "./campaigns.compute.js";
+import { renderCampaigns } from "./campaigns.render.js";
 
 const CampaignsPackage = {
-    init(options = {}) {
-        console.debug("[CampaignsPackage] init()", options);
+    _filters: {
+        search: "",
+        status: "all"
     },
 
-    render(options = {}) {
+    init() {
+        console.debug("[CampaignsPackage] init()");
+        this._initFilterControls();
+    },
+
+    async render(options = {}) {
         const { connected } = options;
-        renderCampaignsView(connected);
+        const state = await buildCampaignsState({
+            connected,
+            filters: this._filters
+        });
+
+        renderCampaigns(state);
     },
 
-    update(options = {}) {
-        return this.render(options);
+    async update(options = {}) {
+        if (options.filters) {
+            this._filters = { ...this._filters, ...options.filters };
+        }
+        return this.render({ connected: options.connected });
     },
 
     destroy() {
         console.debug("[CampaignsPackage] destroy()");
+    },
+
+    _initFilterControls() {
+        const searchInput = document.getElementById("campaignSearch");
+        const statusSelect = document.getElementById("campaignStatusFilter");
+
+        if (searchInput) {
+            searchInput.addEventListener("input", (e) => {
+                this._filters.search = e.target.value || "";
+                this.update({ connected: true });
+            });
+        }
+
+        if (statusSelect) {
+            statusSelect.addEventListener("change", (e) => {
+                this._filters.status = e.target.value || "all";
+                this.update({ connected: true });
+            });
+        }
     }
 };
 
