@@ -1,483 +1,460 @@
-// creativeLibrary.js – SignalOne.cloud
-// Datads-Level Creative Library (Full KPIs, Grouping, Ranking, Bars)
-// --------------------------------------------------------------
+/* ------------------------------------------------------------
+   ERWEITERTE CREATIVE LIBRARY FUNKTIONEN
+   Füge diese Funktionen zu deiner creativeLibrary.js hinzu
+------------------------------------------------------------- */
 
 import { AppState } from "./state.js";
-import { fetchMetaAds } from "./metaApi.js";
+import { demoCreatives, demoCreators, demoHookAnalysis } from "./demoData.js";
 import { showToast, openModal } from "./uiCore.js";
 
-let filtersInitialized = false;
+/* -----------------------------------------------------------
+    TOP PERFORMERS & BOTTOM PERFORMERS CARDS
+    (Für Dashboard Integration)
+----------------------------------------------------------- */
 
-/* ================================================================
-   1. Insights / Metrics Helpers
-==================================================================*/
+export function renderCreativePerformanceCards() {
+    const isDemo = !!AppState.settings?.demoMode;
+    
+    if (!isDemo) return;
 
-function getInsights(ad) {
-    return ad?.insights?.data?.[0] || {};
-}
+    // Top 3 Winners
+    const topCreatives = [...demoCreatives]
+        .filter(c => c.performance === "Winner" || c.performance === "Gut")
+        .sort((a, b) => b.roas - a.roas)
+        .slice(0, 3);
 
-function getAction(ins, type) {
-    const list = ins?.actions;
-    if (!Array.isArray(list)) return 0;
-    const entry = list.find((a) => a.action_type === type);
-    return entry ? Number(entry.value || 0) : 0;
-}
-
-function getActionValue(ins, type) {
-    const list = ins?.action_values;
-    if (!Array.isArray(list)) return 0;
-    const entry = list.find((a) => a.action_type === type);
-    return entry ? Number(entry.value || 0) : 0;
-}
-
-function getAdMetrics(ad) {
-    const ins = getInsights(ad);
-
-    const spend = Number(ins.spend || 0);
-    const impressions = Number(ins.impressions || 0);
-    const clicks = Number(ins.clicks || 0);
-
-    const purchases =
-        getAction(ins, "purchase") ||
-        getAction(ins, "offsite_conversion.purchase") ||
-        getAction(ins, "website_purchase");
-
-    const revenue =
-        getActionValue(ins, "purchase") ||
-        getActionValue(ins, "offsite_conversion.purchase") ||
-        getActionValue(ins, "website_purchase");
-
-    const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
-    const roas = spend > 0 && revenue > 0 ? revenue / spend : 0;
-    const cpp = purchases > 0 ? spend / purchases : 0;
-    const cpc = clicks > 0 ? spend / clicks : 0;
-
-    const hooks =
-        getAction(ins, "link_click") ||
-        getAction(ins, "post_engagement") ||
-        0;
-
-    const videoPlays =
-        getAction(ins, "video_plays") ||
-        getAction(ins, "video_10s_views") ||
-        0;
-
-    const hookToClickRatio = hooks > 0 ? (clicks / hooks) * 100 : 0;
-    const thumbstopRatio =
-        impressions > 0 && videoPlays > 0
-            ? (videoPlays / impressions) * 100
-            : 0;
+    // Bottom Performers
+    const bottomCreatives = [...demoCreatives]
+        .filter(c => c.performance === "Schwach")
+        .slice(0, 2);
 
     return {
-        spend,
-        impressions,
-        clicks,
-        ctr,
-        roas,
-        cpp,
-        cpc,
-        purchases,
-        revenue,
-        hookToClickRatio,
-        thumbstopRatio
+        topPerformers: renderTopPerformersHTML(topCreatives),
+        bottomPerformers: renderBottomPerformersHTML(bottomCreatives)
     };
 }
 
-/* ================================================================
-   2. Creative Type + Thumbnail
-==================================================================*/
+function renderTopPerformersHTML(creatives) {
+    if (!creatives.length) return "";
 
-function getAdType(ad) {
-    const spec = ad?.creative?.object_story_spec;
-    if (!spec) return "static";
-    if (spec.video_data) return "video";
-    if (spec.carousel_data) return "carousel";
-    if (spec.link_data) return "static";
-    return "static";
+    return `
+        <div class="performance-cards-section top-performers">
+            <h3 class="section-title">🏆 Top Performers (letzte 7 Tage)</h3>
+            <div class="performance-cards-grid">
+                ${creatives.map((c, idx) => `
+                    <div class="performance-card top-performer" data-creative-id="${c.id}">
+                        <div class="performance-rank">${["🥇", "🥈", "🥉"][idx]}</div>
+                        <div class="performance-thumbnail">
+                            <img src="${c.thumbnail}" alt="${c.name}" />
+                            <div class="performance-score">Score: ${c.score}/100</div>
+                        </div>
+                        <div class="performance-content">
+                            <div class="performance-name">${c.name}</div>
+                            <div class="performance-meta">
+                                ${c.creator ? `👤 ${c.creator}` : "📸 Static"} • 
+                                ${c.hook} • 
+                                ${c.days_running} Tage
+                            </div>
+                            <div class="performance-metrics">
+                                <div class="metric-chip roas">
+                                    <span class="metric-label">ROAS</span>
+                                    <span class="metric-value">${c.roas.toFixed(1)}x</span>
+                                </div>
+                                <div class="metric-chip spend">
+                                    <span class="metric-label">Spend</span>
+                                    <span class="metric-value">€${formatNumber(c.spend)}</span>
+                                </div>
+                                <div class="metric-chip ctr">
+                                    <span class="metric-label">CTR</span>
+                                    <span class="metric-value">${c.ctr.toFixed(1)}%</span>
+                                </div>
+                            </div>
+                            <div class="performance-badges">
+                                <span class="badge winner">✨ ${c.performance}</span>
+                                <span class="badge hook">${c.hook}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join("")}
+            </div>
+        </div>
+    `;
 }
 
-function getAdThumbnail(ad) {
-    const creative = ad.creative || {};
+function renderBottomPerformersHTML(creatives) {
+    if (!creatives.length) return "";
 
-    if (creative.thumbnail_url) return creative.thumbnail_url;
-
-    const spec = creative.object_story_spec || {};
-
-    if (spec.video_data?.thumbnail_url) return spec.video_data.thumbnail_url;
-    if (spec.link_data?.image_url) return spec.link_data.image_url;
-
-    return null;
+    return `
+        <div class="performance-cards-section bottom-performers">
+            <h3 class="section-title danger">💀 Bottom Performers — Immediate Action Needed</h3>
+            <div class="performance-cards-grid">
+                ${creatives.map(c => `
+                    <div class="performance-card bottom-performer" data-creative-id="${c.id}">
+                        <div class="danger-badge">❌ LOSER</div>
+                        <div class="performance-thumbnail faded">
+                            <img src="${c.thumbnail}" alt="${c.name}" />
+                        </div>
+                        <div class="performance-content">
+                            <div class="performance-name">${c.name}</div>
+                            <div class="performance-metrics danger">
+                                <span>ROAS ${c.roas.toFixed(1)}x</span>
+                                <span>€${formatNumber(c.spend)} verschwendet</span>
+                                <span>CTR ${c.ctr.toFixed(1)}%</span>
+                            </div>
+                            <div class="sensei-recommendation-box">
+                                <div class="sensei-icon-small">🧠</div>
+                                <div class="recommendation-text">
+                                    <strong>SENSEI EMPFEHLUNG:</strong><br>
+                                    Pausiere sofort. Ersetze durch Hook-Based UGC. 
+                                    Teste Variante mit Creator Mia (historisch +180% besser).
+                                </div>
+                            </div>
+                            <div class="action-buttons-compact">
+                                <button class="btn-danger btn-sm" onclick="pauseCreative('${c.id}')">
+                                    ⏸️ Pausieren
+                                </button>
+                                <button class="btn-secondary btn-sm" onclick="showCreativeDetails('${c.id}')">
+                                    📊 Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join("")}
+            </div>
+        </div>
+    `;
 }
 
-/* ================================================================
-   3. Grouping Logic
-==================================================================*/
+/* -----------------------------------------------------------
+    CREATOR LEADERBOARD
+----------------------------------------------------------- */
 
-function getGroupKey(ad, mode) {
-    const creative = ad.creative || {};
-    const spec = creative.object_story_spec || {};
+export function renderCreatorLeaderboard() {
+    const container = document.getElementById("creatorLeaderboardContainer");
+    if (!container) return;
 
-    switch (mode) {
-        case "creative":
-            return creative.id || ad.creative_id || ad.id;
+    const isDemo = !!AppState.settings?.demoMode;
 
-        case "ad_name":
-            return (ad.name || "").trim() || "Unnamed Ad";
-
-        case "headline":
-            return (
-                spec?.link_data?.message ||
-                spec?.video_data?.title ||
-                spec?.link_data?.name ||
-                "Ohne Headline"
-            );
-
-        case "landing_page":
-            return (
-                spec?.link_data?.link ||
-                spec?.link_data?.link_url ||
-                "Ohne Landing Page"
-            );
-
-        case "post_id":
-            return creative.object_story_id || ad.id;
-
-        default:
-            return ad.id;
-    }
-}
-
-function getGroupLabel(ad, mode) {
-    const creative = ad.creative || {};
-    const spec = creative.object_story_spec || {};
-
-    switch (mode) {
-        case "creative":
-            return `Creative ${creative.id || ad.id}`;
-
-        case "ad_name":
-            return ad.name || "Unnamed Ad";
-
-        case "headline":
-            return (
-                spec?.link_data?.message ||
-                spec?.video_data?.title ||
-                spec?.link_data?.name ||
-                "Ohne Headline"
-            );
-
-        case "landing_page":
-            return (
-                spec?.link_data?.link ||
-                spec?.link_data?.link_url ||
-                "Ohne Landing Page"
-            );
-
-        case "post_id":
-            return `Post ${creative.object_story_id || ad.id}`;
-
-        default:
-            return ad.name || `Ad ${ad.id}`;
-    }
-}
-
-function groupAds(ads, mode) {
-    if (!mode || mode === "none") {
-        return ads.map((ad) => {
-            const metrics = getAdMetrics(ad);
-            return { key: ad.id, label: getGroupLabel(ad, "none"), ads: [ad], metrics };
-        });
-    }
-
-    const map = new Map();
-
-    ads.forEach((ad) => {
-        const key = getGroupKey(ad, mode);
-        const label = getGroupLabel(ad, mode);
-        if (!map.has(key)) {
-            map.set(key, { key, label, ads: [] });
-        }
-        map.get(key).ads.push(ad);
-    });
-
-    const groups = [];
-
-    for (const [, group] of map.entries()) {
-        let agg = {
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            purchases: 0,
-            revenue: 0,
-            hookToClickRatio: 0,
-            thumbstopRatio: 0
-        };
-
-        group.ads.forEach((ad) => {
-            const m = getAdMetrics(ad);
-            agg.spend += m.spend;
-            agg.impressions += m.impressions;
-            agg.clicks += m.clicks;
-            agg.purchases += m.purchases;
-            agg.revenue += m.revenue;
-            agg.hookToClickRatio += m.hookToClickRatio;
-            agg.thumbstopRatio += m.thumbstopRatio;
-        });
-
-        agg.ctr =
-            agg.impressions > 0
-                ? (agg.clicks / agg.impressions) * 100
-                : 0;
-
-        agg.roas =
-            agg.spend > 0 && agg.revenue > 0 ? agg.revenue / agg.spend : 0;
-
-        agg.cpp = agg.purchases > 0 ? agg.spend / agg.purchases : 0;
-        agg.cpc = agg.clicks > 0 ? agg.spend / agg.clicks : 0;
-
-        group.metrics = agg;
-        groups.push(group);
-    }
-
-    return groups;
-}
-
-/* ================================================================
-   4. Core API
-==================================================================*/
-
-export async function updateCreativeLibraryView(initialLoad = false) {
-    const grid = document.getElementById("creativeLibraryGrid");
-    if (!grid) return;
-
-    initCreativeLibraryFiltersOnce();
-
-    if (!AppState.metaConnected) {
-        grid.innerHTML = "<p style='color:var(--text-secondary);'>Nicht verbunden.</p>";
+    if (!isDemo) {
+        container.innerHTML = "";
         return;
     }
 
-    if (!AppState.selectedAccountId) {
-        grid.innerHTML = "<p style='color:var(--text-secondary);'>Kein Werbekonto gewählt.</p>";
-        return;
-    }
+    const creators = demoCreators || [];
 
-    if (initialLoad || !AppState.creativesLoaded) {
-        try {
-            const ads = await fetchMetaAds(AppState.selectedAccountId);
-            AppState.meta.ads = Array.isArray(ads) ? ads : [];
-            AppState.creativesLoaded = true;
-        } catch (err) {
-            console.error(err);
-            showToast("Fehler beim Laden der Creatives.", "error");
-            return;
-        }
-    }
-
-    renderCreativeLibrary();
-}
-
-function initCreativeLibraryFiltersOnce() {
-    if (filtersInitialized) return;
-    filtersInitialized = true;
-
-    ["creativeSearch", "creativeSort", "creativeType", "creativeGroupBy"].forEach(
-        (id) => {
-            const el = document.getElementById(id);
-            if (el) el.addEventListener("input", () => renderCreativeLibrary());
-            if (el) el.addEventListener("change", () => renderCreativeLibrary());
-        }
-    );
-}
-
-/* ================================================================
-   5. RENDER – Datads Full Card Layout
-==================================================================*/
-
-export function renderCreativeLibrary() {
-    const grid = document.getElementById("creativeLibraryGrid");
-    if (!grid) return;
-
-    const search = document.getElementById("creativeSearch")?.value?.toLowerCase() || "";
-    const sort = document.getElementById("creativeSort")?.value || "roas_desc";
-    const typeFilter = document.getElementById("creativeType")?.value || "all";
-    const groupBy = document.getElementById("creativeGroupBy")?.value || "none";
-
-    let ads = [...(AppState.meta.ads || [])];
-
-    if (typeFilter !== "all") {
-        ads = ads.filter((ad) => getAdType(ad) === typeFilter);
-    }
-
-    if (search.length > 0) {
-        ads = ads.filter((ad) => (ad.name || "").toLowerCase().includes(search));
-    }
-
-    let groups = groupAds(ads, groupBy);
-
-    groups.sort((a, b) => {
-        const ma = a.metrics;
-        const mb = b.metrics;
-
-        if (sort === "roas_desc") return mb.roas - ma.roas;
-        if (sort === "spend_desc") return mb.spend - ma.spend;
-        if (sort === "spend_asc") return ma.spend - mb.spend;
-        return 0;
-    });
-
-    const frag = document.createDocumentFragment();
-    grid.innerHTML = "";
-
-    groups.forEach((group, index) => {
-        const anyAd = group.ads[0];
-        const m = group.metrics;
-
-        const thumb = getAdThumbnail(anyAd);
-        const adType = getAdType(anyAd);
-
-        const purchases = m.purchases || 0;
-        const cpp = m.cpp || 0;
-        const spend = m.spend || 0;
-        const hcr = m.hookToClickRatio || 0;
-        const tsr = m.thumbstopRatio || 0;
-        const cpc = m.cpc || 0;
-        const ctr = m.ctr || 0;
-        const roas = m.roas || 0;
-        const clicks = m.clicks || 0;
-
-        const kp = (v, s = "", d = 2) =>
-            v > 0 ? v.toFixed(d) + s : "--";
-
-        const roasWidth = Math.min(roas * 20, 100);
-        const spendNorm = Math.min(spend / 10, 100);
-
-        const card = document.createElement("div");
-        card.className = "creative-library-item";
-
-        card.innerHTML = `
-            <div class="creative-media-container-library">
-                ${
-                    thumb
-                        ? `<img src="${thumb}" alt="${group.label}" />`
-                        : `<div class="creative-faux-thumb">${
-                              adType === "video" ? "▶" : "?"
-                          }</div>`
-                }
-                ${
-                    groupBy !== "none"
-                        ? `<div class="creative-rank-badge">#${index + 1}</div>`
-                        : ""
-                }
-            </div>
-
-            <div class="creative-stats">
-                <div class="creative-name-library">${group.label}</div>
-                <div class="creative-meta">${group.ads.length} Ad${
-            group.ads.length > 1 ? "s" : ""
-        } • ${adType}</div>
-
-                <div class="creative-kpi-line"><span class="creative-kpi-label">Purchases</span><span class="creative-kpi-value">${purchases}</span></div>
-                <div class="creative-kpi-line"><span class="creative-kpi-label">Cost per Purchase</span><span class="creative-kpi-value">€${kp(cpp)}</span></div>
-                <div class="creative-kpi-line"><span class="creative-kpi-label">Spend</span><span class="creative-kpi-value">€${kp(spend)}</span></div>
-                <div class="creative-kpi-line"><span class="creative-kpi-label">Hook → Click Ratio</span><span class="creative-kpi-value">${kp(hcr, "%", 1)}</span></div>
-                <div class="creative-kpi-line"><span class="creative-kpi-label">Thumbstop Ratio</span><span class="creative-kpi-value">${kp(tsr, "%", 1)}</span></div>
-                <div class="creative-kpi-line"><span class="creative-kpi-label">CPC</span><span class="creative-kpi-value">€${kp(cpc, "", 3)}</span></div>
-                <div class="creative-kpi-line"><span class="creative-kpi-label">CTR</span><span class="creative-kpi-value">${kp(ctr, "%")}</span></div>
-
-                <div class="kpi-bar-visual">
-                    <span class="kpi-label-small">ROAS</span>
-                    <div class="kpi-slider-track">
-                        <div class="kpi-slider-fill ${
-                            roas >= 2 ? "fill-positive" : "fill-negative"
-                        }" style="width:${roasWidth}%"></div>
+    container.innerHTML = `
+        <div class="creator-leaderboard-section">
+            <h3 class="section-title">👤 Creator Leaderboard (Top Performers)</h3>
+            <div class="creator-leaderboard-grid">
+                ${creators.map((creator, idx) => `
+                    <div class="creator-card ${creator.trend}" data-creator-id="${creator.id}">
+                        <div class="creator-rank">${idx + 1}</div>
+                        <div class="creator-avatar">
+                            <img src="${creator.avatar}" alt="${creator.name}" />
+                            ${creator.trend === "up" ? '<div class="trend-badge up">📈</div>' : ""}
+                            ${creator.trend === "down" ? '<div class="trend-badge down">📉</div>' : ""}
+                        </div>
+                        <div class="creator-content">
+                            <div class="creator-name">${creator.name}</div>
+                            <div class="creator-stats">
+                                <div class="stat-row">
+                                    <span class="stat-label">Performance Score</span>
+                                    <span class="stat-value score">${creator.performance_score}/100</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Avg ROAS</span>
+                                    <span class="stat-value">${creator.avg_roas.toFixed(1)}x</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Avg CTR</span>
+                                    <span class="stat-value">${creator.avg_ctr.toFixed(1)}%</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Total Spend</span>
+                                    <span class="stat-value">€${formatNumber(creator.total_spend)}</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Win Rate</span>
+                                    <span class="stat-value">${creator.win_rate}%</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Creatives</span>
+                                    <span class="stat-value">${creator.total_creatives} (${creator.active_creatives} aktiv)</span>
+                                </div>
+                            </div>
+                            <button class="btn-secondary btn-sm btn-creator-profile" data-creator-id="${creator.id}">
+                                👤 Profil ansehen
+                            </button>
+                        </div>
                     </div>
-                </div>
-
-                <div class="kpi-bar-visual">
-                    <span class="kpi-label-small">Spend</span>
-                    <div class="kpi-slider-track">
-                        <div class="kpi-slider-fill fill-spend" style="width:${spendNorm}%"></div>
-                    </div>
-                </div>
-
-                <div class="creative-footer-kpis">
-                    <span>ROAS: ${kp(roas, "x")}</span>
-                    <span>CTR: ${kp(ctr, "%")}</span>
-                    <span>Clicks: ${clicks}</span>
-                </div>
+                `).join("")}
             </div>
-        `;
-
-        card.addEventListener("click", () => openCreativeModal(group));
-        frag.appendChild(card);
-    });
-
-    grid.appendChild(frag);
-}
-
-/* ================================================================
-   6. Creative Modal
-==================================================================*/
-
-function openCreativeModal(group) {
-    const m = group.metrics;
-    const anyAd = group.ads[0];
-    const thumb = getAdThumbnail(anyAd);
-    const adType = getAdType(anyAd);
-
-    const kp = (v, s = "", d = 2) =>
-        v > 0 ? v.toFixed(d) + s : "--";
-
-    const html = `
-        <div class="modal-section">
-            <div class="modal-section-title">Creative Group</div>
-            <div class="modal-row" style="align-items:flex-start;">
-                <div style="flex:1;">
-                    <div style="font-weight:700; font-size:16px; margin-bottom:6px;">${group.label}</div>
-                    <div style="font-size:13px;color:var(--text-secondary);">
-                        ${group.ads.length} Ad${group.ads.length > 1 ? "s" : ""} • Typ: ${adType}
-                    </div>
-                </div>
-
-                <div style="width:160px;height:100px;border-radius:10px;overflow:hidden;border:1px solid var(--border);">
-                ${
-                    thumb
-                        ? `<img src="${thumb}" style="width:100%;height:100%;object-fit:cover;"/>`
-                        : `<div class="creative-faux-thumb" style="height:100%;">${
-                              adType === "video" ? "▶" : "?"
-                          }</div>`
-                }
-                </div>
-            </div>
-        </div>
-
-        <div class="modal-section">
-            <div class="modal-section-title">Performance (aggregiert)</div>
-
-            <div class="modal-kpis-grid">
-                <div class="metric-chip"><div class="metric-label">Purchases</div><div class="metric-value">${m.purchases}</div></div>
-                <div class="metric-chip"><div class="metric-label">CPP</div><div class="metric-value">€${kp(m.cpp)}</div></div>
-                <div class="metric-chip"><div class="metric-label">Spend</div><div class="metric-value">€${kp(m.spend)}</div></div>
-                <div class="metric-chip"><div class="metric-label">ROAS</div><div class="metric-value">${kp(m.roas, "x")}</div></div>
-                <div class="metric-chip"><div class="metric-label">CTR</div><div class="metric-value">${kp(m.ctr, "%")}</div></div>
-                <div class="metric-chip"><div class="metric-label">CPC</div><div class="metric-value">€${kp(m.cpc, "", 3)}</div></div>
-                <div class="metric-chip"><div class="metric-label">Hook → Click</div><div class="metric-value">${kp(m.hookToClickRatio, "%", 1)}</div></div>
-                <div class="metric-chip"><div class="metric-label">Thumbstop Ratio</div><div class="metric-value">${kp(m.thumbstopRatio, "%", 1)}</div></div>
-            </div>
-        </div>
-
-        <div class="modal-section">
-            <div class="modal-section-title">Enthaltene Ads</div>
-            <ul style="max-height:200px;overflow:auto;font-size:13px;padding-left:18px;">
-                ${group.ads
-                    .map(
-                        (ad) =>
-                            `<li><strong>${ad.name || "Ohne Namen"}</strong> – ID: ${ad.id}</li>`
-                    )
-                    .join("")}
-            </ul>
         </div>
     `;
 
-    openModal("Creative Details", html);
+    // Event Listeners
+    document.querySelectorAll(".btn-creator-profile").forEach(btn => {
+        btn.addEventListener("click", function() {
+            const creatorId = this.getAttribute("data-creator-id");
+            showCreatorProfile(creatorId);
+        });
+    });
 }
+
+/* -----------------------------------------------------------
+    CREATOR PROFILE MODAL
+----------------------------------------------------------- */
+
+function showCreatorProfile(creatorId) {
+    const creator = demoCreators.find(c => c.id === creatorId);
+    if (!creator) return;
+
+    // Get creatives by this creator
+    const creatorCreatives = demoCreatives.filter(c => c.creator === creator.name);
+
+    const html = `
+        <div class="creator-profile-modal">
+            <!-- Header -->
+            <div class="profile-header">
+                <div class="profile-avatar-large">
+                    <img src="${creator.avatar}" alt="${creator.name}" />
+                </div>
+                <div class="profile-header-content">
+                    <h3 class="profile-name">${creator.name}</h3>
+                    <div class="profile-score">
+                        Performance Score: <strong>${creator.performance_score}/100</strong>
+                        ${creator.trend === "up" ? "📈" : creator.trend === "down" ? "📉" : ""}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lifetime Stats -->
+            <div class="modal-section">
+                <h4 class="modal-section-title">📊 Lifetime Stats</h4>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-label">Creatives</div>
+                        <div class="stat-value-large">${creator.total_creatives}</div>
+                        <div class="stat-sub">${creator.active_creatives} aktiv</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Total Spend</div>
+                        <div class="stat-value-large">€${formatNumber(creator.total_spend)}</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Total Revenue</div>
+                        <div class="stat-value-large">€${formatNumber(creator.total_revenue)}</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Avg ROAS</div>
+                        <div class="stat-value-large">${creator.avg_roas.toFixed(1)}x</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Win Rate</div>
+                        <div class="stat-value-large">${creator.win_rate}%</div>
+                        <div class="stat-sub">${Math.round(creator.total_creatives * creator.win_rate / 100)} Winners</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Strengths & Weaknesses -->
+            <div class="modal-section">
+                <h4 class="modal-section-title">🎯 Stärken & Schwächen</h4>
+                ${creator.strengths.length > 0 ? `
+                    <div class="strengths-box">
+                        <div class="box-label">✅ Stärken:</div>
+                        <ul class="strengths-list">
+                            ${creator.strengths.map(s => `<li>${s}</li>`).join("")}
+                        </ul>
+                    </div>
+                ` : ""}
+                ${creator.weaknesses.length > 0 ? `
+                    <div class="weaknesses-box">
+                        <div class="box-label">⚠️ Schwächen:</div>
+                        <ul class="weaknesses-list">
+                            ${creator.weaknesses.map(w => `<li>${w}</li>`).join("")}
+                        </ul>
+                    </div>
+                ` : ""}
+            </div>
+
+            <!-- Sensei Recommendation -->
+            <div class="sensei-recommendation-large">
+                <div class="sensei-icon-large">🧠</div>
+                <div class="sensei-content-large">
+                    <h4>SENSEI EMPFEHLUNG:</h4>
+                    <p>
+                        ${creator.name} ist ${creator.performance_score >= 85 ? "einer deiner Top-Performer" : creator.performance_score >= 70 ? "ein solider Performer" : "unter Benchmark"}.
+                        ${creator.performance_score >= 85 ? `Produziere sofort 5 weitere Varianten mit ${creator.name}. Fokus: ${creator.strengths[0]}. Erwarteter zusätzlicher Revenue: €${formatNumber(Math.round(creator.total_revenue * 0.35))}/Monat bei gleichem Budget.` : ""}
+                    </p>
+                </div>
+            </div>
+
+            <!-- All Creatives by this Creator -->
+            <div class="modal-section">
+                <h4 class="modal-section-title">🎬 Alle Creatives von ${creator.name} (${creatorCreatives.length})</h4>
+                <div class="creatives-mini-grid">
+                    ${creatorCreatives.map(c => `
+                        <div class="creative-mini-card" onclick="showCreativeDetails('${c.id}')">
+                            <img src="${c.thumbnail}" alt="${c.name}" />
+                            <div class="mini-card-overlay">
+                                <div class="mini-card-metric">ROAS: ${c.roas.toFixed(1)}x</div>
+                                <div class="mini-card-metric">CTR: ${c.ctr.toFixed(1)}%</div>
+                            </div>
+                        </div>
+                    `).join("")}
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="modal-actions">
+                <button class="btn-primary" onclick="orderNewCreatives('${creator.id}')">
+                    🎨 Neue Creatives bestellen
+                </button>
+                <button class="btn-secondary" onclick="contactCreator('${creator.id}')">
+                    📧 Kontakt
+                </button>
+            </div>
+        </div>
+    `;
+
+    openModal(`👤 Creator Profil: ${creator.name}`, html);
+}
+
+/* -----------------------------------------------------------
+    HOOK ANALYSIS VIEW
+----------------------------------------------------------- */
+
+export function renderHookAnalysis() {
+    const container = document.getElementById("hookAnalysisContainer");
+    if (!container) return;
+
+    const isDemo = !!AppState.settings?.demoMode;
+
+    if (!isDemo) {
+        container.innerHTML = "";
+        return;
+    }
+
+    const hooks = demoHookAnalysis || [];
+
+    container.innerHTML = `
+        <div class="hook-analysis-section">
+            <h3 class="section-title">🎬 Hook Performance Analysis</h3>
+            <p class="section-description">
+                Analysiere, welche Hook-Typen am besten performen und optimiere deine Creative-Strategie.
+            </p>
+            
+            <div class="hook-cards-grid">
+                ${hooks.map((hook, idx) => {
+                    const rankEmoji = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `#${idx + 1}`;
+                    const performanceClass = hook.avg_roas >= 6 ? "excellent" : hook.avg_roas >= 4 ? "good" : hook.avg_roas >= 3 ? "medium" : "poor";
+                    
+                    return `
+                        <div class="hook-card ${performanceClass}">
+                            <div class="hook-card-header">
+                                <div class="hook-rank">${rankEmoji}</div>
+                                <div class="hook-title">${hook.hook_type}</div>
+                            </div>
+                            
+                            <div class="hook-metrics-grid">
+                                <div class="hook-metric">
+                                    <span class="hook-metric-label">Avg ROAS</span>
+                                    <span class="hook-metric-value">${hook.avg_roas.toFixed(1)}x</span>
+                                </div>
+                                <div class="hook-metric">
+                                    <span class="hook-metric-label">Avg CTR</span>
+                                    <span class="hook-metric-value">${hook.avg_ctr.toFixed(1)}%</span>
+                                </div>
+                                <div class="hook-metric">
+                                    <span class="hook-metric-label">Win Rate</span>
+                                    <span class="hook-metric-value">${hook.win_rate}%</span>
+                                </div>
+                                <div class="hook-metric">
+                                    <span class="hook-metric-label">Creatives</span>
+                                    <span class="hook-metric-value">${hook.total_creatives}</span>
+                                </div>
+                            </div>
+
+                            <div class="hook-spend-bar">
+                                <div class="hook-spend-label">Total Spend:</div>
+                                <div class="hook-spend-value">€${formatNumber(hook.total_spend)}</div>
+                                <div class="hook-progress-bar">
+                                    <div class="hook-progress-fill ${performanceClass}" 
+                                         style="width: ${Math.min(hook.avg_roas * 15, 100)}%"></div>
+                                </div>
+                            </div>
+
+                            <div class="hook-message ${performanceClass}">
+                                ${hook.message}
+                            </div>
+
+                            ${hook.best_example ? `
+                                <div class="hook-best-example">
+                                    <div class="example-label">🌟 Best Example:</div>
+                                    <div class="example-text">${hook.best_example}</div>
+                                </div>
+                            ` : ""}
+                        </div>
+                    `;
+                }).join("")}
+            </div>
+
+            <!-- Sensei Strategic Recommendation -->
+            <div class="hook-sensei-box">
+                <div class="sensei-icon-large">🧠</div>
+                <div class="sensei-content-large">
+                    <h4>SENSEI STRATEGISCHE EMPFEHLUNG</h4>
+                    <p>
+                        <strong>"${hooks[0].hook_type}"</strong> ist dein Winner-Format mit 
+                        ${hooks[0].avg_roas.toFixed(1)}x ROAS und ${hooks[0].win_rate}% Win-Rate.
+                    </p>
+                    <p>
+                        Produziere <strong>80% deiner neuen Creatives</strong> in diesem Stil. 
+                        Erwarteter ROAS Uplift: <strong>+1.2x über 30 Tage</strong>.
+                    </p>
+                    <div class="sensei-action-steps">
+                        <h5>Nächste Schritte:</h5>
+                        <ul>
+                            <li>✅ 5 neue ${hooks[0].hook_type} Varianten produzieren</li>
+                            <li>❌ Alle ${hooks[hooks.length - 1].hook_type} Creatives pausieren</li>
+                            <li>🧪 A/B Test: ${hooks[0].hook_type} vs ${hooks[1].hook_type}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+/* -----------------------------------------------------------
+    HELPER FUNCTIONS
+----------------------------------------------------------- */
+
+function formatNumber(num) {
+    if (num >= 1000) {
+        return (num / 1000).toFixed(1) + "k";
+    }
+    return num.toFixed(0);
+}
+
+window.pauseCreative = function(creativeId) {
+    alert(`Creative ${creativeId} wird pausiert...\n\n(Demo-Modus — keine echte Aktion)`);
+};
+
+window.showCreativeDetails = function(creativeId) {
+    const creative = demoCreatives.find(c => c.id === creativeId);
+    if (!creative) return;
+    
+    alert(`📊 Creative Details\n\n${creative.name}\n\nROAS: ${creative.roas.toFixed(1)}x\nSpend: €${creative.spend}\n\n(Detailansicht kommt in Phase 2)`);
+};
+
+window.orderNewCreatives = function(creatorId) {
+    alert(`Neue Creatives werden bestellt...\n\n(Demo-Modus — Feature kommt in Phase 2)`);
+};
+
+window.contactCreator = function(creatorId) {
+    alert(`Kontakt zu Creator wird hergestellt...\n\n(Demo-Modus — Feature kommt in Phase 2)`);
+};
+
+console.log("✅ Enhanced Creative Library Functions loaded!");
