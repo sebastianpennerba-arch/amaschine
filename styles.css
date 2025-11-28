@@ -282,7 +282,7 @@ body {
     padding: 8px;
     border-radius: 50%;
     transition: background-color 0.2s, color 0.2s;
-    position: relative; /* für Tooltip */
+    position: relative; /* für Tooltip & Badge */
 }
 
 .header-action-button:hover {
@@ -854,20 +854,22 @@ body {
     }
 }
 
+/* APPLE / PRO STYLE MODAL OVERLAY */
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(18px);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 3000;
     visibility: hidden;
     opacity: 0;
-    transition: visibility 0s, opacity 0.3s;
+    transition: visibility 0s, opacity 0.25s ease;
 }
 
 /* JS setzt .visible */
@@ -879,19 +881,24 @@ body {
 .modal-content {
     background-color: var(--color-card);
     padding: var(--spacing-main);
-    border-radius: var(--radius);
+    border-radius: 24px;
     width: 90%;
-    max-width: 500px;
-    transform: translateY(-50px);
-    transition: transform 0.3s;
+    max-width: 560px;
+    transform: translateY(10px) scale(0.98);
+    transition: transform 0.25s ease, opacity 0.25s ease;
+    box-shadow: 0 24px 80px rgba(15, 23, 42, 0.45);
+    border: 1px solid rgba(148, 163, 184, 0.35);
 }
 
+/* Smooth scale-in when visible */
 .modal-overlay.visible .modal-content {
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
 }
 
 .modal-content h3 {
     margin-bottom: var(--spacing-inner);
+    font-size: 18px;
+    font-weight: 700;
 }
 
 /* Moderner Primary-Button im Modal (kein MS-DOS-Button mehr 😄) */
@@ -907,13 +914,77 @@ body {
     font-weight: 600;
     cursor: pointer;
     box-shadow: var(--shadow-soft);
-    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    transition: background-color 0.2s ease, transform 0.1s ease,
+        box-shadow 0.2s ease;
 }
 
 .primary-btn:hover {
     background-color: var(--color-primary-dark);
     transform: translateY(-1px);
     box-shadow: 0 8px 20px rgba(99, 102, 241, 0.25);
+}
+
+/* Close-Button im Apple-Style */
+#modalCloseButton {
+    margin-top: var(--spacing-inner);
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: none;
+    background: rgba(148, 163, 184, 0.25);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    float: right;
+    margin-left: 8px;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+#modalCloseButton:hover {
+    background: var(--color-primary);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+/* Modal-Detail-Struktur (Sections, Rows) */
+.modal-section {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+}
+.modal-section:last-child {
+    border-bottom: none;
+}
+
+.modal-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.modal-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.modal-row label {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.modal-row select,
+.modal-row input[type="number"],
+.modal-row input[type="text"] {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--color-background);
+    font-size: 13px;
+    min-width: 140px;
 }
 
 /* --- METRIC CHIPS (Campaign / Creative / Sensei) --- */
@@ -1004,11 +1075,47 @@ body {
     border-radius: 10px;
     min-width: 18px;
     text-align: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.header-action-button {
-    position: relative; /* Wichtig für die absolute Badge-Positionierung */
+/* Notification Modal Styling */
+.notification-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--color-background);
+    font-size: 13px;
+}
+
+.notification-title {
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: var(--text-primary);
+}
+
+.notification-message {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.notification-meta {
+    font-size: 11px;
+    color: var(--text-secondary);
+    opacity: 0.8;
+}
+
+.notification-empty {
+    font-size: 13px;
+    color: var(--text-secondary);
 }
 
 /* ========================================
@@ -1107,7 +1214,7 @@ body {
     border-radius: 10px;
     padding: 16px;
     margin-bottom: 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .priority-badge {
@@ -1144,7 +1251,7 @@ body {
 .action-line {
     padding: 6px 0;
     color: var(--text-primary);
-    font-family: 'Courier New', monospace;
+    font-family: "Courier New", monospace;
     font-size: 13px;
 }
 
@@ -1157,7 +1264,10 @@ body {
     color: var(--text-secondary);
 }
 
-.btn-primary, .btn-secondary, .btn-success, .btn-danger {
+.btn-primary,
+.btn-secondary,
+.btn-success,
+.btn-danger {
     padding: 8px 16px;
     border: none;
     border-radius: 6px;
@@ -1449,8 +1559,8 @@ body {
 }
 
 .settings-control select,
-.settings-control input[type=number],
-.settings-control input[type=text] {
+.settings-control input[type="number"],
+.settings-control input[type="text"] {
     padding: 8px 10px;
     border-radius: 8px;
     border: 1px solid var(--border);
