@@ -983,3 +983,155 @@ nav.sidebar {
     max-width: 100%;
   }
 }
+
+/* ==========================================
+   PHASE 2 — PREMIUM DASHBOARD FINISH
+   Eleganter, moderner, cleaner Look
+   ========================================== */
+
+/* KPI-Überschrift */
+#performanceDashboard h3,
+.view h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--color-text-main);
+}
+
+/* Subhead / kleine Titel */
+.dashboard-subtitle {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  margin-bottom: 12px;
+}
+
+/* KPI-Balken Chart (7-Tage-Trend) */
+.dashboard-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0;
+}
+
+.dashboard-bar-label {
+  width: 24px;
+  font-size: 0.8rem;
+  color: var(--color-text-soft);
+}
+
+.dashboard-bar {
+  height: 10px;
+  flex: 1;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    rgba(79, 70, 229, 0.15),
+    rgba(14, 165, 233, 0.15)
+  );
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    rgba(79, 70, 229, 0.55),
+    rgba(14, 165, 233, 0.55)
+  );
+  transition: width 0.6s ease;
+}
+
+/* Balken Wert am Ende */
+.dashboard-bar-value {
+  width: 36px;
+  text-align: right;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+/* Alerts & Checks Box */
+.alerts-box {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  box-shadow: var(--shadow-subtle);
+}
+
+.alerts-box-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--color-text-main);
+}
+
+.alerts-box p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+/* Tabellen Veredelung */
+.dashboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+  margin-top: 20px;
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-subtle);
+}
+
+.dashboard-table th {
+  background: #f9fafb;
+  text-align: left;
+  padding: 10px 12px;
+  color: var(--color-text-soft);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.dashboard-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.8);
+}
+
+.dashboard-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Status Chips */
+.status-chip {
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid var(--color-border-subtle);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-chip.stable {
+  background: var(--color-success-soft);
+  border-color: var(--color-success);
+  color: #166534;
+}
+
+.status-chip.scaling {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+  color: #0369a1;
+}
+
+.status-chip.testing {
+  background: var(--color-warning-soft);
+  border-color: var(--color-warning);
+  color: #b45309;
+}
+
