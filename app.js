@@ -121,25 +121,76 @@ function handleMetaConnectClick() {
             scope: META_OAUTH_CONFIG.scopes
         });
 
-    window.location.href = authUrl;
+    const popup = window.open(
+        authUrl,
+        "MetaLogin",
+        "width=600,height=800,left=200,top=100"
+    );
+
+    if (!popup) {
+        showToast("Popup blockiert!", "error");
+        return;
+    }
+    showToast("Meta Login geöffnet…", "info");
 }
 
-async function handleMetaCallback() {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
+function persistMetaToken(t) {
+    try {
+        if (t) localStorage.setItem(META_TOKEN_STORAGE_KEY, t);
+        else localStorage.removeItem(META_TOKEN_STORAGE_KEY);
+    } catch {}
+}
+
+/* DISCONNECT */
+function disconnectMeta() {
+    AppState.metaConnected = false;
+    AppState.meta = {
+        accessToken: null,
+        adAccounts: [],
+        campaigns: [],
+        insightsByCampaign: {},
+        user: null,
+        ads: [],
+        creatives: []
+    };
+    AppState.selectedAccountId = null;
+    AppState.selectedCampaignId = null;
+    AppState.dashboardLoaded = false;
+    AppState.campaignsLoaded = false;
+    AppState.creativesLoaded = false;
+    AppState.dashboardMetrics = null;
+    clearMetaCache();
+    persistMetaToken(null);
+    updateUI();
+}
+
+/* OAUTH REDIRECT — POPUP FIX DRIN! */
+async function handleMetaOAuthRedirectIfPresent() {
+    const url = new URL(window.location.href);
+    const code = url.searchParams.get("code");
     if (!code) return;
 
+    window.history.replaceState({}, "", "/");
+    showToast("Token wird abgeholt…", "info");
+
     try {
-        const token = await exchangeMetaCodeForToken(code);
-        if (!token) throw new Error("No token");
+        const token = await exchangeMetaCodeForToken(
+            code,
+            META_OAUTH_CONFIG.redirectUri
+        );
+        if (!token) {
+            showToast("OAuth Fehler", "error");
+            return;
+        }
 
         AppState.meta.accessToken = token;
         AppState.metaConnected = true;
-        localStorage.setItem(META_TOKEN_STORAGE_KEY, token);
+        persistMetaToken(token);
         clearMetaCache();
 
-        const user = await fetchMetaUser(token);
-        AppState.meta.user = user;
+        try {
+            AppState.meta.user = await fetchMetaUser(token);
+        } catch {}
 
         await loadAdAccountsAndCampaigns();
         updateUI();
@@ -279,9 +330,6 @@ function applyDashboardNoDataState() {
     const k = document.getElementById("dashboardKpiContainer");
     if (k) k.innerHTML = "<p>Verbinde Meta, um Daten zu sehen.</p>";
 }
-
-// Achtung: Die „alte“ Demo-Fläche bleibt als Fallback – aber
-// der neue Demo-Dashboard-Flow läuft jetzt über dashboard.js.
 function applyDemoDashboardState() {
     const k = document.getElementById("dashboardKpiContainer");
     if (k)
@@ -302,29 +350,17 @@ function updateUI() {
     updateGreeting();
     updateAccountAndCampaignSelectors();
 
-    // DASHBOARD:
-    // 👉 Demo wird jetzt wie eine „echte Connection“ behandelt.
     if (AppState.currentView === "dashboardView") {
-        if (connected || demo) {
-            // dashboard.js entscheidet intern, ob Demo- oder Live-Daten verwendet werden
-            updateDashboardView(connected);
-        } else {
-            applyDashboardNoDataState();
-        }
+        if (connected) updateDashboardView(true);
+        else if (demo) applyDemoDashboardState();
+        else applyDashboardNoDataState();
     }
 
     if (AppState.currentView === "campaignsView") updateCampaignsView(connected);
-
     if (AppState.currentView === "creativesView") {
-        if (connected) {
-            // Live: echte Meta-Daten
-            ensureCreativesLoadedAndRender();
-        } else {
-            // Demo / kein Connect: creativeLibrary.js kümmert sich um Demo-Mode
-            updateCreativeLibraryView(false);
-        }
+        if (connected) ensureCreativesLoadedAndRender();
+        else updateCreativeLibraryView(false);
     }
-
     if (AppState.currentView === "senseiView") updateSenseiView(connected);
     if (AppState.currentView === "reportsView") updateReportsView(connected);
     if (AppState.currentView === "testingLogView") updateTestingLogView(connected);
@@ -354,121 +390,307 @@ function openSystemModal(title, bodyHtml) {
 }
 
 function closeSystemModal() {
-    const { overlay } = getModalElements();
+    const { overlay, bodyEl } = getModalElements();
     if (!overlay) return;
     overlay.classList.remove("visible");
+    if (bodyEl) bodyEl.innerHTML = "";
 }
 
-/* -------------------------------------------------
-   SETTINGS / PROFILE / NOTIFICATIONS BUTTONS
--------------------------------------------------- */
+/* SETTINGS MODAL */
 
-function initTopBarButtons() {
-    const profileBtn = document.getElementById("profileButton");
-    const settingsBtn = document.getElementById("settingsButtonTop");
-    const notifBtn = document.getElementById("notificationsButton");
+function openSettingsModal() {
+    const s = ensureSettings();
 
-    if (profileBtn) {
-        profileBtn.addEventListener("click", () => {
-            const user = AppState.meta?.user;
-            const name = user?.name || "Unbekannter User";
-            const id = user?.id || "–";
+    const bodyHtml = `
+        <div class="modal-section">
+            <div class="modal-section-title">Darstellung</div>
+            <div class="modal-row">
+                <label for="settingsTheme">Theme</label>
+                <select id="settingsTheme">
+                    <option value="light" ${s.theme === "light" ? "selected" : ""}>Light</option>
+                    <option value="dark" ${s.theme === "dark" ? "selected" : ""}>Dark</option>
+                </select>
+            </div>
+        </div>
 
-            const html = `
-                <div class="profile-card">
-                    <div class="profile-avatar">
-                        <span>${name.charAt(0).toUpperCase()}</span>
-                    </div>
-                    <div class="profile-info">
-                        <h3>${name}</h3>
-                        <p>User ID: ${id}</p>
-                        <p>Rolle: Admin</p>
-                    </div>
+        <div class="modal-section">
+            <div class="modal-section-title">Performance & Daten</div>
+            <div class="modal-row">
+                <label for="settingsCacheTtl">Meta Cache TTL (Minuten)</label>
+                <input type="number" id="settingsCacheTtl" min="1" max="120" value="${Number(
+                    s.metaCacheTtlMinutes || 15
+                )}">
+            </div>
+            <div class="modal-row">
+                <label for="settingsDefaultRange">Standard-Zeitraum Dashboard</label>
+                <select id="settingsDefaultRange">
+                    <option value="today" ${
+                        s.defaultTimeRange === "today" ? "selected" : ""
+                    }>Heute</option>
+                    <option value="yesterday" ${
+                        s.defaultTimeRange === "yesterday" ? "selected" : ""
+                    }>Gestern</option>
+                    <option value="last_7d" ${
+                        s.defaultTimeRange === "last_7d" ? "selected" : ""
+                    }>Letzte 7 Tage</option>
+                    <option value="last_30d" ${
+                        s.defaultTimeRange === "last_30d" ? "selected" : ""
+                    }>Letzte 30 Tage</option>
+                    <option value="this_month" ${
+                        s.defaultTimeRange === "this_month" ? "selected" : ""
+                    }>Aktueller Monat</option>
+                    <option value="last_month" ${
+                        s.defaultTimeRange === "last_month" ? "selected" : ""
+                    }>Letzter Monat</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="modal-section">
+            <div class="modal-section-title">Demo Modus</div>
+            <div class="modal-row">
+                <label for="settingsDemoMode">Demo Mode aktivieren</label>
+                <select id="settingsDemoMode">
+                    <option value="true" ${s.demoMode ? "selected" : ""}>Ja</option>
+                    <option value="false" ${!s.demoMode ? "selected" : ""}>Nein</option>
+                </select>
+            </div>
+        </div>
+
+        <button id="settingsSaveButton" class="primary-btn">
+            Speichern
+        </button>
+    `;
+
+    openSystemModal("Einstellungen", bodyHtml);
+
+    // Events erst nach Render hinzufügen
+    const themeSelect = document.getElementById("settingsTheme");
+    const ttlInput = document.getElementById("settingsCacheTtl");
+    const rangeSelect = document.getElementById("settingsDefaultRange");
+    const demoSelect = document.getElementById("settingsDemoMode");
+    const saveBtn = document.getElementById("settingsSaveButton");
+
+    if (saveBtn) {
+        saveBtn.addEventListener("click", () => {
+            const settings = ensureSettings();
+            settings.theme = themeSelect?.value === "dark" ? "dark" : "light";
+
+            const ttlVal = Number(ttlInput?.value || 15);
+            settings.metaCacheTtlMinutes = isNaN(ttlVal) ? 15 : Math.max(1, ttlVal);
+
+            settings.defaultTimeRange =
+                rangeSelect?.value || settings.defaultTimeRange || "last_30d";
+
+            settings.demoMode = demoSelect?.value === "true";
+
+            saveSettingsToStorage();
+            applyThemeFromSettings();
+            applyDashboardTimeRangeFromSettings();
+
+            showToast("Einstellungen gespeichert.", "success");
+            closeSystemModal();
+            updateUI();
+        });
+    }
+}
+
+/* PROFILE MODAL */
+
+function openProfileModal() {
+    const user = AppState.meta?.user;
+    const isConnected = AppState.metaConnected;
+
+    const name = user?.name || "Unbekannt";
+    const id = user?.id || "n/a";
+    const email = user?.email || "nicht verfügbar";
+
+    const bodyHtml = `
+        <div class="modal-section">
+            <div class="modal-section-title">Meta Profil</div>
+            <div class="modal-row">
+                <label>Name</label>
+                <span>${name}</span>
+            </div>
+            <div class="modal-row">
+                <label>User ID</label>
+                <span>${id}</span>
+            </div>
+            <div class="modal-row">
+                <label>E-Mail</label>
+                <span>${email}</span>
+            </div>
+            <div class="modal-row">
+                <label>Status</label>
+                <span>${isConnected ? "Verbunden ✅" : "Getrennt ❌"}</span>
+            </div>
+        </div>
+
+        <div class="modal-section">
+            <div class="modal-section-title">Verbindung</div>
+            <p style="font-size:13px; color:var(--text-secondary); line-height:1.5;">
+                Du kannst die Meta-Verbindung hier trennen. Beim nächsten Login wird ein neuer Token geholt.
+            </p>
+            <button id="disconnectMetaFromProfile" class="primary-btn">
+                Meta Verbindung trennen
+            </button>
+        </div>
+    `;
+
+    openSystemModal("Profil", bodyHtml);
+
+    const btn = document.getElementById("disconnectMetaFromProfile");
+    if (btn) {
+        btn.addEventListener("click", () => {
+            disconnectMeta();
+            showToast("Meta Verbindung getrennt.", "info");
+            closeSystemModal();
+        });
+    }
+}
+
+/* NOTIFICATIONS MODAL */
+
+function openNotificationsModal() {
+    const list = AppState.notifications || [];
+
+    let bodyHtml = "";
+
+    if (!list.length) {
+        bodyHtml = `
+            <div class="modal-section">
+                <div class="modal-section-title">Benachrichtigungen</div>
+                <p class="notification-empty">
+                    Keine neuen Benachrichtigungen.
+                </p>
+            </div>
+        `;
+    } else {
+        const items = list
+            .map(
+                (n) => `
+            <div class="notification-item">
+                <div class="notification-title">${n.title || "Notification"}</div>
+                <div class="notification-message">
+                    ${n.message || ""}
                 </div>
-            `;
-            openSystemModal("Profil", html);
-        });
-    }
+                <div class="notification-meta">
+                    ${n.timestamp || ""}
+                </div>
+            </div>
+        `
+            )
+            .join("");
 
-    if (settingsBtn) {
-        settingsBtn.addEventListener("click", () => {
-            const html = initSettings(ensureSettings, saveSettingsToStorage, applyThemeFromSettings, applyDashboardTimeRangeFromSettings);
-            openSystemModal("Settings", html);
-        });
-    }
-
-    if (notifBtn) {
-        notifBtn.addEventListener("click", () => {
-            const html = `
+        bodyHtml = `
+            <div class="modal-section">
+                <div class="modal-section-title">Benachrichtigungen</div>
                 <div class="notification-list">
-                    <div class="notification-item">
-                        <div class="notification-title">Demo-Mode aktiv</div>
-                        <div class="notification-message">
-                            Alle Daten, die du aktuell siehst, basieren auf einem voll simulierten Account.
-                        </div>
-                        <div class="notification-meta">Gerade eben • System</div>
-                    </div>
-                    <div class="notification-item">
-                        <div class="notification-title">Sensei aktiviert</div>
-                        <div class="notification-message">
-                            Sensei analysiert dein Konto in Echtzeit, sobald du Meta verbindest.
-                        </div>
-                        <div class="notification-meta">Heute • AI Layer</div>
-                    </div>
+                    ${items}
                 </div>
-            `;
-            openSystemModal("Benachrichtigungen", html);
-        });
+            </div>
+        `;
     }
 
-    const { closeBtn } = getModalElements();
-    if (closeBtn) closeBtn.addEventListener("click", closeSystemModal);
-    const overlay = document.getElementById("modalOverlay");
-    if (overlay) {
-        overlay.addEventListener("click", (e) => {
-            if (e.target === overlay) closeSystemModal();
-        });
+    openSystemModal("Benachrichtigungen", bodyHtml);
+
+    // Badge & State zurücksetzen
+    const badge = document.getElementById("notificationsBadge");
+    if (badge) {
+        badge.classList.add("hidden");
+        badge.textContent = "0";
     }
 }
 
 /* INIT */
-function init() {
-    if (!window.AppState) window.AppState = AppState;
-
+document.addEventListener("DOMContentLoaded", async () => {
     ensureSettings();
     loadSettingsFromStorage();
     applyThemeFromSettings();
+
+    loadMetaTokenFromStorage();
     applyDashboardTimeRangeFromSettings();
 
+    showView(AppState.currentView);
     initSidebarNavigation(showView);
+    initSettings();
     initDateTime();
+    updateGreeting();
 
-    const connectBtn = document.getElementById("connectMetaButton");
-    if (connectBtn) connectBtn.addEventListener("click", handleMetaConnectClick);
+    const btn = document.getElementById("connectMetaButton");
+    if (btn) btn.addEventListener("click", handleMetaConnectClick);
 
-    document
-        .getElementById("dashboardTimeRange")
-        ?.addEventListener("change", () => updateUI());
+    const d = document.getElementById("disconnectMetaButton");
+    if (d) d.addEventListener("click", disconnectMeta);
 
-    // Settings Button (Sidebar)
-    const sidebarSettingsBtn = document.getElementById("openSettingsButton");
-    if (sidebarSettingsBtn) {
-        sidebarSettingsBtn.addEventListener("click", () => {
-            const html = initSettings(ensureSettings, saveSettingsToStorage, applyThemeFromSettings, applyDashboardTimeRangeFromSettings);
-            openSystemModal("Settings", html);
+    // Zeitbereich-Änderung beeinflusst das Dashboard
+    const timeRange = document.getElementById("dashboardTimeRange");
+    if (timeRange) {
+        timeRange.addEventListener("change", (e) => {
+            const value = e.target.value || "last_30d";
+            AppState.timeRangePreset = value;
+            const s = ensureSettings();
+            s.defaultTimeRange = value;
+            saveSettingsToStorage();
+            AppState.dashboardLoaded = false;
+            updateUI();
         });
     }
 
-    initTopBarButtons();
-    loadMetaTokenFromStorage();
-    updateUI();
-}
+    await handleMetaOAuthRedirectIfPresent();
 
-document.addEventListener("DOMContentLoaded", () => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("code")) {
-        handleMetaCallback();
-    } else {
-        init();
+    const acc = document.getElementById("brandSelect");
+    if (acc)
+        acc.addEventListener("change", async (e) => {
+            AppState.selectedAccountId = e.target.value || null;
+            AppState.selectedCampaignId = null;
+            AppState.dashboardLoaded = false;
+            AppState.campaignsLoaded = false;
+            AppState.creativesLoaded = false;
+            clearMetaCache();
+            await loadAdAccountsAndCampaigns();
+            updateUI();
+        });
+
+    const camp = document.getElementById("campaignGroupSelect");
+    if (camp)
+        camp.addEventListener("change", (e) => {
+            AppState.selectedCampaignId = e.target.value || null;
+            AppState.dashboardLoaded = false;
+            AppState.creativesLoaded = false;
+            updateUI();
+        });
+
+    // 🔘 SETTINGS BUTTON (Sidebar)
+    const settingsBtn = document.getElementById("openSettingsButton");
+    if (settingsBtn) {
+        settingsBtn.addEventListener("click", () => {
+            openSettingsModal();
+        });
+    }
+
+    // 🔘 PROFILE BUTTON (Topbar)
+    const profileBtn = document.getElementById("profileButton");
+    if (profileBtn) {
+        profileBtn.addEventListener("click", () => {
+            openProfileModal();
+        });
+    }
+
+    // 🔘 NOTIFICATIONS BUTTON (Topbar)
+    const notificationsBtn = document.getElementById("notificationsButton");
+    if (notificationsBtn) {
+        notificationsBtn.addEventListener("click", () => {
+            openNotificationsModal();
+        });
+    }
+
+    // Modal Close Handling (Apple-Style)
+    const { overlay, closeBtn } = getModalElements();
+    if (closeBtn) closeBtn.addEventListener("click", closeSystemModal);
+    if (overlay) {
+        overlay.addEventListener("click", (e) => {
+            if (e.target === overlay) closeSystemModal();
+        });
     }
 });
