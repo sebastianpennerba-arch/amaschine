@@ -656,7 +656,7 @@ body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s.ease;
     cursor: pointer;
 }
 
@@ -1020,7 +1020,7 @@ body {
     z-index: 3000;
     visibility: hidden;
     opacity: 0;
-    transition: visibility 0s, opacity 0.25s ease;
+    transition: visibility 0s, opacity 0.25s.ease;
 }
 .modal-overlay.visible {
     visibility: visible;
@@ -1061,7 +1061,7 @@ body {
     font-weight: 600;
     cursor: pointer;
     box-shadow: var(--shadow-soft);
-    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    transition: background-color 0.2s.ease, transform 0.1s.ease, box-shadow 0.2s.ease;
 }
 .primary-btn:hover {
     background-color: var(--color-primary-dark);
@@ -1404,7 +1404,7 @@ body {
     display: flex;
     gap: 16px;
     align-items: center;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s.ease;
 }
 .top-performer-card:hover {
     transform: translateY(-2px);
@@ -1530,7 +1530,7 @@ body {
     border-radius: var(--radius);
     padding: 20px;
     box-shadow: var(--shadow-soft);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s.ease;
 }
 .hero-card:hover {
     transform: translateY(-2px);
