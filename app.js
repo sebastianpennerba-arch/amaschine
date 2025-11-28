@@ -20,7 +20,9 @@ import {
     fetchMetaCampaignInsights
 } from "./metaApi.js";
 
-import { updateDashboardView } from "./dashboard.js";
+// 🔹 NEU: Dashboard als Package statt direkter Funktions-Import
+import DashboardPackage from "./packages/dashboard/index.js";
+
 import { updateCampaignsView } from "./campaigns.js";
 import { updateCreativeLibraryView } from "./creativeLibrary.js";
 import { updateSenseiView } from "./sensei.js";
@@ -350,10 +352,15 @@ function updateUI() {
     updateGreeting();
     updateAccountAndCampaignSelectors();
 
+    // 🔹 NEU: Dashboard läuft jetzt über DashboardPackage
     if (AppState.currentView === "dashboardView") {
-        if (connected) updateDashboardView(true);
-        else if (demo) applyDemoDashboardState();
-        else applyDashboardNoDataState();
+        if (connected) {
+            DashboardPackage.render({ connected, demo });
+        } else if (demo) {
+            applyDemoDashboardState();
+        } else {
+            applyDashboardNoDataState();
+        }
     }
 
     if (AppState.currentView === "campaignsView") updateCampaignsView(connected);
@@ -363,7 +370,8 @@ function updateUI() {
     }
     if (AppState.currentView === "senseiView") updateSenseiView(connected);
     if (AppState.currentView === "reportsView") updateReportsView(connected);
-    if (AppState.currentView === "testingLogView") updateTestingLogView(connected);
+    if (AppState.currentView === "testingLogView")
+        updateTestingLogView(connected);
 
     updateHealthStatus();
 }
@@ -611,6 +619,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     loadMetaTokenFromStorage();
     applyDashboardTimeRangeFromSettings();
 
+    // 🔹 NEU: Dashboard-Package initialisieren
+    DashboardPackage.init();
+
     showView(AppState.currentView);
     initSidebarNavigation(showView);
     initSettings();
@@ -687,6 +698,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Modal Close Handling (Apple-Style)
     const { overlay, closeBtn } = getModalElements();
+    if (closeBtn) closeSystemModal;
     if (closeBtn) closeBtn.addEventListener("click", closeSystemModal);
     if (overlay) {
         overlay.addEventListener("click", (e) => {
