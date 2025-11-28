@@ -384,46 +384,41 @@ function openSettingsModal() {
 /* PROFILE MODAL */
 
 function openProfileModal() {
-    const user = AppState.meta?.user;
+    const user = AppState.meta?.user || {};
     const isConnected = AppState.metaConnected;
 
-    const name = user?.name || "Unbekannt";
-    const id = user?.id || "n/a";
-    const email = user?.email || "nicht verfügbar";
+    const name = user.name || "Unbekannt";
+    const id = user.id || "n/a";
+    const email = user.email || "nicht verfügbar";
 
     const bodyHtml = `
         <div class="modal-section">
             <div class="modal-section-title">Meta Profil</div>
+
             <div class="modal-row">
                 <label>Name</label>
                 <span>${name}</span>
             </div>
+
             <div class="modal-row">
                 <label>User ID</label>
                 <span>${id}</span>
             </div>
+
             <div class="modal-row">
                 <label>E-Mail</label>
                 <span>${email}</span>
             </div>
+
             <div class="modal-row">
                 <label>Status</label>
                 <span>${isConnected ? "Verbunden ✅" : "Getrennt ❌"}</span>
             </div>
         </div>
-
-        <div class="modal-section">
-            <div class="modal-section-title">Verbindung</div>
-            <p style="font-size:13px; color:var(--text-secondary); line-height:1.5;">
-                Du kannst die Meta-Verbindung hier trennen. Beim nächsten Login wird ein neuer Token geholt.
-            </p>
-            <button id="disconnectMetaFromProfile" class="primary-btn">
-                Meta Verbindung trennen
-            </button>
-        </div>
     `;
 
     openSystemModal("Profil", bodyHtml);
+}
 
     const btn = document.getElementById("disconnectMetaFromProfile");
     if (btn) {
