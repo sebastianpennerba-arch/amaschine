@@ -1,217 +1,94 @@
-// reports.js – Vollständiges Reporting-Modul
-// Generiert Account-, Campaign-, Creative- und RAW-Reports
-// Unterstützt JSON, CSV, XLSX, PDF
-
+// reports.js
 import { AppState } from "./state.js";
 import { showToast } from "./uiCore.js";
 
-/* ---------------------------------------------------------
-   Helper: JSON export
---------------------------------------------------------- */
-function exportJSON(data, filename = "report.json") {
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-        type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
+/**
+ * Reports View – zeigt einfache Export-Optionen
+ * und eine Zusammenfassung der wichtigsten Zahlen.
+ */
+export function renderReports() {
+    const container = document.getElementById("reportsContent");
+    if (!container) return;
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-
-    showToast("JSON erfolgreich exportiert!", "success");
-}
-
-/* ---------------------------------------------------------
-   Helper: CSV export
---------------------------------------------------------- */
-function exportCSV(dataArray, filename = "report.csv") {
-    if (!dataArray || !dataArray.length) {
-        showToast("Keine Daten für CSV.", "error");
-        return;
-    }
-
-    const headers = Object.keys(dataArray[0]).join(",");
-    const rows = dataArray
-        .map((row) => Object.values(row).join(","))
-        .join("\n");
-
-    const csv = headers + "\n" + rows;
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-
-    showToast("CSV erfolgreich exportiert!", "success");
-}
-
-/* ---------------------------------------------------------
-   Helper: XLSX export (vereinfachte JSON → XLSX conversion)
---------------------------------------------------------- */
-function exportXLSX(data, filename = "report.xlsx") {
-    // Mini XLSX Builder
-    const sheet = {};
-    const rows = Array.isArray(data) ? data : [data];
-    const headers = Object.keys(rows[0]);
-
-    // Header
-    headers.forEach((h, i) => {
-        const cell = String.fromCharCode(65 + i) + "1";
-        sheet[cell] = { v: h };
-    });
-
-    // Rows
-    rows.forEach((row, rowIndex) => {
-        headers.forEach((h, colIndex) => {
-            const cell = String.fromCharCode(65 + colIndex) + (rowIndex + 2);
-            sheet[cell] = { v: row[h] };
-        });
-    });
-
-    const json = JSON.stringify(sheet, null, 2);
-
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-
-    showToast("XLSX erfolgreich exportiert (simuliert)!", "success");
-}
-
-/* ---------------------------------------------------------
-   Helper: PDF export (Text-basierter Report)
---------------------------------------------------------- */
-function exportPDF(text, fileName = "report.txt") {
-    const blob = new Blob([text], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName;
-    a.click();
-    URL.revokeObjectURL(url);
-
-    showToast("PDF (TXT-Format) exportiert!", "success");
-}
-
-/* ---------------------------------------------------------
-   Build Report Snapshot
---------------------------------------------------------- */
-function generateReportSnapshot(scope) {
-    switch (scope) {
-        case "account":
-            return {
-                accountId: AppState.selectedAccountId,
-                user: AppState.meta.user,
-                campaigns: AppState.meta.campaigns,
-                loadedAt: new Date().toISOString(),
-            };
-
-        case "campaign":
-            const selected = AppState.meta.campaigns.find(
-                (c) => c.id === AppState.selectedCampaignId
-            );
-            return {
-                accountId: AppState.selectedAccountId,
-                campaign: selected,
-                insights: AppState.meta.insightsByCampaign,
-                loadedAt: new Date().toISOString(),
-            };
-
-        case "creatives":
-            return {
-                accountId: AppState.selectedAccountId,
-                ads: AppState.meta.ads,
-                loadedAt: new Date().toISOString(),
-            };
-
-        case "raw":
-            return {
-                rawMetaObject: AppState.meta,
-                loadedAt: new Date().toISOString(),
-            };
-
-        default:
-            return { error: "Unknown report scope" };
-    }
-}
-
-/* ---------------------------------------------------------
-   Render Snapshot Preview
---------------------------------------------------------- */
-export function updateReportsView(connected) {
-    const container = document.getElementById("reportSnapshot");
-
-    if (!connected) {
-        container.innerHTML =
-            "<p style='color:var(--text-secondary);'>Mit Meta verbinden, um Reports zu erstellen.</p>";
-        return;
-    }
-
-    const scope = document.getElementById("reportScopeSelect").value;
-    const snapshot = generateReportSnapshot(scope);
+    const { campaigns, insightsByCampaign } = AppState.meta;
+    const metrics = aggregate(campaigns || [], insightsByCampaign || {});
 
     container.innerHTML = `
-        <div class="report-preview">
-            <h3>Report Vorschau</h3>
-            <pre>${JSON.stringify(snapshot, null, 2)}</pre>
-        </div>
+        <section class="card">
+            <div class="view-header">
+                <div>
+                    <h2 class="elite-title">Reports & Exports</h2>
+                    <p class="reports-hint">
+                        Exportiere Account-Performance und Testing-Daten für Kunden oder interne Reviews.
+                    </p>
+                </div>
+                <div class="reports-actions">
+                    <button class="action-button-secondary" id="exportSummaryBtn">
+                        <i class="ri-download-2-line"></i> Summary als CSV
+                    </button>
+                    <button class="action-button-secondary" id="exportCampaignsBtn">
+                        <i class="ri-download-cloud-2-line"></i> Kampagnen-Detail CSV
+                    </button>
+                </div>
+            </div>
+
+            <div class="hero-card">
+                <div class="hero-title">Account Summary</div>
+                <div class="hero-metric-row">
+                    <span>Total Spend</span>
+                    <span class="hero-metric-value">${formatCurrency(metrics.totalSpend)}</span>
+                </div>
+                <div class="hero-metric-row">
+                    <span>Total Revenue</span>
+                    <span class="hero-metric-value">${formatCurrency(metrics.totalRevenue)}</span>
+                </div>
+                <div class="hero-metric-row">
+                    <span>ROAS</span>
+                    <span class="hero-metric-value">${metrics.roas ? metrics.roas.toFixed(2) + "x" : "–"}</span>
+                </div>
+                <div class="hero-metric-row">
+                    <span>Kampagnen</span>
+                    <span class="hero-metric-value">${metrics.countCampaigns}</span>
+                </div>
+            </div>
+        </section>
     `;
-}
 
-/* ---------------------------------------------------------
-   Init Event Listeners
---------------------------------------------------------- */
-document.addEventListener("DOMContentLoaded", () => {
-    const scopeSelect = document.getElementById("reportScopeSelect");
-    const jsonBtn = document.getElementById("exportJsonBtn");
-    const csvBtn = document.getElementById("exportCsvBtn");
-    const xlsxBtn = document.getElementById("exportXlsxBtn");
-    const pdfBtn = document.getElementById("exportPdfBtn");
+    const exportSummaryBtn = document.getElementById("exportSummaryBtn");
+    const exportCampaignsBtn = document.getElementById("exportCampaignsBtn");
 
-    if (scopeSelect) {
-        scopeSelect.addEventListener("change", () => updateReportsView(true));
+    if (exportSummaryBtn) {
+        exportSummaryBtn.addEventListener("click", () => {
+            showToast("Summary CSV Export (Demo Placeholder).", "info");
+        });
     }
 
-    if (jsonBtn)
-        jsonBtn.addEventListener("click", () => {
-            const scope = scopeSelect.value;
-            exportJSON(generateReportSnapshot(scope));
+    if (exportCampaignsBtn) {
+        exportCampaignsBtn.addEventListener("click", () => {
+            showToast("Campaigns CSV Export (Demo Placeholder).", "info");
         });
+    }
+}
 
-    if (csvBtn)
-        csvBtn.addEventListener("click", () => {
-            const scope = scopeSelect.value;
-            const snap = generateReportSnapshot(scope);
+function aggregate(campaigns, insightsByCampaign) {
+    let spend = 0;
+    let rev = 0;
 
-            // CSV benötigt Arrays → wandelt automatisch um
-            const rows = snap.ads || snap.campaigns || [snap];
-            exportCSV(rows);
-        });
+    campaigns.forEach(c => {
+        const ins = insightsByCampaign[c.id] || {};
+        spend += Number(ins.spend || 0);
+        rev += Number(ins.revenue || 0);
+    });
 
-    if (xlsxBtn)
-        xlsxBtn.addEventListener("click", () => {
-            const scope = scopeSelect.value;
-            exportXLSX(generateReportSnapshot(scope));
-        });
+    return {
+        totalSpend: spend,
+        totalRevenue: rev,
+        roas: spend > 0 ? rev / spend : 0,
+        countCampaigns: campaigns.length
+    };
+}
 
-    if (pdfBtn)
-        pdfBtn.addEventListener("click", () => {
-            const scope = scopeSelect.value;
-            const txt = JSON.stringify(
-                generateReportSnapshot(scope),
-                null,
-                2
-            );
-            exportPDF(txt);
-        });
-});
+function formatCurrency(v) {
+    const num = Number(v || 0);
+    return num.toLocaleString("de-DE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+}
