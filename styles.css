@@ -2232,3 +2232,31 @@ const SENSEI_CSS = `
 
 // CSS Export Kommentar
 console.log("📝 HINWEIS: Füge das CSS aus SENSEI_CSS in deine styles.css ein!");
+
+/* =========================================================
+   DEMO MODE BADGE – Topbar Badge
+   ========================================================= */
+.badge-demo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 10px;
+    height: 22px;
+
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+
+    background: rgba(99, 102, 241, 0.12); /* Indigo Light */
+    color: #6366F1;                       /* Indigo */
+    border: 1px solid rgba(99, 102, 241, 0.25);
+
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+
+    transition: opacity 0.2s ease, transform 0.15s ease;
+}
+.badge-demo.hidden {
+    opacity: 0;
+    transform: translateY(-3px);
+}
