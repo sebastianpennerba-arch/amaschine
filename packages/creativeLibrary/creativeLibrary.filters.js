@@ -1,59 +1,103 @@
 // packages/creativeLibrary/creativeLibrary.filters.js
-// Filter-, Such- und Sortierlogik für Creative Library.
-
-function matchSearch(creative, search) {
-    if (!search) return true;
-    const q = search.toLowerCase();
-
-    return (
-        (creative.name || "").toLowerCase().includes(q) ||
-        (creative.campaignName || "").toLowerCase().includes(q) ||
-        (creative.adsetName || "").toLowerCase().includes(q) ||
-        (creative.headline || "").toLowerCase().includes(q) ||
-        (creative.landingPage || "").toLowerCase().includes(q)
-    );
-}
-
-function matchType(creative, type) {
-    if (!type || type === "all") return true;
-    const t = (creative.type || "").toLowerCase();
-    if (type === "static") return t === "image" || t === "static";
-    if (type === "video") return t === "video";
-    if (type === "carousel") return t === "carousel";
-    return true;
-}
-
-function sortCreatives(creatives, sortKey) {
-    const list = [...creatives];
-
-    if (sortKey === "spend_desc") {
-        return list.sort((a, b) => (b.spend || 0) - (a.spend || 0));
-    }
-    if (sortKey === "spend_asc") {
-        return list.sort((a, b) => (a.spend || 0) - (b.spend || 0));
-    }
-    // Default: ROAS desc
-    return list.sort((a, b) => (b.roas || 0) - (a.roas || 0));
-}
+// Filter-, Sort- und Grouping-Engine für die Creative Library
+// Wird von index.js aufgerufen, um state.filteredCreatives zu erzeugen.
 
 /**
- * Gruppierung ist aktuell nur ein Metadatum – später können wir
- * wirklich gruppierte Renders machen. Vorerst flach.
+ * Wendet alle Filter auf die Creative-Liste an:
+ * - search
+ * - type
+ * - groupBy
+ * - sort
  */
-export function applyCreativeFilters(creatives, filters) {
-    if (!Array.isArray(creatives)) return [];
+export function applyCreativeFilters(list, filters) {
+    let result = [...list];
 
-    const { search, type, sort, groupBy } = filters;
+    // =============================
+    // 1) SEARCH
+    // =============================
+    if (filters.search && filters.search.trim() !== "") {
+        const q = filters.search.toLowerCase();
+        result = result.filter((item) => {
+            return (
+                (item.name || "").toLowerCase().includes(q) ||
+                (item.headline || "").toLowerCase().includes(q)
+            );
+        });
+    }
 
-    let result = creatives.filter(
-        (c) => matchSearch(c, search) && matchType(c, type)
-    );
+    // =============================
+    // 2) TYPE FILTER
+    // =============================
+    if (filters.type && filters.type !== "all") {
+        result = result.filter((item) => item.type === filters.type);
+    }
 
-    result = sortCreatives(result, sort);
+    // =============================
+    // 3) SORT
+    // =============================
+    result = sortCreatives(result, filters.sort);
 
-    // groupBy wird als Info an den Renderer weitergegeben (noch keine echte Gruppen-UI)
-    return {
-        items: result,
-        groupBy: groupBy || "none"
-    };
+    // =============================
+    // 4) GROUP BY (optional)
+    // =============================
+    if (filters.groupBy && filters.groupBy !== "none") {
+        return groupCreatives(result, filters.groupBy);
+    }
+
+    return result;
+}
+
+/* ============================================================
+   SORTING
+============================================================ */
+
+function sortCreatives(list, sort) {
+    const sorted = [...list];
+
+    switch (sort) {
+        case "roas_desc":
+            return sorted.sort((a, b) => b.roas - a.roas);
+        case "roas_asc":
+            return sorted.sort((a, b) => a.roas - b.roas);
+
+        case "ctr_desc":
+            return sorted.sort((a, b) => b.ctr - a.ctr);
+        case "ctr_asc":
+            return sorted.sort((a, b) => a.ctr - b.ctr);
+
+        case "spend_desc":
+            return sorted.sort((a, b) => b.spend - a.spend);
+        case "spend_asc":
+            return sorted.sort((a, b) => a.spend - b.spend);
+
+        default:
+            return sorted;
+    }
+}
+
+/* ============================================================
+   GROUPING
+============================================================ */
+
+function groupCreatives(list, key) {
+    const groups = {};
+
+    list.forEach((item) => {
+        const groupValue = item[key] || "Sonstige";
+        if (!groups[groupValue]) groups[groupValue] = [];
+        groups[groupValue].push(item);
+    });
+
+    // Ergebnis: flach zurückgeben, aber gruppiert via Trenner
+    const flattened = [];
+    Object.keys(groups).forEach((groupLabel) => {
+        flattened.push({
+            __group: true,
+            label: groupLabel,
+            count: groups[groupLabel].length
+        });
+        flattened.push(...groups[groupLabel]);
+    });
+
+    return flattened;
 }
