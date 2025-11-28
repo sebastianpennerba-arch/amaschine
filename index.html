@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -14,167 +13,140 @@
 
 <body>
     <!-- ========================================= -->
-    <!-- SIDEBAR -->
+    <!-- SIDEBAR                                -->
     <!-- ========================================= -->
-    <nav class="sidebar" id="sidebar">
-        <div class="logo-container">
-            <img src="Logo_re_Sc.png" alt="SignalOne Logo" class="logo" />
+    <nav class="sidebar">
+        <div class="sidebar-logo">
+            <img src="https://i.ibb.co/xCFQbGv/s1-logo.png" alt="SignalOne Logo" />
+            <div class="sidebar-logo-text">
+                <span class="logo-title">SignalOne</span>
+                <span class="logo-subtitle">Elite Meta Intelligence</span>
+            </div>
         </div>
 
-        <div class="menu-category">ANALYTICS</div>
-        <a href="#" class="menu-item active" data-view="dashboardView" id="menuDashboard">
-            <i class="fas fa-chart-line"></i> Dashboard
-        </a>
-        <a href="#" class="menu-item" data-view="creativesView" id="menuCreativeLibrary">
-            <i class="fas fa-image"></i> Creative Library
-        </a>
-        <a href="#" class="menu-item" data-view="campaignsView" id="menuCampaigns">
-            <i class="fas fa-bullhorn"></i> Campaigns
-        </a>
-
-        <div class="menu-category">SENSEI / AI</div>
-        <a href="#" class="menu-item" data-view="senseiView" id="menuSensei">
-            <i class="fas fa-robot"></i> Sensei Strategy
-        </a>
-
-        <div class="menu-category">REPORTING</div>
-        <a href="#" class="menu-item" data-view="reportsView" id="menuReports">
-            <i class="fas fa-file-export"></i> Exports & Reports
-        </a>
-        <a href="#" class="menu-item" data-view="testingLogView" id="menuTestingLog">
-            <i class="fas fa-flask"></i> Testing Log
-        </a>
-
-        <div class="menu-footer">
-            <div class="menu-status">
-                <span
-                    class="status-indicator status-red"
-                    id="sidebarMetaStatusIndicator"
-                ></span>
-                <span id="sidebarMetaStatusLabel">Meta Ads (Offline)</span>
-            </div>
-
-            <div class="menu-status">
-                <span
-                    class="status-indicator status-green"
-                    id="sidebarSystemHealthIndicator"
-                ></span>
-                <span id="sidebarSystemHealthLabel">System Health (OK)</span>
-            </div>
-
-            <div class="menu-status">
-                <span
-                    class="status-indicator status-yellow"
-                    id="sidebarCampaignHealthIndicator"
-                ></span>
-                <span id="sidebarCampaignHealthLabel">Campaign Health (n/a)</span>
-            </div>
-
-            <!-- SETTINGS BUTTON (unten links) -->
-            <button class="menu-settings-button" id="openSettingsButton">
-                <i class="fas fa-cog"></i>
-                <span>Settings</span>
-            </button>
+        <div class="menu-section">
+            <div class="menu-category">ANALYTICS</div>
+            <a href="#" class="menu-item active" data-view="dashboardView" id="menuDashboard">
+                <i class="fas fa-chart-line"></i> Dashboard
+            </a>
+            <a href="#" class="menu-item" data-view="creativesView" id="menuCreatives">
+                <i class="fas fa-photo-video"></i> Creative Library
+            </a>
+            <a href="#" class="menu-item" data-view="campaignsView" id="menuCampaigns">
+                <i class="fas fa-bullhorn"></i> Campaigns
+            </a>
         </div>
+
+        <div class="menu-section">
+            <div class="menu-category">SENSEI / AI</div>
+            <a href="#" class="menu-item" data-view="senseiView" id="menuSensei">
+                <i class="fas fa-brain"></i> Sensei Strategy
+            </a>
+        </div>
+
+        <div class="menu-section">
+            <div class="menu-category">REPORTING</div>
+            <a href="#" class="menu-item" data-view="reportsView" id="menuReports">
+                <i class="fas fa-file-export"></i> Exports & Reports
+            </a>
+            <a href="#" class="menu-item" data-view="testingLogView" id="menuTestingLog">
+                <i class="fas fa-flask"></i> Testing Log
+            </a>
+
+            <div class="menu-footer">
+                <div class="menu-status">
+                    <span
+                        class="status-indicator status-red"
+                        id="sidebarMetaStatusIndicator"
+                    >
+                    </span>
+                    <span id="sidebarMetaStatusText">Meta Ads (Offline)</span>
+                </div>
+
+                <div class="menu-status">
+                    <span class="status-indicator status-green"></span>
+                    <span>System Health (OK)</span>
+                </div>
+
+                <div class="menu-status">
+                    <span class="status-indicator status-amber"></span>
+                    <span>Campaign Health (Schwach)</span>
+                </div>
+            </div>
+        </div>
+
+        <button id="openSettingsButton" class="sidebar-settings-btn">
+            <i class="fas fa-cog"></i>
+            <span>Settings</span>
+        </button>
     </nav>
 
     <!-- ========================================= -->
-    <!-- TOP BAR -->
+    <!-- TOP BAR                                  -->
     <!-- ========================================= -->
     <header class="top-bar">
-        <div class="greeting-status">
-            <h1 id="greetingTitle">Guten Tag!</h1>
-
-            <span class="header-date-time">
-                Datum: <span id="currentDate"></span> | Zeit:
-                <span id="currentTime"></span>
-                <span class="app-version-label">Version: S1-0.9-b</span>
-            </span>
+        <div class="top-bar-left">
+            <div class="greeting-container">
+                <div id="greetingHeadline">Guten Abend, Sebastian!</div>
+                <div id="greetingMeta">
+                    Datum: <span id="currentDate">27.11.2025</span> |
+                    Zeit: <span id="currentTime">23:32</span> |
+                    Version: <span id="currentVersion">S1-0.9-b</span>
+                </div>
+            </div>
         </div>
 
-        <div class="account-selection">
-            <div class="select-container">
+        <div class="top-bar-center">
+            <div class="topbar-select-wrapper">
+                <label for="brandSelect">Account:</label>
                 <select id="brandSelect">
-                    <option>SignalOne Brand (Active)</option>
+                    <option value="">Kein Werbekonto gefunden</option>
                 </select>
             </div>
 
-            <div class="select-container">
-                <select id="campaignGroupSelect">
-                    <option>Alle Kampagnen</option>
+            <div class="topbar-select-wrapper">
+                <label for="campaignSelect">Kampagne:</label>
+                <select id="campaignSelect">
+                    <option value="">Alle Kampagnen</option>
                 </select>
             </div>
+        </div>
 
-            <div id="topbarMetaStatus" class="topbar-meta-status meta-status-disconnected">
-                <i id="topbarMetaStatusIcon" class="fas fa-plug"></i>
-                <span id="topbarMetaStatusLabel">Meta: Getrennt</span>
-            </div>
-
-            <button class="header-action-button" id="profileButton">
-                <i class="fas fa-user-circle"></i>
-                <span class="icon-tooltip">Profil</span>
+        <div class="top-bar-right">
+            <button id="metaStatusButton" class="meta-status-chip meta-status-disconnected">
+                <span class="meta-dot"></span>
+                <span id="metaStatusLabel">Meta: Getrennt</span>
             </button>
-            <button class="header-action-button" id="notificationsButton">
+
+            <button id="notificationsButton" class="icon-button">
                 <i class="fas fa-bell"></i>
-                <span class="notification-badge hidden" id="notificationsBadge">0</span>
-                <span class="icon-tooltip">Benachrichtigungen</span>
+                <span id="notificationsBadge" class="badge hidden">0</span>
             </button>
-            <button class="header-action-button" id="disconnectMetaButton">
-                <i class="fas fa-sign-out-alt"></i>
-                <span class="icon-tooltip">Abmelden</span>
+
+            <button id="profileButton" class="profile-button">
+                <span class="profile-avatar">S</span>
+                <span class="profile-name">Sebastian</span>
+                <i class="fas fa-chevron-down"></i>
             </button>
         </div>
     </header>
 
     <!-- ========================================= -->
-    <!-- MAIN CONTENT -->
+    <!-- MAIN CONTENT                             -->
     <!-- ========================================= -->
-    <main class="main-content" id="mainContent">
-        <!-- META CONNECT STRIPE -->
-        <div id="metaConnectStripe" class="meta-connect-stripe">
-            <div class="meta-connect-inner">
-                <span id="metaStripeText">
-                    <i class="fas fa-plug"></i> Nicht mit Meta Ads verbunden
-                </span>
-                <button id="connectMetaButton" class="connect-meta-btn">
-                    <i class="fab fa-meta"></i> Mit Meta verbinden
-                </button>
-            </div>
-        </div>
-
-<!-- DASHBOARD VIEW -->
-<section class="view" id="dashboardView">
-    <h2 class="elite-title">Meta Performance Dashboard</h2>
-
-    <div id="dashboardMetaSummary" style="margin-bottom: 16px; color: var(--text-secondary); font-size: 14px;">
-        Noch keine Daten geladen.
-    </div>
-
-    <!-- KPIs -->
-    <div id="dashboardKpiContainer"></div>
-    
-    <!-- Chart -->
-    <div id="dashboardChartContainer"></div>
-
-    <!-- 🚨 ALERTS SECTION -->
-    <div id="dashboardAlertsContainer"></div>
-
-    <!-- 🧠 SENSEI DAILY BRIEFING -->
-    <div id="dashboardSenseiBriefingContainer"></div>
-
-    <!-- 🏆 TOP PERFORMERS -->
-    <div id="dashboardTopPerformersContainer"></div>
-
-    <!-- 💀 BOTTOM PERFORMERS -->
-    <div id="dashboardBottomPerformersContainer"></div>
-
-    <!-- Zeitraum Auswahl -->
-    <div class="card">
-        <div class="performance-card">
-            <div class="card-header">
-                <h3>Zeitraum</h3>
-                <div>
-                    <select id="dashboardTimeRange">
+    <main class="main-content">
+        <!-- DASHBOARD VIEW -->
+        <section class="view" id="dashboardView">
+            <div class="dashboard-header-row">
+                <div class="dashboard-header-main">
+                    <h2 class="elite-title">Meta Performance Dashboard</h2>
+                    <div id="dashboardMetaSummary" class="dashboard-meta-summary">
+                        Noch keine Daten geladen.
+                    </div>
+                </div>
+                <div class="dashboard-header-controls">
+                    <label for="dashboardTimeRange" class="dashboard-time-label">Zeitraum</label>
+                    <select id="dashboardTimeRange" class="dashboard-time-select">
                         <option value="today">Heute</option>
                         <option value="yesterday">Gestern</option>
                         <option value="today_yesterday">Heute + Gestern</option>
@@ -185,12 +157,15 @@
                     </select>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Top Campaigns (Hero) -->
-    <div id="dashboardHeroCreativesContainer"></div>
-</section>
+            <div id="dashboardKpiContainer"></div>
+            <div id="dashboardChartContainer"></div>
+            <div id="dashboardAlertsContainer"></div>
+            <div id="dashboardSenseiBriefingContainer"></div>
+            <div id="dashboardTopPerformersContainer"></div>
+            <div id="dashboardBottomPerformersContainer"></div>
+            <div id="dashboardHeroCreativesContainer"></div>
+        </section>
 
         <!-- CREATIVE LIBRARY VIEW -->
         <section class="view hidden" id="creativesView">
@@ -205,148 +180,97 @@
                         type="text"
                         id="creativeSearch"
                         placeholder="Suche nach Namen, Kampagne, Adset"
-                        style="
-                            flex-grow: 1;
-                            padding: 8px;
-                            border-radius: 6px;
-                            border: 1px solid var(--border);
-                        "
                     />
-                    <select id="creativeType">
-                        <option value="all">Alle Typen</option>
-                        <option value="static">Static / Image</option>
-                        <option value="video">Video</option>
-                        <option value="carousel">Carousel</option>
-                    </select>
                     <select id="creativeSort">
-                        <option value="roas_desc">ROAS (absteigend)</option>
-                        <option value="spend_desc">Spend (absteigend)</option>
-                        <option value="spend_asc">Spend (aufsteigend)</option>
+                        <option value="roas_desc">ROAS (hoch → niedrig)</option>
+                        <option value="spend_desc">Spend (hoch → niedrig)</option>
+                        <option value="ctr_desc">CTR (hoch → niedrig)</option>
+                    </select>
+                    <select id="creativeType">
+                        <option value="all">Alle Formate</option>
+                        <option value="image">Image</option>
+                        <option value="video">Video</option>
                     </select>
                 </div>
             </div>
 
-            <div id="creativeLibraryGrid"></div>
+            <div id="creativeLibraryContainer"></div>
         </section>
 
         <!-- CAMPAIGNS VIEW -->
         <section class="view hidden" id="campaignsView">
-            <h2 class="elite-title">Campaigns Overview</h2>
+            <h2 class="elite-title">Campaigns (Live-Daten)</h2>
 
-            <div class="card" style="margin-bottom: 16px;">
-                <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+            <div class="card">
+                <div class="filter-bar">
                     <input
                         type="text"
                         id="campaignSearch"
-                        placeholder="Kampagnen suchen..."
-                        style="
-                            flex-grow: 1;
-                            padding: 8px;
-                            border-radius: 6px;
-                            border: 1px solid var(--border);
-                        "
+                        placeholder="Suche nach Kampagnennamen"
                     />
                     <select id="campaignStatusFilter">
                         <option value="all">Alle Status</option>
                         <option value="ACTIVE">Aktiv</option>
                         <option value="PAUSED">Pausiert</option>
+                        <option value="DELETED">Gelöscht</option>
                     </select>
                 </div>
             </div>
 
-            <div class="card">
-                <table class="campaigns-table">
-                    <thead>
-                        <tr>
-                            <th>Status</th>
-                            <th>Name</th>
-                            <th>Objective</th>
-                            <th>Daily Budget</th>
-                            <th>Spend (30D)</th>
-                            <th>ROAS (30D)</th>
-                            <th>CTR (30D)</th>
-                            <th>Impressions (30D)</th>
-                            <th>Aktionen</th>
-                        </tr>
-                    </thead>
-                    <tbody id="campaignsTableBody">
-                        <tr>
-                            <td colspan="9">
-                                <span style="color: var(--text-secondary); font-size:14px;">
-                                    Verbinde Meta, um Kampagnen zu laden.
-                                </span>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <div id="campaignsTableContainer"></div>
         </section>
 
-        <!-- SENSEI / AI VIEW -->
+        <!-- SENSEI VIEW -->
         <section class="view hidden" id="senseiView">
-            <h2 class="elite-title">Sensei Strategy (AI Layer)</h2>
-            <div id="senseiContent"></div>
+            <h2 class="elite-title">Sensei Strategy (Preview)</h2>
+            <div id="senseiContentContainer"></div>
         </section>
 
-        <!-- REPORTS / EXPORTS VIEW -->
+        <!-- REPORTS VIEW -->
         <section class="view hidden" id="reportsView">
-            <h2 class="elite-title">Reports & Exports</h2>
-
-            <div class="card">
-                <div class="reports-header" style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap;">
-                    <div>
-                        <label for="reportScopeSelect" style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:4px;">
-                            Report-Scope:
-                        </label>
-                        <select id="reportScopeSelect" style="padding:8px 12px; border-radius:6px; border:1px solid var(--border); font-size:13px;">
-                            <option value="account">Account Report (Standard)</option>
-                            <option value="campaign">Campaign Report (aktuell ausgewählte Kampagne)</option>
-                            <option value="creatives">Creative Library (alle geladenen Creatives)</option>
-                            <option value="raw">RAW Dump (technische Meta-Response)</option>
-                        </select>
-                    </div>
-                    <p class="reports-hint">
-                        Wähle zuerst den Scope, dann exportiere die Daten als JSON, CSV, XLSX oder PDF.
-                    </p>
-                </div>
-
-                <div class="reports-actions">
-                    <button class="action-button-secondary" id="exportJsonBtn">
-                        <i class="fas fa-code"></i>&nbsp; JSON Export
-                    </button>
-                    <button class="action-button-secondary" id="exportCsvBtn">
-                        <i class="fas fa-file-csv"></i>&nbsp; CSV Export
-                    </button>
-                    <button class="action-button-secondary" id="exportXlsxBtn">
-                        <i class="fas fa-file-excel"></i>&nbsp; XLSX Export
-                    </button>
-                    <button class="action-button-secondary" id="exportPdfBtn">
-                        <i class="fas fa-file-pdf"></i>&nbsp; PDF Export
-                    </button>
-                </div>
-
-                <div id="reportSnapshot"></div>
-            </div>
+            <h2 class="elite-title">Exports & Reports</h2>
+            <div id="reportsContentContainer"></div>
         </section>
 
         <!-- TESTING LOG VIEW -->
         <section class="view hidden" id="testingLogView">
             <h2 class="elite-title">Testing Log</h2>
-            <div id="testingLogContent"></div>
+            <div id="testingLogContainer"></div>
         </section>
     </main>
 
-    <!-- TOAST & MODAL ROOTS -->
-    <div id="toastContainer" class="toast-container"></div>
-
-    <div id="modalOverlay" class="modal-overlay">
-        <div class="modal-content">
-            <h3 id="modalTitle"></h3>
-            <div id="modalBody"></div>
-            <button id="modalCloseButton">Schließen</button>
+    <!-- ========================================= -->
+    <!-- MODAL & TOAST                            -->
+    <!-- ========================================= -->
+    <div id="modalOverlay" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">Modal Title</h3>
+                <button id="modalCloseButton" class="icon-button">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="modalBody" class="modal-body"></div>
+            <div class="modal-footer">
+                <button id="modalPrimaryButton" class="btn-primary hidden">
+                    OK
+                </button>
+                <button id="modalSecondaryButton" class="btn-secondary hidden">
+                    Abbrechen
+                </button>
+            </div>
         </div>
     </div>
 
+    <div id="toastContainer" class="toast-container"></div>
+
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="loader"></div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- SCRIPTS                                  -->
+    <!-- ========================================= -->
     <script type="module" src="app.js"></script>
 </body>
 </html>
