@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="de">
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,104 +8,97 @@
     <link rel="stylesheet" href="./styles.css" />
 
     <!-- Remix Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css" rel="stylesheet">
 </head>
 
 <body>
 
-    <div class="layout">
-
-        <!-- ======================================
-             SIDEBAR (NICHT VERÄNDERT)
-        ======================================= -->
-        <nav class="sidebar">
-            <h2>SignalOne</h2>
-
-            <div class="nav-item" data-view="dashboardView">Dashboard</div>
-            <div class="nav-item" data-view="creativesView">Creatives</div>
-            <div class="nav-item" data-view="campaignsView">Campaigns</div>
-            <div class="nav-item" data-view="senseiView">Sensei</div>
-            <div class="nav-item" data-view="reportsView">Reports</div>
-            <div class="nav-item" data-view="testingLogView">Testing Log</div>
-        </nav>
-
-        <!-- ======================================
-             MAIN WRAPPER
-        ======================================= -->
-        <div class="main-wrapper">
-
-            <!-- ======================================
-                 TOPBAR
-            ======================================= -->
-            <header class="topbar">
-                <div class="topbar-left">
-                    <h1 id="pageTitle">Dashboard</h1>
-                </div>
-
-                <div class="topbar-right">
-
-                    <!-- DEMO MODE BADGE -->
-                    <span class="badge-demo" data-role="demo-badge" style="display:none;"></span>
-
-                    <div id="metaStatusIndicator"></div>
-
-                    <button id="settingsButton" class="icon-button" title="Einstellungen">
-                        <i class="ri-settings-3-line"></i>
-                    </button>
-                </div>
-            </header>
-
-            <!-- ======================================
-                 VIEWS (NICHT VERÄNDERT)
-            ======================================= -->
-            <main class="content">
-
-                <section id="dashboardView" class="view">
-                    <h2>Dashboard</h2>
-                    <div id="dashboardContent"></div>
-                </section>
-
-                <section id="creativesView" class="view hidden">
-                    <h2>Creative Library</h2>
-                    <div id="creativeLibraryContent"></div>
-                </section>
-
-                <section id="campaignsView" class="view hidden">
-                    <h2>Campaigns</h2>
-                    <div id="campaignsContent"></div>
-                </section>
-
-                <section id="senseiView" class="view hidden">
-                    <h2>Sensei Strategy</h2>
-                    <div id="senseiContent"></div>
-                </section>
-
-                <section id="reportsView" class="view hidden">
-                    <h2>Reports</h2>
-                    <div id="reportsContent"></div>
-                </section>
-
-                <section id="testingLogView" class="view hidden">
-                    <h2>Testing Log</h2>
-                    <div id="testingLogContent"></div>
-                </section>
-
-            </main>
+    <!-- ======================================
+         SIDEBAR – Variante A (modern)
+    ======================================= -->
+    <nav class="sidebar">
+        <div class="logo-container">
+            <img src="logo.png" class="logo" alt="SignalOne">
         </div>
-    </div>
+
+        <div class="menu-category">Navigation</div>
+        <div class="nav-item" data-view="dashboardView"><i class="ri-dashboard-line"></i> Dashboard</div>
+        <div class="nav-item" data-view="creativesView"><i class="ri-image-line"></i> Creatives</div>
+        <div class="nav-item" data-view="campaignsView"><i class="ri-bubble-chart-line"></i> Campaigns</div>
+        <div class="nav-item" data-view="senseiView"><i class="ri-robot-line"></i> Sensei</div>
+        <div class="nav-item" data-view="reportsView"><i class="ri-file-chart-line"></i> Reports</div>
+        <div class="nav-item" data-view="testingLogView"><i class="ri-list-check"></i> Testing Log</div>
+
+        <div class="menu-footer">
+            <button class="menu-settings-button" id="settingsButton">
+                <i class="ri-settings-3-line"></i> Settings
+            </button>
+
+            <div class="menu-status">
+                <span class="status-indicator status-red"></span> Meta not connected
+            </div>
+        </div>
+    </nav>
 
     <!-- ======================================
-         SCRIPTS (REIHENFOLGE WICHTIG)
+         TOP-BAR – Variante A
     ======================================= -->
+    <header class="top-bar">
 
-    <!-- Core -->
-    <script type="module" src="./uiCore.js"></script>
+        <div class="greeting-status">
+            <h1 id="pageTitle">Dashboard</h1>
+            <div class="header-date-time">System Status</div>
+        </div>
+
+        <div class="account-selection">
+
+            <!-- DEMO BADGE -->
+            <span class="badge-demo" data-role="demo-badge"></span>
+
+            <!-- META STATUS -->
+            <div id="metaStatusIndicator"></div>
+
+        </div>
+    </header>
+
+    <!-- ======================================
+         MAIN CONTENT – Variante A
+    ======================================= -->
+    <main class="main-content">
+
+        <section id="dashboardView" class="view">
+            <div id="dashboardContent"></div>
+        </section>
+
+        <section id="creativesView" class="view hidden">
+            <div id="creativeLibraryContent"></div>
+        </section>
+
+        <section id="campaignsView" class="view hidden">
+            <div id="campaignsContent"></div>
+        </section>
+
+        <section id="senseiView" class="view hidden">
+            <div id="senseiContent"></div>
+        </section>
+
+        <section id="reportsView" class="view hidden">
+            <div id="reportsContent"></div>
+        </section>
+
+        <section id="testingLogView" class="view hidden">
+            <div id="testingLogContent"></div>
+        </section>
+
+    </main>
+
+    <!-- ======================================
+         SCRIPTS
+    ======================================= -->
     <script type="module" src="./state.js"></script>
-
-    <!-- API -->
+    <script type="module" src="./uiCore.js"></script>
     <script type="module" src="./metaApi.js"></script>
 
-    <!-- Feature Modules -->
     <script type="module" src="./dashboard.js"></script>
     <script type="module" src="./creativeLibrary.js"></script>
     <script type="module" src="./campaigns.js"></script>
@@ -114,10 +106,8 @@
     <script type="module" src="./reports.js"></script>
     <script type="module" src="./testingLog.js"></script>
 
-    <!-- Demo Data -->
     <script type="module" src="./demoData.js"></script>
 
-    <!-- App Root -->
     <script type="module" src="./app.js"></script>
 
 </body>
