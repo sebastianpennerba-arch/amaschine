@@ -1,6 +1,4 @@
-// app.js – FINAL VERSION (SignalOne.cloud Frontend Orchestrator)
-document.getElementById("debugConsole")?.remove();
-window.debugLog = () => {};
+// app.js – DEMO-MODE STABLE VERSION (SignalOne.cloud Frontend Orchestrator)
 
 import { AppState, META_OAUTH_CONFIG } from "./state.js";
 import {
@@ -42,7 +40,7 @@ const STORAGE_KEYS = {
 };
 
 /* ============================================================
-   DEMO PRESETS (Vorschlag A: small_store)
+   DEMO PRESETS (small_store)
 ============================================================ */
 
 const DEMO_PRESETS = {
@@ -184,7 +182,15 @@ function safeInit() {
 function initApp() {
     debugLog("SignalOne App init…");
 
+    // Settings laden
     loadSettingsFromStorage();
+
+    // HART: Demo Mode erzwingen – stabiler Zustand
+    AppState.settings.theme = "light";
+    AppState.settings.demoMode = true;
+    AppState.settings.demoPreset = "small_store";
+    saveSettingsToStorage();
+
     applyTheme(AppState.settings.theme || "light");
 
     updateGreeting();
@@ -196,32 +202,12 @@ function initApp() {
     initSettingsButton();
     initNotificationButton();
 
-    // Load Meta token from storage (falls vorhanden)
-    loadMetaTokenFromStorage();
-
-    // Datenquelle bestimmen
-    if (AppState.settings.demoMode) {
-        loadDemoPreset(AppState.settings.demoPreset || "small_store");
-        renderAllViews(true);
-        updateMetaStatusIndicator("connected-demo");
-        updateDemoStripe(true);
-        showDemoBadge(true, DEMO_PRESETS[AppState.settings.demoPreset || "small_store"].label);
-    } else if (checkMetaConnection()) {
-        // Echte Meta Verbindung vorhanden → Daten vom Backend laden
-        bootstrapMetaData().then(
-            () => {
-                renderAllViews(hasData());
-            },
-            () => {
-                renderAllViews(false);
-            }
-        );
-    } else {
-        // Weder Demo noch Live → No Data
-        renderAllViews(false);
-        updateMetaStatusIndicator("disconnected");
-        updateDemoStripe(false);
-    }
+    // KEIN Live-Meta. Immer Demo.
+    loadDemoPreset(AppState.settings.demoPreset || "small_store");
+    renderAllViews(true);
+    updateMetaStatusIndicator("connected-demo");
+    updateDemoStripe(true);
+    showDemoBadge(true, DEMO_PRESETS[AppState.settings.demoPreset || "small_store"].label);
 
     updateHealthStatus();
 }
@@ -286,30 +272,24 @@ function initMetaStripe() {
     if (!btn) return;
 
     btn.addEventListener("click", () => {
-        if (AppState.settings.demoMode) {
-            openModal(`
-                <div class="modal-title">Demo Mode aktiv</div>
-                <p style="margin-bottom:1rem;">
-                    Aktuell ist der Demo Mode aktiv. Um echte Meta-Daten zu laden,
-                    musst du den Demo Mode deaktivieren und einen gültigen Meta OAuth Flow nutzen.
-                </p>
-                <button class="btn-primary" id="disableDemoModeBtn">
-                    Demo Mode deaktivieren
-                </button>
-            `);
+        // In dieser stabilen Version: Nur Demo-Info anzeigen
+        openModal(`
+            <div class="modal-title">Meta Connect (Demo)</div>
+            <p style="margin-bottom:1rem;">
+                Diese Version von SignalOne läuft im stabilen Demo Mode.<br/>
+                Echte Meta-OAuth-Verbindung ist hier deaktiviert.
+            </p>
+            <button class="btn-primary" id="closeMetaInfoBtn">
+                Verstanden
+            </button>
+        `);
 
-            document
-                .getElementById("disableDemoModeBtn")
-                ?.addEventListener("click", () => {
-                    AppState.settings.demoMode = false;
-                    AppState.settings.demoPreset = "small_store";
-                    saveSettingsToStorage();
-                    showToast("Demo Mode deaktiviert. Bitte erneut auf „Mit Meta verbinden“ klicken.", "success");
-                    location.reload();
-                });
-        } else {
-            startMetaOAuthFlow();
-        }
+        document
+            .getElementById("closeMetaInfoBtn")
+            ?.addEventListener("click", () => {
+                const overlay = document.getElementById("globalModalOverlay");
+                if (overlay) overlay.classList.remove("visible");
+            });
     });
 }
 
@@ -322,8 +302,9 @@ function updateDemoStripe(isDemo) {
 
     if (isDemo) {
         stripe.classList.add("demo-active");
+        stripe.classList.remove("connected");
         text.innerHTML = `<i class="fas fa-magic"></i> Demo Mode aktiv – Daten werden simuliert`;
-        btn.textContent = "Mit echten Meta-Daten verbinden";
+        btn.textContent = "Info zu Meta Connect";
     } else if (checkMetaConnection()) {
         stripe.classList.remove("demo-active");
         stripe.classList.add("connected");
@@ -337,31 +318,16 @@ function updateDemoStripe(isDemo) {
     }
 }
 
+/* ============================================================
+   (Live OAuth bleibt als Stub, wird nicht genutzt)
+============================================================ */
+
 function startMetaOAuthFlow() {
-    // Hinweis: Hier nur ein Platzhalter für deinen echten OAuth Flow.
-    // Entweder redirect auf Backend-URL oder dev-mäßig ein Fake-Token setzen.
-
-    showToast("Meta OAuth Flow ist noch als Mock implementiert.", "info");
-
-    // Beispiel: Fake-Token setzen (nur Dev)
-    const fakeToken = "dev_fake_meta_access_token";
-    saveMetaToken(fakeToken);
-
-    bootstrapMetaData().then(
-        () => {
-            renderAllViews(hasData());
-            updateMetaStatusIndicator("connected");
-            updateDemoStripe(false);
-            showDemoBadge(false);
-        },
-        () => {
-            showToast("Meta Daten konnten nicht geladen werden.", "error");
-        }
-    );
+    showToast("Meta OAuth Flow ist in dieser Demo-Version deaktiviert.", "info");
 }
 
 /* ============================================================
-   META DATA BOOTSTRAP (Live Mode)
+   META DATA BOOTSTRAP (Live Mode - ungenutzt hier)
 ============================================================ */
 
 async function bootstrapMetaData() {
@@ -384,10 +350,8 @@ async function bootstrapMetaData() {
     AppState.meta.user = user;
     AppState.meta.adAccounts = adAccounts;
 
-    // Default Account
     AppState.selectedAccountId = adAccounts[0].id;
 
-    // Kampagnen & Ads für den ersten Account laden
     const [campaigns, ads] = await Promise.all([
         fetchMetaCampaigns(AppState.selectedAccountId, token),
         fetchMetaAds(AppState.selectedAccountId, token)
@@ -396,9 +360,15 @@ async function bootstrapMetaData() {
     AppState.meta.campaigns = campaigns || [];
     AppState.meta.ads = ads || [];
 
-    initAccountSelect(); // füllt Select-Box mit echten Accounts
+    initAccountSelect();
 
-    debugLog("Meta Daten geladen:", "Accounts:", adAccounts.length, "Campaigns:", AppState.meta.campaigns.length);
+    debugLog(
+        "Meta Daten geladen:",
+        "Accounts:",
+        adAccounts.length,
+        "Campaigns:",
+        AppState.meta.campaigns.length
+    );
 
     updateMetaStatusIndicator("connected");
     updateDemoStripe(false);
@@ -437,21 +407,7 @@ function initTopbarControls() {
     if (accountSelect) {
         accountSelect.addEventListener("change", () => {
             AppState.selectedAccountId = accountSelect.value || null;
-
-            if (!AppState.settings.demoMode && checkMetaConnection()) {
-                // Live Mode: bei Account-Wechsel neu laden
-                bootstrapMetaData()
-                    .then(() => {
-                        renderAllViews(hasData());
-                    })
-                    .catch((e) => {
-                        console.error("Account switch error", e);
-                        showToast("Fehler beim Laden der Kampagnen für diesen Account.", "error");
-                    });
-            } else {
-                // Demo Mode: Filter wird einfach logisch angewendet
-                renderAllViews(hasData());
-            }
+            renderAllViews(hasData());
         });
     }
 
@@ -463,7 +419,6 @@ function initTopbarControls() {
         if (globalRange && globalRange.value !== AppState.timeRangePreset) {
             globalRange.value = AppState.timeRangePreset;
         }
-        // Dashboard & Sensei & Reports nutzen Zeitbereich
         updateDashboardView(hasData());
         updateSenseiView(hasData());
         updateReportsView(hasData());
@@ -524,13 +479,11 @@ function initSettingsButton() {
 }
 
 function openSettingsModal() {
-    const demoChecked = AppState.settings.demoMode ? "checked" : "";
     const themeIsDark = AppState.settings.theme === "dark";
-
     const preset = AppState.settings.demoPreset || "small_store";
 
     openModal(`
-        <div class="modal-title">Settings</div>
+        <div class="modal-title">Settings (Demo)</div>
         <div class="modal-form">
             <label class="switch-row">
                 <span>Dark Mode</span>
@@ -538,14 +491,6 @@ function openSettingsModal() {
                     <input type="checkbox" id="settingsThemeToggle" ${
                         themeIsDark ? "checked" : ""
                     } />
-                    <span class="slider round"></span>
-                </label>
-            </label>
-
-            <label class="switch-row">
-                <span>Demo Mode aktivieren</span>
-                <label class="switch">
-                    <input type="checkbox" id="settingsDemoToggle" ${demoChecked} />
                     <span class="slider round"></span>
                 </label>
             </label>
@@ -558,8 +503,7 @@ function openSettingsModal() {
                     }>Small Store (Meta Ads)</option>
                 </select>
                 <p class="settings-help">
-                    Der Demo Mode lädt simulierte Meta Ads Daten,
-                    damit du das Dashboard testen kannst, ohne dein echtes Konto zu verbinden.
+                    Diese Version läuft ausschließlich im Demo Mode mit simulierten Daten.
                 </p>
             </div>
         </div>
@@ -574,54 +518,23 @@ function openSettingsModal() {
 
 function saveSettingsFromModal() {
     const themeToggle = document.getElementById("settingsThemeToggle");
-    const demoToggle = document.getElementById("settingsDemoToggle");
     const presetSelect = document.getElementById("settingsDemoPreset");
 
     const newTheme = themeToggle?.checked ? "dark" : "light";
-    const newDemo = demoToggle?.checked || false;
     const newPreset = presetSelect?.value || "small_store";
 
-    const wasDemo = AppState.settings.demoMode;
-
     AppState.settings.theme = newTheme;
-    AppState.settings.demoMode = newDemo;
+    AppState.settings.demoMode = true;
     AppState.settings.demoPreset = newPreset;
 
     applyTheme(newTheme);
     saveSettingsToStorage();
 
-    // Datenquelle entsprechend umstellen
-    if (newDemo) {
-        loadDemoPreset(newPreset);
-        updateMetaStatusIndicator("connected-demo");
-        updateDemoStripe(true);
-        showDemoBadge(true, DEMO_PRESETS[newPreset].label);
-        renderAllViews(hasData());
-    } else {
-        showDemoBadge(false);
-        updateDemoStripe(false);
-
-        if (wasDemo) {
-            // Wechsel von Demo → Live, aber vielleicht kein Token vorhanden
-            if (checkMetaConnection()) {
-                bootstrapMetaData()
-                    .then(() => {
-                        renderAllViews(hasData());
-                    })
-                    .catch((e) => {
-                        console.error("Meta bootstrap error after demo off", e);
-                        renderAllViews(false);
-                    });
-            } else {
-                // Keine echte Verbindung: Views bleiben leer, bis User Meta verbindet
-                AppState.meta.campaigns = [];
-                AppState.meta.ads = [];
-                AppState.meta.creatives = [];
-                AppState.meta.insightsByCampaign = {};
-                renderAllViews(false);
-            }
-        }
-    }
+    loadDemoPreset(newPreset);
+    updateMetaStatusIndicator("connected-demo");
+    updateDemoStripe(true);
+    showDemoBadge(true, DEMO_PRESETS[newPreset].label);
+    renderAllViews(hasData());
 
     showToast("Settings gespeichert.", "success");
 }
@@ -657,7 +570,6 @@ function handleViewSwitch(viewId) {
 
     AppState.currentView = viewId;
 
-    // Beim Wechsel aktuelle View refreshen
     const dataConnected = hasData();
 
     switch (viewId) {
@@ -685,39 +597,20 @@ function handleViewSwitch(viewId) {
 }
 
 function renderAllViews(dataConnected) {
-    // Sicherstellen, dass Sidebar-Active korrekt ist
     const firstView = AppState.currentView || "dashboardView";
     handleViewSwitch(firstView);
 
-    // Badge- & Statuslogik:
-    const demo = AppState.settings.demoMode;
-    if (demo) {
-        updateMetaStatusIndicator("connected-demo");
-        updateDemoStripe(true);
-    } else if (checkMetaConnection()) {
-        updateMetaStatusIndicator("connected");
-        updateDemoStripe(false);
-    } else {
-        updateMetaStatusIndicator("disconnected");
-        updateDemoStripe(false);
-    }
+    updateMetaStatusIndicator("connected-demo");
+    updateDemoStripe(true);
 }
 
 function hasData() {
     const meta = AppState.meta || {};
-    if (AppState.settings.demoMode) {
-        return (meta.campaigns && meta.campaigns.length > 0) || false;
-    }
-
-    return (
-        !!meta.accessToken &&
-        Array.isArray(meta.campaigns) &&
-        meta.campaigns.length > 0
-    );
+    return (meta.campaigns && meta.campaigns.length > 0) || false;
 }
 
 /* ============================================================
-   EXPORTS (optional, falls andere Module etwas brauchen)
+   EXPORTS
 ============================================================ */
 
 export function isDemoMode() {
