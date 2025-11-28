@@ -1,7 +1,3 @@
-/* ============================================================
-   STATE.JS – FINAL VERSION (KOMPATIBEL MIT DEMO-PRESET-SYSTEM)
-============================================================ */
-
 export const META_APP_ID = "732040642590155";
 
 export const META_OAUTH_CONFIG = {
@@ -10,13 +6,8 @@ export const META_OAUTH_CONFIG = {
     scopes: "ads_read,ads_management,business_management"
 };
 
-/* ============================================================
-   GLOBALER APP-STATE
-============================================================ */
-
 export const AppState = {
     currentView: "dashboardView",
-
     metaConnected: false,
 
     meta: {
@@ -29,40 +20,37 @@ export const AppState = {
         user: null
     },
 
-    /* In neuer Architektur:
-       NULL = alle Kampagnen */
     selectedAccountId: null,
-    selectedCampaignId: null,
+    selectedCampaignId: "ALL",
 
-    /* Dashboard-Zeitraum */
     timeRangePreset: "last_30d",
 
-    /* UI / DATA CACHES */
     dashboardMetrics: null,
     testingLog: [],
     notifications: [],
 
-    /* ============================================================
-       SETTINGS – EINZIGE WAHRHEIT FÜR DEMOMODE & PRESETS
-    ============================================================ */
     settings: {
         theme: "light",
         currency: "EUR",
         metaCacheTtlMinutes: 15,
         defaultTimeRange: "last_30d",
         creativeLayout: "grid",
-
-        /* Demo Mode (True/False) */
-        demoMode: true,
-
-        /* Demo-Preset (Vorschlag A) */
-        demoPreset: "small_store"
+        demoMode: true
     },
 
-    /* Meta-Daten-CACHE */
     metaCache: {
         adAccounts: null,
         campaignsByAccount: {},
         adsByAccount: {}
-    }
+    },
+
+    config: {
+        meta: {
+            appId: META_APP_ID
+        }
+    },
+
+    dashboardLoaded: false,
+    campaignsLoaded: false,
+    creativesLoaded: false
 };
