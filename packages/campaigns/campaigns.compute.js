@@ -1,77 +1,30 @@
-// packages/campaigns/campaigns.compute.js
-// Berechnungs-Engine für Kampagnen (Demo + Live)
+/*
+ * Campaigns Compute
+ * Berechnet Kennzahlen, Status und einfache Scaling-Indikatoren
+ * für Kampagnen.
+ */
 
-import { AppState } from "../../state.js";
-import { demoCampaigns } from "./campaigns.demo.js";
-import { applyCampaignFilters } from "./campaigns.filters.js";
+export function computeCampaignStats(campaigns) {
+  return campaigns.map((c) => {
+    let status = "watch";
 
-function safeNumber(v) {
-    const n = Number(v);
-    return isNaN(n) ? 0 : n;
-}
-
-function mapDemoCampaigns() {
-    return demoCampaigns.map((c, idx) => ({
-        id: c.id || `demo-campaign-${idx}`,
-        name: c.name || "Demo Campaign",
-        status: c.status || "ACTIVE",
-        objective: c.objective || "SALES",
-        dailyBudget: safeNumber(c.dailyBudget || c.budget),
-        spend: safeNumber(c.spend),
-        roas: safeNumber(c.roas),
-        ctr: safeNumber(c.ctr),
-        impressions: safeNumber(c.impressions),
-        clicks: safeNumber(c.clicks)
-    }));
-}
-
-function mapLiveCampaigns() {
-    const campaigns = AppState.meta?.campaigns || [];
-    const insightsMap = AppState.meta?.insightsByCampaign || {};
-
-    return campaigns.map((c, idx) => {
-        const m = insightsMap[c.id] || {};
-        const spend = safeNumber(m.spend);
-        const impressions = safeNumber(m.impressions);
-        const clicks = safeNumber(m.clicks);
-        const ctr = impressions > 0 ? (clicks / impressions) * 100 : safeNumber(m.ctr);
-        const roas = safeNumber(m.roas);
-
-        return {
-            id: c.id || `live-campaign-${idx}`,
-            name: c.name || "Campaign",
-            status: c.status || "UNKNOWN",
-            objective: c.objective || "UNKNOWN",
-            dailyBudget: safeNumber(c.daily_budget || c.lifetime_budget),
-            spend,
-            roas,
-            ctr,
-            impressions,
-            clicks
-        };
-    });
-}
-
-export async function buildCampaignsState({ connected, filters }) {
-    const demoMode = !!AppState.settings?.demoMode;
-
-    let baseCampaigns;
-    let mode = "live";
-
-    if (demoMode || !connected) {
-        baseCampaigns = mapDemoCampaigns();
-        mode = demoMode ? "demo" : "disconnected";
-    } else {
-        baseCampaigns = mapLiveCampaigns();
-        mode = "live";
+    if (c.roas >= 4) {
+      status = "scaling";
+    } else if (c.roas < 1.5) {
+      status = "failing";
     }
 
-    const items = applyCampaignFilters(baseCampaigns, filters || {});
+    const scalingHint =
+      status === "scaling"
+        ? "Budget erhöhen (starke Performance)."
+        : status === "failing"
+        ? "Budget reduzieren oder pausieren."
+        : "Beobachten und Creative/Hook testen.";
 
     return {
-        mode,
-        items,
-        baseItems: baseCampaigns,
-        filters: filters || {}
+      ...c,
+      status,
+      scalingHint,
     };
+  });
 }
