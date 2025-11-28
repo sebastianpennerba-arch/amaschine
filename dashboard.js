@@ -1,829 +1,165 @@
-// dashboard.js – KPI-System + DEMO MODE PERFEKT INTEGRIERT + EVENT LISTENERS FIXED
-
+// dashboard.js
 import { AppState } from "./state.js";
-import { fetchMetaCampaignInsights } from "./metaApi.js";
-import {
-    demoCampaigns,
-    demoCreatives,
-    demoAlerts,
-    demoForecast
-} from "./demoData.js";
+import { showToast } from "./uiCore.js";
 
-/* -----------------------------------------------------------
-    Formatter
------------------------------------------------------------ */
-
-function fEuro(v) {
-    const n = Number(v || 0);
-    return n.toLocaleString("de-DE", {
-        style: "currency",
-        currency: "EUR",
-        maximumFractionDigits: 2
-    });
-}
-
-function fInt(v) {
-    const n = Number(v || 0);
-    return n.toLocaleString("de-DE");
-}
-
-function fPct(v) {
-    const n = Number(v || 0);
-    return `${n.toFixed(2)}%`;
-}
-
-/* -----------------------------------------------------------
-    DOM Helper
------------------------------------------------------------ */
-
-function getEl(id) {
-    return document.getElementById(id);
-}
-
-/* -----------------------------------------------------------
-    🎯 DEMO MODE: BERECHNE METRIKEN AUS DEMO-DATEN
------------------------------------------------------------ */
-
-function calculateDemoMetrics() {
-    const totalSpend = demoCampaigns.reduce((sum, c) => sum + c.spend, 0);
-    const totalRevenue = demoCampaigns.reduce((sum, c) => sum + c.revenue, 0);
-    const totalImpressions = demoCampaigns.reduce(
-        (sum, c) => sum + c.impressions,
-        0
-    );
-    const totalClicks = demoCampaigns.reduce((sum, c) => sum + c.clicks, 0);
-
-    const weightedRoas =
-        totalSpend > 0
-            ? demoCampaigns.reduce((sum, c) => sum + c.roas * c.spend, 0) /
-              totalSpend
-            : 0;
-
-    const ctr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
-    const cpm = totalImpressions > 0 ? (totalSpend / totalImpressions) * 1000 : 0;
-
-    return {
-        spend: totalSpend,
-        revenue: totalRevenue,
-        roas: weightedRoas,
-        ctr,
-        cpm,
-        impressions: totalImpressions,
-        clicks: totalClicks,
-        scopeLabel: "Demo Account – Alle Kampagnen",
-        timeRangeLabel: "Letzte 30 Tage"
-    };
-}
-
-/* -----------------------------------------------------------
-    🎨 RENDER: KPI CARDS mit ALERTS
------------------------------------------------------------ */
-
-function renderKpis(metrics) {
-    const container = getEl("dashboardKpiContainer");
+/**
+ * Dashboard Renderer
+ * Zeigt KPI-Karten + ein paar Demo-Hero-Boxen.
+ */
+export function renderDashboard() {
+    const container = document.getElementById("dashboardContent");
     if (!container) return;
 
-    if (!metrics) {
-        container.innerHTML =
-            "<p style='color:var(--text-secondary);font-size:13px;'>Keine Daten verfügbar.</p>";
-        return;
-    }
+    const { campaigns, insightsByCampaign } = AppState.meta;
 
-    const { spend, revenue, roas, ctr, cpm, impressions, clicks } = metrics;
-
-    // ROAS Trend (simuliert für Demo)
-    const roasTrend = roas > 4.5 ? "🟢 +0.4x vs. Vorwoche" : "🟡 Stabil";
-    const roasClass = roas > 4.5 ? "success" : "warning";
-
-    container.innerHTML = `
-        <div class="kpi-grid">
-            <div class="kpi-card">
-                <div class="kpi-label">Spend</div>
-                <div class="kpi-value">${fEuro(spend)}</div>
-                <div class="kpi-sub">Gesamtausgaben</div>
-            </div>
-            
-            <div class="kpi-card ${roasClass}">
-                <div class="kpi-label">ROAS</div>
-                <div class="kpi-value">${roas.toFixed(2)}x</div>
-                <div class="kpi-sub">${roasTrend}</div>
-            </div>
-            
-            <div class="kpi-card">
-                <div class="kpi-label">Revenue</div>
-                <div class="kpi-value">${fEuro(revenue || spend * roas)}</div>
-                <div class="kpi-sub">Umsatz generiert</div>
-            </div>
-            
-            <div class="kpi-card">
-                <div class="kpi-label">CTR</div>
-                <div class="kpi-value">${fPct(ctr)}</div>
-                <div class="kpi-sub">Click-Through-Rate</div>
-            </div>
-            
-            <div class="kpi-card">
-                <div class="kpi-label">CPM</div>
-                <div class="kpi-value">${fEuro(cpm)}</div>
-                <div class="kpi-sub">Cost per Mille</div>
-            </div>
-            
-            <div class="kpi-card">
-                <div class="kpi-label">Impressions</div>
-                <div class="kpi-value">${fInt(impressions)}</div>
-                <div class="kpi-sub">${fInt(clicks)} Klicks</div>
-            </div>
-        </div>
-    `;
-}
-
-/* -----------------------------------------------------------
-    🚨 ALERTS SYSTEM (NEU – aus PDF)
------------------------------------------------------------ */
-
-function renderAlerts() {
-    const container = getEl("dashboardAlertsContainer");
-    if (!container) return;
-
-    const isDemo = !!AppState.settings?.demoMode;
-
-    if (!isDemo) {
-        container.innerHTML = "";
-        return;
-    }
-
-    const alerts = demoAlerts || [];
-
-    if (!alerts.length) {
-        container.innerHTML = "";
-        return;
-    }
-
-    const alertsHtml = alerts
-        .map((alert) => {
-            const icon =
-                alert.severity === "Hoch"
-                    ? "🔴"
-                    : alert.severity === "Mittel"
-                    ? "🟡"
-                    : "🟢";
-            const className =
-                alert.severity === "Hoch"
-                    ? "alert-critical"
-                    : alert.severity === "Mittel"
-                    ? "alert-warning"
-                    : "alert-success";
-
-            return `
-                <div class="alert-card ${className}">
-                    <div class="alert-icon">${icon}</div>
-                    <div class="alert-content">
-                        <div class="alert-title">${alert.title}</div>
-                        <div class="alert-message">${alert.message}</div>
-                        <div class="alert-meta">${alert.timestamp}</div>
-                    </div>
-                </div>
-            `;
-        })
-        .join("");
-
-    container.innerHTML = `
-        <div class="alerts-section">
-            <h3 class="section-title">⚡ Aktive Alerts</h3>
-            <div class="alerts-grid">
-                ${alertsHtml}
-            </div>
-        </div>
-    `;
-}
-
-/* -----------------------------------------------------------
-    🏆 TOP PERFORMERS (NEU – aus PDF)
------------------------------------------------------------ */
-
-function renderTopPerformers() {
-    const container = getEl("dashboardTopPerformersContainer");
-    if (!container) return;
-
-    const isDemo = !!AppState.settings?.demoMode;
-
-    let topCreatives = [];
-
-    if (isDemo) {
-        // Demo: Nimm die besten 3 Creatives
-        topCreatives = [...demoCreatives]
-            .sort((a, b) => b.roas - a.roas)
-            .slice(0, 3);
-    } else {
-        // Live: Aus AppState (später implementieren)
-        topCreatives = [];
-    }
-
-    if (!topCreatives.length) {
-        container.innerHTML = "";
-        return;
-    }
-
-    const html = topCreatives
-        .map(
-            (c, idx) => `
-        <div class="top-performer-card">
-            <div class="performer-rank">${["🥇", "🥈", "🥉"][idx]}</div>
-            <div class="performer-thumbnail">
-                <img src="${c.thumbnail}" alt="${c.name}" />
-            </div>
-            <div class="performer-content">
-                <div class="performer-name">${c.name}</div>
-                <div class="performer-metrics">
-                    <span class="metric-badge roas">ROAS ${c.roas.toFixed(
-                        2
-                    )}x</span>
-                    <span class="metric-badge spend">${fEuro(c.spend)}</span>
-                    <span class="metric-badge ctr">CTR ${fPct(c.ctr)}</span>
-                </div>
-            </div>
-        </div>
-    `
-        )
-        .join("");
-
-    container.innerHTML = `
-        <div class="top-performers-section">
-            <h3 class="section-title">🏆 Top Performers (letzte 7 Tage)</h3>
-            <div class="top-performers-grid">
-                ${html}
-            </div>
-        </div>
-    `;
-}
-
-/* -----------------------------------------------------------
-    💀 BOTTOM PERFORMERS (NEU – aus PDF)
------------------------------------------------------------ */
-
-function renderBottomPerformers() {
-    const container = getEl("dashboardBottomPerformersContainer");
-    if (!container) return;
-
-    const isDemo = !!AppState.settings?.demoMode;
-
-    if (!isDemo) {
-        container.innerHTML = "";
-        return;
-    }
-
-    // Finde die schlechtesten Creatives
-    const bottomCreatives = [...demoCreatives]
-        .filter((c) => c.performance === "Schwach")
-        .slice(0, 2);
-
-    if (!bottomCreatives.length) {
-        container.innerHTML = "";
-        return;
-    }
-
-    const html = bottomCreatives
-        .map(
-            (c) => `
-        <div class="bottom-performer-card">
-            <div class="loser-badge">❌ LOSER</div>
-            <div class="performer-name">${c.name}</div>
-            <div class="performer-metrics danger">
-                ROAS ${c.roas.toFixed(2)}x | ${fEuro(c.spend)} verschwendet | CTR ${fPct(
-                c.ctr
-            )}
-            </div>
-            <div class="sensei-recommendation">
-                <strong>🧠 SENSEI EMPFEHLUNG:</strong><br>
-                "Pausiere sofort. Ersetze durch Hook-Based UGC. Teste Variante mit Creator Mia (historisch +180% besser)."
-            </div>
-            <div class="action-buttons">
-                <button class="btn-danger btn-pause-creative" data-creative-id="${
-                    c.id
-                }">
-                    Jetzt pausieren
-                </button>
-            </div>
-        </div>
-    `
-        )
-        .join("");
-
-    container.innerHTML = `
-        <div class="bottom-performers-section">
-            <h3 class="section-title danger">💀 Bottom Performers – Sofortiger Handlungsbedarf</h3>
-            <div class="bottom-performers-grid">
-                ${html}
-            </div>
-        </div>
-    `;
-
-    // EVENT LISTENER für Pause-Buttons
-    document.querySelectorAll(".btn-pause-creative").forEach((btn) => {
-        btn.addEventListener("click", function () {
-            const creativeId = this.getAttribute("data-creative-id");
-            alert(`Creative ${creativeId} wird pausiert... (Demo-Modus – keine echte Aktion)`);
-            this.disabled = true;
-            this.textContent = "✓ Pausiert";
-        });
-    });
-}
-
-/* -----------------------------------------------------------
-    🧠 SENSEI DAILY BRIEFING (NEU – aus PDF)
------------------------------------------------------------ */
-
-function renderSenseiDailyBriefing() {
-    const container = getEl("dashboardSenseiBriefingContainer");
-    if (!container) return;
-
-    const isDemo = !!AppState.settings?.demoMode;
-
-    if (!isDemo) {
-        container.innerHTML = "";
-        return;
-    }
-
-    // Berechne dynamische Werte aus Demo-Daten
-    const topCampaign = [...demoCampaigns].sort((a, b) => b.roas - a.roas)[0];
-    const worstCampaign = [...demoCampaigns].sort((a, b) => a.roas - b.roas)[0];
-
-    const budgetReallocation = Math.round(worstCampaign.spend * 0.3);
-    const budgetIncrease = Math.round(topCampaign.spend * 0.5);
-
-    container.innerHTML = `
-        <div class="sensei-briefing-section">
-            <h3 class="section-title">🧠 Sensei Strategie für Heute (${new Date().toLocaleDateString(
-                "de-DE"
-            )})</h3>
-            
-            <div class="briefing-card priority-1">
-                <div class="priority-badge critical">PRIORITÄT 1: BUDGET REALLOCATION 🔴</div>
-                <div class="briefing-content">
-                    <div class="action-line">
-                        ├─ Reduziere "${worstCampaign.name}" um 30% (-${fEuro(
-        budgetReallocation
-    )}/Tag)
-                    </div>
-                    <div class="action-line">
-                        └─ Erhöhe "${topCampaign.name}" um 50% (+${fEuro(
-        budgetIncrease
-    )}/Tag)
-                    </div>
-                    <div class="action-reason">
-                        <strong>Grund:</strong> ROAS Differenz von ${worstCampaign.roas.toFixed(
-                            1
-                        )}x → ${topCampaign.roas.toFixed(
-        1
-    )}x. Sparst ca. ${fEuro(budgetReallocation * 7)}/Woche
-                    </div>
-                    <button class="btn-primary btn-apply-action" data-action="budget-reallocation">
-                        Jetzt umsetzen
-                    </button>
-                </div>
-            </div>
-
-            <div class="briefing-card priority-2">
-                <div class="priority-badge warning">PRIORITÄT 2: CREATIVE ROTATION ⚡</div>
-                <div class="briefing-content">
-                    <div class="action-line">
-                        ├─ Pausiere: Creatives mit ROAS <2x
-                    </div>
-                    <div class="action-line">
-                        └─ Aktiviere: 3 neue Varianten von Creator "Mia"
-                    </div>
-                    <div class="action-reason">
-                        <strong>Grund:</strong> Mia's Creatives performen 42% über Durchschnitt
-                    </div>
-                    <button class="btn-primary btn-apply-action" data-action="creative-rotation">
-                        Rotation starten
-                    </button>
-                </div>
-            </div>
-
-            <div class="briefing-card priority-3">
-                <div class="priority-badge info">PRIORITÄT 3: TESTING OPPORTUNITY 🎯</div>
-                <div class="briefing-content">
-                    <div class="action-line">
-                        ├─ Hook Test starten: "Problem/Solution" vs "Testimonial"
-                    </div>
-                    <div class="action-line">
-                        └─ Budget: €150/Tag für 3 Tage
-                    </div>
-                    <div class="action-reason">
-                        <strong>Erwartung:</strong> +0.8x ROAS Uplift basierend auf Historie
-                    </div>
-                    <button class="btn-secondary btn-apply-action" data-action="testing">
-                        Test erstellen
-                    </button>
-                </div>
-            </div>
-
-            <div class="impact-summary">
-                <h4>💰 Geschätzter Impact:</h4>
-                <div class="impact-metrics">
-                    <span>+€2,100 Revenue/Tag</span>
-                    <span>+0.6x ROAS in 7 Tagen</span>
-                </div>
-            </div>
-        </div>
-    `;
-
-    // EVENT LISTENERS für Action-Buttons
-    document.querySelectorAll(".btn-apply-action").forEach((btn) => {
-        btn.addEventListener("click", function () {
-            const action = this.getAttribute("data-action");
-            handleSenseiAction(action, this);
-        });
-    });
-}
-
-function handleSenseiAction(action, buttonEl) {
-    const actions = {
-        "budget-reallocation": "Budget-Umschichtung wird angewendet...",
-        "creative-rotation": "Creative Rotation wird gestartet...",
-        testing: "Test wird erstellt..."
-    };
-
-    alert(
-        `${actions[action]}\n\n(Demo-Modus – keine echte API-Aktion. Im Live-Modus würde hier die Meta API aufgerufen.)`
-    );
-
-    buttonEl.disabled = true;
-    buttonEl.textContent = "✓ Umgesetzt";
-    buttonEl.classList.remove("btn-primary", "btn-secondary");
-    buttonEl.classList.add("btn-success");
-}
-
-/* -----------------------------------------------------------
-    📊 Chart-Rendering (simpler Placeholder)
------------------------------------------------------------ */
-
-function renderPerformanceChart(metrics) {
-    const container = getEl("dashboardChartContainer");
-    if (!container) return;
-
-    if (!metrics) {
-        container.innerHTML =
-            "<div class='chart-placeholder'>Keine Daten für Chart.</div>";
-        return;
-    }
-
-    container.innerHTML = `
-        <div class="chart-placeholder">
-            <div style="font-size:13px;color:var(--text-secondary);margin-bottom:4px;">
-                Performance-Übersicht
-            </div>
-            <div style="font-size:12px;">
-                Spend: ${fEuro(metrics.spend)} •
-                ROAS: ${metrics.roas.toFixed(2)}x •
-                CTR: ${fPct(metrics.ctr)} •
-                CPM: ${fEuro(metrics.cpm)}
-            </div>
-        </div>
-    `;
-}
-
-/* -----------------------------------------------------------
-    Hero Creatives / Top-Kampagnen (ALT – aber behalten)
------------------------------------------------------------ */
-
-function getTopCampaigns() {
-    const isDemo = !!AppState.settings?.demoMode;
-
-    if (isDemo) {
-        return [...demoCampaigns].sort((a, b) => b.roas - a.roas).slice(0, 3);
-    }
-
-    const map = AppState.meta?.insightsByCampaign || {};
-    const campaigns = AppState.meta?.campaigns || [];
-
-    const list = Object.entries(map).map(([id, m]) => {
-        const c = campaigns.find((x) => x.id === id);
-        return {
-            id,
-            name: c?.name || "Kampagne",
-            spend: Number(m.spend || 0),
-            roas: Number(m.roas || 0),
-            ctr: Number(m.ctr || 0),
-            impressions: Number(m.impressions || 0),
-            clicks: Number(m.clicks || 0)
-        };
-    });
-
-    list.sort((a, b) => b.roas - a.roas);
-    return list.slice(0, 3);
-}
-
-function renderTopCampaigns() {
-    const container = getEl("dashboardHeroCreativesContainer");
-    if (!container) return;
-
-    const top = getTopCampaigns();
-
-    if (!top.length) {
+    if (!campaigns || campaigns.length === 0) {
         container.innerHTML = `
-            <div class="hero-empty">
-                <p style="font-size:13px;color:var(--text-secondary);">
-                    Noch keine Top-Kampagnen verfügbar.
-                </p>
+            <div class="card hero-empty">
+                <h2 class="elite-title">Dashboard</h2>
+                <p>Keine Kampagnen gefunden. Verbinde Meta oder aktiviere den Demo Mode.</p>
             </div>
         `;
         return;
     }
 
+    const metrics = aggregateMetrics(campaigns, insightsByCampaign);
+
     container.innerHTML = `
-        <div class="hero-grid">
-            ${top
-                .map(
-                    (c) => `
-                <div class="hero-card">
-                    <div class="hero-title">${c.name}</div>
-                    <div class="hero-metric-row">
-                        <span>ROAS</span>
-                        <span class="hero-metric-value">${c.roas.toFixed(
-                            2
-                        )}x</span>
-                    </div>
-                    <div class="hero-metric-row">
-                        <span>Spend</span>
-                        <span class="hero-metric-value">${fEuro(
-                            c.spend
-                        )}</span>
-                    </div>
-                    <div class="hero-metric-row">
-                        <span>CTR</span>
-                        <span class="hero-metric-value">${fPct(
-                            c.ctr
-                        )}</span>
-                    </div>
+        <div class="view-header">
+            <div>
+                <h2 class="elite-title">Dashboard</h2>
+                <div class="header-date-time">
+                    Aktives Konto: ${AppState.selectedAccountId || "n/a"} · 
+                    Kampagnen: ${campaigns.length}
                 </div>
-            `
-                )
-                .join("")}
+            </div>
+        </div>
+
+        <section class="card">
+            <div class="kpi-grid">
+                ${renderKpiCard("Ad Spend", metrics.totalSpend, "€", metrics.spendTrend)}
+                ${renderKpiCard("Revenue", metrics.totalRevenue, "€", metrics.revTrend)}
+                ${renderKpiCard("ROAS", metrics.avgRoas, "x", metrics.roasTrend)}
+                ${renderKpiCard("Impressions", metrics.totalImpressions, "", null)}
+            </div>
+        </section>
+
+        <section class="card hero-card">
+            <h3 class="hero-title">Kampagnen-Performance Snapshot</h3>
+            ${renderTopCampaigns(campaigns, insightsByCampaign)}
+        </section>
+    `;
+}
+
+function aggregateMetrics(campaigns, insightsByCampaign = {}) {
+    let spend = 0;
+    let revenue = 0;
+    let impressions = 0;
+    let roasSum = 0;
+    let roasCount = 0;
+
+    campaigns.forEach(c => {
+        const ins = insightsByCampaign[c.id] || {};
+        const s = Number(ins.spend || ins.spend_total || 0);
+        const r = Number(ins.revenue || ins.purchase_value || 0);
+        const i = Number(ins.impressions || 0);
+        const roas = Number(ins.roas || (s > 0 ? r / s : 0));
+
+        spend += s;
+        revenue += r;
+        impressions += i;
+
+        if (roas > 0) {
+            roasSum += roas;
+            roasCount++;
+        }
+    });
+
+    return {
+        totalSpend: spend,
+        totalRevenue: revenue,
+        totalImpressions: impressions,
+        avgRoas: roasCount > 0 ? roasSum / roasCount : 0,
+        spendTrend: null,
+        revTrend: null,
+        roasTrend: null
+    };
+}
+
+function renderKpiCard(label, value, suffix = "", trend = null) {
+    const formatted = formatNumber(value, suffix);
+    const trendClass = trend === null ? "trend-neutral" : trend > 0 ? "trend-positive" : "trend-negative";
+    const trendLabel =
+        trend === null
+            ? "–"
+            : `${trend > 0 ? "▲" : "▼"} ${Math.abs(trend).toFixed(1)}% vs. Vormonat`;
+
+    return `
+        <div class="kpi-card">
+            <div class="kpi-label"><i class="ri-pulse-line"></i>${label}</div>
+            <div class="kpi-value">${formatted}</div>
+            <div class="kpi-trend ${trendClass}">${trendLabel}</div>
         </div>
     `;
 }
 
-/* -----------------------------------------------------------
-    Insights Aggregation (nur Live-Daten)
------------------------------------------------------------ */
-
-async function aggregateCampaigns(ids, preset) {
-    let spend = 0,
-        impressions = 0,
-        clicks = 0,
-        roasWeighted = 0,
-        weight = 0;
-
-    let minStart = null,
-        maxStop = null;
-
-    for (const id of ids) {
-        try {
-            const insights = await fetchMetaCampaignInsights(id, preset);
-            if (!insights?.success) continue;
-
-            const d = insights.data?.data?.[0];
-            if (!d) continue;
-
-            const s = Number(d.spend || 0);
-            const imp = Number(d.impressions || 0);
-            const clk = Number(d.clicks || 0);
-
-            let r = 0;
-            if (
-                Array.isArray(d.website_purchase_roas) &&
-                d.website_purchase_roas.length
-            ) {
-                r = Number(d.website_purchase_roas[0].value) || 0;
-            }
-
-            spend += s;
-            impressions += imp;
-            clicks += clk;
-
-            if (s > 0 && r > 0) {
-                roasWeighted += r * s;
-                weight += s;
-            }
-
-            const ds = d.date_start;
-            const de = d.date_stop;
-
-            if (ds) {
-                const dsDate = new Date(ds);
-                if (!minStart || dsDate < minStart) minStart = dsDate;
-            }
-            if (de) {
-                const deDate = new Date(de);
-                if (!maxStop || deDate > maxStop) maxStop = deDate;
-            }
-
-            AppState.meta.insightsByCampaign[id] = {
-                spend: s,
-                impressions: imp,
-                clicks: clk,
-                roas: r,
-                ctr: imp > 0 ? (clk / imp) * 100 : 0
-            };
-        } catch (e) {
-            console.warn("Insight Aggregation Error:", id, e);
-        }
+function renderTopCampaigns(campaigns, insightsByCampaign = {}) {
+    if (!campaigns || campaigns.length === 0) {
+        return `<div class="hero-empty">Noch keine Kampagnen-Daten vorhanden.</div>`;
     }
 
-    if (!spend && !impressions && !clicks) return null;
+    const decorated = campaigns.map(c => {
+        const ins = insightsByCampaign[c.id] || {};
+        const spend = Number(ins.spend || ins.spend_total || 0);
+        const revenue = Number(ins.revenue || ins.purchase_value || 0);
+        const roas = spend > 0 ? revenue / spend : 0;
 
-    return {
-        spend,
-        impressions,
-        clicks,
-        ctr: impressions > 0 ? (clicks / impressions) * 100 : 0,
-        cpm: impressions > 0 ? (spend / impressions) * 1000 : 0,
-        roas: weight > 0 ? roasWeighted / weight : 0,
-        dateStart: minStart,
-        dateStop: maxStop
-    };
-}
-
-/* -----------------------------------------------------------
-    Dashboard Summary Text
------------------------------------------------------------ */
-
-function updateDashboardSummary(text) {
-    const sumEl = getEl("dashboardMetaSummary");
-    if (!sumEl) return;
-    sumEl.textContent = text;
-}
-
-function timeRangeLabel(from, to) {
-    if (!from || !to) return "Zeitraum unbekannt";
-    const df = new Date(from);
-    const dt = new Date(to);
-    return `${df.toLocaleDateString("de-DE")} – ${dt.toLocaleDateString(
-        "de-DE"
-    )}`;
-}
-
-/* -----------------------------------------------------------
-    Public API: updateDashboardView (HAUPTFUNKTION)
------------------------------------------------------------ */
-
-export async function updateDashboardView(connected) {
-    const demoMode = !!AppState.settings?.demoMode;
-
-    // 🎯 DEMO-MODE: Zeige alle Demo-Features
-    if (demoMode) {
-        const metrics = calculateDemoMetrics();
-
-        // Speichere im AppState für andere Module
-        AppState.dashboardMetrics = metrics;
-
-        // Render alle Komponenten
-        renderKpis(metrics);
-        renderPerformanceChart(metrics);
-        renderAlerts();
-        renderSenseiDailyBriefing();
-        renderTopPerformers();
-        renderBottomPerformers();
-        renderTopCampaigns();
-
-        updateDashboardSummary(
-            `${metrics.scopeLabel} • Demo-Modus – alle Features aktiv 🚀`
-        );
-
-        AppState.dashboardLoaded = true;
-        return;
-    }
-
-    // Kein Demo-Mode & nicht verbunden
-    if (!connected) {
-        renderKpis(null);
-        renderPerformanceChart(null);
-        renderTopCampaigns();
-        updateDashboardSummary(
-            "Nicht mit Meta verbunden. Verbinde dein Meta Ads Konto oben über den Button."
-        );
-        return;
-    }
-
-    // Live-Mode (wie vorher)
-    try {
-        const preset = AppState.timeRangePreset || "last_7d";
-        const campaigns = AppState.meta?.campaigns || [];
-
-        let metrics;
-
-        if (!AppState.selectedCampaignId) {
-            const ids = campaigns.map((c) => c.id);
-            const agg = await aggregateCampaigns(ids, preset);
-
-            if (!agg) {
-                metrics = {
-                    spend: 0,
-                    roas: 0,
-                    ctr: 0,
-                    cpm: 0,
-                    impressions: 0,
-                    clicks: 0,
-                    scopeLabel: `Alle Kampagnen (${campaigns.length})`,
-                    timeRangeLabel: "Keine Daten"
-                };
-            } else {
-                metrics = {
-                    spend: agg.spend,
-                    roas: agg.roas,
-                    ctr: agg.ctr,
-                    cpm: agg.cpm,
-                    impressions: agg.impressions,
-                    clicks: agg.clicks,
-                    scopeLabel: `Alle Kampagnen (${campaigns.length})`,
-                    timeRangeLabel: timeRangeLabel(
-                        agg.dateStart,
-                        agg.dateStop
-                    )
-                };
-            }
-        } else {
-            const ir = await fetchMetaCampaignInsights(
-                AppState.selectedCampaignId,
-                preset
-            );
-            const d = ir?.data?.data?.[0];
-
-            if (!d) {
-                metrics = {
-                    spend: 0,
-                    roas: 0,
-                    ctr: 0,
-                    cpm: 0,
-                    impressions: 0,
-                    clicks: 0,
-                    scopeLabel: "Keine Insights",
-                    timeRangeLabel: "Keine Daten"
-                };
-            } else {
-                const s = Number(d.spend || 0);
-                const imp = Number(d.impressions || 0);
-                const clk = Number(d.clicks || 0);
-                const ctr = imp > 0 ? (clk / imp) * 100 : 0;
-                const cpm = imp > 0 ? (s / imp) * 1000 : 0;
-
-                let roas = 0;
-                if (
-                    Array.isArray(d.website_purchase_roas) &&
-                    d.website_purchase_roas.length
-                ) {
-                    roas = Number(d.website_purchase_roas[0].value || 0);
-                }
-
-                const camp = campaigns.find(
-                    (c) => c.id === AppState.selectedCampaignId
-                );
-
-                metrics = {
-                    spend: s,
-                    roas,
-                    ctr,
-                    cpm,
-                    impressions: imp,
-                    clicks: clk,
-                    scopeLabel: camp ? camp.name : "Kampagne",
-                    timeRangeLabel: timeRangeLabel(
-                        d.date_start,
-                        d.date_stop
-                    )
-                };
-            }
-        }
-
-        renderKpis(metrics);
-        renderPerformanceChart(metrics);
-        renderTopCampaigns();
-        updateDashboardSummary(
-            `${metrics.scopeLabel} • Zeitraum: ${metrics.timeRangeLabel}`
-        );
-
-        AppState.dashboardMetrics = metrics;
-        AppState.dashboardLoaded = true;
-    } catch (err) {
-        console.error("Dashboard Error:", err);
-
-        const m = {
-            spend: 0,
-            roas: 0,
-            ctr: 0,
-            cpm: 0,
-            impressions: 0,
-            clicks: 0,
-            scopeLabel: "Fehler",
-            timeRangeLabel: "Fehler"
+        return {
+            ...c,
+            metrics: { spend, revenue, roas }
         };
+    });
 
-        renderKpis(m);
-        renderPerformanceChart(m);
-        renderTopCampaigns();
-        updateDashboardSummary(
-            "Fehler beim Laden der Dashboard-Daten. Bitte Verbindung und Berechtigungen prüfen."
-        );
+    decorated.sort((a, b) => (b.metrics.roas || 0) - (a.metrics.roas || 0));
+
+    const top = decorated.slice(0, 3);
+
+    return top
+        .map(c => {
+            const m = c.metrics;
+            return `
+            <div class="hero-metric-row">
+                <div>
+                    <strong>${c.name || c.campaign_name || "Unbenannte Kampagne"}</strong><br/>
+                    <span class="kpi-sub">Status: ${c.status || "unknown"}</span>
+                </div>
+                <div class="hero-metric-value">
+                    ROAS: ${m.roas ? m.roas.toFixed(2) + "x" : "–"}<br/>
+                    <span class="kpi-sub">Spend: ${formatNumber(m.spend, "€")}</span>
+                </div>
+            </div>
+        `;
+        })
+        .join("");
+}
+
+function formatNumber(value, suffix = "") {
+    const num = Number(value || 0);
+    if (suffix === "€") {
+        return num.toLocaleString("de-DE", {
+            style: "currency",
+            currency: "EUR",
+            maximumFractionDigits: 0
+        });
     }
+    if (suffix === "x") {
+        return num ? num.toFixed(2) + "x" : "–";
+    }
+    if (num > 1000000) {
+        return (num / 1000000).toFixed(1) + "M";
+    }
+    if (num > 1000) {
+        return (num / 1000).toFixed(1) + "k";
+    }
+    return num.toLocaleString("de-DE");
 }
