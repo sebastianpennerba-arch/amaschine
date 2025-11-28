@@ -1,4 +1,6 @@
 // packages/campaigns/campaigns.demo.js
-// Demo-Kampagnenstruktur (Stub).
+// Hook für spätere Demo-Integration, aktuell nur Re-Export aus demoData (optional).
 
-export const DemoCampaigns = [];
+import { demoCampaigns } from "../../demoData.js";
+
+export { demoCampaigns as DemoCampaigns };
