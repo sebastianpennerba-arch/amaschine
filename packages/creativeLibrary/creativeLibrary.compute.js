@@ -1,108 +1,135 @@
 // packages/creativeLibrary/creativeLibrary.compute.js
-// State- & KPI-Engine für Creative Library (Demo + Live).
+// Erzeugt den Zustand (State) der Creative Library: Live + Demo
+// Wird über index.js → render() aufgerufen.
 
 import { AppState } from "../../state.js";
 import { demoCreatives } from "./creativeLibrary.demo.js";
-import { applyCreativeFilters } from "./creativeLibrary.filters.js";
+
+/**
+ * Liefert den aktuellen Creative-Library-State:
+ * - verbunden? (connected)
+ * - Demo oder Live?
+ * - Creatives: Live Ads → gemappt auf Library-Format
+ */
+export async function buildCreativeLibraryState({ connected }) {
+    const demoMode = !!AppState.settings?.demoMode;
+
+    // DEMO → demoCreatives
+    if (demoMode || !connected || !AppState.metaConnected) {
+        return {
+            connected: false,
+            demoMode: true,
+            creatives: mapDemoCreatives()
+        };
+    }
+
+    // LIVE → Ads aus Meta Ads API (AppState.meta.ads)
+    const ads = AppState.meta?.ads || [];
+
+    return {
+        connected: true,
+        demoMode: false,
+        creatives: mapLiveCreatives(ads)
+    };
+}
+
+/* ============================================================
+   DEMO
+============================================================ */
 
 function mapDemoCreatives() {
     return demoCreatives.map((c, idx) => ({
         id: c.id || `demo-${idx}`,
-        name: c.name || c.headline || "Demo Creative",
-        campaignName: c.campaignName || "Demo Campaign",
-        adsetName: c.adsetName || "Demo Adset",
+        name: c.name || c.title || "Demo Creative",
+        headline: c.headline || "",
+        thumbnail:
+            c.thumbnail ||
+            c.imageUrl ||
+            "https://via.placeholder.com/250x250?text=Creative",
         type: c.type || "image",
-        platform: c.platform || "Meta",
-        thumbnail: c.thumbnail || c.imageUrl || "",
-        roas: Number(c.roas || 0),
-        spend: Number(c.spend || 0),
-        ctr: Number(c.ctr || 0),
-        cpm: Number(c.cpm || 0),
-        impressions: Number(c.impressions || 0),
-        clicks: Number(c.clicks || 0),
-        conversions: Number(c.conversions || 0),
-        rank: c.rank || idx + 1
+        roas: number(c.roas),
+        ctr: number(c.ctr),
+        cpm: number(c.cpm),
+        spend: number(c.spend),
+        conversions: number(c.conversions),
+        clicks: number(c.clicks),
+        impressions: number(c.impressions)
     }));
 }
 
-function safeNumber(v) {
-    const n = Number(v);
-    return isNaN(n) ? 0 : n;
-}
+/* ============================================================
+   LIVE
+============================================================ */
 
-function mapLiveCreatives() {
-    const ads = AppState.meta?.ads || [];
-
-    return ads.map((a, idx) => {
-        const insights = Array.isArray(a.insights?.data)
-            ? a.insights.data[0]
-            : a.insights?.data || a.insights || null;
-
-        const spend = safeNumber(insights?.spend);
-        const impressions = safeNumber(insights?.impressions);
-        const clicks = safeNumber(insights?.clicks);
-        const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
-        const cpm = impressions > 0 ? (spend / impressions) * 1000 : 0;
-
-        let roas = 0;
-        if (
-            Array.isArray(insights?.website_purchase_roas) &&
-            insights.website_purchase_roas.length
-        ) {
-            roas = safeNumber(insights.website_purchase_roas[0].value);
-        }
-
-        const thumb =
-            a.thumbnail_url ||
-            a.image_url ||
-            a.creative?.thumbnail_url ||
-            a.creative?.image_url ||
-            "";
-
+function mapLiveCreatives(ads) {
+    return ads.map((ad, idx) => {
+        const insights = extractInsights(ad);
         return {
-            id: a.id || `ad-${idx}`,
-            name: a.name || a.ad_name || "Ad",
-            campaignName: a.campaign_name || a.campaign?.name || "",
-            adsetName: a.adset_name || a.adset?.name || "",
-            type: (a.creative?.object_type || a.object_type || "image").toLowerCase(),
-            platform: "Meta",
-            thumbnail: thumb,
-            roas,
-            spend,
-            ctr,
-            cpm,
-            impressions,
-            clicks,
-            conversions: safeNumber(insights?.actions?.find?.((x) => x.action_type === "purchase")?.value),
-            rank: idx + 1
+            id: ad.id || `ad-${idx}`,
+            name: ad.name || ad.ad_name || "Ad",
+            headline: ad.creative?.headline || "",
+            thumbnail:
+                ad.thumbnail_url ||
+                ad.image_url ||
+                ad.creative?.thumbnail_url ||
+                ad.creative?.image_url ||
+                "https://via.placeholder.com/250x250?text=No+Image",
+            type: detectType(ad),
+            roas: insights.roas,
+            ctr: insights.ctr,
+            cpm: insights.cpm,
+            spend: insights.spend,
+            conversions: insights.conversions,
+            clicks: insights.clicks,
+            impressions: insights.impressions
         };
     });
 }
 
-/**
- * Zentrale State-Fabrik für Creative Library.
- */
-export async function buildCreativeLibraryState({ connected, filters }) {
-    const demoMode = !!AppState.settings?.demoMode;
-
-    let baseCreatives;
-    let mode = "live";
-
-    if (demoMode || !connected) {
-        baseCreatives = mapDemoCreatives();
-        mode = demoMode ? "demo" : "disconnected";
-    } else {
-        baseCreatives = mapLiveCreatives();
-        mode = "live";
+function extractInsights(ad) {
+    let i = {};
+    if (Array.isArray(ad.insights?.data) && ad.insights.data.length > 0) {
+        i = ad.insights.data[0];
     }
 
-    const { items, groupBy } = applyCreativeFilters(baseCreatives, filters || {});
+    const spend = number(i.spend);
+    const impressions = number(i.impressions);
+    const clicks = number(i.clicks);
+    const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
+
+    let roas = 0;
+    if (
+        Array.isArray(i.website_purchase_roas) &&
+        i.website_purchase_roas.length
+    ) {
+        roas = number(i.website_purchase_roas[0].value);
+    }
+
+    const cpm = impressions > 0 ? (spend / impressions) * 1000 : 0;
 
     return {
-        mode,
-        items,
-        baseItems: baseCreatives,
-        filters: filters || {},
-        groupBy
+        spend,
+        impressions,
+        clicks,
+        ctr,
+        roas,
+        cpm,
+        conversions: number(i.conversions)
     };
+}
+
+/* ============================================================
+   HELPERS
+============================================================ */
+
+function detectType(ad) {
+    const t = ad.creative?.object_type || ad.creative?.asset_feed_spec;
+    if (!t) return "image";
+    if (typeof t === "string") return t;
+    return "image";
+}
+
+function number(v) {
+    const n = Number(v);
+    return isNaN(n) ? 0 : n;
 }
