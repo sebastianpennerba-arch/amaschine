@@ -1,6 +1,6 @@
 // packages/campaigns/campaigns.demo.js
-// Hook für spätere Demo-Integration, aktuell nur Re-Export aus demoData (optional).
+// Demo-Kampagnen aus demoData.js
 
 import { demoCampaigns } from "../../demoData.js";
 
-export { demoCampaigns as DemoCampaigns };
+export { demoCampaigns };
