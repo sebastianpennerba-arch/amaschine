@@ -1,133 +1,168 @@
-/* ============================================================
-   metaApi.js – FINAL VERSION (kompatibel mit neuer app.js)
-============================================================ */
+// metaApi.js – FINAL VERSION for https://signalone-backend.onrender.com
+// Frontend-Proxy für Meta-API über das Backend
+// - Nutzt automatisch AppState.meta.accessToken, wenn kein Token übergeben wird
+// - Schickt beim Insights-Endpoint { accessToken, timeRangePreset } an das Backend
+// - Liefert bei Insights ein Objekt im Format { ok, success, data, error? }
 
 import { AppState } from "./state.js";
 
 const BASE_URL = "https://signalone-backend.onrender.com/api/meta";
 
-/* ============================================================
-   Helper: Token auflösen
-============================================================ */
-
+/**
+ * Hilfsfunktion: ermittelt den zu verwendenden Access Token
+ * - bevorzugt expliziten Parameter
+ * - sonst AppState.meta.accessToken
+ */
 function resolveAccessToken(explicitToken) {
     if (explicitToken) return explicitToken;
     return AppState?.meta?.accessToken || null;
 }
 
-/* ============================================================
-   Helper: POST JSON Wrapper
-============================================================ */
-
+/**
+ * Kleine Wrapper-Funktion für Fetch + JSON
+ */
 async function jsonPost(url, body) {
+    const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body || {})
+    });
+
+    let data = null;
     try {
-        const res = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body || {})
-        });
-
-        const data = await res.json().catch(() => null);
-
-        return { ok: res.ok, status: res.status, data };
-    } catch (e) {
-        return { ok: false, status: 500, data: { ok: false, error: e.toString() } };
+        data = await res.json();
+    } catch {
+        data = null;
     }
+
+    return { res, data };
 }
 
-/* ============================================================
-   OAuth: Code → Access Token
-============================================================ */
-
+// 1. OAuth Code gegen Token tauschen
 export async function exchangeMetaCodeForToken(code, redirectUri) {
-    const { ok, data } = await jsonPost(`${BASE_URL}/oauth/token`, {
+    const { res, data } = await jsonPost(`${BASE_URL}/oauth/token`, {
         code,
         redirectUri
     });
 
-    return ok && data?.ok ? data.accessToken : null;
+    if (!res.ok || !data?.ok || !data.accessToken) {
+        console.error("exchangeMetaCodeForToken failed:", data);
+        return null;
+    }
+
+    return data.accessToken;
 }
 
-/* ============================================================
-   USER
-============================================================ */
-
-export async function fetchMetaUser(explicitToken) {
-    const token = resolveAccessToken(explicitToken);
+// 2. User laden
+export async function fetchMetaUser(accessToken) {
+    const token = resolveAccessToken(accessToken);
     if (!token) return null;
 
-    const { ok, data } = await jsonPost(`${BASE_URL}/me`, {
+    const { res, data } = await jsonPost(`${BASE_URL}/me`, {
         accessToken: token
     });
 
-    return ok && data?.ok ? data.data : null;
+    if (!res.ok || !data?.ok) {
+        console.error("fetchMetaUser failed:", data);
+        return null;
+    }
+
+    return data.data;
 }
 
-/* ============================================================
-   AD ACCOUNTS
-============================================================ */
-
-export async function fetchMetaAdAccounts(explicitToken) {
-    const token = resolveAccessToken(explicitToken);
+// 3. Werbekonten laden
+export async function fetchMetaAdAccounts(accessToken) {
+    const token = resolveAccessToken(accessToken);
     if (!token) return [];
 
-    const { ok, data } = await jsonPost(`${BASE_URL}/adaccounts`, {
+    const { res, data } = await jsonPost(`${BASE_URL}/adaccounts`, {
         accessToken: token
     });
 
-    return ok && data?.ok ? data.data?.data || [] : [];
+    if (!res.ok || !data?.ok) {
+        console.error("fetchMetaAdAccounts failed:", data);
+        return [];
+    }
+
+    // Backend liefert { ok: true, data: { data: [...] } }
+    return data.data?.data || [];
 }
 
-/* ============================================================
-   CAMPAIGNS
-============================================================ */
-
-export async function fetchMetaCampaigns(accountId, explicitToken) {
-    const token = resolveAccessToken(explicitToken);
+// 4. Kampagnen laden
+export async function fetchMetaCampaigns(accountId, accessToken) {
+    const token = resolveAccessToken(accessToken);
     if (!token || !accountId) return [];
 
-    const { ok, data } = await jsonPost(`${BASE_URL}/campaigns/${accountId}`, {
+    const { res, data } = await jsonPost(`${BASE_URL}/campaigns/${accountId}`, {
         accessToken: token
     });
 
-    return ok && data?.ok ? data.data?.data || [] : [];
+    if (!res.ok || !data?.ok) {
+        console.error("fetchMetaCampaigns failed:", data);
+        return [];
+    }
+
+    return data.data?.data || [];
 }
 
-/* ============================================================
-   ADS
-============================================================ */
-
-export async function fetchMetaAds(accountId, explicitToken) {
-    const token = resolveAccessToken(explicitToken);
+// 5. Ads laden
+export async function fetchMetaAds(accountId, accessToken) {
+    const token = resolveAccessToken(accessToken);
     if (!token || !accountId) return [];
 
-    const { ok, data } = await jsonPost(`${BASE_URL}/ads/${accountId}`, {
+    const { res, data } = await jsonPost(`${BASE_URL}/ads/${accountId}`, {
         accessToken: token
     });
 
-    return ok && data?.ok ? data.data?.data || [] : [];
+    if (!res.ok || !data?.ok) {
+        console.error("fetchMetaAds failed:", data);
+        return [];
+    }
+
+    return data.data?.data || [];
 }
 
-/* ============================================================
-   INSIGHTS
-============================================================ */
+// 6. Kampagnen-Insights laden (WICHTIG! Dashboard fix)
+//    - Dashboard ruft auf mit: fetchMetaCampaignInsights(campaignId, preset)
+//    - Wir ergänzen automatisch den Access Token
+//    - Wir schicken { accessToken, timeRangePreset } an das Backend
+//    - Wir geben ein Objekt zurück, das sowohl in aggregateCampaigns()
+//      als auch im Single-Campaign-Branch funktioniert.
+export async function fetchMetaCampaignInsights(
+    campaignId,
+    timeRangePreset,
+    accessToken
+) {
+    const token = resolveAccessToken(accessToken);
 
-export async function fetchMetaCampaignInsights(campaignId, timeRangePreset, explicitToken) {
-    const token = resolveAccessToken(explicitToken);
     if (!token || !campaignId) {
-        return { ok: false, error: "Missing token or campaignId" };
+        console.error("fetchMetaCampaignInsights called without token or campaignId");
+        return { ok: false, success: false, error: "Missing token or campaignId" };
     }
 
-    const range = timeRangePreset || AppState.timeRangePreset || "last_30d";
+    const preset = timeRangePreset || AppState.timeRangePreset || "last_30d";
 
-    const { ok, data } = await jsonPost(`${BASE_URL}/insights/${campaignId}`, {
+    const { res, data } = await jsonPost(`${BASE_URL}/insights/${campaignId}`, {
         accessToken: token,
-        timeRangePreset: range
+        timeRangePreset: preset
     });
 
-    if (!ok || !data) {
-        return { ok: false, error: data?.error || "Unknown API error" };
+    if (!res.ok || !data) {
+        console.error("fetchMetaCampaignInsights HTTP error:", res.status, data);
+        return {
+            ok: false,
+            success: false,
+            error: data?.error || `HTTP ${res.status}`,
+            data
+        };
     }
 
-    return data;
+    // Backend liefert: { ok: true, data: { data: [ ... ] } }
+    const success = !!data.ok;
+
+    return {
+        ...data,
+        ok: data.ok,
+        success
+    };
 }
