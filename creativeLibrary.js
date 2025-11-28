@@ -1,6 +1,5 @@
 // creativeLibrary.js – SignalOne.cloud
-// Datads-Level Creative Library (Full KPIs, Grouping, Ranking, Bars)
-// + Creative Deep Dive Modal
+// Datads-Level Creative Library (Full KPIs, Grouping, Ranking, Bars + Deep Dive Modal)
 // --------------------------------------------------------------
 
 import { AppState } from "./state.js";
@@ -186,7 +185,12 @@ function groupAds(ads, mode) {
     if (!mode || mode === "none") {
         return ads.map((ad) => {
             const metrics = getAdMetrics(ad);
-            return { key: ad.id, label: getGroupLabel(ad, "none"), ads: [ad], metrics };
+            return {
+                key: ad.id,
+                label: getGroupLabel(ad, "none"),
+                ads: [ad],
+                metrics
+            };
         });
     }
 
@@ -247,7 +251,7 @@ function groupAds(ads, mode) {
 }
 
 /* ================================================================
-   4. Core API
+   4. PUBLIC API
 ==================================================================*/
 
 export async function updateCreativeLibraryView(initialLoad = false) {
@@ -257,12 +261,14 @@ export async function updateCreativeLibraryView(initialLoad = false) {
     initCreativeLibraryFiltersOnce();
 
     if (!AppState.metaConnected) {
-        grid.innerHTML = "<p style='color:var(--text-secondary);'>Nicht verbunden.</p>";
+        grid.innerHTML =
+            "<p style='color:var(--text-secondary);'>Nicht mit Meta verbunden.</p>";
         return;
     }
 
     if (!AppState.selectedAccountId) {
-        grid.innerHTML = "<p style='color:var(--text-secondary);'>Kein Werbekonto gewählt.</p>";
+        grid.innerHTML =
+            "<p style='color:var(--text-secondary);'>Kein Werbekonto ausgewählt.</p>";
         return;
     }
 
@@ -429,7 +435,7 @@ export function renderCreativeLibrary() {
 
 function buildSenseiSnapshot(m) {
     if (!m || !m.spend) {
-        return "Noch zu wenig Daten für eine ernsthafte Bewertung. Lass den Creative länger laufen oder erhöhe das Budget.";
+        return "Noch zu wenig Daten für eine Bewertung. Lass den Creative länger laufen oder erhöhe das Budget.";
     }
 
     if (m.roas >= 3 && m.ctr >= 2) {
@@ -535,7 +541,7 @@ function openCreativeModal(group) {
                     <p class="creative-modal-copy">
                         Hook → Click: <strong>${kp(m.hookToClickRatio, "%", 1)}</strong>,
                         Thumbstop: <strong>${kp(m.thumbstopRatio, "%", 1)}</strong>
-                        – ideal für einen ersten Eindruck, wie stark dein Creative im Scroll-Strom performt.
+                        – ideal, um zu sehen, wie stark das Creative im Scroll-Strom abschneidet.
                     </p>
                 </div>
 
@@ -556,7 +562,10 @@ function openCreativeModal(group) {
                                 </tr>
                             </thead>
                             <tbody>
-                                ${adRows || `<tr><td colspan="8" style="text-align:center;color:var(--text-secondary);">Keine Einzel-Varianten gefunden.</td></tr>`}
+                                ${
+                                    adRows ||
+                                    `<tr><td colspan="8" style="text-align:center;color:var(--text-secondary);">Keine Einzel-Varianten gefunden.</td></tr>`
+                                }
                             </tbody>
                         </table>
                     </div>
@@ -569,9 +578,23 @@ function openCreativeModal(group) {
                         <div class="sensei-text">${senseiText}</div>
                     </div>
                 </div>
+
+                <div class="modal-section">
+                    <div class="modal-section-title">Enthaltene Ads</div>
+                    <ul style="max-height:200px;overflow:auto;font-size:13px;padding-left:18px;">
+                        ${group.ads
+                            .map(
+                                (ad) =>
+                                    `<li><strong>${ad.name || "Ohne Namen"}</strong> – ID: ${
+                                        ad.id
+                                    }</li>`
+                            )
+                            .join("")}
+                    </ul>
+                </div>
             </div>
         </div>
     `;
 
-    openModal("Creative Deep Dive", html);
+    openModal("Creative Details", html);
 }
