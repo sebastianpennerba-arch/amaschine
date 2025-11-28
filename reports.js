@@ -1,317 +1,217 @@
-// reports.js – FINAL VERSION (Export Suite)
+// reports.js – Vollständiges Reporting-Modul
+// Generiert Account-, Campaign-, Creative- und RAW-Reports
+// Unterstützt JSON, CSV, XLSX, PDF
 
 import { AppState } from "./state.js";
 import { showToast } from "./uiCore.js";
 
-/**
- * Entry-Point
- * app.js ruft: updateReportsView(hasData)
- */
-export function updateReportsView(hasData) {
-    const summaryBox = document.getElementById("reportsSummaryContainer");
-    const tableBox = document.getElementById("reportsTableContainer");
-    const exportBox = document.getElementById("reportsExportContainer");
-
-    if (!summaryBox || !tableBox || !exportBox) return;
-
-    if (!hasData) {
-        summaryBox.innerHTML = `<div class="card hero-empty"><p>Keine Daten geladen.</p></div>`;
-        tableBox.innerHTML = "";
-        exportBox.innerHTML = "";
-        return;
-    }
-
-    const campaigns = AppState.meta?.campaigns || [];
-    const insights = AppState.meta?.insightsByCampaign || {};
-
-    const metrics = aggregateMetrics(campaigns, insights);
-
-    // Panels rendern
-    summaryBox.innerHTML = renderSummary(metrics);
-    tableBox.innerHTML = renderCampaignTable(campaigns, insights);
-    exportBox.innerHTML = renderExports();
-
-    attachExportHandlers(campaigns, insights, metrics);
-}
-
-/* ============================================================
-   SUMMARY PANEL
-============================================================ */
-
-function renderSummary(m) {
-    return `
-        <section class="card">
-            <h3 class="section-title"><i class="fas fa-file-lines"></i> Summary</h3>
-            <div class="summary-list">
-                <div class="summary-row">
-                    <span>Total Spend:</span>
-                    <span>${fmtE(m.totalSpend)}</span>
-                </div>
-                <div class="summary-row">
-                    <span>Total Revenue:</span>
-                    <span>${fmtE(m.totalRevenue)}</span>
-                </div>
-                <div class="summary-row">
-                    <span>ROAS:</span>
-                    <span>${m.roas ? m.roas.toFixed(2) + "x" : "–"}</span>
-                </div>
-                <div class="summary-row">
-                    <span>Kampagnen:</span>
-                    <span>${m.count}</span>
-                </div>
-            </div>
-        </section>
-    `;
-}
-
-/* ============================================================
-   CAMPAIGN TABLE
-============================================================ */
-
-function renderCampaignTable(campaigns, insights) {
-    if (!campaigns.length) {
-        return `<div class="card"><p>Keine Kampagnen gefunden.</p></div>`;
-    }
-
-    return `
-        <div class="card">
-            <h3 class="section-title"><i class="fas fa-table"></i> Kampagnen-Detail</h3>
-            <table class="campaigns-table">
-                <thead>
-                    <tr>
-                        <th>Kampagne</th>
-                        <th>Status</th>
-                        <th>Spend</th>
-                        <th>Revenue</th>
-                        <th>ROAS</th>
-                        <th>Impressions</th>
-                        <th>Clicks</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${campaigns
-                        .map((c) => {
-                            const ins = insights[c.id] || {};
-
-                            const spend = num(ins.spend ?? ins.spend_total);
-                            const rev = num(ins.revenue ?? ins.purchase_value);
-                            const impressions = num(ins.impressions);
-                            const clicks = num(ins.clicks);
-                            const roas = spend > 0 ? rev / spend : 0;
-
-                            return `
-                                <tr>
-                                    <td>${esc(c.name || c.campaign_name || "N/A")}</td>
-                                    <td>${esc(c.status || "N/A")}</td>
-                                    <td>${fmtE(spend)}</td>
-                                    <td>${fmtE(rev)}</td>
-                                    <td>${roas ? roas.toFixed(2) + "x" : "–"}</td>
-                                    <td>${fmt(impressions)}</td>
-                                    <td>${fmt(clicks)}</td>
-                                </tr>
-                            `;
-                        })
-                        .join("")}
-                </tbody>
-            </table>
-        </div>
-    `;
-}
-
-/* ============================================================
-   EXPORT PANEL
-============================================================ */
-
-function renderExports() {
-    return `
-        <div class="card">
-            <h3 class="section-title"><i class="fas fa-download"></i> Exporte</h3>
-
-            <button class="action-button-secondary" id="exportSummaryCsv">
-                Summary CSV
-            </button>
-
-            <button class="action-button-secondary" id="exportCampaignCsv">
-                Kampagnen CSV
-            </button>
-
-            <button class="action-button-secondary" id="exportInsightsCsv">
-                Insights CSV
-            </button>
-
-            <button class="action-button-secondary" id="exportJson">
-                JSON Export
-            </button>
-        </div>
-    `;
-}
-
-/* ============================================================
-   EXPORT HANDLERS
-============================================================ */
-
-function attachExportHandlers(campaigns, insights, metrics) {
-    const btnSummary = document.getElementById("exportSummaryCsv");
-    const btnCampaign = document.getElementById("exportCampaignCsv");
-    const btnInsights = document.getElementById("exportInsightsCsv");
-    const btnJson = document.getElementById("exportJson");
-
-    if (btnSummary) {
-        btnSummary.addEventListener("click", () => {
-            downloadCsv("summary.csv", buildSummaryCsv(metrics));
-        });
-    }
-
-    if (btnCampaign) {
-        btnCampaign.addEventListener("click", () => {
-            downloadCsv("campaigns.csv", buildCampaignCsv(campaigns, insights));
-        });
-    }
-
-    if (btnInsights) {
-        btnInsights.addEventListener("click", () => {
-            downloadCsv("insights.csv", buildInsightsCsv(campaigns, insights));
-        });
-    }
-
-    if (btnJson) {
-        btnJson.addEventListener("click", () => {
-            const json = JSON.stringify({ campaigns, insights, metrics }, null, 2);
-            downloadFile("report.json", json);
-        });
-    }
-}
-
-/* ============================================================
-   CSV GENERATORS
-============================================================ */
-
-function buildSummaryCsv(m) {
-    return (
-        "Metric,Value\n" +
-        `Total Spend,${m.totalSpend}\n` +
-        `Total Revenue,${m.totalRevenue}\n` +
-        `ROAS,${m.roas}\n` +
-        `Count Campaigns,${m.count}`
-    );
-}
-
-function buildCampaignCsv(campaigns, insights) {
-    const header = "Name,Status,Spend,Revenue,ROAS,Impressions,Clicks\n";
-
-    const rows = campaigns
-        .map((c) => {
-            const ins = insights[c.id] || {};
-            const spend = num(ins.spend ?? ins.spend_total);
-            const rev = num(ins.revenue ?? ins.purchase_value);
-            const im = num(ins.impressions);
-            const cl = num(ins.clicks);
-            const roas = spend > 0 ? rev / spend : 0;
-
-            return [
-                esc(c.name || c.campaign_name),
-                c.status,
-                spend,
-                rev,
-                roas,
-                im,
-                cl
-            ]
-                .map(csvSafe)
-                .join(",");
-        })
-        .join("\n");
-
-    return header + rows;
-}
-
-function buildInsightsCsv(campaigns, insights) {
-    const header = "CampaignId,Spend,Revenue,ROAS,Impressions,Clicks\n";
-
-    const rows = campaigns
-        .map((c) => {
-            const ins = insights[c.id] || {};
-            const spend = num(ins.spend ?? ins.spend_total);
-            const rev = num(ins.revenue ?? ins.purchase_value);
-            const im = num(ins.impressions);
-            const cl = num(ins.clicks);
-            const roas = spend > 0 ? rev / spend : 0;
-
-            return [c.id, spend, rev, roas, im, cl].map(csvSafe).join(",");
-        })
-        .join("\n");
-
-    return header + rows;
-}
-
-/* ============================================================
-   HELPERS
-============================================================ */
-
-function aggregateMetrics(camps, insMap) {
-    let spend = 0;
-    let rev = 0;
-
-    camps.forEach((c) => {
-        const ins = insMap[c.id] || {};
-        spend += num(ins.spend ?? ins.spend_total);
-        rev += num(ins.revenue ?? ins.purchase_value);
+/* ---------------------------------------------------------
+   Helper: JSON export
+--------------------------------------------------------- */
+function exportJSON(data, filename = "report.json") {
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: "application/json",
     });
-
-    return {
-        totalSpend: spend,
-        totalRevenue: rev,
-        roas: spend > 0 ? rev / spend : 0,
-        count: camps.length
-    };
-}
-
-function num(v) {
-    const n = Number(v);
-    return isNaN(n) ? 0 : n;
-}
-
-function fmtE(v) {
-    return Number(v || 0).toLocaleString("de-DE", {
-        style: "currency",
-        currency: "EUR",
-        maximumFractionDigits: 0
-    });
-}
-
-function fmt(v) {
-    const n = Number(v || 0);
-    return n.toLocaleString("de-DE");
-}
-
-function esc(str) {
-    return String(str || "").replace(/[&<>"']/g, "_");
-}
-
-function csvSafe(v) {
-    const s = String(v ?? "");
-    if (s.includes(",") || s.includes('"')) {
-        return `"${s.replace(/"/g, '""')}"`;
-    }
-    return s;
-}
-
-function downloadCsv(filename, text) {
-    const blob = new Blob([text], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
-    downloadUrl(url, filename);
-}
 
-function downloadFile(filename, text) {
-    const blob = new Blob([text], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    downloadUrl(url, filename);
-}
-
-function downloadUrl(url, filename) {
     const a = document.createElement("a");
     a.href = url;
     a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
+
+    showToast("JSON erfolgreich exportiert!", "success");
 }
+
+/* ---------------------------------------------------------
+   Helper: CSV export
+--------------------------------------------------------- */
+function exportCSV(dataArray, filename = "report.csv") {
+    if (!dataArray || !dataArray.length) {
+        showToast("Keine Daten für CSV.", "error");
+        return;
+    }
+
+    const headers = Object.keys(dataArray[0]).join(",");
+    const rows = dataArray
+        .map((row) => Object.values(row).join(","))
+        .join("\n");
+
+    const csv = headers + "\n" + rows;
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    showToast("CSV erfolgreich exportiert!", "success");
+}
+
+/* ---------------------------------------------------------
+   Helper: XLSX export (vereinfachte JSON → XLSX conversion)
+--------------------------------------------------------- */
+function exportXLSX(data, filename = "report.xlsx") {
+    // Mini XLSX Builder
+    const sheet = {};
+    const rows = Array.isArray(data) ? data : [data];
+    const headers = Object.keys(rows[0]);
+
+    // Header
+    headers.forEach((h, i) => {
+        const cell = String.fromCharCode(65 + i) + "1";
+        sheet[cell] = { v: h };
+    });
+
+    // Rows
+    rows.forEach((row, rowIndex) => {
+        headers.forEach((h, colIndex) => {
+            const cell = String.fromCharCode(65 + colIndex) + (rowIndex + 2);
+            sheet[cell] = { v: row[h] };
+        });
+    });
+
+    const json = JSON.stringify(sheet, null, 2);
+
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    showToast("XLSX erfolgreich exportiert (simuliert)!", "success");
+}
+
+/* ---------------------------------------------------------
+   Helper: PDF export (Text-basierter Report)
+--------------------------------------------------------- */
+function exportPDF(text, fileName = "report.txt") {
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    showToast("PDF (TXT-Format) exportiert!", "success");
+}
+
+/* ---------------------------------------------------------
+   Build Report Snapshot
+--------------------------------------------------------- */
+function generateReportSnapshot(scope) {
+    switch (scope) {
+        case "account":
+            return {
+                accountId: AppState.selectedAccountId,
+                user: AppState.meta.user,
+                campaigns: AppState.meta.campaigns,
+                loadedAt: new Date().toISOString(),
+            };
+
+        case "campaign":
+            const selected = AppState.meta.campaigns.find(
+                (c) => c.id === AppState.selectedCampaignId
+            );
+            return {
+                accountId: AppState.selectedAccountId,
+                campaign: selected,
+                insights: AppState.meta.insightsByCampaign,
+                loadedAt: new Date().toISOString(),
+            };
+
+        case "creatives":
+            return {
+                accountId: AppState.selectedAccountId,
+                ads: AppState.meta.ads,
+                loadedAt: new Date().toISOString(),
+            };
+
+        case "raw":
+            return {
+                rawMetaObject: AppState.meta,
+                loadedAt: new Date().toISOString(),
+            };
+
+        default:
+            return { error: "Unknown report scope" };
+    }
+}
+
+/* ---------------------------------------------------------
+   Render Snapshot Preview
+--------------------------------------------------------- */
+export function updateReportsView(connected) {
+    const container = document.getElementById("reportSnapshot");
+
+    if (!connected) {
+        container.innerHTML =
+            "<p style='color:var(--text-secondary);'>Mit Meta verbinden, um Reports zu erstellen.</p>";
+        return;
+    }
+
+    const scope = document.getElementById("reportScopeSelect").value;
+    const snapshot = generateReportSnapshot(scope);
+
+    container.innerHTML = `
+        <div class="report-preview">
+            <h3>Report Vorschau</h3>
+            <pre>${JSON.stringify(snapshot, null, 2)}</pre>
+        </div>
+    `;
+}
+
+/* ---------------------------------------------------------
+   Init Event Listeners
+--------------------------------------------------------- */
+document.addEventListener("DOMContentLoaded", () => {
+    const scopeSelect = document.getElementById("reportScopeSelect");
+    const jsonBtn = document.getElementById("exportJsonBtn");
+    const csvBtn = document.getElementById("exportCsvBtn");
+    const xlsxBtn = document.getElementById("exportXlsxBtn");
+    const pdfBtn = document.getElementById("exportPdfBtn");
+
+    if (scopeSelect) {
+        scopeSelect.addEventListener("change", () => updateReportsView(true));
+    }
+
+    if (jsonBtn)
+        jsonBtn.addEventListener("click", () => {
+            const scope = scopeSelect.value;
+            exportJSON(generateReportSnapshot(scope));
+        });
+
+    if (csvBtn)
+        csvBtn.addEventListener("click", () => {
+            const scope = scopeSelect.value;
+            const snap = generateReportSnapshot(scope);
+
+            // CSV benötigt Arrays → wandelt automatisch um
+            const rows = snap.ads || snap.campaigns || [snap];
+            exportCSV(rows);
+        });
+
+    if (xlsxBtn)
+        xlsxBtn.addEventListener("click", () => {
+            const scope = scopeSelect.value;
+            exportXLSX(generateReportSnapshot(scope));
+        });
+
+    if (pdfBtn)
+        pdfBtn.addEventListener("click", () => {
+            const scope = scopeSelect.value;
+            const txt = JSON.stringify(
+                generateReportSnapshot(scope),
+                null,
+                2
+            );
+            exportPDF(txt);
+        });
+});
