@@ -1,54 +1,97 @@
-// packages/testing/testing.render.js
-// Renders #testingLogTableBody
+/*
+ * Testing Log Render
+ * Stellt aktuelle Tests und deren Status dar und zeigt Detailinfos
+ * im System-Modal.
+ */
 
-export function renderTestingTable(items) {
-    const tbody = document.getElementById("testingLogTableBody");
-    if (!tbody) return;
+import { createTest, predictWinner } from "./compute.js";
 
-    if (!items.length) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="4" style="text-align:center; color:var(--text-secondary);">
-                    Keine Testing Log Einträge vorhanden.
-                </td>
-            </tr>
-        `;
-        return;
-    }
+export function render(container, AppState) {
+  container.innerHTML = "";
 
-    tbody.innerHTML = items
-        .map(
-            (i) => `
-        <tr>
-            <td><strong>${escape(i.name)}</strong></td>
-            <td>${escape(i.details)}</td>
-            <td>${formatDate(i.date)}</td>
-            <td>${statusPill(i.status)}</td>
-        </tr>`
-        )
-        .join("");
+  const heading = document.createElement("h2");
+  heading.textContent = "Testing Log";
+  container.appendChild(heading);
+
+  // Beispieldaten – später über State/API ersetzen
+  const tests = [
+    createTest(47, "Hook Battle – Problem vs. Testimonial", [
+      "Problem/Solution Hook",
+      "Testimonial Hook",
+    ]),
+    createTest(46, "Creator Battle – Mia vs. Sarah", ["Mia", "Sarah"]),
+  ];
+
+  const table = document.createElement("table");
+  table.className = "test-table";
+  const header = document.createElement("tr");
+  ["Name", "Hypothese", "Status", "Aktion"].forEach((h) => {
+    const th = document.createElement("th");
+    th.textContent = h;
+    header.appendChild(th);
+  });
+  table.appendChild(header);
+
+  tests.forEach((t) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${t.name}</td>
+      <td>${t.hypothesis}</td>
+      <td>${t.status}</td>
+      <td><button type="button" data-id="${t.id}">Details</button></td>
+    `;
+    row.querySelector("button").onclick = () => showTestDetail(t);
+    table.appendChild(row);
+  });
+
+  container.appendChild(table);
 }
 
-function escape(s) {
-    return (s || "").replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+function showTestDetail(test) {
+  const api = window.SignalOne || {};
+  const openSystemModal = api.openSystemModal || fallbackModal;
+
+  const winnerPrediction = predictWinner(test);
+  const title = `Test-Details: ${test.name}`;
+
+  const variants =
+    test.variants && test.variants.length
+      ? `<ul>${test.variants
+          .map((v) => `<li>${v}</li>`)
+          .join("")}</ul>`
+      : "<p>Keine Varianten hinterlegt.</p>";
+
+  const body = `
+    <div class="test-detail">
+      <p><strong>Hypothese:</strong> ${test.hypothesis}</p>
+      <p><strong>Status:</strong> ${test.status}</p>
+      <h3>Varianten</h3>
+      ${variants}
+      <h3>Sensei Prediction</h3>
+      <p>${winnerPrediction || "Noch keine Vorhersage verfügbar."}</p>
+      <h3>Nächste Schritte</h3>
+      <p>${
+        test.nextSteps ||
+        "Erhöhe Budget auf den Gewinner und dokumentiere die Learnings."
+      }</p>
+    </div>
+  `;
+
+  openSystemModal(title, body);
 }
 
-function formatDate(d) {
-    if (!d) return "-";
-    try {
-        return new Date(d).toLocaleString("de-DE");
-    } catch {
-        return d;
-    }
-}
-
-function statusPill(s) {
-    const st = (s || "open").toLowerCase();
-    const cls =
-        st === "completed"
-            ? "status-pill active"
-            : st === "in_progress"
-            ? "status-pill paused"
-            : "status-pill unknown";
-    return `<span class="${cls}">${st}</span>`;
+function fallbackModal(title, bodyHtml) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "modal";
+  wrapper.innerHTML = `
+    <div class="modal-content">
+      <h2>${title}</h2>
+      ${bodyHtml}
+      <button type="button" id="close-test-modal">Schließen</button>
+    </div>
+  `;
+  document.body.appendChild(wrapper);
+  document
+    .getElementById("close-test-modal")
+    .addEventListener("click", () => document.body.removeChild(wrapper));
 }
