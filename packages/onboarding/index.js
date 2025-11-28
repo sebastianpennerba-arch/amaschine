@@ -2,5 +2,5 @@
 import { render as renderonboarding } from "./render.js";
 
 export function render(container, AppState) {
-  renderDashboard(container, AppState);
+  renderonboarding(container, AppState);
 }
