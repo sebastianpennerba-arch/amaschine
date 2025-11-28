@@ -1,51 +1,50 @@
 /*
- * SignalOne.cloud – Elite UI v2
- * Kombi aus hellem Analytics-Dashboard + optional dunkler Sidebar.
- * Struktur von index.html & app.js bleibt unverändert.
+ * SignalOne.cloud – Premium UI v3
+ * Dark Sidebar + Light Content, Branding mit SignalOne-Orange.
+ * Achtung: HTML-Grundstruktur (index.html + app.js) bleibt unverändert.
  */
 
-/* ------------------------------
-   Design Tokens
----------------------------------*/
+/* ==============================
+   DESIGN TOKENS
+   ============================== */
 
 :root {
-  /* Farben */
-  --color-bg: #f3f4f6;
+  /* Markenfarben */
+  --color-primary: #f97316;         /* SignalOne Orange */
+  --color-primary-soft: #fff7ed;
+  --color-primary-strong: #ea580c;
+
+  --color-bg: #f3f4f6;              /* Main Hintergrund */
+  --color-bg-strong: #020617;       /* Sidebar Hintergrund */
   --color-surface: #ffffff;
   --color-surface-soft: #f9fafb;
-  --color-surface-strong: #111827;
+
   --color-border-subtle: #e5e7eb;
   --color-border-strong: #111827;
 
-  --color-primary: #4f46e5;
-  --color-primary-soft: #eef2ff;
-  --color-primary-strong: #4338ca;
-
-  --color-accent: #22c55e;
-  --color-accent-soft: #dcfce7;
-
-  --color-danger: #ef4444;
-  --color-danger-soft: #fee2e2;
-
-  --color-warning: #f59e0b;
-  --color-warning-soft: #fef3c7;
-
-  --color-text-main: #111827;
+  --color-text-main: #0f172a;
   --color-text-muted: #6b7280;
   --color-text-soft: #9ca3af;
   --color-text-on-dark: #e5e7eb;
 
-  /* Typo & Radius */
+  --color-accent: #22c55e;
+  --color-accent-soft: #dcfce7;
+  --color-danger: #ef4444;
+  --color-danger-soft: #fee2e2;
+  --color-warning: #f59e0b;
+  --color-warning-soft: #fef3c7;
+
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
 
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 18px;
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
   --radius-pill: 999px;
 
-  --shadow-soft: 0 18px 35px rgba(15, 23, 42, 0.12);
-  --shadow-subtle: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.12);
+  --shadow-subtle: 0 8px 18px rgba(15, 23, 42, 0.08);
 
   --space-xs: 4px;
   --space-sm: 8px;
@@ -54,9 +53,9 @@
   --space-xl: 24px;
 }
 
-/* ------------------------------
-   Global
----------------------------------*/
+/* ==============================
+   GLOBAL
+   ============================== */
 
 *,
 *::before,
@@ -64,54 +63,70 @@
   box-sizing: border-box;
 }
 
+html,
 body {
   margin: 0;
+  padding: 0;
+}
+
+body {
   min-height: 100vh;
   font-family: var(--font-sans);
   background-color: var(--color-bg);
   color: var(--color-text-main);
 }
 
-/* Für Layouts mit Sidebar (z. B. in der neueren App-Version) */
-.app-shell {
-  display: flex;
-  min-height: 100vh;
-}
+/* ==============================
+   LAYOUT: OPTIONAL SIDEBAR + TOPBAR
+   index.html hat #topbar + #content.
+   Die Sidebar kann von app.js dynamisch ergänzt werden.
+   ============================== */
 
-/* ------------------------------
-   Optionale Sidebar (falls vorhanden)
-   (wir greifen nur das Markup auf, wenn es existiert)
----------------------------------*/
+/* Dark Sidebar (wenn <nav class="sidebar"> existiert) */
 
 nav.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
   width: 260px;
   background: radial-gradient(circle at top left, #111827, #020617);
   color: var(--color-text-on-dark);
-  padding: 20px 18px;
+  padding: 18px 18px 20px;
   display: flex;
   flex-direction: column;
   gap: 18px;
+  box-shadow: 8px 0 30px rgba(15, 23, 42, 0.45);
+  z-index: 40;
 }
 
-.sidebar-logo {
+nav.sidebar .sidebar-header {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-weight: 700;
-  font-size: 1.1rem;
 }
 
-.sidebar-logo span {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 9px;
-  background: #f97316;
-  color: #111827;
-  font-size: 0.85rem;
+/* Logo aus Root: Logo_re_Sc.png */
+nav.sidebar .sidebar-logo {
+  width: 140px;
+  height: 32px;
+  background-image: url("Logo_re_Sc.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: left center;
+  text-indent: -9999px;
+  overflow: hidden;
 }
+
+nav.sidebar .sidebar-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #cbd5f5;
+}
+
+/* Navigation im Sidebar */
 
 .sidebar-nav {
   display: flex;
@@ -126,26 +141,42 @@ nav.sidebar {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 9px 11px;
-  border-radius: 10px;
+  padding: 8px 11px;
+  border-radius: var(--radius-pill);
   cursor: pointer;
   font-size: 0.9rem;
   color: var(--color-text-soft);
   transition: background 0.18s ease, color 0.18s ease, transform 0.08s;
 }
 
+.sidebar-nav button::before,
+.sidebar-nav a::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #4b5563;
+}
+
 .sidebar-nav button:hover,
 .sidebar-nav a:hover {
-  background: rgba(15, 23, 42, 0.7);
-  color: #ffffff;
+  background: rgba(15, 23, 42, 0.76);
+  color: #f9fafb;
   transform: translateY(-1px);
 }
 
 .sidebar-nav button.active,
 .sidebar-nav a.active {
-  background: linear-gradient(120deg, #4f46e5, #22c55e);
+  background: radial-gradient(circle at top left, var(--color-primary), #22c55e);
   color: #ffffff;
 }
+
+.sidebar-nav button.active::before,
+.sidebar-nav a.active::before {
+  background: #ffffff;
+}
+
+/* Sidebar Footer: Demo-Mode etc. */
 
 .sidebar-footer {
   margin-top: auto;
@@ -153,18 +184,58 @@ nav.sidebar {
   border-top: 1px solid rgba(148, 163, 184, 0.35);
   font-size: 0.78rem;
   color: var(--color-text-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-/* ------------------------------
-   Topbar & Main Content
-   (für die aktuelle index.html-Struktur)
----------------------------------*/
+.sidebar-footer .status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.sidebar-footer .status-pill-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--color-accent);
+}
+
+/* Demo-Modus Button */
+
+.sidebar-footer .demo-toggle {
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: linear-gradient(135deg, #020617, #111827);
+  color: #e5e7eb;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.16s ease, transform 0.06s, box-shadow 0.16s;
+}
+
+.sidebar-footer .demo-toggle:hover {
+  background: linear-gradient(135deg, var(--color-primary), #4ade80);
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.65);
+  transform: translateY(-1px);
+}
+
+/* Topbar – bleibt für index.html erhalten */
 
 #topbar {
   position: sticky;
   top: 0;
   z-index: 20;
-  background-color: var(--color-surface);
+  background: var(--color-surface);
   border-bottom: 1px solid var(--color-border-subtle);
   padding: 10px 24px;
   display: flex;
@@ -172,13 +243,21 @@ nav.sidebar {
   justify-content: space-between;
 }
 
+/* Logo im Topbar für Fälle ohne Sidebar */
+
 #topbar h1 {
   margin: 0;
-  font-size: 1rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
+  width: 160px;
+  height: 34px;
+  background-image: url("Logo_re_Sc.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: left center;
+  text-indent: -9999px;
+  overflow: hidden;
 }
+
+/* Horizontaler Navbar im Topbar (einfach & clean) */
 
 nav#navbar {
   display: inline-flex;
@@ -190,7 +269,7 @@ nav#navbar button {
   border-radius: var(--radius-pill);
   border: 1px solid transparent;
   padding: 6px 12px;
-  font-size: 0.9rem;
+  font-size: 0.86rem;
   background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
@@ -200,7 +279,7 @@ nav#navbar button {
 nav#navbar button:hover {
   background: var(--color-primary-soft);
   color: var(--color-primary-strong);
-  border-color: #c7d2fe;
+  border-color: #fed7aa;
 }
 
 nav#navbar button.active {
@@ -209,17 +288,22 @@ nav#navbar button.active {
   color: #ffffff;
 }
 
-/* Haupt-Content (aktuelle index.html) */
+/* Haupt-Content: wenn Sidebar existiert, verschieben wir ihn nach rechts */
 
 section#content {
-  padding: 24px;
-  max-width: 1280px;
+  padding: 26px;
+  max-width: 1320px;
   margin: 0 auto 40px;
 }
 
-/* ------------------------------
-   Dashboard Sections
----------------------------------*/
+/* Wenn es eine Sidebar gibt, schieben wir den Content nach rechts */
+body.has-sidebar section#content {
+  margin-left: 260px;
+}
+
+/* ==============================
+   DASHBOARD ELEMENTE
+   ============================== */
 
 .dashboard-hero {
   margin-bottom: 18px;
@@ -232,7 +316,7 @@ section#content {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   padding: 3px 10px;
   border-radius: var(--radius-pill);
   background: var(--color-primary-soft);
@@ -240,9 +324,17 @@ section#content {
   width: fit-content;
 }
 
+.dashboard-hero-status::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-accent);
+}
+
 .dashboard-hero-title {
   margin: 0;
-  font-size: 1.3rem;
+  font-size: 1.35rem;
 }
 
 .dashboard-hero-subtitle {
@@ -265,7 +357,7 @@ section#content {
   border-radius: var(--radius-lg);
   padding: 18px 18px 16px;
   box-shadow: var(--shadow-subtle);
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  border: 1px solid rgba(148, 163, 184, 0.22);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -317,17 +409,12 @@ section#content {
   padding: 16px 18px;
   border-radius: var(--radius-lg);
   background: var(--color-surface-soft);
-  border: 1px dashed rgba(148, 163, 184, 0.8);
+  border: 1px dashed rgba(148, 163, 184, 0.9);
 }
 
-.dashboard-insight h3 {
-  margin: 0 0 6px;
-  font-size: 0.9rem;
-}
-
-/* ------------------------------
-   Badges & Status
----------------------------------*/
+/* ==============================
+   BADGES & STATUS
+   ============================== */
 
 .badge {
   display: inline-flex;
@@ -358,9 +445,9 @@ section#content {
   border-color: #fecaca;
 }
 
-/* ------------------------------
-   Tables (Campaigns, Testing Log, Reports)
----------------------------------*/
+/* ==============================
+   TABLES (Campaigns, Testing Log, Reports)
+   ============================== */
 
 table {
   width: 100%;
@@ -376,7 +463,7 @@ td {
 
 thead th,
 tr:first-child th {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--color-text-soft);
@@ -390,10 +477,14 @@ tr:nth-child(even) {
 
 tbody tr:hover,
 tr:hover {
-  background-color: #eef2ff;
+  background-color: #fefce8;
 }
 
-.campaign-table {
+/* Wrapper für Tabellen-Karten */
+
+.campaign-table,
+.test-table,
+.report-table {
   margin-top: 10px;
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -401,19 +492,9 @@ tr:hover {
   box-shadow: var(--shadow-subtle);
 }
 
-/* Testing Log table */
-
-.test-table {
-  margin-top: 10px;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  background: var(--color-surface);
-  box-shadow: var(--shadow-subtle);
-}
-
-/* ------------------------------
-   Creative Library
----------------------------------*/
+/* ==============================
+   CREATIVE LIBRARY
+   ============================== */
 
 .creative-filters {
   margin: 4px 0 14px;
@@ -430,6 +511,13 @@ tr:hover {
   font-size: 0.85rem;
   background: var(--color-surface);
   min-width: 160px;
+  outline: none;
+}
+
+.creative-filters input[type="search"]:focus,
+.creative-filters select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.4);
 }
 
 .creative-list {
@@ -495,12 +583,12 @@ tr:hover {
 
 .creative-actions button:hover {
   background: var(--color-primary-soft);
-  border-color: #c7d2fe;
+  border-color: #fed7aa;
 }
 
-/* ------------------------------
-   Sensei Cards
----------------------------------*/
+/* ==============================
+   SENSEI CARDS
+   ============================== */
 
 .sensei-card {
   margin-top: 14px;
@@ -523,9 +611,9 @@ tr:hover {
   color: var(--color-text-muted);
 }
 
-/* ------------------------------
-   Onboarding
----------------------------------*/
+/* ==============================
+   ONBOARDING
+   ============================== */
 
 .onboarding {
   max-width: 540px;
@@ -545,47 +633,9 @@ tr:hover {
   margin-right: 6px;
 }
 
-/* ------------------------------
-   Forms / Buttons (global)
----------------------------------*/
-
-button {
-  font-family: var(--font-sans);
-}
-
-button,
-input,
-select {
-  font-family: inherit;
-}
-
-button {
-  border-radius: var(--radius-pill);
-  border: 1px solid transparent;
-  background: var(--color-primary);
-  color: white;
-  padding: 6px 14px;
-  font-size: 0.88rem;
-  cursor: pointer;
-  transition: background 0.16s ease, transform 0.06s ease,
-    box-shadow 0.16s ease;
-}
-
-button:hover {
-  background: var(--color-primary-strong);
-  box-shadow: 0 10px 20px rgba(79, 70, 229, 0.25);
-  transform: translateY(-1px);
-}
-
-button:disabled {
-  opacity: 0.65;
-  cursor: default;
-  box-shadow: none;
-}
-
-/* ------------------------------
-   Misc Components
----------------------------------*/
+/* ==============================
+   TEAM / REPORT / ROAST FORMS
+   ============================== */
 
 .team-list,
 .report-list {
@@ -617,9 +667,17 @@ button:disabled {
   margin-right: 6px;
   margin-bottom: 6px;
   padding: 6px 8px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-xs);
   border: 1px solid var(--color-border-subtle);
   font-size: 0.85rem;
+  outline: none;
+}
+
+.team-form input:focus,
+.report-form select:focus,
+.report-form input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.4);
 }
 
 .roast-output {
@@ -631,9 +689,47 @@ button:disabled {
   font-size: 0.9rem;
 }
 
-/* ------------------------------
-   Modals (Fallback aus Packages)
----------------------------------*/
+/* ==============================
+   BUTTONS & FORM BASICS GLOBAL
+   ============================== */
+
+button {
+  font-family: var(--font-sans);
+}
+
+button,
+input,
+select {
+  font-family: inherit;
+}
+
+button {
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  background: var(--color-primary);
+  color: white;
+  padding: 6px 14px;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: background 0.16s ease, transform 0.06s ease,
+    box-shadow 0.16s ease;
+}
+
+button:hover {
+  background: var(--color-primary-strong);
+  box-shadow: 0 10px 20px rgba(249, 115, 22, 0.4);
+  transform: translateY(-1px);
+}
+
+button:disabled {
+  opacity: 0.65;
+  cursor: default;
+  box-shadow: none;
+}
+
+/* ==============================
+   MODALS (Fallback aus Packages)
+   ============================== */
 
 .modal {
   position: fixed;
@@ -654,14 +750,30 @@ button:disabled {
   box-shadow: var(--shadow-soft);
 }
 
-/* ------------------------------
-   Responsive
----------------------------------*/
+/* ==============================
+   RESPONSIVE
+   ============================== */
 
 @media (max-width: 1024px) {
+  body.has-sidebar section#content {
+    margin-left: 0;
+  }
+
+  nav.sidebar {
+    position: fixed;
+    width: 220px;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+  }
+
+  body.sidebar-open nav.sidebar {
+    transform: translateX(0);
+  }
+
   .kpi-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
   .creative-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
