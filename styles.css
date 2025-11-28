@@ -1167,3 +1167,72 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 }
+
+/* === AI Console Header Styling (Level 2) ======================== */
+
+.greeting-status {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-top: 6px;
+}
+
+/* Drei kleine "System-Lichter" oben links (System / Warning / Critical) */
+.greeting-status::before {
+    content: "";
+    position: absolute;
+    top: -4px;
+    left: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #22C55E; /* System OK */
+    box-shadow:
+        14px 0 0 #FACC15,  /* Warning */
+        28px 0 0 #EF4444;  /* Critical */
+    opacity: 0.9;
+}
+
+.greeting-status h1 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
+/* Console-Line: Datum / Zeit / Version in Monospace mit Prompt + Cursor */
+.header-date-time {
+    position: relative;
+    padding-left: 18px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        "Liberation Mono", "Courier New", monospace;
+    letter-spacing: 0.05em;
+    text-transform: none;
+    color: var(--text-secondary);
+}
+
+.header-date-time::before {
+    content: "> ";
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--accent);
+}
+
+.header-date-time::after {
+    content: "▌";
+    display: inline-block;
+    margin-left: 6px;
+    color: var(--accent);
+    animation: cursorBlink 1s steps(2, start) infinite;
+}
+
+/* Blinking console cursor */
+@keyframes cursorBlink {
+    0%, 45% {
+        opacity: 1;
+    }
+    55%, 100% {
+        opacity: 0;
+    }
+}
