@@ -22,7 +22,7 @@ import {
 // 🔹 Packages
 import DashboardPackage from "./packages/dashboard/index.js";
 import CampaignsPackage from "./packages/campaigns/index.js";
-import CreativesPackage from "./packages/creatives/index.js";
+import CreativesPackage from "./packages/creativeLibrary/index.js";
 
 import { updateSenseiView } from "./sensei.js";
 import { updateReportsView } from "./reports.js";
