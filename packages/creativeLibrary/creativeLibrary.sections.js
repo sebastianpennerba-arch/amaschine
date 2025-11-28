@@ -1,146 +1,94 @@
 // packages/creativeLibrary/creativeLibrary.sections.js
-// Deep-Dive Modal & Card-Eventhandling für Creative Library.
+// Rendert Detail-Ansichten von Creatives (Modal View)
+// Wird vom Creative Library Package über index.js → openDetails() aufgerufen.
 
-import { openModal } from "../../uiCore.js";
-
-function getEl(id) {
-    return document.getElementById(id);
-}
-
-function fEuro(v) {
-    const n = Number(v || 0);
-    return n.toLocaleString("de-DE", {
-        style: "currency",
-        currency: "EUR",
-        maximumFractionDigits: 2
-    });
-}
-
-function fPct(v) {
-    const n = Number(v || 0);
-    return `${n.toFixed(2)}%`;
-}
-
-function fInt(v) {
-    const n = Number(v || 0);
-    return n.toLocaleString("de-DE");
-}
-
-let lastRenderedCreatives = [];
+import { showToast } from "../../uiCore.js";
 
 /**
- * Wird von index.js nach jedem Render mit der aktuell gefilterten Liste aufgerufen.
+ * Öffnet ein Detail-Modal für ein spezifisches Creative.
+ * Erwartet ein Creative-Objekt nach mapping aus compute.js
  */
-export function attachCreativeCardHandlers(creatives) {
-    lastRenderedCreatives = creatives || [];
+export function renderCreativeDetailsModal(item, isDemo) {
+    if (!item) return;
 
-    document.querySelectorAll(".creative-library-item").forEach((card) => {
-        const id = card.getAttribute("data-creative-id");
-        card.addEventListener("click", () => {
-            const creative = lastRenderedCreatives.find((c) => c.id === id);
-            if (creative) openCreativeDetailModal(creative);
-        });
-    });
-}
+    const overlay = document.getElementById("modalOverlay");
+    const titleEl = document.getElementById("modalTitle");
+    const bodyEl = document.getElementById("modalBody");
 
-export function initCreativeDeepDive() {
-    // Reserviert für spätere globale Event-Listener, falls nötig.
-}
+    if (!overlay || !titleEl || !bodyEl) {
+        console.warn("[CreativeDetailsModal] Missing modal elements");
+        return;
+    }
 
-export function openCreativeDetailModal(creative) {
-    const title = creative.name || "Creative Detail";
+    titleEl.textContent = item.name || "Creative Details";
 
-    const bodyHtml = `
-        <div class="creative-modal-layout">
-            <div class="creative-modal-col">
-                <div class="creative-modal-thumb">
-                    ${
-                        creative.thumbnail
-                            ? `<img src="${creative.thumbnail}" alt="${creative.name}">`
-                            : `<div class="creative-faux-thumb">${(creative.name || "Ad")
-                                  .substring(0, 2)
-                                  .toUpperCase()}</div>`
-                    }
+    bodyEl.innerHTML = `
+        <div class="creative-details-wrapper">
+
+            <!-- Thumbnail -->
+            <div class="creative-details-left">
+                <img src="${item.thumbnail}" class="creative-details-thumb" />
+
+                <div class="creative-meta-block">
+                    <div><strong>Typ:</strong> ${escapeHtml(item.type || "—")}</div>
+                    <div><strong>ID:</strong> ${escapeHtml(item.id || "—")}</div>
                 </div>
-                <p class="creative-modal-copy">
-                    Kampagne: <strong>${creative.campaignName || "n/a"}</strong><br>
-                    Adset: <strong>${creative.adsetName || "n/a"}</strong><br>
-                    Typ: <strong>${creative.type || "n/a"}</strong>
+            </div>
+
+            <!-- Right KPIs -->
+            <div class="creative-details-right">
+                <h3>Performance</h3>
+
+                <div class="creative-kpi-grid">
+                    ${kpi("ROAS", fmt(item.roas), "x")}
+                    ${kpi("CTR", fmt(item.ctr), "%")}
+                    ${kpi("CPM", fmt(item.cpm), " €")}
+                    ${kpi("Spend", number(item.spend).toLocaleString("de-DE"), " €")}
+                    ${kpi("Conversions", fmt(item.conversions))}
+                    ${kpi("Clicks", fmt(item.clicks))}
+                    ${kpi("Impressions", fmt(item.impressions))}
+                </div>
+
+                <h3 style="margin-top: 16px;">Beschreibung</h3>
+                <p class="creative-desc">
+                    ${escapeHtml(item.headline || "Keine Beschreibung vorhanden")}
                 </p>
-                <div class="sensei-snapshot">
-                    <div class="sensei-label">Sensei Snapshot</div>
-                    <div class="sensei-text">
-                        "${creative.roas > 3
-                            ? "Starker Performer – Skalierung möglich. Teste neue Hook-Varianten mit ähnlichem Aufbau."
-                            : "Unterperformer – als Kandidat für Pausierung & UGC-Test vormerken."}"
-                    </div>
-                    <div class="modal-kpis-grid">
-                        <div class="metric-chip">
-                            <div class="metric-label">ROAS</div>
-                            <div class="metric-value">${(creative.roas || 0).toFixed(
-                                2
-                            )}x</div>
-                        </div>
-                        <div class="metric-chip">
-                            <div class="metric-label">Spend</div>
-                            <div class="metric-value">${fEuro(creative.spend)}</div>
-                        </div>
-                        <div class="metric-chip">
-                            <div class="metric-label">CTR</div>
-                            <div class="metric-value">${fPct(creative.ctr)}</div>
-                        </div>
-                        <div class="metric-chip">
-                            <div class="metric-label">CPM</div>
-                            <div class="metric-value">${fEuro(creative.cpm)}</div>
-                        </div>
-                    </div>
-                </div>
+
+                ${isDemo ? `<span class="badge-demo">Demo Mode</span>` : ""}
             </div>
 
-            <div class="creative-modal-col">
-                <div class="campaign-modal-section">
-                    <h3>Performance Breakdown</h3>
-                    <div class="creative-modal-table-wrapper">
-                        <table class="creative-modal-table">
-                            <thead>
-                                <tr>
-                                    <th>Metric</th>
-                                    <th>Wert</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr><td>Impressions</td><td>${fInt(
-                                    creative.impressions
-                                )}</td></tr>
-                                <tr><td>Clicks</td><td>${fInt(creative.clicks)}</td></tr>
-                                <tr><td>Conversions</td><td>${fInt(
-                                    creative.conversions
-                                )}</td></tr>
-                                <tr><td>Spend</td><td>${fEuro(creative.spend)}</td></tr>
-                                <tr><td>ROAS</td><td>${(creative.roas || 0).toFixed(
-                                    2
-                                )}x</td></tr>
-                                <tr><td>CTR</td><td>${fPct(creative.ctr)}</td></tr>
-                                <tr><td>CPM</td><td>${fEuro(creative.cpm)}</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="campaign-modal-section">
-                    <h4>Empfohlene Aktionen</h4>
-                    <p class="campaign-note">
-                        Diese Aktionen sind Demo-Empfehlungen. Im Live-System können hier
-                        direkte Meta-Aktionen ausgelöst werden.
-                    </p>
-                    <div class="campaign-actions-row">
-                        <button class="action-button-secondary">In Testing Log übernehmen</button>
-                        <button class="action-button">Ähnliche Creatives anzeigen</button>
-                    </div>
-                </div>
-            </div>
         </div>
     `;
 
-    openModal(title, bodyHtml);
+    overlay.classList.add("visible");
+}
+
+/* ============================================================
+   KPIs
+============================================================ */
+
+function kpi(label, value, suffix = "") {
+    return `
+        <div class="creative-kpi-card">
+            <div class="label">${label}</div>
+            <div class="value">${value}${suffix}</div>
+        </div>
+    `;
+}
+
+function fmt(v) {
+    if (v == null) return "—";
+    return Number(v).toFixed(2);
+}
+
+function number(v) {
+    const n = Number(v);
+    return isNaN(n) ? 0 : n;
+}
+
+function escapeHtml(str) {
+    return (str + "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
 }
