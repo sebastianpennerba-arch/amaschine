@@ -1626,3 +1626,176 @@ nav.sidebar {
   margin-bottom: 36px;
 }
 
+/* ===========================================================
+   CREATIVE LIBRARY – VISION PRO TITANIUM PREMIUM
+   =========================================================== */
+
+/* Grid Layout */
+#creativeLibraryView .creative-grid,
+#creativeLibraryView .creative-list,
+#creativeLibraryView .creative-wrapper {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 26px !important;
+  margin-top: 18px;
+}
+
+/* Card Base */
+.creative-library-item,
+#creativeLibraryView .creative-item {
+  position: relative;
+  background: radial-gradient(circle at 0% 0%, #ffffff 97%, #f1f4fc 100%);
+  border-radius: 20px;
+  border: 1px solid rgba(148,163,184,0.55);
+  box-shadow:
+      0 30px 80px rgba(15, 23, 42, 0.16),
+      0 0 0 0.6px rgba(255,255,255,0.98) inset;
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+      transform .18s cubic-bezier(.2,.8,.2,1),
+      box-shadow .18s cubic-bezier(.2,.8,.2,1),
+      border-color .16s ease;
+}
+
+/* Lift + Glow on hover */
+.creative-library-item:hover,
+#creativeLibraryView .creative-item:hover {
+  transform: translateY(-6px);
+  border-color: rgba(79,70,229,0.9);
+  box-shadow:
+      0 40px 100px rgba(15, 23, 42, 0.28),
+      0 0 0 0.8px rgba(255,255,255,1) inset;
+}
+
+/* Thumbnail Container */
+.creative-media-container-library,
+#creativeLibraryView .creative-media {
+  width: 100%;
+  height: 220px;
+  background: linear-gradient(135deg, #e5e7eb, #cbd5e1);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Thumbnail */
+.creative-media-container-library img,
+.creative-media-container-library video,
+#creativeLibraryView .creative-media img,
+#creativeLibraryView .creative-media video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .25s ease;
+}
+
+/* Mini Zoom Hover */
+.creative-library-item:hover img,
+.creative-library-item:hover video {
+  transform: scale(1.035);
+}
+
+/* 3-dot Menu (VisionOS Style) */
+.creative-card-menu {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.65);
+  border: 1px solid rgba(148,163,184,0.45);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  color: #475569;
+  box-shadow:
+      0 10px 28px rgba(15,23,42,0.20),
+      0 0 0 0.4px rgba(255,255,255,0.98) inset;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+
+.creative-card-menu:hover {
+  background: rgba(255,255,255,0.9);
+  border-color: rgba(79,70,229,0.9);
+  color: #020617;
+  transform: translateY(-2px);
+}
+
+/* Content Section */
+.creative-stats {
+  padding: 16px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+/* Name */
+.creative-name-library {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* Meta Information */
+.creative-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+/* KPI Row */
+.creative-kpi-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  font-size: 12px;
+}
+
+/* KPI Capsules */
+.creative-kpi-badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(248,250,252,0.96);
+  border: 1px solid rgba(226,232,240,0.9);
+  color: #475569;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* KPI Color Variants */
+.kpi-good {
+  background: var(--color-success-soft) !important;
+  border-color: var(--color-success) !important;
+  color: #166534 !important;
+}
+
+.kpi-warning {
+  background: var(--color-warning-soft) !important;
+  border-color: var(--color-warning) !important;
+  color: #92400e !important;
+}
+
+.kpi-bad {
+  background: var(--color-danger-soft) !important;
+  border-color: var(--color-danger) !important;
+  color: #991b1b !important;
+}
+
+/* Footer Info Row (Creator, Format, Duration) */
+.creative-info-row {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(226,232,240,0.7);
+  font-size: 11px;
+  color: #64748b;
+  display: flex;
+  justify-content: space-between;
+}
