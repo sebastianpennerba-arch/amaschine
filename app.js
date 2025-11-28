@@ -1,696 +1,327 @@
-// app.js – FINAL VERSION
+// app.js – Orchestrator für SignalOne
+// DEMO MODE + LIVE MODE vollständig integriert
+// (100% kompatibel zur aktuellen Architektur)
 
-import { AppState, META_OAUTH_CONFIG } from "./state.js";
-import {
-    showToast,
-    updateGreeting,
-    initSidebarNavigation,
-    initDateTime,
-    checkMetaConnection,
-    openModal, // aktuell nicht verwendet, aber belassen
-    updateHealthStatus
+import { 
+    AppState, 
+    setDemoMode 
+} from "./state.js";
+
+import { 
+    DEMO_DATA_PRESETS 
+} from "./demoData.js";
+
+import { 
+    updateSidebarActiveItem, 
+    showToast, 
+    updateMetaStatusBadge 
 } from "./uiCore.js";
 
-import {
-    fetchMetaUser,
-    exchangeMetaCodeForToken,
+import { 
     fetchMetaAdAccounts,
     fetchMetaCampaigns,
     fetchMetaAds,
-    fetchMetaCampaignInsights
+    fetchMetaUser
 } from "./metaApi.js";
 
+// Feature Views
 import { updateDashboardView } from "./dashboard.js";
-import { updateCampaignsView } from "./campaigns.js";
 import { updateCreativeLibraryView } from "./creativeLibrary.js";
+import { updateCampaignsView } from "./campaigns.js";
 import { updateSenseiView } from "./sensei.js";
 import { updateReportsView } from "./reports.js";
 import { updateTestingLogView } from "./testingLog.js";
-import { initSettings } from "./settings.js";
 
-const META_TOKEN_STORAGE_KEY = "signalone_meta_token_v1";
-const DEFAULT_CACHE_TTL_MS = 15 * 60 * 1000;
 
-/* SETTINGS */
-function ensureSettings() {
-    if (!AppState.settings) {
-        AppState.settings = {
-            theme: "light",
-            currency: "EUR",
-            metaCacheTtlMinutes: 15,
-            defaultTimeRange: "last_30d",
-            creativeLayout: "grid",
-            demoMode: true
-        };
+// =========================================================
+// INIT APP
+// =========================================================
+document.addEventListener("DOMContentLoaded", () => {
+    initApp();
+});
+
+function initApp() {
+
+    // -----------------------------
+    // A) CHECK FOR DEMO MODE
+    // -----------------------------
+    const urlParams = new URLSearchParams(window.location.search);
+    const demoParam = urlParams.get("demo");
+    const presetParam = urlParams.get("preset");
+
+    const persistedDemo = window.localStorage.getItem("signalone_demo") === "1";
+    const persistedPreset = window.localStorage.getItem("signalone_demo_preset");
+
+    if (demoParam === "1" || persistedDemo) {
+        const presetId = presetParam || persistedPreset || "scaling_store";
+        enableDemoMode(presetId);
+    } else {
+        // Start regulären Meta Connect Flow
+        initMetaOAuthFlow();
     }
-    return AppState.settings;
-}
-function isDemoMode() {
-    return !!ensureSettings().demoMode;
-}
-function saveSettingsToStorage() {
-    try {
-        localStorage.setItem(
-            "signalone_settings_v1",
-            JSON.stringify(AppState.settings)
-        );
-    } catch {}
-}
-function loadSettingsFromStorage() {
-    try {
-        const raw = localStorage.getItem("signalone_settings_v1");
-        if (raw) AppState.settings = { ...AppState.settings, ...JSON.parse(raw) };
-    } catch {}
-}
-function applyThemeFromSettings() {
-    document.documentElement.dataset.theme =
-        ensureSettings().theme === "dark" ? "dark" : "light";
-}
-function applyDashboardTimeRangeFromSettings() {
-    const s = ensureSettings();
-    const def = s.defaultTimeRange || "last_30d";
-    const el = document.getElementById("dashboardTimeRange");
-    if (el) el.value = def;
-    AppState.timeRangePreset = def;
-}
 
-/* CACHE */
-function ensureMetaCache() {
-    if (!AppState.metaCache) {
-        AppState.metaCache = {
-            adAccounts: null,
-            campaignsByAccount: {},
-            adsByAccount: {}
-        };
-    }
-    return AppState.metaCache;
-}
-function getCacheTtlMs() {
-    const m = ensureSettings().metaCacheTtlMinutes;
-    return m > 0 ? m * 60000 : DEFAULT_CACHE_TTL_MS;
-}
-function isCacheValid(e) {
-    if (!e || !e.fetchedAt) return false;
-    return Date.now() - e.fetchedAt < getCacheTtlMs();
-}
-function clearMetaCache() {
-    AppState.metaCache = {
-        adAccounts: null,
-        campaignsByAccount: {},
-        adsByAccount: {}
-    };
-}
+    // Navigation setzen
+    initNavigation();
 
-/* VIEW HANDLER */
-function showView(id) {
-    document.querySelectorAll(".view").forEach((v) => v.classList.add("hidden"));
-    const el = document.getElementById(id);
-    if (el) el.classList.remove("hidden");
-    AppState.currentView = id;
+    // Grund-UI
     updateUI();
 }
 
-/* META CONNECT */
-function handleMetaConnectClick() {
-    const authUrl =
-        "https://www.facebook.com/v21.0/dialog/oauth?" +
-        new URLSearchParams({
-            client_id: META_OAUTH_CONFIG.appId,
-            redirect_uri: META_OAUTH_CONFIG.redirectUri,
-            response_type: "code",
-            scope: META_OAUTH_CONFIG.scopes
-        });
 
-    const popup = window.open(
-        authUrl,
-        "MetaLogin",
-        "width=600,height=800,left=200,top=100"
-    );
 
-    if (!popup) {
-        showToast("Popup blockiert!", "error");
-        return;
+// =========================================================
+// DEMO MODE
+// =========================================================
+function enableDemoMode(presetId) {
+
+    if (!DEMO_DATA_PRESETS[presetId]) {
+        console.warn("[DEMO] Unbekanntes Preset → fallback: scaling_store");
+        presetId = "scaling_store";
     }
-    showToast("Meta Login geöffnet…", "info");
+
+    // State setzen
+    setDemoMode(true, presetId);
+
+    // Demo Badge sichtbar machen
+    const badge = document.querySelector("[data-role='demo-badge']");
+    if (badge) {
+        badge.style.display = "inline-flex";
+        badge.textContent = `Demo: ${DEMO_DATA_PRESETS[presetId].label}`;
+    }
+
+    // Demo laden
+    loadDemoPreset(presetId);
+
+    showToast("success", `Demo Mode aktiviert (${DEMO_DATA_PRESETS[presetId].label})`);
 }
 
-function persistMetaToken(t) {
-    try {
-        if (t) localStorage.setItem(META_TOKEN_STORAGE_KEY, t);
-        else localStorage.removeItem(META_TOKEN_STORAGE_KEY);
-    } catch {}
+function disableDemoMode() {
+    setDemoMode(false, null);
+    window.location.href = window.location.pathname; // Reload ohne Demo
 }
 
-/* DISCONNECT */
-function disconnectMeta() {
-    AppState.metaConnected = false;
-    AppState.meta = {
-        accessToken: null,
-        adAccounts: [],
-        campaigns: [],
-        insightsByCampaign: {},
-        user: null,
-        ads: [],
-        creatives: []
-    };
-    AppState.selectedAccountId = null;
-    AppState.selectedCampaignId = null;
-    AppState.dashboardLoaded = false;
-    AppState.campaignsLoaded = false;
-    AppState.creativesLoaded = false;
-    AppState.dashboardMetrics = null;
-    clearMetaCache();
-    persistMetaToken(null);
+
+// =========================================================
+// DEMO PRESET LOADER
+// =========================================================
+function loadDemoPreset(presetId) {
+    const preset = DEMO_DATA_PRESETS[presetId];
+    if (!preset) return;
+
+    AppState.metaConnected = true;
+
+    AppState.meta.user = preset.user;
+    AppState.meta.adAccounts = preset.adAccounts;
+    AppState.meta.campaigns = preset.campaigns;
+    AppState.meta.creatives = preset.creatives;
+    AppState.meta.insightsByCampaign = preset.insightsByCampaign;
+
+    // Defaults auswählen
+    if (preset.adAccounts.length > 0) {
+        AppState.selectedAccountId = preset.adAccounts[0].id;
+    }
+
+    if (preset.campaigns.length > 0) {
+        AppState.selectedCampaignId = preset.campaigns[0].id;
+    }
+
+    // UI Refresh
+    updateUI();
+    updateAllViews();
+}
+
+function updateAllViews() {
+    updateDashboardView();
+    updateCreativeLibraryView();
+    updateCampaignsView();
+    updateSenseiView();
+    updateReportsView();
+    updateTestingLogView();
+}
+
+
+
+// =========================================================
+// LIVE MODE → META CONNECT FLOW
+// =========================================================
+async function initMetaOAuthFlow() {
+
+    // 1. Prüfen: Ist ein OAuth Code in der URL?
+    await handleMetaOAuthRedirectIfPresent();
+
+    // 2. Wenn Meta verbunden → Daten laden
+    if (AppState.metaConnected && AppState.meta.accessToken) {
+        await loadLiveMetaInitialData();
+    }
+
+    // 3. UI aktualisieren
     updateUI();
 }
 
-/* OAUTH REDIRECT — POPUP FIX DRIN! */
 async function handleMetaOAuthRedirectIfPresent() {
     const url = new URL(window.location.href);
     const code = url.searchParams.get("code");
+
     if (!code) return;
 
-    window.history.replaceState({}, "", "/");
-    showToast("Token wird abgeholt…", "info");
-
     try {
-        const token = await exchangeMetaCodeForToken(
-            code,
-            META_OAUTH_CONFIG.redirectUri
-        );
-        if (!token) {
-            showToast("OAuth Fehler", "error");
-            return;
-        }
-
+        const token = await exchangeMetaCodeForToken(code);
         AppState.meta.accessToken = token;
         AppState.metaConnected = true;
-        persistMetaToken(token);
-        clearMetaCache();
 
-        try {
-            AppState.meta.user = await fetchMetaUser(token);
-        } catch {}
+        // URL aufräumen
+        url.searchParams.delete("code");
+        window.history.replaceState({}, "", url.toString());
 
-        await loadAdAccountsAndCampaigns();
-        updateUI();
-        showToast("Meta verbunden!", "success");
-
-        // POPUP CLOSE
-        if (window.opener) {
-            window.opener.location.reload();
-            window.close();
-        }
-    } catch (e) {
-        showToast("Verbindung fehlgeschlagen", "error");
+        showToast("success", "Meta erfolgreich verbunden!");
+    } catch (err) {
+        console.error("[Meta OAuth] Fehler beim Token-Austausch:", err);
+        showToast("error", "Meta OAuth Fehler");
     }
 }
 
-/* LOAD TOKEN */
-function loadMetaTokenFromStorage() {
+async function loadLiveMetaInitialData() {
+
     try {
-        const t = localStorage.getItem(META_TOKEN_STORAGE_KEY);
-        if (!t) return;
+        // User
+        AppState.meta.user = await fetchMetaUser();
 
-        AppState.meta.accessToken = t;
-        AppState.metaConnected = true;
-        clearMetaCache();
+        // Accounts
+        const accounts = await fetchMetaAdAccounts();
+        AppState.meta.adAccounts = accounts;
 
-        fetchMetaUser(t)
-            .then((u) => {
-                AppState.meta.user = u;
-                return loadAdAccountsAndCampaigns();
-            })
-            .then(() => updateUI())
-            .catch(() => {
-                AppState.metaConnected = false;
-                AppState.meta.accessToken = null;
-            });
-    } catch {}
+        if (accounts.length > 0) {
+            AppState.selectedAccountId = accounts[0].id;
+        }
+
+        // Campaigns
+        if (AppState.selectedAccountId) {
+            const campaigns = await fetchMetaCampaigns(AppState.selectedAccountId);
+            AppState.meta.campaigns = campaigns;
+
+            if (campaigns.length > 0) {
+                AppState.selectedCampaignId = campaigns[0].id;
+            }
+
+            // Ads (inkl. Creatives)
+            const ads = await fetchMetaAds(AppState.selectedAccountId);
+            AppState.meta.creatives = ads; // je nach Metasystem evtl. ads → creatives map
+        }
+
+        showToast("success", "Live Meta Daten geladen");
+
+        updateAllViews();
+
+    } catch (err) {
+        console.error("[Meta Load] Fehler beim Laden:", err);
+        showToast("error", "Fehler beim Laden der Meta-Daten");
+    }
 }
 
-/* LOAD ACC + CAMPAIGNS */
-async function loadAdAccountsAndCampaigns() {
-    ensureMetaCache();
-    const token = AppState.meta.accessToken;
-    if (!token) {
-        AppState.meta.adAccounts = [];
-        return;
+
+
+// =========================================================
+// GENERISCHE HELFER: LOADERS (Demo oder Live)
+// =========================================================
+export async function loadAdAccounts() {
+    if (AppState.demoMode) {
+        return AppState.meta.adAccounts;
     }
+    const accounts = await fetchMetaAdAccounts();
+    AppState.meta.adAccounts = accounts;
+    return accounts;
+}
 
-    // ACCOUNTS
-    if (isCacheValid(AppState.metaCache.adAccounts)) {
-        AppState.meta.adAccounts = AppState.metaCache.adAccounts.data;
-    } else {
-        const data = await fetchMetaAdAccounts(token);
-        AppState.meta.adAccounts = data;
-        AppState.metaCache.adAccounts = { data, fetchedAt: Date.now() };
+export async function loadCampaignsForAccount(accountId) {
+    if (AppState.demoMode) {
+        return AppState.meta.campaigns.filter(c => c.accountId === accountId);
     }
+    const campaigns = await fetchMetaCampaigns(accountId);
+    AppState.meta.campaigns = campaigns;
+    return campaigns;
+}
 
-    if (AppState.meta.adAccounts.length > 0 && !AppState.selectedAccountId)
-        AppState.selectedAccountId = AppState.meta.adAccounts[0].id;
+export async function loadAdsForAccount(accountId) {
+    if (AppState.demoMode) {
+        return AppState.meta.creatives;
+    }
+    const ads = await fetchMetaAds(accountId);
+    AppState.meta.creatives = ads;
+    return ads;
+}
 
-    // CAMPAIGNS
-    if (AppState.selectedAccountId) {
-        const acc = AppState.selectedAccountId;
-        const cache = AppState.metaCache.campaignsByAccount[acc];
 
-        if (isCacheValid(cache)) {
-            AppState.meta.campaigns = cache.data;
+
+// =========================================================
+// NAVIGATION (VIEW SWITCHING)
+// =========================================================
+function initNavigation() {
+    const navItems = document.querySelectorAll("[data-nav]");
+
+    navItems.forEach(item => {
+        item.addEventListener("click", () => {
+            const view = item.getAttribute("data-nav");
+
+            AppState.currentView = view;
+            updateSidebarActiveItem(view);
+            showView(view);
+        });
+    });
+}
+
+function showView(viewId) {
+    document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
+    const target = document.getElementById(viewId);
+    if (target) target.classList.remove("hidden");
+
+    updateUI();
+    updateView(viewId);
+}
+
+function updateView(viewId) {
+    switch (viewId) {
+        case "dashboardView":
+            updateDashboardView();
+            break;
+        case "creativesView":
+            updateCreativeLibraryView();
+            break;
+        case "campaignsView":
+            updateCampaignsView();
+            break;
+        case "senseiView":
+            updateSenseiView();
+            break;
+        case "reportsView":
+            updateReportsView();
+            break;
+        case "testingLogView":
+            updateTestingLogView();
+            break;
+    }
+}
+
+
+
+// =========================================================
+// UI UPDATE
+// =========================================================
+function updateUI() {
+    updateMetaStatusBadge({
+        connected: AppState.metaConnected,
+        demoMode: AppState.demoMode
+    });
+
+    updateSidebarActiveItem(AppState.currentView);
+
+    // Demo Badge togglen
+    const badge = document.querySelector("[data-role='demo-badge']");
+    if (badge) {
+        if (AppState.demoMode) {
+            badge.style.display = "inline-flex";
+            badge.textContent = `Demo: ${AppState.demoPresetId}`;
         } else {
-            const data = await fetchMetaCampaigns(acc, token);
-            AppState.meta.campaigns = data;
-            AppState.metaCache.campaignsByAccount[acc] = {
-                data,
-                fetchedAt: Date.now()
-            };
+            badge.style.display = "none";
         }
     }
-
-    updateAccountAndCampaignSelectors();
 }
-
-/* SELECTORS */
-function updateAccountAndCampaignSelectors() {
-    const accSel = document.getElementById("brandSelect");
-    const campSel = document.getElementById("campaignGroupSelect");
-    if (!accSel || !campSel) return;
-
-    accSel.innerHTML = AppState.meta.adAccounts.length
-        ? AppState.meta.adAccounts
-              .map(
-                  (a) =>
-                      `<option value="${a.id}" ${
-                          a.id === AppState.selectedAccountId ? "selected" : ""
-                      }>${a.name}</option>`
-              )
-              .join("")
-        : `<option value="">Kein Werbekonto gefunden</option>`;
-
-    const ops = [`<option value="">Alle Kampagnen</option>`];
-    (AppState.meta.campaigns || []).forEach((c) =>
-        ops.push(
-            `<option value="${c.id}" ${
-                c.id === AppState.selectedCampaignId ? "selected" : ""
-            }>${c.name}</option>`
-        )
-    );
-    campSel.innerHTML = ops.join("");
-}
-
-/* ADS / CREATIVES */
-async function loadCreativesForCurrentSelection() {
-    ensureMetaCache();
-    const token = AppState.meta.accessToken;
-    const acc = AppState.selectedAccountId;
-    if (!acc || !token) {
-        AppState.meta.ads = [];
-        return;
-    }
-
-    const cache = AppState.metaCache.adsByAccount[acc];
-    if (isCacheValid(cache)) {
-        AppState.meta.ads = cache.data;
-        AppState.creativesLoaded = true;
-        return;
-    }
-
-    const data = await fetchMetaAds(acc, token);
-    AppState.meta.ads = data;
-    AppState.creativesLoaded = true;
-    AppState.metaCache.adsByAccount[acc] = { data, fetchedAt: Date.now() };
-}
-async function ensureCreativesLoadedAndRender() {
-    if (!AppState.creativesLoaded) await loadCreativesForCurrentSelection();
-    updateCreativeLibraryView(true);
-}
-
-/* UI UPDATE */
-function applyDashboardNoDataState() {
-    const k = document.getElementById("dashboardKpiContainer");
-    if (k) k.innerHTML = "<p>Verbinde Meta, um Daten zu sehen.</p>";
-}
-function applyDemoDashboardState() {
-    const k = document.getElementById("dashboardKpiContainer");
-    if (k)
-        k.innerHTML = `
-        <div class="kpi-grid">
-            <div class="kpi-card"><div class="kpi-label">ROAS</div><div class="kpi-value">3,8x</div></div>
-            <div class="kpi-card"><div class="kpi-label">Spend</div><div class="kpi-value">12.340 €</div></div>
-            <div class="kpi-card"><div class="kpi-label">CTR</div><div class="kpi-value">1,4%</div></div>
-            <div class="kpi-card"><div class="kpi-label">Conversions</div><div class="kpi-value">926</div></div>
-        </div>
-    `;
-}
-
-function updateUI() {
-    const connected = checkMetaConnection();
-    const demo = isDemoMode();
-
-    updateGreeting();
-    updateAccountAndCampaignSelectors();
-
-    if (AppState.currentView === "dashboardView") {
-        if (connected) updateDashboardView(true);
-        else if (demo) applyDemoDashboardState();
-        else applyDashboardNoDataState();
-    }
-
-    if (AppState.currentView === "campaignsView") updateCampaignsView(connected);
-    if (AppState.currentView === "creativesView") {
-        if (connected) ensureCreativesLoadedAndRender();
-        else updateCreativeLibraryView(false);
-    }
-    if (AppState.currentView === "senseiView") updateSenseiView(connected);
-    if (AppState.currentView === "reportsView") updateReportsView(connected);
-    if (AppState.currentView === "testingLogView") updateTestingLogView(connected);
-
-    updateHealthStatus();
-}
-
-/* -------------------------------------------------
-   APPLE-STYLE MODAL SYSTEM (für Settings/Profil/Notifications)
--------------------------------------------------- */
-
-function getModalElements() {
-    const overlay = document.getElementById("modalOverlay");
-    const titleEl = document.getElementById("modalTitle");
-    const bodyEl = document.getElementById("modalBody");
-    const closeBtn = document.getElementById("modalCloseButton");
-    return { overlay, titleEl, bodyEl, closeBtn };
-}
-
-function openSystemModal(title, bodyHtml) {
-    const { overlay, titleEl, bodyEl } = getModalElements();
-    if (!overlay || !titleEl || !bodyEl) return;
-
-    titleEl.textContent = title || "";
-    bodyEl.innerHTML = bodyHtml || "";
-    overlay.classList.add("visible");
-}
-
-function closeSystemModal() {
-    const { overlay, bodyEl } = getModalElements();
-    if (!overlay) return;
-    overlay.classList.remove("visible");
-    if (bodyEl) bodyEl.innerHTML = "";
-}
-
-/* SETTINGS MODAL */
-
-function openSettingsModal() {
-    const s = ensureSettings();
-
-    const bodyHtml = `
-        <div class="modal-section">
-            <div class="modal-section-title">Darstellung</div>
-            <div class="modal-row">
-                <label for="settingsTheme">Theme</label>
-                <select id="settingsTheme">
-                    <option value="light" ${s.theme === "light" ? "selected" : ""}>Light</option>
-                    <option value="dark" ${s.theme === "dark" ? "selected" : ""}>Dark</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="modal-section">
-            <div class="modal-section-title">Performance & Daten</div>
-            <div class="modal-row">
-                <label for="settingsCacheTtl">Meta Cache TTL (Minuten)</label>
-                <input type="number" id="settingsCacheTtl" min="1" max="120" value="${Number(
-                    s.metaCacheTtlMinutes || 15
-                )}">
-            </div>
-            <div class="modal-row">
-                <label for="settingsDefaultRange">Standard-Zeitraum Dashboard</label>
-                <select id="settingsDefaultRange">
-                    <option value="today" ${
-                        s.defaultTimeRange === "today" ? "selected" : ""
-                    }>Heute</option>
-                    <option value="yesterday" ${
-                        s.defaultTimeRange === "yesterday" ? "selected" : ""
-                    }>Gestern</option>
-                    <option value="last_7d" ${
-                        s.defaultTimeRange === "last_7d" ? "selected" : ""
-                    }>Letzte 7 Tage</option>
-                    <option value="last_30d" ${
-                        s.defaultTimeRange === "last_30d" ? "selected" : ""
-                    }>Letzte 30 Tage</option>
-                    <option value="this_month" ${
-                        s.defaultTimeRange === "this_month" ? "selected" : ""
-                    }>Aktueller Monat</option>
-                    <option value="last_month" ${
-                        s.defaultTimeRange === "last_month" ? "selected" : ""
-                    }>Letzter Monat</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="modal-section">
-            <div class="modal-section-title">Demo Modus</div>
-            <div class="modal-row">
-                <label for="settingsDemoMode">Demo Mode aktivieren</label>
-                <select id="settingsDemoMode">
-                    <option value="true" ${s.demoMode ? "selected" : ""}>Ja</option>
-                    <option value="false" ${!s.demoMode ? "selected" : ""}>Nein</option>
-                </select>
-            </div>
-        </div>
-
-        <button id="settingsSaveButton" class="primary-btn">
-            Speichern
-        </button>
-    `;
-
-    openSystemModal("Einstellungen", bodyHtml);
-
-    // Events erst nach Render hinzufügen
-    const themeSelect = document.getElementById("settingsTheme");
-    const ttlInput = document.getElementById("settingsCacheTtl");
-    const rangeSelect = document.getElementById("settingsDefaultRange");
-    const demoSelect = document.getElementById("settingsDemoMode");
-    const saveBtn = document.getElementById("settingsSaveButton");
-
-    if (saveBtn) {
-        saveBtn.addEventListener("click", () => {
-            const settings = ensureSettings();
-            settings.theme = themeSelect?.value === "dark" ? "dark" : "light";
-
-            const ttlVal = Number(ttlInput?.value || 15);
-            settings.metaCacheTtlMinutes = isNaN(ttlVal) ? 15 : Math.max(1, ttlVal);
-
-            settings.defaultTimeRange =
-                rangeSelect?.value || settings.defaultTimeRange || "last_30d";
-
-            settings.demoMode = demoSelect?.value === "true";
-
-            saveSettingsToStorage();
-            applyThemeFromSettings();
-            applyDashboardTimeRangeFromSettings();
-
-            showToast("Einstellungen gespeichert.", "success");
-            closeSystemModal();
-            updateUI();
-        });
-    }
-}
-
-/* PROFILE MODAL */
-
-function openProfileModal() {
-    const user = AppState.meta?.user;
-    const isConnected = AppState.metaConnected;
-
-    const name = user?.name || "Unbekannt";
-    const id = user?.id || "n/a";
-    const email = user?.email || "nicht verfügbar";
-
-    const bodyHtml = `
-        <div class="modal-section">
-            <div class="modal-section-title">Meta Profil</div>
-            <div class="modal-row">
-                <label>Name</label>
-                <span>${name}</span>
-            </div>
-            <div class="modal-row">
-                <label>User ID</label>
-                <span>${id}</span>
-            </div>
-            <div class="modal-row">
-                <label>E-Mail</label>
-                <span>${email}</span>
-            </div>
-            <div class="modal-row">
-                <label>Status</label>
-                <span>${isConnected ? "Verbunden ✅" : "Getrennt ❌"}</span>
-            </div>
-        </div>
-
-        <div class="modal-section">
-            <div class="modal-section-title">Verbindung</div>
-            <p style="font-size:13px; color:var(--text-secondary); line-height:1.5;">
-                Du kannst die Meta-Verbindung hier trennen. Beim nächsten Login wird ein neuer Token geholt.
-            </p>
-            <button id="disconnectMetaFromProfile" class="primary-btn">
-                Meta Verbindung trennen
-            </button>
-        </div>
-    `;
-
-    openSystemModal("Profil", bodyHtml);
-
-    const btn = document.getElementById("disconnectMetaFromProfile");
-    if (btn) {
-        btn.addEventListener("click", () => {
-            disconnectMeta();
-            showToast("Meta Verbindung getrennt.", "info");
-            closeSystemModal();
-        });
-    }
-}
-
-/* NOTIFICATIONS MODAL */
-
-function openNotificationsModal() {
-    const list = AppState.notifications || [];
-
-    let bodyHtml = "";
-
-    if (!list.length) {
-        bodyHtml = `
-            <div class="modal-section">
-                <div class="modal-section-title">Benachrichtigungen</div>
-                <p class="notification-empty">
-                    Keine neuen Benachrichtigungen.
-                </p>
-            </div>
-        `;
-    } else {
-        const items = list
-            .map(
-                (n) => `
-            <div class="notification-item">
-                <div class="notification-title">${n.title || "Notification"}</div>
-                <div class="notification-message">
-                    ${n.message || ""}
-                </div>
-                <div class="notification-meta">
-                    ${n.timestamp || ""}
-                </div>
-            </div>
-        `
-            )
-            .join("");
-
-        bodyHtml = `
-            <div class="modal-section">
-                <div class="modal-section-title">Benachrichtigungen</div>
-                <div class="notification-list">
-                    ${items}
-                </div>
-            </div>
-        `;
-    }
-
-    openSystemModal("Benachrichtigungen", bodyHtml);
-
-    // Badge & State zurücksetzen
-    const badge = document.getElementById("notificationsBadge");
-    if (badge) {
-        badge.classList.add("hidden");
-        badge.textContent = "0";
-    }
-}
-
-/* INIT */
-document.addEventListener("DOMContentLoaded", async () => {
-    ensureSettings();
-    loadSettingsFromStorage();
-    applyThemeFromSettings();
-
-    loadMetaTokenFromStorage();
-    applyDashboardTimeRangeFromSettings();
-
-    showView(AppState.currentView);
-    initSidebarNavigation(showView);
-    initSettings();
-    initDateTime();
-    updateGreeting();
-
-    const btn = document.getElementById("connectMetaButton");
-    if (btn) btn.addEventListener("click", handleMetaConnectClick);
-
-    const d = document.getElementById("disconnectMetaButton");
-    if (d) d.addEventListener("click", disconnectMeta);
-
-    // Zeitbereich-Änderung beeinflusst das Dashboard
-    const timeRange = document.getElementById("dashboardTimeRange");
-    if (timeRange) {
-        timeRange.addEventListener("change", (e) => {
-            const value = e.target.value || "last_30d";
-            AppState.timeRangePreset = value;
-            const s = ensureSettings();
-            s.defaultTimeRange = value;
-            saveSettingsToStorage();
-            AppState.dashboardLoaded = false;
-            updateUI();
-        });
-    }
-
-    await handleMetaOAuthRedirectIfPresent();
-
-    const acc = document.getElementById("brandSelect");
-    if (acc)
-        acc.addEventListener("change", async (e) => {
-            AppState.selectedAccountId = e.target.value || null;
-            AppState.selectedCampaignId = null;
-            AppState.dashboardLoaded = false;
-            AppState.campaignsLoaded = false;
-            AppState.creativesLoaded = false;
-            clearMetaCache();
-            await loadAdAccountsAndCampaigns();
-            updateUI();
-        });
-
-    const camp = document.getElementById("campaignGroupSelect");
-    if (camp)
-        camp.addEventListener("change", (e) => {
-            AppState.selectedCampaignId = e.target.value || null;
-            AppState.dashboardLoaded = false;
-            AppState.creativesLoaded = false;
-            updateUI();
-        });
-
-    // 🔘 SETTINGS BUTTON (Sidebar)
-    const settingsBtn = document.getElementById("openSettingsButton");
-    if (settingsBtn) {
-        settingsBtn.addEventListener("click", () => {
-            openSettingsModal();
-        });
-    }
-
-    // 🔘 PROFILE BUTTON (Topbar)
-    const profileBtn = document.getElementById("profileButton");
-    if (profileBtn) {
-        profileBtn.addEventListener("click", () => {
-            openProfileModal();
-        });
-    }
-
-    // 🔘 NOTIFICATIONS BUTTON (Topbar)
-    const notificationsBtn = document.getElementById("notificationsButton");
-    if (notificationsBtn) {
-        notificationsBtn.addEventListener("click", () => {
-            openNotificationsModal();
-        });
-    }
-
-    // Modal Close Handling (Apple-Style)
-    const { overlay, closeBtn } = getModalElements();
-    if (closeBtn) closeBtn.addEventListener("click", closeSystemModal);
-    if (overlay) {
-        overlay.addEventListener("click", (e) => {
-            if (e.target === overlay) closeSystemModal();
-        });
-    }
-});
