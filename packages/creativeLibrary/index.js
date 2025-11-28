@@ -1,83 +1,115 @@
 // packages/creativeLibrary/index.js
-// Zentrale API für die Creative Library (P2).
+// Zentrale öffentliche API der Creative Library (P2 Final)
+// Dieses Modul steuert: Compute → Filters → Render → Sections → Demo Fallback
+// und wird ausschließlich über den Legacy-Shim creativeLibrary.js angesprochen.
 
 import { buildCreativeLibraryState } from "./creativeLibrary.compute.js";
 import { renderCreativeLibrary } from "./creativeLibrary.render.js";
-import { attachCreativeCardHandlers, initCreativeDeepDive } from "./creativeLibrary.sections.js";
+import { applyCreativeFilters } from "./creativeLibrary.filters.js";
+import { renderCreativeDetailsModal } from "./creativeLibrary.sections.js";
 
 const CreativesPackage = {
-    _filters: {
-        search: "",
-        type: "all",
-        sort: "roas_desc",
-        groupBy: "none"
+    _state: {
+        connected: false,
+        demoMode: true,
+        creatives: [],
+        filteredCreatives: [],
+        filters: {
+            search: "",
+            type: "all",
+            groupBy: "none",
+            sort: "roas_desc"
+        }
     },
 
     init() {
-        console.debug("[CreativesPackage] init()");
-        this._initFilterControls();
-        initCreativeDeepDive();
+        // spätere Erweiterungen (Action Buttons, Infinite Scroll, Lazy Load etc.)
+        console.debug("[CreativeLibraryPackage] init()");
+        this._attachEventListeners();
     },
 
-    async render(options = {}) {
-        const { connected } = options;
-        const state = await buildCreativeLibraryState({
-            connected,
-            filters: this._filters
+    async render({ connected }) {
+        const state = await buildCreativeLibraryState({ connected });
+
+        this._state.connected = state.connected;
+        this._state.demoMode = state.demoMode;
+        this._state.creatives = state.creatives;
+
+        // Filter initial anwenden
+        this._state.filteredCreatives = applyCreativeFilters(
+            this._state.creatives,
+            this._state.filters
+        );
+
+        renderCreativeLibrary({
+            creatives: this._state.filteredCreatives,
+            demoMode: this._state.demoMode
         });
-
-        renderCreativeLibrary(state);
-        attachCreativeCardHandlers(state.items);
     },
 
-    async update(options = {}) {
-        // Optionale Überschreibung der Filter aus Optionen
-        if (options.filters) {
-            this._filters = { ...this._filters, ...options.filters };
-        }
-        return this.render({ connected: options.connected });
+    updateFilters(newFilters = {}) {
+        this._state.filters = { ...this._state.filters, ...newFilters };
+
+        this._state.filteredCreatives = applyCreativeFilters(
+            this._state.creatives,
+            this._state.filters
+        );
+
+        renderCreativeLibrary({
+            creatives: this._state.filteredCreatives,
+            demoMode: this._state.demoMode
+        });
     },
 
-    destroy() {
-        console.debug("[CreativesPackage] destroy()");
+    openDetails(creativeId) {
+        const item = this._state.creatives.find((c) => c.id === creativeId);
+        if (!item) return;
+        renderCreativeDetailsModal(item, this._state.demoMode);
     },
 
-    _initFilterControls() {
+    _attachEventListeners() {
+        // Search
         const searchInput = document.getElementById("creativeSearch");
-        const typeSelect = document.getElementById("creativeType");
-        const sortSelect = document.getElementById("creativeSort");
-        const groupSelect = document.getElementById("creativeGroupBy");
-
         if (searchInput) {
             searchInput.addEventListener("input", (e) => {
-                this._filters.search = e.target.value || "";
-                this.update({ connected: true });
+                this.updateFilters({ search: e.target.value.toLowerCase() });
             });
         }
 
+        // Type
+        const typeSelect = document.getElementById("creativeType");
         if (typeSelect) {
             typeSelect.addEventListener("change", (e) => {
-                this._filters.type = e.target.value || "all";
-                this.update({ connected: true });
+                this.updateFilters({ type: e.target.value });
             });
         }
 
-        if (sortSelect) {
-            sortSelect.addEventListener("change", (e) => {
-                this._filters.sort = e.target.value || "roas_desc";
-                this.update({ connected: true });
-            });
-        }
-
+        // Group By
+        const groupSelect = document.getElementById("creativeGroupBy");
         if (groupSelect) {
             groupSelect.addEventListener("change", (e) => {
-                this._filters.groupBy = e.target.value || "none";
-                this.update({ connected: true });
+                this.updateFilters({ groupBy: e.target.value });
             });
         }
+
+        // Sort
+        const sortSelect = document.getElementById("creativeSort");
+        if (sortSelect) {
+            sortSelect.addEventListener("change", (e) => {
+                this.updateFilters({ sort: e.target.value });
+            });
+        }
+
+        // Delegated click listener für Details
+        document.body.addEventListener("click", (e) => {
+            const target = e.target.closest("[data-creative-id]");
+            if (target) {
+                const creativeId = target.getAttribute("data-creative-id");
+                this.openDetails(creativeId);
+            }
+        });
     }
 };
 
 Object.freeze(CreativesPackage);
-
 export default CreativesPackage;
