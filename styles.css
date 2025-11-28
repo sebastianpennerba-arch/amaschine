@@ -1,7 +1,13 @@
 /*
- * SignalOne.cloud – Premium UI (Light Mode)
- * Edles, technisches, ruhiges Light-Design
- * HTML-Struktur & JS (index.html + app.js) bleiben unverändert.
+ * SignalOne.cloud – Premium UI "Apple x S-Klasse x AI"
+ * Vollständiges Redesign nur über CSS.
+ * HTML-Struktur (index.html) & JS-Backbone (app.js) bleiben unverändert.
+ *
+ * Fokus:
+ *  - Dark Titanium Cockpit Look
+ *  - Glassmorphism Panels
+ *  - Electric-Blue AI Akzente
+ *  - Elegante Typografie & Micro-Transitions
  */
 
 /* ==============================
@@ -9,45 +15,54 @@
    ============================== */
 
 :root {
-  /* Grundfarben – hell & edel */
-  --color-bg: #f3f4f6;              /* App-Hintergrund */
-  --color-bg-elevated: #e5e7eb;     /* leichte Flächen */
-  --color-surface: #ffffff;         /* Karten / Panels */
-  --color-surface-soft: #f9fafb;    /* Sekundäre Panels */
-  --color-sidebar-bg: #f9fafb;      /* Sidebar */
-  --color-console-bg: #ffffff;      /* Topbar */
+  /* Grundpalette – Dark Titanium */
+  --color-bg: #020617;                  /* App Hintergrund (fast schwarz, leicht blau) */
+  --color-bg-elevated: #020617;         /* Erhöhter Hintergrund */
+  --color-surface: rgba(15, 23, 42, 0.96);       /* Hauptebene / Karten */
+  --color-surface-soft: rgba(15, 23, 42, 0.85);  /* Sekundäre Panels */
+  --color-sidebar-bg: radial-gradient(
+    circle at 0% 0%,
+    #020617,
+    #020617 40%,
+    #020617
+  );
+  --color-topbar-bg: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.96),
+    rgba(15, 23, 42, 0.94)
+  );
 
-  /* Akzente – zurückhaltend, technisch */
-  --color-primary: #4f46e5;         /* Indigo */
-  --color-primary-soft: rgba(79, 70, 229, 0.08);
-  --color-accent: #0ea5e9;          /* helles Tech-Blau */
-  --color-accent-soft: rgba(14, 165, 233, 0.1);
+  /* Akzente – AI Electric */
+  --color-primary: #6366f1;             /* Electric Indigo */
+  --color-primary-soft: rgba(99, 102, 241, 0.18);
+  --color-accent: #22d3ee;              /* Cyan AI-Glow */
+  --color-accent-soft: rgba(34, 211, 238, 0.24);
 
   /* Statusfarben */
-  --color-success: #16a34a;
-  --color-success-soft: rgba(22, 163, 74, 0.08);
-  --color-warning: #f59e0b;
-  --color-warning-soft: rgba(245, 158, 11, 0.1);
-  --color-danger: #dc2626;
-  --color-danger-soft: rgba(220, 38, 38, 0.1);
+  --color-success: #22c55e;
+  --color-success-soft: rgba(34, 197, 94, 0.18);
+  --color-warning: #facc15;
+  --color-warning-soft: rgba(250, 204, 21, 0.18);
+  --color-danger: #ef4444;
+  --color-danger-soft: rgba(248, 113, 113, 0.2);
 
   /* Typografie */
-  --color-text-main: #111827;
-  --color-text-muted: #6b7280;
-  --color-text-soft: #9ca3af;
+  --color-text-main: #e5e7eb;
+  --color-text-muted: #9ca3af;
+  --color-text-soft: #6b7280;
   --color-text-on-primary: #f9fafb;
 
-  /* Rahmen & Schatten */
-  --color-border-subtle: rgba(209, 213, 219, 0.95);
-  --color-border-strong: rgba(156, 163, 175, 1);
-  --shadow-subtle: 0 8px 18px rgba(15, 23, 42, 0.06);
-  --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.08);
+  /* Linien & Schatten */
+  --color-border-subtle: rgba(148, 163, 184, 0.45);
+  --color-border-strong: rgba(148, 163, 184, 0.9);
+  --shadow-subtle: 0 18px 40px rgba(15, 23, 42, 0.55);
+  --shadow-soft: 0 32px 80px rgba(15, 23, 42, 0.8);
 
   /* Radius & Spacing */
   --radius-xs: 4px;
   --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
   --radius-pill: 999px;
 
   --space-xs: 4px;
@@ -57,11 +72,11 @@
   --space-xl: 24px;
 }
 
-/* Legacy aliases (für bestehenden Code) */
+/* Legacy aliases – damit alle bestehenden Klassen weiter funktionieren */
 :root {
   --color-background: var(--color-bg);
   --color-sidebar: var(--color-sidebar-bg);
-  --color-topbar: var(--color-console-bg);
+  --color-topbar: var(--color-topbar-bg);
   --color-card: var(--color-surface);
 
   --surface: var(--color-surface);
@@ -98,10 +113,13 @@ body {
 body {
   min-height: 100vh;
   display: flex;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "Segoe UI", sans-serif;
   color: var(--color-text-main);
-  background: radial-gradient(circle at 0% 0%, #ffffff, #f3f4f6 55%, #e5e7eb);
+  background:
+    radial-gradient(circle at 0% 0%, #0f172a, #020617 55%, #000000 100%),
+    #020617;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* Hilfs-Klasse */
@@ -125,7 +143,7 @@ button {
 }
 
 /* ==============================
-   3) SIDEBAR
+   3) SIDEBAR – TITANIUM COCKPIT
    ============================== */
 
 nav.sidebar {
@@ -134,14 +152,11 @@ nav.sidebar {
   top: 0;
   bottom: 0;
   width: 250px;
-  background: linear-gradient(
-    180deg,
-    #ffffff 0%,
-    #f9fafb 40%,
-    #f3f4f6 100%
-  );
-  border-right: 1px solid var(--color-border-subtle);
-  box-shadow: 10px 0 30px rgba(15, 23, 42, 0.04);
+  background: radial-gradient(circle at 0% 0%, #020617, #020617 60%, #020617);
+  border-right: 1px solid rgba(15, 23, 42, 0.9);
+  box-shadow:
+    16px 0 60px rgba(15, 23, 42, 0.9),
+    0 0 0 1px rgba(148, 163, 184, 0.18);
   display: flex;
   flex-direction: column;
   padding: 16px 16px 14px;
@@ -153,17 +168,27 @@ nav.sidebar {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  padding-bottom: 10px;
-  margin-bottom: 8px;
-  border-bottom: 1px solid rgba(209, 213, 219, 0.9);
+  padding-bottom: 12px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(31, 41, 55, 0.9);
 }
 
 .sidebar-logo {
   font-weight: 700;
   font-size: 1.05rem;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #111827;
+  color: #e5e7eb;
+  position: relative;
+}
+
+.sidebar-logo::after {
+  content: "";
+  position: absolute;
+  inset: auto -4px -4px 0;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(99, 102, 241, 0.8), transparent);
+  opacity: 0.9;
 }
 
 /* Navigation */
@@ -175,7 +200,8 @@ nav.sidebar {
 
 /* Die Buttons werden von app.js erzeugt -> generische Gestaltung */
 .sidebar-nav button,
-.sidebar-nav .menu-item {
+.sidebar-nav .menu-item,
+.sidebar-nav-button {
   width: 100%;
   display: flex;
   align-items: center;
@@ -185,78 +211,140 @@ nav.sidebar {
   border-radius: var(--radius-pill);
   font-size: 0.9rem;
   color: var(--color-text-muted);
-  background: transparent;
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(15, 23, 42, 0.95),
+    rgba(15, 23, 42, 0.85)
+  );
   border: 1px solid transparent;
-  transition: background 0.16s ease, color 0.16s ease,
-    box-shadow 0.16s ease, transform 0.06s, border-color 0.12s;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.08s ease,
+    border-color 0.16s ease;
 }
 
 .sidebar-nav button i,
-.sidebar-nav .menu-item i {
+.sidebar-nav .menu-item i,
+.sidebar-nav-icon {
   width: 18px;
   text-align: center;
   font-size: 0.9rem;
+  color: var(--color-text-soft);
 }
 
+/* Hover / Active */
 .sidebar-nav button:hover,
-.sidebar-nav .menu-item:hover {
-  background: rgba(148, 163, 184, 0.15);
-  color: #111827;
+.sidebar-nav .menu-item:hover,
+.sidebar-nav-button:hover {
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(15, 23, 42, 1),
+    rgba(17, 24, 39, 0.92)
+  );
+  color: #f9fafb;
   transform: translateX(2px);
+  border-color: rgba(148, 163, 184, 0.5);
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.9);
 }
 
 .sidebar-nav button.active,
-.sidebar-nav .menu-item.active {
+.sidebar-nav .menu-item.active,
+.sidebar-nav-button.active {
   background: linear-gradient(
-    90deg,
-    rgba(79, 70, 229, 0.1),
-    rgba(14, 165, 233, 0.08)
+    120deg,
+    rgba(99, 102, 241, 0.18),
+    rgba(34, 211, 238, 0.14)
   );
-  border-color: rgba(79, 70, 229, 0.5);
-  color: #111827;
-  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.15);
+  border-color: rgba(129, 140, 248, 0.8);
+  color: #f9fafb;
+  box-shadow:
+    0 18px 50px rgba(15, 23, 42, 0.95),
+    0 0 25px rgba(59, 130, 246, 0.4);
 }
 
-/* Sidebar Footer / Demo Toggle */
+.sidebar-nav button.active i,
+.sidebar-nav .menu-item.active i,
+.sidebar-nav-button.active i {
+  color: var(--color-accent);
+}
+
+/* Sidebar Footer / Status & Demo Toggle */
+
 .sidebar-footer {
   margin-top: auto;
   padding-top: 12px;
-  border-top: 1px solid rgba(209, 213, 219, 0.9);
+  border-top: 1px solid rgba(31, 41, 55, 0.9);
   display: flex;
   flex-direction: column;
   gap: 8px;
   font-size: 0.8rem;
-  color: var(--color-text-muted);
+  color: var(--color-text-soft);
+}
+
+.sidebar-status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.8);
+  background: var(--color-text-soft);
 }
 
 .sidebar-footer-button {
   padding: 7px 12px;
   border-radius: var(--radius-pill);
-  border: 1px solid var(--color-border-subtle);
-  background: linear-gradient(135deg, #ffffff, #f9fafb);
-  color: #111827;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: radial-gradient(
+      circle at 0% 0%,
+      rgba(148, 163, 184, 0.22),
+      transparent 65%
+    ),
+    linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.9));
+  color: #e5e7eb;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
-  transition: background 0.16s ease, box-shadow 0.16s ease,
-    transform 0.06s, border-color 0.16s;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.95);
+  transition:
+    background 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.08s ease,
+    border-color 0.18s ease;
+  font-size: 0.8rem;
 }
 
 .sidebar-footer-button:hover {
-  background: linear-gradient(
-    135deg,
-    rgba(79, 70, 229, 0.07),
-    rgba(14, 165, 233, 0.04)
-  );
-  border-color: rgba(79, 70, 229, 0.6);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  background: radial-gradient(
+      circle at 5% 0%,
+      rgba(99, 102, 241, 0.2),
+      transparent 55%
+    ),
+    linear-gradient(135deg, rgba(17, 24, 39, 0.98), rgba(15, 23, 42, 0.96));
+  border-color: rgba(129, 140, 248, 0.9);
+  box-shadow:
+    0 18px 48px rgba(15, 23, 42, 1),
+    0 0 18px rgba(59, 130, 246, 0.4);
   transform: translateY(-1px);
 }
 
+.sidebar-footer-button-secondary {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.96),
+    rgba(15, 23, 42, 0.96)
+  );
+}
+
 /* ==============================
-   4) APPSHELL / MAIN
+   4) APP SHELL / MAIN
    ============================== */
 
 .app-shell {
@@ -268,7 +356,7 @@ nav.sidebar {
 }
 
 /* ==============================
-   5) TOPBAR / "KONSOLE"
+   5) TOPBAR – PRO CONSOLE HUD
    ============================== */
 
 #topbar,
@@ -277,41 +365,53 @@ nav.sidebar {
   top: 0;
   left: 250px;
   right: 0;
-  height: 72px;
-  padding: 12px 24px;
+  height: 76px;
+  padding: 12px 26px;
   z-index: 50;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 18px;
 
-  background: linear-gradient(
-    180deg,
-    #ffffff 0%,
-    #f9fafb 60%,
-    #f3f4f6 100%
-  );
-  border-bottom: 1px solid var(--color-border-subtle);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+  background: var(--color-topbar-bg);
+  border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+  box-shadow:
+    0 22px 60px rgba(15, 23, 42, 0.85),
+    0 0 0 1px rgba(148, 163, 184, 0.25);
+  backdrop-filter: blur(22px);
 }
 
-/* Links: aktueller View / später Greeting */
+/* Links: Greeting & Meta-Zeile */
+
 .topbar-left {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
-/* Titel */
-#topbarViewTitle {
-  font-size: 1.1rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+.topbar-greeting-title {
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+  color: #e5e7eb;
 }
 
-/* Konsole- / Datumszeile – optional via JS */
+.topbar-greeting-meta {
+  font-size: 0.78rem;
+  color: var(--color-text-soft);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.topbar-greeting-meta .divider {
+  opacity: 0.5;
+}
+
+/* Date/Time Consolen-Stil (optional, für Master-Doku vorbereitet) */
+
 .header-date-time {
   position: relative;
   padding-left: 18px;
@@ -350,54 +450,183 @@ nav.sidebar {
   }
 }
 
-/* Rechts: Meta-Connect + Badge (aktuelles HTML) */
+/* Rechts: Selects, Meta-Status, Icons */
 
 .topbar-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
-/* Meta-Button */
-.meta-button {
-  padding: 7px 14px;
+.topbar-select-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.topbar-select {
+  min-width: 190px;
+  padding: 6px 28px 6px 10px;
   border-radius: var(--radius-pill);
-  border: 1px solid rgba(79, 70, 229, 0.6);
+  border: 1px solid rgba(55, 65, 81, 0.9);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.96)),
+    linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.96));
+  color: #e5e7eb;
+  font-size: 0.8rem;
+  outline: none;
+  appearance: none;
+  position: relative;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.9);
+}
+
+.topbar-select:focus {
+  border-color: rgba(129, 140, 248, 0.9);
+  box-shadow:
+    0 16px 40px rgba(15, 23, 42, 1),
+    0 0 0 1px rgba(129, 140, 248, 0.7);
+}
+
+/* Status-Gruppe */
+
+.topbar-status-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  border: 1px solid rgba(55, 65, 81, 0.9);
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(15, 23, 42, 0.9),
+    rgba(15, 23, 42, 0.96)
+  );
+  color: var(--color-text-muted);
+}
+
+.badge i {
+  font-size: 0.55rem;
+}
+
+.badge-online,
+.badge.connected {
+  border-color: rgba(34, 197, 94, 0.8);
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(34, 197, 94, 0.45),
+    rgba(15, 23, 42, 0.96)
+  );
+  color: #bbf7d0;
+}
+
+.badge-offline {
+  border-color: rgba(248, 113, 113, 0.8);
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(248, 113, 113, 0.4),
+    rgba(15, 23, 42, 0.96)
+  );
+  color: #fee2e2;
+}
+
+/* Modus-Badge */
+
+.mode-badge {
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.76rem;
+  border: 1px solid rgba(55, 65, 81, 0.9);
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(59, 130, 246, 0.24),
+    rgba(15, 23, 42, 0.96)
+  );
+  color: #bfdbfe;
+}
+
+/* Meta-Connect Button */
+
+.meta-button {
+  padding: 7px 16px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(129, 140, 248, 0.9);
   background: linear-gradient(135deg, #4f46e5, #6366f1);
   color: #f9fafb;
   font-size: 0.8rem;
   font-weight: 500;
-  box-shadow: 0 10px 24px rgba(79, 70, 229, 0.25);
-  transition: background 0.16s ease, transform 0.06s ease,
-    box-shadow 0.16s ease;
+  box-shadow:
+    0 16px 40px rgba(79, 70, 229, 0.6),
+    0 0 24px rgba(94, 234, 212, 0.4);
+  transition:
+    background 0.16s ease,
+    transform 0.08s ease,
+    box-shadow 0.18s ease;
 }
 
 .meta-button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 14px 32px rgba(79, 70, 229, 0.34);
+  box-shadow:
+    0 22px 60px rgba(79, 70, 229, 0.8),
+    0 0 32px rgba(34, 211, 238, 0.5);
 }
 
-/* Meta-Status-Badge (span) */
-.badge {
+/* Icon Buttons (Profil, Glocke, Logout) */
+
+.topbar-icon-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon-button {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid rgba(55, 65, 81, 0.85);
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(15, 23, 42, 0.9),
+    rgba(15, 23, 42, 0.98)
+  );
+  color: var(--color-text-muted);
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
-  border-radius: var(--radius-pill);
-  font-size: 0.78rem;
-  border: 1px solid var(--color-border-subtle);
-  background: #ffffff;
+  justify-content: center;
+  font-size: 0.8rem;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.9);
+  position: relative;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    transform 0.06s ease,
+    color 0.16s ease;
 }
 
-.badge-online {
-  border-color: rgba(34, 197, 94, 0.7);
-  background: var(--color-success-soft);
-  color: #166534;
+.icon-button:hover {
+  border-color: rgba(129, 140, 248, 0.9);
+  color: #e5e7eb;
+  transform: translateY(-1px);
+  box-shadow:
+    0 18px 48px rgba(15, 23, 42, 1),
+    0 0 18px rgba(59, 130, 246, 0.5);
 }
 
-.badge-offline {
-  border-color: rgba(220, 38, 38, 0.6);
-  background: var(--color-danger-soft);
-  color: #b91c1c;
+.notification-dot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-danger);
+  box-shadow: 0 0 8px rgba(248, 113, 113, 0.9);
 }
 
 /* ==============================
@@ -408,7 +637,12 @@ nav.sidebar {
 .main-content {
   flex: 1;
   padding: 96px 28px 28px; /* Abstand für Topbar */
-  background: transparent;
+  background: radial-gradient(
+      circle at 0% 0%,
+      rgba(15, 23, 42, 0.65),
+      transparent 55%
+    ),
+    radial-gradient(circle at 100% 100%, rgba(30, 64, 175, 0.45), transparent 55%);
 }
 
 .view {
@@ -420,6 +654,7 @@ nav.sidebar {
 }
 
 /* Header innerhalb einer View (Dashboard, Creatives, ...) */
+
 .view-header {
   display: flex;
   align-items: baseline;
@@ -429,8 +664,10 @@ nav.sidebar {
 }
 
 .view-header h2 {
-  font-size: 1.4rem;
+  font-size: 1.35rem;
   font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .view-subtitle {
@@ -438,25 +675,45 @@ nav.sidebar {
   color: var(--color-text-muted);
 }
 
+/* Divider / Sub-Header helper */
+
+.section-divider {
+  margin: 18px 0 10px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(148, 163, 184, 0.6),
+    transparent
+  );
+}
+
 /* ==============================
    7) GENERISCHE KOMPONENTEN
    ============================== */
 
-/* Karten / Panels */
+/* Karten / Panels – Glassmorphism */
+
 .card,
 .metric-card,
 .sensei-card,
 .report-card,
 .log-card,
-.dashboard-card {
-  background: var(--color-surface);
+.dashboard-card,
+.table-card {
+  background: linear-gradient(
+    140deg,
+    rgba(15, 23, 42, 0.96),
+    rgba(15, 23, 42, 0.9)
+  );
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-border-subtle);
+  border: 1px solid rgba(148, 163, 184, 0.35);
   box-shadow: var(--shadow-subtle);
   padding: 16px 18px;
+  backdrop-filter: blur(20px);
 }
 
 /* KPI-Grid – wird von Packages genutzt */
+
 .kpi-grid,
 .metric-grid {
   display: grid;
@@ -468,13 +725,13 @@ nav.sidebar {
 .metric-card {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .metric-label {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.16em;
   color: var(--color-text-soft);
 }
 
@@ -484,16 +741,14 @@ nav.sidebar {
 }
 
 .metric-subtext {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--color-text-muted);
 }
 
 /* Tabellen (Campaigns, Logs, Reports) */
+
 .table-card {
-  background: var(--color-surface);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border-subtle);
-  box-shadow: var(--shadow-subtle);
+  padding: 0;
   overflow: hidden;
 }
 
@@ -502,66 +757,86 @@ nav.sidebar {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.85rem;
+  color: #e5e7eb;
 }
 
 .table-card th,
 .table-card td,
 .campaign-table th,
 .campaign-table td {
-  padding: 8px 10px;
-  border-bottom: 1px solid rgba(229, 231, 235, 0.9);
+  padding: 9px 12px;
+  border-bottom: 1px solid rgba(31, 41, 55, 0.9);
 }
 
 .table-card th,
 .campaign-table th {
-  background: #f9fafb;
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(15, 23, 42, 0.96),
+    rgba(15, 23, 42, 0.98)
+  );
   color: var(--color-text-soft);
   text-transform: uppercase;
-  font-size: 0.75rem;
-  letter-spacing: 0.06em;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
   font-weight: 500;
 }
 
 /* Badge generisch */
+
 .badge-pill,
 .status-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 2px 8px;
+  padding: 2px 9px;
   border-radius: 999px;
   font-size: 0.7rem;
+  border: 1px solid rgba(55, 65, 81, 0.9);
 }
 
 /* Status-Badges */
+
 .badge-success {
   background: var(--color-success-soft);
-  color: #166534;
+  color: #bbf7d0;
+  border-color: rgba(34, 197, 94, 0.9);
 }
 
 .badge-warning {
   background: var(--color-warning-soft);
-  color: #92400e;
+  color: #fef3c7;
+  border-color: rgba(250, 204, 21, 0.9);
 }
 
 .badge-danger {
   background: var(--color-danger-soft);
-  color: #b91c1c;
+  color: #fee2e2;
+  border-color: rgba(248, 113, 113, 0.9);
 }
 
-/* Creative Library Cards (Klassen aus Packages) */
+/* ==============================
+   8) CREATIVE LIBRARY CARDS
+   ============================== */
 
 .creative-library-item {
   display: flex;
   flex-direction: column;
-  background-color: var(--color-surface);
-  border-radius: 18px;
+  background: linear-gradient(
+    150deg,
+    rgba(15, 23, 42, 0.98),
+    rgba(15, 23, 42, 0.94)
+  );
+  border-radius: 20px;
   box-shadow: var(--shadow-soft);
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease,
-    border-color 0.18s ease;
-  border: 1px solid var(--color-border-subtle);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+  border: 1px solid rgba(148, 163, 184, 0.35);
   min-height: 260px;
   max-width: 420px;
   margin: 0 auto;
@@ -572,7 +847,11 @@ nav.sidebar {
   height: 210px;
   position: relative;
   overflow: hidden;
-  background: #e5e7eb;
+  background: radial-gradient(
+    circle at 50% 0%,
+    rgba(30, 64, 175, 0.5),
+    #020617
+  );
 }
 
 .creative-media-container-library img,
@@ -585,7 +864,7 @@ nav.sidebar {
 .creative-faux-thumb {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #e5e7eb, #d1d5db);
+  background: linear-gradient(135deg, #0f172a, #1f2937);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -605,6 +884,7 @@ nav.sidebar {
 .creative-name-library {
   font-size: 15px;
   font-weight: 600;
+  color: #e5e7eb;
 }
 
 .creative-meta {
@@ -612,32 +892,59 @@ nav.sidebar {
   color: var(--color-text-muted);
 }
 
+.creative-kpi-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--color-text-soft);
+}
+
 /* Hover-Effekt */
+
 .creative-library-item:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 14px 34px rgba(148, 163, 184, 0.6);
-  border-color: rgba(79, 70, 229, 0.5);
+  transform: translateY(-4px);
+  box-shadow:
+    0 30px 90px rgba(15, 23, 42, 0.95),
+    0 0 35px rgba(59, 130, 246, 0.4);
+  border-color: rgba(129, 140, 248, 0.9);
+  background: linear-gradient(
+    150deg,
+    rgba(15, 23, 42, 0.99),
+    rgba(17, 24, 39, 0.98)
+  );
 }
 
 /* ==============================
-   8) MODAL-SYSTEM
+   9) MODAL-SYSTEM
    ============================== */
 
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.35);
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(15, 23, 42, 0.6),
+    rgba(15, 23, 42, 0.85)
+  );
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 100;
+  backdrop-filter: blur(12px);
 }
 
 .modal-shell {
-  background: #ffffff;
+  background: linear-gradient(
+    140deg,
+    rgba(15, 23, 42, 0.98),
+    rgba(15, 23, 42, 0.95)
+  );
   border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border-subtle);
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.35);
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  box-shadow:
+    0 30px 90px rgba(15, 23, 42, 0.98),
+    0 0 0 1px rgba(15, 23, 42, 1);
   width: min(720px, 94vw);
   max-height: 80vh;
   overflow: hidden;
@@ -647,7 +954,7 @@ nav.sidebar {
 
 .modal-header {
   padding: 14px 16px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid rgba(31, 41, 55, 0.9);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -664,27 +971,34 @@ nav.sidebar {
   width: 28px;
   height: 28px;
   border-radius: 999px;
-  border: 1px solid var(--color-border-subtle);
-  background: #f9fafb;
+  border: 1px solid rgba(55, 65, 81, 0.9);
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(15, 23, 42, 0.9),
+    rgba(15, 23, 42, 0.98)
+  );
   color: var(--color-text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 1rem;
 }
 
 .modal-close:hover {
-  background: #ef4444;
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
   color: #f9fafb;
-  border-color: #b91c1c;
+  border-color: rgba(248, 113, 113, 0.9);
 }
 
 .modal-body {
   padding: 16px 18px 18px;
   overflow: auto;
+  font-size: 0.9rem;
+  color: var(--color-text-main);
 }
 
 /* ==============================
-   9) TOASTS
+   10) TOASTS
    ============================== */
 
 #toastContainer {
@@ -699,41 +1013,101 @@ nav.sidebar {
 
 .toast {
   min-width: 260px;
-  background: #ffffff;
+  background: linear-gradient(
+    140deg,
+    rgba(15, 23, 42, 0.98),
+    rgba(15, 23, 42, 0.94)
+  );
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-border-subtle);
-  box-shadow: var(--shadow-subtle);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  box-shadow:
+    0 18px 50px rgba(15, 23, 42, 0.98),
+    0 0 0 1px rgba(15, 23, 42, 1);
   padding: 9px 11px;
   font-size: 0.85rem;
   display: flex;
   align-items: center;
   gap: 8px;
+  color: var(--color-text-main);
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 0.2s ease-out,
+    transform 0.2s ease-out;
 }
 
-.toast.success {
+.toast.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* App.js verwendet sowohl .toast.success als auch .toast-success etc – wir bedienen beides */
+
+.toast.success,
+.toast-success {
   border-color: var(--color-success);
+  background: linear-gradient(
+    140deg,
+    rgba(22, 101, 52, 0.94),
+    rgba(15, 23, 42, 0.96)
+  );
 }
 
-.toast.error {
+.toast.warning,
+.toast-warning {
+  border-color: var(--color-warning);
+  background: linear-gradient(
+    140deg,
+    rgba(180, 83, 9, 0.94),
+    rgba(15, 23, 42, 0.96)
+  );
+}
+
+.toast.error,
+.toast-danger,
+.toast-error {
   border-color: var(--color-danger);
+  background: linear-gradient(
+    140deg,
+    rgba(185, 28, 28, 0.95),
+    rgba(15, 23, 42, 0.96)
+  );
 }
 
 /* ==============================
-   10) GLOBAL LOADER
+   11) GLOBAL LOADER
    ============================== */
+
+.global-loader {
+  /* kompatibel zu #globalLoader, falls Klassen genutzt werden */
+}
 
 #globalLoader {
   position: fixed;
   inset: 0;
-  background: rgba(249, 250, 251, 0.7);
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(15, 23, 42, 0.6),
+    rgba(15, 23, 42, 0.9)
+  );
   display: none;
   align-items: center;
   justify-content: center;
   z-index: 200;
+  backdrop-filter: blur(8px);
 }
 
 #globalLoader.active {
   display: flex;
+}
+
+.global-loader-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
 }
 
 .loader-dot {
@@ -764,7 +1138,32 @@ nav.sidebar {
 }
 
 /* ==============================
-   11) RESPONSIVE
+   12) SKELETONS (für applySectionSkeleton)
+   ============================== */
+
+.skeleton-block {
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    rgba(31, 41, 55, 0.9) 0%,
+    rgba(55, 65, 81, 0.9) 50%,
+    rgba(31, 41, 55, 0.9) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes skeletonShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ==============================
+   13) RESPONSIVE
    ============================== */
 
 @media (max-width: 1024px) {
@@ -790,12 +1189,17 @@ nav.sidebar {
 
   #mainContent,
   .main-content {
-    padding: 90px 16px 24px 16px;
+    padding: 86px 16px 24px 16px;
   }
 
   .kpi-grid,
   .metric-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .topbar-right {
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
 }
 
@@ -806,12 +1210,22 @@ nav.sidebar {
     align-items: flex-start;
     height: auto;
     gap: 8px;
+    padding: 10px 14px;
   }
 
   .topbar-right {
     width: 100%;
     flex-wrap: wrap;
-    justify-content: flex-end;
+    justify-content: flex-start;
+    gap: 10px;
+  }
+
+  .topbar-select-group {
+    flex-wrap: wrap;
+  }
+
+  .topbar-select {
+    min-width: 160px;
   }
 
   .kpi-grid,
