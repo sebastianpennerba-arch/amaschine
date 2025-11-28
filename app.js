@@ -1,4 +1,4 @@
-// app.js – FINAL VERSION
+// app.js – FINAL VERSION (mit Dashboard-Package)
 
 import { AppState, META_OAUTH_CONFIG } from "./state.js";
 import {
@@ -16,11 +16,10 @@ import {
     exchangeMetaCodeForToken,
     fetchMetaAdAccounts,
     fetchMetaCampaigns,
-    fetchMetaAds,
-    fetchMetaCampaignInsights
+    fetchMetaAds
 } from "./metaApi.js";
 
-// 🔹 NEU: Dashboard als Package statt direkter Funktions-Import
+// Dashboard läuft jetzt komplett über das Package:
 import DashboardPackage from "./packages/dashboard/index.js";
 
 import { updateCampaignsView } from "./campaigns.js";
@@ -328,23 +327,6 @@ async function ensureCreativesLoadedAndRender() {
 }
 
 /* UI UPDATE */
-function applyDashboardNoDataState() {
-    const k = document.getElementById("dashboardKpiContainer");
-    if (k) k.innerHTML = "<p>Verbinde Meta, um Daten zu sehen.</p>";
-}
-function applyDemoDashboardState() {
-    const k = document.getElementById("dashboardKpiContainer");
-    if (k)
-        k.innerHTML = `
-        <div class="kpi-grid">
-            <div class="kpi-card"><div class="kpi-label">ROAS</div><div class="kpi-value">3,8x</div></div>
-            <div class="kpi-card"><div class="kpi-label">Spend</div><div class="kpi-value">12.340 €</div></div>
-            <div class="kpi-card"><div class="kpi-label">CTR</div><div class="kpi-value">1,4%</div></div>
-            <div class="kpi-card"><div class="kpi-label">Conversions</div><div class="kpi-value">926</div></div>
-        </div>
-    `;
-}
-
 function updateUI() {
     const connected = checkMetaConnection();
     const demo = isDemoMode();
@@ -352,15 +334,10 @@ function updateUI() {
     updateGreeting();
     updateAccountAndCampaignSelectors();
 
-    // 🔹 NEU: Dashboard läuft jetzt über DashboardPackage
+    // Dashboard komplett über DashboardPackage
     if (AppState.currentView === "dashboardView") {
-        if (connected) {
-            DashboardPackage.render({ connected, demo });
-        } else if (demo) {
-            applyDemoDashboardState();
-        } else {
-            applyDashboardNoDataState();
-        }
+        // async – wird nicht awaited, wie vorher bei updateDashboardView
+        DashboardPackage.render({ connected, demo });
     }
 
     if (AppState.currentView === "campaignsView") updateCampaignsView(connected);
@@ -619,7 +596,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     loadMetaTokenFromStorage();
     applyDashboardTimeRangeFromSettings();
 
-    // 🔹 NEU: Dashboard-Package initialisieren
+    // Dashboard-Package initialisieren
     DashboardPackage.init();
 
     showView(AppState.currentView);
@@ -644,7 +621,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             s.defaultTimeRange = value;
             saveSettingsToStorage();
             AppState.dashboardLoaded = false;
-            updateUI();
+            DashboardPackage.update({ connected: checkMetaConnection(), demo: isDemoMode() });
         });
     }
 
@@ -698,7 +675,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Modal Close Handling (Apple-Style)
     const { overlay, closeBtn } = getModalElements();
-    if (closeBtn) closeSystemModal;
     if (closeBtn) closeBtn.addEventListener("click", closeSystemModal);
     if (overlay) {
         overlay.addEventListener("click", (e) => {
