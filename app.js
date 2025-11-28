@@ -1,6 +1,6 @@
-// app.js – FINAL VERSION (mit MetaAuth Gateway)
+// app.js – FINAL VERSION
 
-import { AppState } from "./state.js";
+import { AppState, META_OAUTH_CONFIG } from "./state.js";
 import {
     showToast,
     updateGreeting,
@@ -12,6 +12,8 @@ import {
 } from "./uiCore.js";
 
 import {
+    fetchMetaUser,
+    exchangeMetaCodeForToken,
     fetchMetaAdAccounts,
     fetchMetaCampaigns,
     fetchMetaAds,
@@ -26,35 +28,13 @@ import { updateReportsView } from "./reports.js";
 import { updateTestingLogView } from "./testingLog.js";
 import { initSettings } from "./settings.js";
 
-import MetaAuth from "./packages/metaAuth/index.js";
-
-document.addEventListener("DOMContentLoaded", async () => {
-  ensureSettings();
-  loadSettingsFromStorage();
-  applyThemeFromSettings();
-  applyDashboardTimeRangeFromSettings();
-
-  await MetaAuth.init({
-    clearMetaCache,
-    onAfterTokenRestore: async () => {
-      await loadAdAccountsAndCampaigns();
-      updateUI();
-    },
-    onAfterConnect: async () => {
-      await loadAdAccountsAndCampaigns();
-      updateUI();
-    },
-    onAfterDisconnect: () => {
-      updateUI();
-    }
-  });
-
-  // ...
-});
-
+const META_TOKEN_STORAGE_KEY = "signalone_meta_token_v1";
 const DEFAULT_CACHE_TTL_MS = 15 * 60 * 1000;
 
-/* SETTINGS */
+/* ============================================================
+   SETTINGS
+============================================================ */
+
 function ensureSettings() {
     if (!AppState.settings) {
         AppState.settings = {
@@ -68,27 +48,41 @@ function ensureSettings() {
     }
     return AppState.settings;
 }
+
 function isDemoMode() {
     return !!ensureSettings().demoMode;
 }
+
 function saveSettingsToStorage() {
     try {
         localStorage.setItem(
             "signalone_settings_v1",
             JSON.stringify(AppState.settings)
         );
-    } catch {}
+    } catch {
+        // ignore
+    }
 }
+
 function loadSettingsFromStorage() {
     try {
         const raw = localStorage.getItem("signalone_settings_v1");
-        if (raw) AppState.settings = { ...AppState.settings, ...JSON.parse(raw) };
-    } catch {}
+        if (raw) {
+            AppState.settings = {
+                ...AppState.settings,
+                ...JSON.parse(raw)
+            };
+        }
+    } catch {
+        // ignore
+    }
 }
+
 function applyThemeFromSettings() {
     document.documentElement.dataset.theme =
         ensureSettings().theme === "dark" ? "dark" : "light";
 }
+
 function applyDashboardTimeRangeFromSettings() {
     const s = ensureSettings();
     const def = s.defaultTimeRange || "last_30d";
@@ -97,7 +91,10 @@ function applyDashboardTimeRangeFromSettings() {
     AppState.timeRangePreset = def;
 }
 
-/* CACHE */
+/* ============================================================
+   META CACHE
+============================================================ */
+
 function ensureMetaCache() {
     if (!AppState.metaCache) {
         AppState.metaCache = {
@@ -108,14 +105,17 @@ function ensureMetaCache() {
     }
     return AppState.metaCache;
 }
+
 function getCacheTtlMs() {
     const m = ensureSettings().metaCacheTtlMinutes;
     return m > 0 ? m * 60000 : DEFAULT_CACHE_TTL_MS;
 }
-function isCacheValid(e) {
-    if (!e || !e.fetchedAt) return false;
-    return Date.now() - e.fetchedAt < getCacheTtlMs();
+
+function isCacheValid(entry) {
+    if (!entry || !entry.fetchedAt) return false;
+    return Date.now() - entry.fetchedAt < getCacheTtlMs();
 }
+
 function clearMetaCache() {
     AppState.metaCache = {
         adAccounts: null,
@@ -124,7 +124,10 @@ function clearMetaCache() {
     };
 }
 
-/* VIEW HANDLER */
+/* ============================================================
+   VIEW HANDLING
+============================================================ */
+
 function showView(id) {
     document.querySelectorAll(".view").forEach((v) => v.classList.add("hidden"));
     const el = document.getElementById(id);
@@ -133,7 +136,146 @@ function showView(id) {
     updateUI();
 }
 
-/* LOAD ACCOUNTS + CAMPAIGNS */
+/* ============================================================
+   META CONNECT / OAUTH
+============================================================ */
+
+function handleMetaConnectClick() {
+    const authUrl =
+        "https://www.facebook.com/v21.0/dialog/oauth?" +
+        new URLSearchParams({
+            client_id: META_OAUTH_CONFIG.appId,
+            redirect_uri: META_OAUTH_CONFIG.redirectUri,
+            response_type: "code",
+            scope: META_OAUTH_CONFIG.scopes
+        });
+
+    const popup = window.open(
+        authUrl,
+        "MetaLogin",
+        "width=600,height=800,left=200,top=100"
+    );
+
+    if (!popup) {
+        showToast("Popup blockiert!", "error");
+        return;
+    }
+    showToast("Meta Login geöffnet…", "info");
+}
+
+function persistMetaToken(token) {
+    try {
+        if (token) {
+            localStorage.setItem(META_TOKEN_STORAGE_KEY, token);
+        } else {
+            localStorage.removeItem(META_TOKEN_STORAGE_KEY);
+        }
+    } catch {
+        // ignore
+    }
+}
+
+/* DISCONNECT */
+
+function disconnectMeta() {
+    AppState.metaConnected = false;
+    AppState.meta = {
+        accessToken: null,
+        adAccounts: [],
+        campaigns: [],
+        insightsByCampaign: {},
+        user: null,
+        ads: [],
+        creatives: []
+    };
+    AppState.selectedAccountId = null;
+    AppState.selectedCampaignId = null;
+    AppState.dashboardLoaded = false;
+    AppState.campaignsLoaded = false;
+    AppState.creativesLoaded = false;
+    AppState.dashboardMetrics = null;
+    clearMetaCache();
+    persistMetaToken(null);
+    updateUI();
+}
+
+/* OAUTH REDIRECT – verarbeitet Callback & schließt Popup sauber */
+
+async function handleMetaOAuthRedirectIfPresent() {
+    const url = new URL(window.location.href);
+    const code = url.searchParams.get("code");
+    if (!code) return;
+
+    // Query-Parameter entfernen
+    window.history.replaceState({}, "", "/");
+    showToast("Token wird abgeholt…", "info");
+
+    try {
+        const token = await exchangeMetaCodeForToken(
+            code,
+            META_OAUTH_CONFIG.redirectUri
+        );
+        if (!token) {
+            showToast("OAuth Fehler", "error");
+            return;
+        }
+
+        AppState.meta.accessToken = token;
+        AppState.metaConnected = true;
+        persistMetaToken(token);
+        clearMetaCache();
+
+        try {
+            AppState.meta.user = await fetchMetaUser(token);
+        } catch {
+            // User ist nice-to-have
+        }
+
+        await loadAdAccountsAndCampaigns();
+        updateUI();
+        showToast("Meta verbunden!", "success");
+
+        // Falls in Popup geöffnet → schließen & Hauptfenster refreshen
+        if (window.opener) {
+            window.opener.location.reload();
+            window.close();
+        }
+    } catch (e) {
+        console.error("OAuth Fehler:", e);
+        showToast("Verbindung fehlgeschlagen", "error");
+    }
+}
+
+/* TOKEN AUS LOCALSTORAGE RESTOREN */
+
+function loadMetaTokenFromStorage() {
+    try {
+        const t = localStorage.getItem(META_TOKEN_STORAGE_KEY);
+        if (!t) return;
+
+        AppState.meta.accessToken = t;
+        AppState.metaConnected = true;
+        clearMetaCache();
+
+        fetchMetaUser(t)
+            .then((u) => {
+                AppState.meta.user = u;
+                return loadAdAccountsAndCampaigns();
+            })
+            .then(() => updateUI())
+            .catch(() => {
+                AppState.metaConnected = false;
+                AppState.meta.accessToken = null;
+            });
+    } catch {
+        // ignore
+    }
+}
+
+/* ============================================================
+   META DATEN LADEN (Accounts, Kampagnen, Ads)
+============================================================ */
+
 async function loadAdAccountsAndCampaigns() {
     ensureMetaCache();
     const token = AppState.meta.accessToken;
@@ -151,8 +293,9 @@ async function loadAdAccountsAndCampaigns() {
         AppState.metaCache.adAccounts = { data, fetchedAt: Date.now() };
     }
 
-    if (AppState.meta.adAccounts.length > 0 && !AppState.selectedAccountId)
+    if (AppState.meta.adAccounts.length > 0 && !AppState.selectedAccountId) {
         AppState.selectedAccountId = AppState.meta.adAccounts[0].id;
+    }
 
     // CAMPAIGNS
     if (AppState.selectedAccountId) {
@@ -174,7 +317,8 @@ async function loadAdAccountsAndCampaigns() {
     updateAccountAndCampaignSelectors();
 }
 
-/* SELECTORS */
+/* SELECT BOXEN FÜR ACCOUNT & KAMPAGNEN */
+
 function updateAccountAndCampaignSelectors() {
     const accSel = document.getElementById("brandSelect");
     const campSel = document.getElementById("campaignGroupSelect");
@@ -203,6 +347,7 @@ function updateAccountAndCampaignSelectors() {
 }
 
 /* ADS / CREATIVES */
+
 async function loadCreativesForCurrentSelection() {
     ensureMetaCache();
     const token = AppState.meta.accessToken;
@@ -224,12 +369,51 @@ async function loadCreativesForCurrentSelection() {
     AppState.creativesLoaded = true;
     AppState.metaCache.adsByAccount[acc] = { data, fetchedAt: Date.now() };
 }
+
 async function ensureCreativesLoadedAndRender() {
-    if (!AppState.creativesLoaded) await loadCreativesForCurrentSelection();
+    if (!AppState.creativesLoaded) {
+        await loadCreativesForCurrentSelection();
+    }
     updateCreativeLibraryView(true);
 }
 
-/* UI UPDATE */
+/* ============================================================
+   UI UPDATE / VIEW ROUTING
+============================================================ */
+
+function applyDashboardNoDataState() {
+    const k = document.getElementById("dashboardKpiContainer");
+    if (k) {
+        k.innerHTML = "<p>Verbinde Meta, um Daten zu sehen.</p>";
+    }
+}
+
+function applyDemoDashboardState() {
+    const k = document.getElementById("dashboardKpiContainer");
+    if (k) {
+        k.innerHTML = `
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label">ROAS</div>
+                <div class="kpi-value">3,8x</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Spend</div>
+                <div class="kpi-value">12.340 €</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">CTR</div>
+                <div class="kpi-value">1,4%</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Conversions</div>
+                <div class="kpi-value">926</div>
+            </div>
+        </div>
+    `;
+    }
+}
+
 function updateUI() {
     const connected = checkMetaConnection();
     const demo = isDemoMode();
@@ -238,26 +422,43 @@ function updateUI() {
     updateAccountAndCampaignSelectors();
 
     if (AppState.currentView === "dashboardView") {
-        // Dashboard ist via Shim bereits auf Paket gemappt
-        updateDashboardView(connected);
+        if (connected) {
+            updateDashboardView(true);
+        } else if (demo) {
+            applyDemoDashboardState();
+        } else {
+            applyDashboardNoDataState();
+        }
     }
 
-    if (AppState.currentView === "campaignsView") updateCampaignsView(connected);
-    if (AppState.currentView === "creativesView") {
-        if (connected) ensureCreativesLoadedAndRender();
-        else updateCreativeLibraryView(false);
+    if (AppState.currentView === "campaignsView") {
+        updateCampaignsView(connected);
     }
-    if (AppState.currentView === "senseiView") updateSenseiView(connected);
-    if (AppState.currentView === "reportsView") updateReportsView(connected);
-    if (AppState.currentView === "testingLogView")
+
+    if (AppState.currentView === "creativesView") {
+        if (connected) {
+            ensureCreativesLoadedAndRender();
+        } else {
+            updateCreativeLibraryView(false);
+        }
+    }
+
+    if (AppState.currentView === "senseiView") {
+        updateSenseiView(connected);
+    }
+    if (AppState.currentView === "reportsView") {
+        updateReportsView(connected);
+    }
+    if (AppState.currentView === "testingLogView") {
         updateTestingLogView(connected);
+    }
 
     updateHealthStatus();
 }
 
-/* -------------------------------------------------
-   APPLE-STYLE MODAL SYSTEM (für Settings/Profil/Notifications)
--------------------------------------------------- */
+/* ============================================================
+   MODAL-SYSTEM (Settings / Profil / Notifications)
+============================================================ */
 
 function getModalElements() {
     const overlay = document.getElementById("modalOverlay");
@@ -304,16 +505,18 @@ function openSettingsModal() {
             <div class="modal-section-title">Performance & Daten</div>
             <div class="modal-row">
                 <label for="settingsCacheTtl">Meta Cache TTL (Minuten)</label>
-                <input type="number" id="settingsCacheTtl" min="1" max="120" value="${Number(
-                    s.metaCacheTtlMinutes || 15
-                )}">
+                <input
+                    type="number"
+                    id="settingsCacheTtl"
+                    min="1"
+                    max="120"
+                    value="${Number(s.metaCacheTtlMinutes || 15)}"
+                >
             </div>
             <div class="modal-row">
                 <label for="settingsDefaultRange">Standard-Zeitraum Dashboard</label>
                 <select id="settingsDefaultRange">
-                    <option value="today" ${
-                        s.defaultTimeRange === "today" ? "selected" : ""
-                    }>Heute</option>
+                    <option value="today" ${s.defaultTimeRange === "today" ? "selected" : ""}>Heute</option>
                     <option value="yesterday" ${
                         s.defaultTimeRange === "yesterday" ? "selected" : ""
                     }>Gestern</option>
@@ -347,10 +550,11 @@ function openSettingsModal() {
         <button id="settingsSaveButton" class="primary-btn">
             Speichern
         </button>
-    ";
+    `;
 
     openSystemModal("Einstellungen", bodyHtml);
 
+    // Events nach Render hinzufügen
     const themeSelect = document.getElementById("settingsTheme");
     const ttlInput = document.getElementById("settingsCacheTtl");
     const rangeSelect = document.getElementById("settingsDefaultRange");
@@ -360,10 +564,14 @@ function openSettingsModal() {
     if (saveBtn) {
         saveBtn.addEventListener("click", () => {
             const settings = ensureSettings();
-            settings.theme = themeSelect?.value === "dark" ? "dark" : "light";
+
+            settings.theme =
+                themeSelect && themeSelect.value === "dark" ? "dark" : "light";
 
             const ttlVal = Number(ttlInput?.value || 15);
-            settings.metaCacheTtlMinutes = isNaN(ttlVal) ? 15 : Math.max(1, ttlVal);
+            settings.metaCacheTtlMinutes = isNaN(ttlVal)
+                ? 15
+                : Math.max(1, ttlVal);
 
             settings.defaultTimeRange =
                 rangeSelect?.value || settings.defaultTimeRange || "last_30d";
@@ -384,53 +592,53 @@ function openSettingsModal() {
 /* PROFILE MODAL */
 
 function openProfileModal() {
-    const user = AppState.meta?.user || {};
+    const user = AppState.meta?.user;
     const isConnected = AppState.metaConnected;
 
-    const name = user.name || "Unbekannt";
-    const id = user.id || "n/a";
-    const email = user.email || "nicht verfügbar";
+    const name = user?.name || "Unbekannt";
+    const id = user?.id || "n/a";
+    const email = user?.email || "nicht verfügbar";
 
     const bodyHtml = `
         <div class="modal-section">
             <div class="modal-section-title">Meta Profil</div>
-
             <div class="modal-row">
                 <label>Name</label>
                 <span>${name}</span>
             </div>
-
             <div class="modal-row">
                 <label>User ID</label>
                 <span>${id}</span>
             </div>
-
             <div class="modal-row">
                 <label>E-Mail</label>
                 <span>${email}</span>
             </div>
-
             <div class="modal-row">
                 <label>Status</label>
                 <span>${isConnected ? "Verbunden ✅" : "Getrennt ❌"}</span>
             </div>
         </div>
+
+        <div class="modal-section">
+            <div class="modal-section-title">Verbindung</div>
+            <p style="font-size:13px; color:var(--text-secondary); line-height:1.5;">
+                Du kannst die Meta-Verbindung hier trennen. Beim nächsten Login wird ein neuer Token geholt.
+            </p>
+            <button id="disconnectMetaFromProfile" class="primary-btn">
+                Meta Verbindung trennen
+            </button>
+        </div>
     `;
 
     openSystemModal("Profil", bodyHtml);
-}
 
     const btn = document.getElementById("disconnectMetaFromProfile");
     if (btn) {
         btn.addEventListener("click", () => {
-            MetaAuth.disconnect({
-                clearMetaCache,
-                onAfterDisconnect: () => {
-                    updateUI();
-                    showToast("Meta Verbindung getrennt.", "info");
-                    closeSystemModal();
-                }
-            });
+            disconnectMeta();
+            showToast("Meta Verbindung getrennt.", "info");
+            closeSystemModal();
         });
     }
 }
@@ -439,7 +647,6 @@ function openProfileModal() {
 
 function openNotificationsModal() {
     const list = AppState.notifications || [];
-
     let bodyHtml = "";
 
     if (!list.length) {
@@ -480,6 +687,7 @@ function openNotificationsModal() {
 
     openSystemModal("Benachrichtigungen", bodyHtml);
 
+    // Badge zurücksetzen
     const badge = document.getElementById("notificationsBadge");
     if (badge) {
         badge.classList.add("hidden");
@@ -487,28 +695,17 @@ function openNotificationsModal() {
     }
 }
 
-/* INIT */
+/* ============================================================
+   INIT
+============================================================ */
+
 document.addEventListener("DOMContentLoaded", async () => {
     ensureSettings();
     loadSettingsFromStorage();
     applyThemeFromSettings();
-    applyDashboardTimeRangeFromSettings();
 
-    // MetaAuth Gateway: Token Restore + OAuth Redirect + Basisdaten laden
-    await MetaAuth.init({
-        clearMetaCache,
-        onAfterTokenRestore: async () => {
-            await loadAdAccountsAndCampaigns();
-            updateUI();
-        },
-        onAfterConnect: async () => {
-            await loadAdAccountsAndCampaigns();
-            updateUI();
-        },
-        onAfterDisconnect: () => {
-            updateUI();
-        }
-    });
+    loadMetaTokenFromStorage();
+    applyDashboardTimeRangeFromSettings();
 
     showView(AppState.currentView);
     initSidebarNavigation(showView);
@@ -516,27 +713,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     initDateTime();
     updateGreeting();
 
-    const connectBtn = document.getElementById("connectMetaButton");
-    if (connectBtn) {
-        connectBtn.addEventListener("click", () => {
-            MetaAuth.connectWithPopup();
-        });
-    }
+    const btn = document.getElementById("connectMetaButton");
+    if (btn) btn.addEventListener("click", handleMetaConnectClick);
 
-    const disconnectBtn = document.getElementById("disconnectMetaButton");
-    if (disconnectBtn) {
-        disconnectBtn.addEventListener("click", () => {
-            MetaAuth.disconnect({
-                clearMetaCache,
-                onAfterDisconnect: () => {
-                    updateUI();
-                    showToast("Meta Verbindung getrennt.", "info");
-                }
-            });
-        });
-    }
+    const d = document.getElementById("disconnectMetaButton");
+    if (d) d.addEventListener("click", disconnectMeta);
 
-    // Zeitbereich-Änderung beeinflusst das Dashboard
+    // Zeitbereich – beeinflusst Dashboard + Settings
     const timeRange = document.getElementById("dashboardTimeRange");
     if (timeRange) {
         timeRange.addEventListener("change", (e) => {
@@ -550,8 +733,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
+    await handleMetaOAuthRedirectIfPresent();
+
     const acc = document.getElementById("brandSelect");
-    if (acc)
+    if (acc) {
         acc.addEventListener("change", async (e) => {
             AppState.selectedAccountId = e.target.value || null;
             AppState.selectedCampaignId = null;
@@ -562,41 +747,34 @@ document.addEventListener("DOMContentLoaded", async () => {
             await loadAdAccountsAndCampaigns();
             updateUI();
         });
+    }
 
     const camp = document.getElementById("campaignGroupSelect");
-    if (camp)
+    if (camp) {
         camp.addEventListener("change", (e) => {
             AppState.selectedCampaignId = e.target.value || null;
             AppState.dashboardLoaded = false;
             AppState.creativesLoaded = false;
             updateUI();
         });
+    }
 
-    // 🔘 SETTINGS BUTTON (Sidebar)
+    // Topbar-Icons an Modale hängen (falls nicht bereits in settings.js erledigt)
     const settingsBtn = document.getElementById("openSettingsButton");
     if (settingsBtn) {
-        settingsBtn.addEventListener("click", () => {
-            openSettingsModal();
-        });
+        settingsBtn.addEventListener("click", () => openSettingsModal());
     }
 
-    // 🔘 PROFILE BUTTON (Topbar)
     const profileBtn = document.getElementById("profileButton");
     if (profileBtn) {
-        profileBtn.addEventListener("click", () => {
-            openProfileModal();
-        });
+        profileBtn.addEventListener("click", () => openProfileModal());
     }
 
-    // 🔘 NOTIFICATIONS BUTTON (Topbar)
     const notificationsBtn = document.getElementById("notificationsButton");
     if (notificationsBtn) {
-        notificationsBtn.addEventListener("click", () => {
-            openNotificationsModal();
-        });
+        notificationsBtn.addEventListener("click", () => openNotificationsModal());
     }
 
-    // Modal Close Handling (Apple-Style)
     const { overlay, closeBtn } = getModalElements();
     if (closeBtn) closeBtn.addEventListener("click", closeSystemModal);
     if (overlay) {
