@@ -295,11 +295,14 @@ function getViewIdForModule(key) {
 
 function setActiveView(viewId) {
   const views = document.querySelectorAll(".view");
+
   views.forEach((v) => {
     if (v.id === viewId) {
       v.classList.add("active");
+      v.style.display = "block";   // <<< WICHTIG
     } else {
       v.classList.remove("active");
+      v.style.display = "none";    // <<< WICHTIG
     }
   });
 }
