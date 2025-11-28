@@ -1,3 +1,7 @@
+/* ============================================================
+   STATE.JS – FINAL VERSION (KOMPATIBEL MIT DEMO-PRESET-SYSTEM)
+============================================================ */
+
 export const META_APP_ID = "732040642590155";
 
 export const META_OAUTH_CONFIG = {
@@ -6,13 +10,14 @@ export const META_OAUTH_CONFIG = {
     scopes: "ads_read,ads_management,business_management"
 };
 
+/* ============================================================
+   GLOBALER APP-STATE
+============================================================ */
+
 export const AppState = {
     currentView: "dashboardView",
-    metaConnected: false,
 
-    // 🔥 DEMO MODE FLAGS (neu & systemisch korrekt)
-    demoMode: false,          // Aktiv / Nicht aktiv
-    demoPresetId: null,       // "small_store" | "scaling_store" | "agency"
+    metaConnected: false,
 
     meta: {
         accessToken: null,
@@ -24,15 +29,22 @@ export const AppState = {
         user: null
     },
 
+    /* In neuer Architektur:
+       NULL = alle Kampagnen */
     selectedAccountId: null,
-    selectedCampaignId: "ALL",
+    selectedCampaignId: null,
 
+    /* Dashboard-Zeitraum */
     timeRangePreset: "last_30d",
 
+    /* UI / DATA CACHES */
     dashboardMetrics: null,
     testingLog: [],
     notifications: [],
 
+    /* ============================================================
+       SETTINGS – EINZIGE WAHRHEIT FÜR DEMOMODE & PRESETS
+    ============================================================ */
     settings: {
         theme: "light",
         currency: "EUR",
@@ -40,41 +52,17 @@ export const AppState = {
         defaultTimeRange: "last_30d",
         creativeLayout: "grid",
 
-        // ⚠️ lässt du drin als User-Einstellung,
-        // aber technisch steuert NICHT dieses Flag den Demo-Modus.
-        demoMode: true
+        /* Demo Mode (True/False) */
+        demoMode: true,
+
+        /* Demo-Preset (Vorschlag A) */
+        demoPreset: "small_store"
     },
 
+    /* Meta-Daten-CACHE */
     metaCache: {
         adAccounts: null,
         campaignsByAccount: {},
         adsByAccount: {}
-    },
-
-    config: {
-        meta: {
-            appId: META_APP_ID
-        }
-    },
-
-    dashboardLoaded: false,
-    campaignsLoaded: false,
-    creativesLoaded: false
-};
-
-// 🔥 OPTIONALE HELFER-FUNKTIONEN (für app.js)
-// Falls du es nutzen möchtest:
-
-export function setDemoMode(enabled, presetId = null) {
-    AppState.demoMode = enabled;
-    AppState.demoPresetId = presetId;
-
-    // Persistieren im LocalStorage (damit Demo nach Reload aktiv bleibt)
-    if (enabled) {
-        window.localStorage.setItem("signalone_demo", "1");
-        if (presetId) window.localStorage.setItem("signalone_demo_preset", presetId);
-    } else {
-        window.localStorage.removeItem("signalone_demo");
-        window.localStorage.removeItem("signalone_demo_preset");
     }
-}
+};
