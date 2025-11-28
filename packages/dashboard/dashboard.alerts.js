@@ -1,14 +1,12 @@
 // packages/dashboard/dashboard.alerts.js
-// Alert-Engine (rot/gelb/grün) für Dashboard Performance
-// Zentrale Logik, von dashboard.compute.js konsumiert
+// Alert-Engine (rot/gelb/grün) für das Dashboard (Phase 1 Final)
 
 /**
  * Erzeugt strukturierte Alerts basierend auf KPI-Werten.
- * Erwartet Objekt:
+ * metrics:
  * {
  *   roas, ctr, cpm, spend, conversions,
- *   trendRoas, trendCtr, trendSpend,
- *   ...
+ *   trendRoas, trendCtr, trendSpend
  * }
  */
 export function generateDashboardAlerts(metrics = {}) {
@@ -29,22 +27,24 @@ export function generateDashboardAlerts(metrics = {}) {
         trendSpend = 0
     } = metrics;
 
-    /* ===========================
-       🔴 RED ALERTS (kritisch)
-    ============================ */
+    /* ---------- 🔴 RED (kritisch) ---------- */
 
-    if (roas < 1) {
+    if (roas < 1 && spend > 0) {
         alerts.red.push({
             title: "ROAS kritisch",
-            message: `Der ROAS liegt bei ${roas.toFixed(2)}x – unter Profitabilität.`,
+            message: `Der ROAS liegt bei ${roas.toFixed(
+                2
+            )}x – unter Profitabilität.`,
             kpi: "roas"
         });
     }
 
-    if (ctr < 0.4) {
+    if (ctr < 0.4 && impressionsRelevant(metrics)) {
         alerts.red.push({
             title: "CTR sehr niedrig",
-            message: `CTR bei ${ctr.toFixed(2)}% – Creatives verlieren deutlich an Relevanz.`,
+            message: `CTR bei ${ctr.toFixed(
+                2
+            )}% – Creatives verlieren deutlich an Relevanz.`,
             kpi: "ctr"
         });
     }
@@ -52,19 +52,21 @@ export function generateDashboardAlerts(metrics = {}) {
     if (trendRoas < -0.25) {
         alerts.red.push({
             title: "ROAS Trend bricht ein",
-            message: `ROAS fällt um ${Math.abs(trendRoas * 100).toFixed(1)}%.`,
+            message: `ROAS fällt um ${Math.abs(trendRoas * 100).toFixed(
+                1
+            )}%.`,
             kpi: "trendRoas"
         });
     }
 
-    /* ===========================
-       🟡 YELLOW ALERTS (Warnung)
-    ============================ */
+    /* ---------- 🟡 YELLOW (Warnung) ---------- */
 
     if (ctr < 0.8 && ctr >= 0.4) {
         alerts.yellow.push({
             title: "CTR unter Ziel",
-            message: `CTR bei ${ctr.toFixed(2)}%. Creative Refresh empfohlen.`,
+            message: `CTR bei ${ctr.toFixed(
+                2
+            )}% – Creative Refresh empfohlen.`,
             kpi: "ctr"
         });
     }
@@ -72,22 +74,24 @@ export function generateDashboardAlerts(metrics = {}) {
     if (trendCtr < -0.15) {
         alerts.yellow.push({
             title: "CTR Trend negativ",
-            message: `CTR fällt um ${Math.abs(trendCtr * 100).toFixed(1)}%.`,
+            message: `CTR fällt um ${Math.abs(trendCtr * 100).toFixed(
+                1
+            )}%.`,
             kpi: "trendCtr"
         });
     }
 
     if (trendSpend > 0.25 && roas < 1.5) {
         alerts.yellow.push({
-            title: "Hoher Spend ohne Gewinn",
-            message: `Spend steigt um ${Math.abs(trendSpend * 100).toFixed(1)}%, aber ROAS ist schwach.`,
+            title: "Hoher Spend ohne starken ROAS",
+            message: `Spend steigt um ${Math.abs(trendSpend * 100).toFixed(
+                1
+            )}% bei moderatem ROAS.`,
             kpi: "trendSpend"
         });
     }
 
-    /* ===========================
-       🟢 GREEN ALERTS (positiv)
-    ============================ */
+    /* ---------- 🟢 GREEN (positiv) ---------- */
 
     if (roas > 3) {
         alerts.green.push({
@@ -100,7 +104,9 @@ export function generateDashboardAlerts(metrics = {}) {
     if (trendRoas > 0.15) {
         alerts.green.push({
             title: "ROAS im Aufwind",
-            message: `ROAS steigt um ${Math.abs(trendRoas * 100).toFixed(1)}%.`,
+            message: `ROAS steigt um ${Math.abs(trendRoas * 100).toFixed(
+                1
+            )}%.`,
             kpi: "trendRoas"
         });
     }
@@ -108,7 +114,9 @@ export function generateDashboardAlerts(metrics = {}) {
     if (ctr > 1.5) {
         alerts.green.push({
             title: "CTR stark",
-            message: `CTR bei ${ctr.toFixed(2)}% – Creatives performen hervorragend.`,
+            message: `CTR bei ${ctr.toFixed(
+                2
+            )}% – Creatives performen hervorragend.`,
             kpi: "ctr"
         });
     }
@@ -167,4 +175,8 @@ function renderAlertGroup(type, items) {
             </ul>
         </div>
     `;
+}
+
+function impressionsRelevant(metrics) {
+    return (metrics.impressions || 0) > 5000;
 }
