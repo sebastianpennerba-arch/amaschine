@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SignalOne – Dashboard</title>
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="sx-core.css" />
     <!-- Icon-Font nur für UI-Icons, kein Framework -->
     <link
       rel="stylesheet"
@@ -25,115 +26,82 @@
 
       <div class="sidebar-footer">
         <div class="sidebar-status-row">
-          <span class="status-dot status-dot-meta" id="sidebarMetaDot"></span>
-          <span id="sidebarMetaLabel">Meta Ads: Getrennt</span>
-        </div>
-        <div class="sidebar-status-row">
-          <span
-            class="status-dot status-dot-system"
-            id="sidebarSystemDot"
-          ></span>
+          <span id="sidebarSystemDot" class="status-dot"></span>
           <span id="sidebarSystemLabel">System Health: OK</span>
         </div>
         <div class="sidebar-status-row">
-          <span
-            class="status-dot status-dot-campaign"
-            id="sidebarCampaignDot"
-          ></span>
+          <span id="sidebarCampaignDot" class="status-dot"></span>
           <span id="sidebarCampaignLabel">Campaign Health: n/a</span>
         </div>
+        <div class="sidebar-status-row">
+          <span id="sidebarMetaDot" class="status-dot"></span>
+          <span id="sidebarMetaLabel">Meta Ads: Getrennt</span>
+        </div>
 
-        <button id="demoToggle" class="sidebar-footer-button" type="button">
-          Demo-Modus: AN
-        </button>
-
-        <button
-          id="settingsButton"
-          class="sidebar-footer-button sidebar-footer-button-secondary"
-          type="button"
-        >
+        <button id="settingsButton" class="sidebar-footer-button" type="button">
+          <i class="fa-solid fa-sliders"></i>
           Settings
         </button>
       </div>
     </nav>
 
-    <!-- App Shell (Topbar + Main) -->
+    <!-- Main Layout -->
     <div class="app-shell">
+      <!-- Topbar -->
       <header id="topbar">
         <div class="topbar-left">
-          <div class="topbar-greeting">
-            <div class="topbar-greeting-title" id="topbarGreeting">
-              Guten Morgen, SignalOne Nutzer!
-            </div>
-            <div class="topbar-greeting-meta">
-              <span id="topbarDate">Datum: ––</span>
-              <span class="divider">|</span>
-              <span id="topbarTime">Zeit: ––</span>
-              <span class="divider">|</span>
-              <span class="topbar-version">Version: S1-0.9-b</span>
-            </div>
+          <div class="topbar-greeting-title" id="topbarGreeting">
+            Guten Tag, SignalOne Nutzer!
           </div>
+          <div class="topbar-greeting-meta">
+            <span id="topbarDate">Datum: –</span>
+            <span id="topbarTime">Zeit: –</span>
+          </div>
+        </div>
+
+        <div class="topbar-center">
+          <select id="brandSelect" class="topbar-select">
+            <option>Werbekonto auswählen</option>
+          </select>
+          <select id="campaignSelect" class="topbar-select">
+            <option>Kampagne auswählen</option>
+          </select>
         </div>
 
         <div class="topbar-right">
-          <div class="topbar-select-group">
-            <select id="brandSelect" class="topbar-select">
-              <option value="">Werbekonto auswählen</option>
-            </select>
-            <select id="campaignSelect" class="topbar-select">
-              <option value="">Kampagne auswählen</option>
-            </select>
-          </div>
-
           <div class="topbar-status-group">
-            <span
-              id="metaStatusBadge"
-              class="badge badge-offline meta-status-pill"
-            >
-              <i class="fa-solid fa-circle"></i>
-              <span id="metaStatusLabel">Meta nicht verbunden</span>
-            </span>
-            <span id="modeBadge" class="mode-badge">Modus: Demo</span>
-            <button id="metaConnectButton" class="meta-button" type="button">
-              Meta verbinden
-            </button>
+            <div id="modeBadge" class="mode-badge">Modus: Demo</div>
+            <div id="metaStatusBadge" class="badge badge-offline">
+              <i class="fa-solid fa-plug"></i>
+              <span id="metaStatusLabel">Meta: Nicht verbunden</span>
+            </div>
           </div>
 
-          <div class="topbar-icon-group">
-            <button
-              class="icon-button"
-              id="profileButton"
-              type="button"
-              title="Profil"
-            >
-              <i class="fa-regular fa-user"></i>
-            </button>
-            <button
-              class="icon-button"
-              id="notificationsButton"
-              type="button"
-              title="Benachrichtigungen"
-            >
-              <i class="fa-regular fa-bell"></i>
-              <span
-                class="notification-dot hidden"
-                id="notificationsDot"
-              ></span>
-            </button>
-            <button
-              class="icon-button"
-              id="logoutButton"
-              type="button"
-              title="Abmelden"
-            >
-              <i class="fa-solid fa-right-from-bracket"></i>
-            </button>
-          </div>
+          <button id="metaConnectButton" class="meta-button" type="button">
+            Meta verbinden
+          </button>
+
+          <button id="demoToggle" class="icon-button" type="button">
+            <i class="fa-solid fa-vial-circle-check"></i>
+          </button>
+
+          <button id="notificationsButton" class="icon-button" type="button">
+            <i class="fa-regular fa-bell"></i>
+            <span id="notificationsDot" class="notification-dot hidden"></span>
+          </button>
+
+          <button id="profileButton" class="icon-button" type="button">
+            <i class="fa-regular fa-user"></i>
+          </button>
+
+          <button id="logoutButton" class="icon-button" type="button">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          </button>
         </div>
       </header>
 
-      <main id="mainContent">
-        <!-- Views – Backbone-Struktur bleibt bestehen -->
+      <!-- Content Area -->
+      <main class="main-content">
         <section id="dashboardView" class="view active"></section>
         <section id="creativeLibraryView" class="view"></section>
         <section id="campaignsView" class="view"></section>
@@ -168,28 +136,27 @@
       id="modalOverlay"
       class="modal-overlay hidden"
       aria-hidden="true"
+      role="dialog"
     >
-      <div
-        class="modal-shell"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="modalTitle"
-      >
-        <header class="modal-header">
-          <h2 id="modalTitle" class="modal-title"></h2>
+      <div class="modal-shell">
+        <div class="modal-header">
+          <h3 id="modalTitle">Modal Titel</h3>
           <button
             id="modalCloseButton"
-            class="modal-close"
+            class="icon-button"
             type="button"
-            aria-label="Schließen"
+            aria-label="Modal schließen"
           >
-            &times;
+            <i class="fa-solid fa-xmark"></i>
           </button>
-        </header>
-        <div id="modalBody" class="modal-body"></div>
+        </div>
+        <div id="modalBody" class="modal-body">
+          <!-- Dynamischer Inhalt -->
+        </div>
       </div>
     </div>
 
-    <script src="app.js"></script>
+    <!-- App Script -->
+    <script type="module" src="app.js"></script>
   </body>
 </html>
