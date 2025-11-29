@@ -246,12 +246,15 @@ const moduleIcons = {
 function showGlobalLoader() {
   const el = document.getElementById("globalLoader");
   if (!el) return;
+  // Loader wirklich anzeigen: hidden weg, active an (CSS arbeitet mit #globalLoader und .active)
   el.classList.remove("hidden");
+  el.classList.add("active");
 }
 
 function hideGlobalLoader() {
   const el = document.getElementById("globalLoader");
   if (!el) return;
+  el.classList.remove("active");
   el.classList.add("hidden");
 }
 
@@ -299,10 +302,10 @@ function setActiveView(viewId) {
   views.forEach((v) => {
     if (v.id === viewId) {
       v.classList.add("active");
-      v.style.display = "block";   // <<< WICHTIG
+      v.style.display = "block"; // <<< WICHTIG: nur eine View sichtbar
     } else {
       v.classList.remove("active");
-      v.style.display = "none";    // <<< WICHTIG
+      v.style.display = "none";
     }
   });
 }
