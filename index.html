@@ -185,21 +185,13 @@
       </symbol>
 
       <!-- TOPBAR ICONS -->
-      <!-- INFO -->
-      <symbol id="icon-info" viewBox="0 0 24 24">
-        <circle class="icon-layer-stroke" cx="12" cy="12" r="9" />
-        <line class="icon-layer-stroke" x1="12" y1="8" x2="12" y2="12.5" />
-        <circle class="icon-layer-stroke" cx="12" cy="6" r="0.6" />
-      </symbol>
-
-      <!-- BELL (Reserve) -->
-      <symbol id="icon-bell" viewBox="0 0 24 24">
-        <path
-          class="icon-layer-stroke"
-          d="M15 17h-6a4 4 0 0 1-4-4v-1a7 7 0 0 1 14 0v1a4 4 0 0 1-4 4Z"
-        />
-        <path class="icon-layer-stroke" d="M10 21a2 2 0 0 0 4 0" />
-      </symbol>
+<!-- BELL / NOTIFICATIONS (besseres Design) -->
+<symbol id="icon-bell" viewBox="0 0 24 24">
+  <path class="icon-layer-fill" d="M12 3a7 7 0 0 1 7 7v4l1.5 2.5H3.5L5 14v-4a7 7 0 0 1 7-7z" />
+  <path class="icon-layer-stroke" d="M12 3a7 7 0 0 1 7 7v4l1.5 2.5H3.5L5 14v-4a7 7 0 0 1 7-7z" />
+  <path class="icon-layer-stroke" d="M10 19.5a2 2 0 0 0 4 0" />
+  <circle class="icon-layer-fill" cx="18" cy="6" r="3" />
+</symbol>
 
       <!-- USER -->
       <symbol id="icon-user" viewBox="0 0 24 24">
@@ -207,12 +199,12 @@
         <path class="icon-layer-stroke" d="M4 21c0-4 4-7 8-7s8 3 8 7" />
       </symbol>
 
-      <!-- POWER -->
-      <symbol id="icon-power" viewBox="0 0 24 24">
-        <line class="icon-layer-stroke" x1="12" y1="3" x2="12" y2="11" />
-        <path class="icon-layer-stroke" d="M7.5 5.75a7 7 0 1 0 9 0" />
-      </symbol>
-    </svg>
+<!-- LOG OUT / EXIT (klarer als Power-Icon) -->
+<symbol id="icon-logout" viewBox="0 0 24 24">
+  <path class="icon-layer-stroke" d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+  <path class="icon-layer-stroke" d="M16 17l5-5-5-5" />
+  <path class="icon-layer-stroke" d="M21 12H9" />
+</symbol>
 
     <!-- ===============================================
          SIDEBAR
@@ -300,7 +292,7 @@
             aria-label="Info &amp; Benachrichtigungen"
           >
             <svg class="icon-svg-top" aria-hidden="true">
-              <use href="#icon-info"></use>
+              <use href="#icon-bell"></use>
             </svg>
             <span id="notificationsDot" class="notification-dot hidden"></span>
           </button>
@@ -325,7 +317,7 @@
             aria-label="Demo-Logout / Reset"
           >
             <svg class="icon-svg-top" aria-hidden="true">
-              <use href="#icon-power"></use>
+               <use href="#icon-logout"></use>
             </svg>
           </button>
         </div>
