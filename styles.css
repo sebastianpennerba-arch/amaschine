@@ -2763,3 +2763,20 @@ html {
     padding: 20px 18px 40px !important;
   }
 }
+
+.team-avatar {
+  width: 36px;
+  height: 36px;
+  background: var(--color-primary);
+  color: white;
+  border-radius: 50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:600;
+  font-size:0.9rem;
+}
+
+.badge-owner { background:#1e3a8a; color:white; }
+.badge-admin { background:#4f46e5; color:white; }
+.badge-analyst { background:#6b7280; color:white; }
