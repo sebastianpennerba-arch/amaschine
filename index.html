@@ -45,19 +45,23 @@
       </div>
     </nav>
 
-    <!-- App Shell -->
-    <div id="app" class="app-shell">
-      <!-- Topbar / Konsole -->
+    <!-- Main Layout -->
+    <div class="app-shell">
+      <!-- Topbar -->
       <header id="topbar">
         <div class="topbar-left">
           <div class="topbar-greeting">
-            <div id="topbarGreeting">GUTEN TAG, SIGNALONE NUTZER!</div>
-            <div class="topbar-subline">
+            <div class="topbar-greeting-title" id="topbarGreeting">
+              Guten Tag, SignalOne Nutzer!
+            </div>
+            <div class="topbar-greeting-meta">
               <span id="topbarDate">Datum: –</span>
               <span id="topbarTime">Zeit: –</span>
             </div>
           </div>
+        </div>
 
+        <div class="topbar-center">
           <div class="topbar-select-group">
             <label for="brandSelect">Brand</label>
             <select id="brandSelect" class="topbar-select">
@@ -74,14 +78,6 @@
         </div>
 
         <div class="topbar-right">
-          <div class="topbar-status-group">
-            <div id="modeBadge" class="mode-badge">Modus: Demo</div>
-            <div id="metaStatusBadge" class="badge badge-offline">
-              <i class="fa-solid fa-plug"></i>
-              <span id="metaStatusLabel">Meta: Nicht verbunden</span>
-            </div>
-          </div>
-
           <button id="metaConnectButton" class="meta-button" type="button">
             Meta verbinden
           </button>
@@ -103,21 +99,103 @@
 
       <!-- Content Area -->
       <main class="main-content">
-        <div id="viewTitleBar" class="view-title-bar">Dashboard</div>
-        <section id="dashboardView" class="view active"></section>
-        <section id="creativeLibraryView" class="view"></section>
-        <section id="campaignsView" class="view"></section>
-        <section id="senseiView" class="view"></section>
-        <section id="testingLogView" class="view"></section>
-        <section id="reportsView" class="view"></section>
-        <section id="settingsView" class="view"></section>
-        <section id="creatorInsightsView" class="view"></section>
-        <section id="analyticsView" class="view"></section>
-        <section id="teamView" class="view"></section>
-        <section id="brandsView" class="view"></section>
-        <section id="shopifyView" class="view"></section>
-        <section id="roastView" class="view"></section>
-        <section id="onboardingView" class="view"></section>
+        <!-- Dashboard View -->
+        <section
+          id="dashboardView"
+          class="view active"
+          data-view-title="Dashboard"
+        ></section>
+
+        <!-- Creative Library -->
+        <section
+          id="creativeLibraryView"
+          class="view"
+          data-view-title="Creative Library"
+        ></section>
+
+        <!-- Campaigns -->
+        <section
+          id="campaignsView"
+          class="view"
+          data-view-title="Kampagnen"
+        ></section>
+
+        <!-- Sensei / AI Suite -->
+        <section
+          id="senseiView"
+          class="view"
+          data-view-title="Sensei / AI Suite"
+        ></section>
+
+        <!-- Testing Log -->
+        <section
+          id="testingLogView"
+          class="view"
+          data-view-title="Testing Log"
+        ></section>
+
+        <!-- Reports & Export -->
+        <section
+          id="reportsView"
+          class="view"
+          data-view-title="Reports & Export"
+        ></section>
+
+        <!-- Settings View -->
+        <section
+          id="settingsView"
+          class="view"
+          data-view-title="Settings"
+        ></section>
+
+        <!-- Creator Insights -->
+        <section
+          id="creatorInsightsView"
+          class="view"
+          data-view-title="Creator Insights"
+        ></section>
+
+        <!-- Analytics -->
+        <section
+          id="analyticsView"
+          class="view"
+          data-view-title="Analytics"
+        ></section>
+
+        <!-- Team -->
+        <section
+          id="teamView"
+          class="view"
+          data-view-title="Team"
+        ></section>
+
+        <!-- Brands -->
+        <section
+          id="brandsView"
+          class="view"
+          data-view-title="Brands"
+        ></section>
+
+        <!-- Shopify -->
+        <section
+          id="shopifyView"
+          class="view"
+          data-view-title="Shopify"
+        ></section>
+
+        <!-- Roast -->
+        <section
+          id="roastView"
+          class="view"
+          data-view-title="Roast"
+        ></section>
+
+        <!-- Onboarding -->
+        <section
+          id="onboardingView"
+          class="view"
+          data-view-title="Onboarding"
+        ></section>
       </main>
     </div>
 
@@ -141,12 +219,12 @@
       aria-hidden="true"
       role="dialog"
     >
-      <div class="modal-shell">
+      <div class="modal">
         <div class="modal-header">
-          <h3 id="modalTitle">Modal Titel</h3>
+          <h2 id="modalTitle" class="modal-title">System Dialog</h2>
           <button
             id="modalCloseButton"
-            class="icon-button"
+            class="modal-close"
             type="button"
             aria-label="Modal schließen"
           >
