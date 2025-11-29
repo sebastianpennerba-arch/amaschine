@@ -249,7 +249,6 @@ const moduleIcons = {
 function showGlobalLoader() {
   const el = document.getElementById("globalLoader");
   if (!el) return;
-  // Loader wirklich anzeigen: hidden weg, active an (CSS arbeitet mit #globalLoader und .active)
   el.classList.remove("hidden");
   el.classList.add("active");
 }
@@ -305,7 +304,7 @@ function setActiveView(viewId) {
   views.forEach((v) => {
     if (v.id === viewId) {
       v.classList.add("active");
-      v.style.display = "block"; // <<< WICHTIG: nur eine View sichtbar
+      v.style.display = "block";
     } else {
       v.classList.remove("active");
       v.style.display = "none";
@@ -322,12 +321,10 @@ function getGreetingPrefix() {
 }
 
 function getEffectiveBrandOwnerName() {
-  // Wenn Meta User existiert: Meta Name
   if (AppState.meta && AppState.meta.user && AppState.meta.user.name) {
     return AppState.meta.user.name;
   }
 
-  // Wenn Brand gewählt
   if (AppState.selectedBrandId && DemoData.brands) {
     const b = DemoData.brands.find((br) => br.id === AppState.selectedBrandId);
     if (b && b.ownerName) return b.ownerName;
@@ -368,7 +365,6 @@ function updateTopbarDateTime() {
 }
 
 function updateTopbarTitle() {
-  // Titel steckt in der Greeting – ggf. später ergänzen
   updateTopbarGreeting();
 }
 
@@ -379,27 +375,46 @@ function updateMetaStatusUI() {
   const sidebarDot = document.getElementById("sidebarMetaDot");
   const sidebarLabel = document.getElementById("sidebarMetaLabel");
 
-  if (!badge || !badgeLabel || !button) return;
+  const isConnected = AppState.metaConnected;
 
-  if (AppState.metaConnected) {
-    badgeLabel.textContent = useDemoMode()
-      ? "Meta: Verbunden (Demo)"
-      : "Meta: Verbunden (Live)";
-    badge.classList.add("connected");
-    badge.classList.remove("badge-offline");
-    button.textContent = "Meta trennen";
-    if (sidebarDot) sidebarDot.style.backgroundColor = "var(--color-success)";
-    if (sidebarLabel)
+  if (isConnected) {
+    if (badgeLabel) {
+      badgeLabel.textContent = useDemoMode()
+        ? "Meta: Verbunden (Demo)"
+        : "Meta: Verbunden (Live)";
+    }
+    if (badge) {
+      badge.classList.add("connected");
+      badge.classList.remove("badge-offline");
+    }
+    if (button) {
+      button.textContent = "Meta trennen";
+    }
+    if (sidebarDot) {
+      sidebarDot.style.backgroundColor = "var(--color-success)";
+    }
+    if (sidebarLabel) {
       sidebarLabel.textContent = useDemoMode()
         ? "Meta Ads: Demo verbunden"
         : "Meta Ads: Live verbunden";
+    }
   } else {
-    badgeLabel.textContent = "Meta: Nicht verbunden";
-    badge.classList.remove("connected");
-    badge.classList.add("badge-offline");
-    button.textContent = "Meta verbinden";
-    if (sidebarDot) sidebarDot.style.backgroundColor = "var(--color-danger)";
-    if (sidebarLabel) sidebarLabel.textContent = "Meta Ads: Getrennt";
+    if (badgeLabel) {
+      badgeLabel.textContent = "Meta: Nicht verbunden";
+    }
+    if (badge) {
+      badge.classList.remove("connected");
+      badge.classList.add("badge-offline");
+    }
+    if (button) {
+      button.textContent = "Meta verbinden";
+    }
+    if (sidebarDot) {
+      sidebarDot.style.backgroundColor = "var(--color-danger)";
+    }
+    if (sidebarLabel) {
+      sidebarLabel.textContent = "Meta Ads: Getrennt";
+    }
   }
 }
 
@@ -455,19 +470,7 @@ function updateCampaignHealthUI() {
   }
 }
 
-function updateDemoToggleUI() {
-  const btn = document.getElementById("demoToggle");
-  const modeBadge = document.getElementById("modeBadge");
-  if (!btn) return;
-  const isOn = AppState.settings.demoMode;
-  btn.classList.add("demo-toggle-button");
-  btn.textContent = `Demo: ${isOn ? "AN" : "AUS"}`;
-  if (modeBadge) {
-    modeBadge.textContent = `Modus: ${useDemoMode() ? "Demo" : "Live"}`;
-  }
-}
-
-// ---- Brand & Campaign Selectors (Demo-kompatibel, Meta-kompatibel) -------
+// ---- Brand & Campaign Selectors -------------------------------------------
 
 function populateBrandSelect() {
   const select = document.getElementById("brandSelect");
@@ -483,7 +486,6 @@ function populateBrandSelect() {
     select.appendChild(opt);
   });
 
-  // Default: erste Brand wählen
   if (!AppState.selectedBrandId && brands.length > 0) {
     AppState.selectedBrandId = brands[0].id;
     select.value = brands[0].id;
@@ -531,7 +533,6 @@ function wireBrandAndCampaignSelects() {
       populateCampaignSelect();
       updateCampaignHealthUI();
       updateTopbarGreeting();
-      // Bei Brand-Wechsel aktuelle View neu laden
       loadModule(AppState.currentModule);
     });
   }
@@ -539,7 +540,6 @@ function wireBrandAndCampaignSelects() {
   if (campaignSelect) {
     campaignSelect.addEventListener("change", () => {
       AppState.selectedCampaignId = campaignSelect.value || null;
-      // Module können selectedCampaignId nutzen
       loadModule(AppState.currentModule);
     });
   }
@@ -560,12 +560,10 @@ function showToast(message, type = "info") {
   toast.textContent = message;
   container.appendChild(toast);
 
-  // Einblenden
   requestAnimationFrame(() => {
     toast.classList.add("visible");
   });
 
-  // Nach 3s wieder entfernen
   setTimeout(() => {
     toast.classList.remove("visible");
     setTimeout(() => {
@@ -577,7 +575,6 @@ function showToast(message, type = "info") {
 }
 
 function pushNotification(type, message, meta = {}) {
-  // Nur echte Fehler/Warnungen kommen in die Glocke
   if (!["error", "warning"].includes(type)) return;
   AppState.notifications.push({
     id: Date.now(),
@@ -634,7 +631,6 @@ function renderNav() {
   ];
 
   Object.keys(modules).forEach((key) => {
-    // Settings-View nicht in der Sidebar anzeigen (nur Footer-Button)
     if (key === "settings") return;
 
     if (license === "free" && restrictedForFree.includes(key)) {
@@ -654,7 +650,7 @@ function renderNav() {
     const iconClass = moduleIcons[key];
     if (iconClass) {
       const icon = document.createElement("i");
-      icon.className = `fa-solid ${iconClass} sidebar-nav-icon`;
+      icon.className = `fa-solid ${iconClass} icon`;
       btn.appendChild(icon);
     }
 
@@ -682,7 +678,6 @@ async function loadModule(key) {
     return;
   }
 
-  // Meta-Guard: ohne Meta und ohne Demo keine Daten
   if (
     modulesRequiringMeta.includes(key) &&
     !AppState.metaConnected &&
@@ -700,7 +695,6 @@ async function loadModule(key) {
 
   try {
     const module = await loader();
-    // Module bekommen AppState mit Demo/Live Informationen
     if (module && typeof module.render === "function") {
       section.innerHTML = "";
       module.render(section, AppState, {
@@ -740,7 +734,6 @@ async function navigateTo(key) {
 // ---- Meta-Demo-Connect ----------------------------------------------------
 
 function toggleMetaConnection() {
-  // Simulierte Meta-OAuth – hier nur Token/Status
   AppState.metaConnected = !AppState.metaConnected;
   if (AppState.metaConnected) {
     AppState.meta.token = "demo-token";
@@ -756,27 +749,22 @@ function toggleMetaConnection() {
   updateMetaStatusUI();
   updateCampaignHealthUI();
   updateTopbarGreeting();
-  // Nach Meta-Statuswechsel aktuelle View neu laden
   loadModule(AppState.currentModule);
 }
 
 // ---- Event-Wiring & Bootstrap ---------------------------------------------
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Sidebar-Navigation initial rendern
   renderNav();
 
-  // Demo / Brand / Campaign Selects
   populateBrandSelect();
   populateCampaignSelect();
   wireBrandAndCampaignSelects();
 
-  // View initial aktiv setzen
   const initialViewId = getViewIdForModule(AppState.currentModule);
   setActiveView(initialViewId);
   updateTopbarTitle();
 
-  // Meta-Button
   const metaBtn = document.getElementById("metaConnectButton");
   if (metaBtn) {
     metaBtn.addEventListener("click", toggleMetaConnection);
@@ -785,56 +773,11 @@ document.addEventListener("DOMContentLoaded", () => {
   updateSystemHealthUI();
   updateCampaignHealthUI();
 
-  // Demo-Toggle
-  const demoBtn = document.getElementById("demoToggle");
-  if (demoBtn) {
-    demoBtn.addEventListener("click", () => {
-      AppState.settings.demoMode = !AppState.settings.demoMode;
-      updateDemoToggleUI();
-      const state = useDemoMode() ? "aktiviert" : "deaktiviert";
-      showToast(`Demo-Modus ${state}.`, "success");
-      updateCampaignHealthUI();
-      loadModule(AppState.currentModule);
-    });
-    updateDemoToggleUI();
-  }
-
-  // Settings Button
+  // Settings Button → echte Settings-View
   const settingsBtn = document.getElementById("settingsButton");
   if (settingsBtn) {
     settingsBtn.addEventListener("click", () => {
-      const demoChecked = AppState.settings.demoMode ? "checked" : "";
-      const html = `
-        <p>Basis-Einstellungen für diese Session.</p>
-        <div style="margin-top:8px;">
-          <label style="font-size:0.9rem;">
-            <input type="checkbox" id="settingsDemoCheckbox" ${demoChecked} />
-            Demo-Modus aktivieren (wenn aus, werden Live-Daten von Meta genutzt – sobald Meta verbunden ist).
-          </label>
-        </div>
-        <div style="margin-top:12px;font-size:0.8rem;color:#6b7280;">
-          Erweiterte Settings (Theme, Cache, Zeiträume) folgen in P6.
-        </div>
-        <div style="margin-top:16px;display:flex;justify-content:flex-end;gap:8px;">
-          <button id="settingsSaveBtn" type="button">Speichern</button>
-        </div>
-      `;
-      openSystemModal("Settings", html);
-
-      setTimeout(() => {
-        const saveBtn = document.getElementById("settingsSaveBtn");
-        const demoCheckbox = document.getElementById("settingsDemoCheckbox");
-        if (saveBtn && demoCheckbox) {
-          saveBtn.addEventListener("click", () => {
-            AppState.settings.demoMode = demoCheckbox.checked;
-            updateDemoToggleUI();
-            updateCampaignHealthUI();
-            loadModule(AppState.currentModule);
-            showToast("Settings gespeichert.", "success");
-            closeSystemModal();
-          });
-        }
-      }, 0);
+      navigateTo("settings");
     });
   }
 
@@ -852,7 +795,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Topbar Icons
   const profileBtn = document.getElementById("profileButton");
   if (profileBtn) {
     profileBtn.addEventListener("click", () => {
@@ -901,7 +843,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Datum / Zeit & Greeting aktualisieren
   updateTopbarDateTime();
   updateTopbarGreeting();
   setInterval(() => {
@@ -909,11 +850,10 @@ document.addEventListener("DOMContentLoaded", () => {
     updateTopbarGreeting();
   }, 60000);
 
-  // Erste View laden
   loadModule(AppState.currentModule);
 });
 
-// ---- Globale API exponieren (optional für Packages / Debugging) ----------
+// ---- Globale API exponieren -----------------------------------------------
 
 window.SignalOneDemo = {
   DemoData,
