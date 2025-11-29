@@ -396,6 +396,7 @@ function updateMetaStatusUI() {
   } else {
     badgeLabel.textContent = "Meta: Nicht verbunden";
     badge.classList.remove("connected");
+    badge.classList.add("badge-offline");
     button.textContent = "Meta verbinden";
     if (sidebarDot) sidebarDot.style.backgroundColor = "var(--color-danger)";
     if (sidebarLabel) sidebarLabel.textContent = "Meta Ads: Getrennt";
@@ -459,7 +460,8 @@ function updateDemoToggleUI() {
   const modeBadge = document.getElementById("modeBadge");
   if (!btn) return;
   const isOn = AppState.settings.demoMode;
-  btn.textContent = `Demo-Modus: ${isOn ? "AN" : "AUS"}`;
+  btn.classList.add("demo-toggle-button");
+  btn.textContent = `Demo: ${isOn ? "AN" : "AUS"}`;
   if (modeBadge) {
     modeBadge.textContent = `Modus: ${useDemoMode() ? "Demo" : "Live"}`;
   }
@@ -632,6 +634,9 @@ function renderNav() {
   ];
 
   Object.keys(modules).forEach((key) => {
+    // Settings-View nicht in der Sidebar anzeigen (nur Footer-Button)
+    if (key === "settings") return;
+
     if (license === "free" && restrictedForFree.includes(key)) {
       return;
     }
