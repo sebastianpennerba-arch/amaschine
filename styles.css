@@ -242,8 +242,8 @@ nav.sidebar {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  justify-content: center;      /* mittig im verfügbaren Bereich */
-  overflow-y: visible;          /* kein Scrollbalken mehr */
+  justify-content: flex-start;    /* jetzt OBEN, nicht mehr mittig */
+  overflow-y: visible;
 }
 
 .sidebar-section-label {
@@ -266,7 +266,7 @@ nav.sidebar {
   background: transparent;
   color: rgba(209, 213, 219, 0.9);
   font-size: 0.84rem;
-  font-weight: 600;               /* prägnanter Text */
+  font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   display: flex;
@@ -530,7 +530,7 @@ nav.sidebar {
   font-size: 0.84rem;
   color: var(--color-text-main);
   background-color: #f9fafb;
-  border-radius: 6px; /* kein rundes Bubble mehr */
+  border-radius: 6px;
   border: 1px solid var(--input-border);
   outline: none;
   appearance: none;
@@ -658,14 +658,15 @@ nav.sidebar {
 
 .main-content {
   flex: 1;
-  padding: 120px 40px 40px;
+  padding: 120px 0 40px;
 }
 
-/* Alle Views: zentriert, nur eine sichtbar */
+/* Alle Views: zentriert Panel + Full-Width Header Strip */
 .view {
+  position: relative;
   display: none;
   max-width: 1440px;
-  margin: 0 auto;
+  margin: 40px auto 0;
   padding: 28px 26px 44px;
   border-radius: 26px;
   background: radial-gradient(
@@ -680,36 +681,68 @@ nav.sidebar {
   backdrop-filter: blur(26px);
 }
 
-/* Globale View-Überschrift ("Wo bin ich?") – Badge mit Punch */
+/* FULL-WIDTH HEADER STRIP – Variante 3 (über ganze Seite) */
 .view::before {
   content: attr(data-view-title);
-  display: inline-flex;
+  position: absolute;
+  top: -46px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;             /* Full-Width über Fenster */
+  height: 46px;
+
+  display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 22px;
-  padding: 4px 12px 4px 14px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  letter-spacing: 0.2em;
+  padding: 0 40px 0 260px;  /* links Platz für Sidebar, rechts Luft */
+  box-sizing: border-box;
+
+  font-size: 1.08rem;
+  font-weight: 650;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  border-radius: 999px;
-  color: rgba(148, 163, 184, 0.98);
-  background: radial-gradient(
-    circle at 0% 0%,
-    rgba(15, 23, 42, 0.9),
-    rgba(30, 64, 175, 0.88)
-  );
-  border: 1px solid rgba(248, 250, 252, 0.6);
-  box-shadow:
-    0 18px 45px rgba(15, 23, 42, 0.7),
-    0 0 0 1px rgba(15, 23, 42, 0.9);
+
+  border-bottom: 1px solid rgba(15, 23, 42, 0.4);
+
+  z-index: -1; /* hinter der Card, aber visuell als Kante */
 }
 
+/* Theme A – Titanium Dark */
+.view[data-header-theme="a"]::before {
+  background: linear-gradient(90deg, #020617, #111827, #020617);
+  color: #e5e7eb;
+}
+
+/* Theme B – Blue Titanium Gradient */
+.view[data-header-theme="b"]::before {
+  background: linear-gradient(90deg, #1d2a5c, #1d4ed8, #38bdf8);
+  color: #e5f0ff;
+}
+
+/* Theme C – Premium Gold Strip */
+.view[data-header-theme="c"]::before {
+  background: linear-gradient(90deg, #c8a451, #e0c26a, #b08934);
+  color: #111827;
+  border-bottom-color: rgba(146, 101, 22, 0.6);
+}
+
+/* Theme D – Black Glass Strip (VisionOS) */
+.view[data-header-theme="d"]::before {
+  background: linear-gradient(
+    90deg,
+    rgba(15, 23, 42, 0.92),
+    rgba(15, 23, 42, 0.7),
+    rgba(15, 23, 42, 0.92)
+  );
+  color: #e5e7eb;
+  backdrop-filter: blur(18px);
+}
+
+/* View-Visible */
 .view.active {
   display: block;
 }
 
-/* View-Header */
+/* Inner Header (optional innerhalb Cards) */
 .view-header {
   display: flex;
   align-items: baseline;
