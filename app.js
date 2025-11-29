@@ -194,6 +194,23 @@ const moduleIconIds = {
   settings: "icon-settings",
 };
 
+/* MODULE DISPLAY ORDER (ohne settings, kommt separat) */
+const moduleOrder = [
+  "dashboard",
+  "creativeLibrary",
+  "campaigns",
+  "sensei",
+  "testingLog",
+  "reports",
+  "creatorInsights",
+  "analytics",
+  "team",
+  "brands",
+  "shopify",
+  "roast",
+  "onboarding"
+];
+
 /* ----------------------------------------------------------
    SVG ICON HELPERS
 -----------------------------------------------------------*/
@@ -208,7 +225,7 @@ function createSvgIconFromSymbol(symbolId, extraClass = "") {
     svg.classList.add("icon-svg");
   }
 
-  // NEU: Symbol-Inhalt klonen statt <use>, damit CSS (.icon-layer-*) greift
+  // Symbol-Inhalt klonen statt <use>, damit CSS (.icon-layer-*) greift
   const symbol = document.getElementById(symbolId);
   if (symbol) {
     Array.from(symbol.childNodes).forEach((node) => {
@@ -336,7 +353,7 @@ function updateViewSubheaders() {
       <div class="subheader-line-1">
         <span class="subheader-icon-slot"></span>
         <span class="subheader-brand-name">${ctx.name}</span>
-        <span class="subheader-role">— Aktives Werbekonto</span>
+        <span class="subheader-role">– Aktives Werbekonto</span>
       </div>
       <div class="subheader-line-2">
         <span class="subheader-campaigns">${ctx.campaignText}</span>
@@ -361,20 +378,6 @@ function updateSidebarActiveIcon(activeKey) {
 
   buttons.forEach((btn) => {
     const module = btn.dataset.module;
-    const svg = btn.querySelector(".icon-svg");
-    const fillLayerId = moduleIconIds[module];
-    const symbol = document.getElementById(fillLayerId);
-
-    const use = svg?.querySelector("use");
-    if (!use || !symbol) {
-      // bei der neuen Clone-Variante existiert ggf. kein <use>, wir brauchen nur active-Klasse
-      if (module === activeKey) {
-        btn.classList.add("active");
-      } else {
-        btn.classList.remove("active");
-      }
-      return;
-    }
 
     if (module === activeKey) {
       btn.classList.add("active");
@@ -402,8 +405,8 @@ function renderNav() {
     "shopify",
   ];
 
-  Object.keys(modules).forEach((key) => {
-    if (key === "settings") return;
+  // Use defined order instead of Object.keys
+  moduleOrder.forEach((key) => {
     if (license === "free" && restrictedForFree.includes(key)) return;
 
     const li = document.createElement("li");
@@ -524,8 +527,6 @@ function wireBrandAndCampaignSelects() {
   if (campaignSelect) {
     campaignSelect.addEventListener("change", () => {
       AppState.selectedCampaignId = campaignSelect.value || null;
-
-      // WICHTIG: Kampagnen-Auswahl wirkt nicht auf alle Views, aber Grundlogik bleibt hier.
       loadModule(AppState.currentModule);
       updateViewSubheaders();
     });
@@ -596,8 +597,6 @@ function closeSystemModal() {
    SYSTEM HEALTH & META STATUS
 -----------------------------------------------------------*/
 function updateMetaStatusUI() {
-  const badge = document.getElementById("metaStatusBadge");
-  const badgeLabel = document.getElementById("metaStatusLabel");
   const button = document.getElementById("metaConnectButton");
   const sidebarDot = document.getElementById("sidebarMetaDot");
   const sidebarLabel = document.getElementById("sidebarMetaLabel");
@@ -605,16 +604,7 @@ function updateMetaStatusUI() {
   const isConnected = AppState.metaConnected;
 
   if (isConnected) {
-    if (badgeLabel) {
-      badgeLabel.textContent = useDemoMode()
-        ? "Meta: Verbunden (Demo)"
-        : "Meta: Verbunden (Live)";
-    }
-    if (badge) {
-      badge.classList.add("connected");
-      badge.classList.remove("badge-offline");
-    }
-    if (button) button.textContent = "Meta trennen";
+    if (button) button.textContent = "META TRENNEN";
 
     if (sidebarDot) sidebarDot.style.backgroundColor = "var(--color-success)";
     if (sidebarLabel)
@@ -622,12 +612,7 @@ function updateMetaStatusUI() {
         ? "Meta Ads: Demo verbunden"
         : "Meta Ads: Live verbunden";
   } else {
-    if (badgeLabel) badgeLabel.textContent = "Meta: Nicht verbunden";
-    if (badge) {
-      badge.classList.remove("connected");
-      badge.classList.add("badge-offline");
-    }
-    if (button) button.textContent = "Meta verbinden";
+    if (button) button.textContent = "META VERBINDEN";
 
     if (sidebarDot) sidebarDot.style.backgroundColor = "var(--color-danger)";
     if (sidebarLabel) sidebarLabel.textContent = "Meta Ads: Getrennt";
