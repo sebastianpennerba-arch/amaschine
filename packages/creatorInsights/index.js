@@ -1,197 +1,207 @@
 // packages/creatorInsights/index.js
-// Creator Insights – Ranking & Performance je Creator.
+// SignalOne – Creator Insights (Block 1)
 
-export function render(root, AppState, { useDemoMode }) {
-  const DemoData = window.SignalOneDemo?.DemoData || null;
-  const brandId = AppState.selectedBrandId || (DemoData?.brands?.[0]?.id ?? null);
+const DemoDataCI = window.SignalOneDemo?.DemoData || null;
 
-  const demoCreators = getDemoCreatorsForBrand(brandId);
-
-  root.innerHTML = `
-    <div class="view-header">
-      <div>
-        <h2>Creator Insights</h2>
-        <p class="view-subtitle">
-          Performance-Ranking deiner Creator – nach ROAS, Spend und Stabilität.
-        </p>
-      </div>
-    </div>
-
-    <div class="kpi-grid">
-      <div class="metric-card">
-        <div class="metric-label">Top Creator ROAS</div>
-        <div class="metric-value">${
-          demoCreators[0]?.roas != null ? demoCreators[0].roas.toFixed(1) : "n/a"
-        }</div>
-        <div class="metric-subtext">${demoCreators[0]?.name || "n/a"}</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Creator Count</div>
-        <div class="metric-value">${demoCreators.length}</div>
-        <div class="metric-subtext">aktive Creator in diesem Brand</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Top 3 Share</div>
-        <div class="metric-value">${
-          demoCreators.length
-            ? Math.round(
-                (demoCreators.slice(0, 3).reduce((s, c) => s + c.spend, 0) /
-                  demoCreators.reduce((s, c) => s + c.spend, 0)) *
-                  100
-              ) + "%"
-            : "n/a"
-        }</div>
-        <div class="metric-subtext">Spend in Top 3 Creators</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Modus</div>
-        <div class="metric-value">${useDemoMode ? "Demo" : "Live"}</div>
-        <div class="metric-subtext">Quelle: ${
-          useDemoMode ? "Demo-Daten" : "Meta + interne Engine"
-        }</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <table class="dashboard-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Creator</th>
-            <th>ROAS</th>
-            <th>Spend</th>
-            <th>Stabilität</th>
-            <th>Primärer Hook</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${demoCreators
-            .map((c, idx) => {
-              const stabilityBadge = stabilityBadgeFor(c.stability);
-              return `
-              <tr>
-                <td>${idx + 1}</td>
-                <td>
-                  <div class="log-message-main">${escapeHtml(c.name)}</div>
-                  <div class="log-message-sub">${escapeHtml(
-                    c.handle || ""
-                  )}</div>
-                </td>
-                <td>${c.roas.toFixed(1)}</td>
-                <td>${formatCurrency(c.spend)}</td>
-                <td>${stabilityBadge}</td>
-                <td>${escapeHtml(c.primaryHook)}</td>
-              </tr>
-              `;
-            })
-            .join("")}
-        </tbody>
-      </table>
-    </div>
-
-    <div class="card">
-      <h3 style="margin-bottom:8px;">Sensei Empfehlung auf Creator-Level</h3>
-      <p style="font-size:0.86rem;margin:0 0 8px 0;">
-        Fokus auf Creator mit <strong>stabilen</strong> Ergebnissen und ausreichendem Spend –
-        aggressive Tests nur mit klarer Hypothese und sauberem Log im Testing Log.
-      </p>
-      <ul style="font-size:0.86rem;margin:0 0 0 18px;padding:0;">
-        <li>Top 1–2 Creator mit hohem ROAS und Stabilität weiter skalieren.</li>
-        <li>Creator mit volatilen Ergebnissen: nur 10–15% des Gesamtspends.</li>
-        <li>Neue Creator zuerst im Testing Bucket fahren – nicht direkt in Main Scaling Kampagnen.</li>
-      </ul>
-    </div>
-  `;
-}
-
-function getDemoCreatorsForBrand(brandId) {
-  // Dummy-Daten; später ggf. aus Live-Daten ableitbar
-  const base = [
+function buildCreatorLeaderboard() {
+  // Simpler Demo-Leaderboard
+  return [
     {
-      id: "cr1",
-      name: "Anna K.",
-      handle: "@anna.ugc",
-      roas: 5.1,
-      spend: 12800,
-      stability: "high",
-      primaryHook: "Problem-first Hook mit POV UGC",
+      handle: "@lena.fits",
+      vertical: "Fashion UGC",
+      brand: "ACME Fashion",
+      avgRoas: 5.4,
+      tests: 7,
+      winners: 4,
     },
     {
-      id: "cr2",
-      name: "Marvin",
-      handle: "@marvin.creates",
-      roas: 3.8,
-      spend: 9600,
-      stability: "medium",
-      primaryHook: "Unboxing + Social Proof",
+      handle: "@techflo",
+      vertical: "Tech Reviews",
+      brand: "TechGadgets Pro",
+      avgRoas: 4.1,
+      tests: 4,
+      winners: 3,
     },
     {
-      id: "cr3",
-      name: "Jule",
-      handle: "@jule.studio",
-      roas: 4.3,
-      spend: 7200,
-      stability: "high",
-      primaryHook: "Before/After + Routine",
+      handle: "@glow.with.ale",
+      vertical: "Beauty / Skincare",
+      brand: "BeautyLux Cosmetics",
+      avgRoas: 6.2,
+      tests: 5,
+      winners: 4,
     },
     {
-      id: "cr4",
-      name: "Luca",
-      handle: "@luca.ad",
-      roas: 2.9,
-      spend: 5400,
-      stability: "volatile",
-      primaryHook: "Hard-sell Hook mit Offer Fokus",
+      handle: "@liftwithmarc",
+      vertical: "Fitness / Gym",
+      brand: "FitLife Supplements",
+      avgRoas: 4.3,
+      tests: 3,
+      winners: 2,
     },
   ];
+}
 
-  // In echt könnte brandId unterschiedliche Werte triggern; hier nur Variation
-  if (!brandId) return base;
-  if (brandId.includes("beauty")) {
-    return base.map((c, i) => ({
-      ...c,
-      roas: c.roas + (i % 2 === 0 ? 0.4 : -0.2),
-    }));
+function buildBrandSnapshot() {
+  const brands = DemoDataCI?.brands || [];
+  return brands.map((b) => ({
+    name: b.name,
+    vertical: b.vertical,
+    spend30d: b.spend30d,
+    roas30d: b.roas30d,
+    creatorCount: b.campaignHealth === "good" ? 5 : 2,
+    activeCreators:
+      b.campaignHealth === "good"
+        ? "Stark aktiv"
+        : b.campaignHealth === "warning"
+        ? "Ausbaufähig"
+        : "Unterversorgt",
+  }));
+}
+
+function computeGlobalMetrics() {
+  const brands = DemoDataCI?.brands || [];
+  if (!brands.length) {
+    return {
+      spend: 0,
+      roas: 0,
+      creators: 0,
+      signals: 0,
+    };
   }
-  if (brandId.includes("tech")) {
-    return base.map((c, i) => ({
-      ...c,
-      roas: c.roas + (i % 2 === 0 ? -0.4 : 0.1),
-    }));
-  }
-  return base;
+  const spend = brands.reduce((sum, b) => sum + (b.spend30d || 0), 0);
+  const roas = brands.reduce((sum, b) => sum + (b.roas30d || 0), 0) / brands.length;
+  const creators = brands.length * 3;
+  const signals = brands.length * 12;
+
+  return { spend, roas, creators, signals };
 }
 
-function stabilityBadgeFor(level) {
-  const text =
-    level === "high"
-      ? "Stabil"
-      : level === "medium"
-      ? "Okay"
-      : level === "volatile"
-      ? "Volatil"
-      : "n/a";
-  const cls =
-    level === "high"
-      ? "badge-success"
-      : level === "volatile"
-      ? "badge-danger"
-      : "badge-warning";
-  return `<span class="badge-pill ${cls}">${text}</span>`;
-}
+export function render(section, AppState, { useDemoMode }) {
+  const leaderboard = buildCreatorLeaderboard();
+  const brands = buildBrandSnapshot();
+  const metrics = computeGlobalMetrics();
 
-function formatCurrency(value) {
-  if (typeof value !== "number") return "n/a";
-  return new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-  }).format(value);
-}
+  section.innerHTML = `
+    <header class="view-header">
+      <div>
+        <h2>Creator Insights</h2>
+        <div class="view-subtitle">
+          Ranking & Performance-Signale für deine Creator im Demo-Modus.
+        </div>
+      </div>
+      <div>
+        <span class="badge-pill">Modus: ${useDemoMode ? "Demo" : "Live"}</span>
+      </div>
+    </header>
 
-function escapeHtml(str) {
-  if (!str) return "";
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+    <section class="dashboard-section">
+      <div class="kpi-grid">
+        <article class="metric-card">
+          <div class="metric-label">Gesamtspend (30d)</div>
+          <div class="metric-value">
+            €${metrics.spend.toLocaleString("de-DE", {
+              maximumFractionDigits: 0,
+            })}
+          </div>
+          <div class="metric-subtext">Über alle Demo-Brands</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">Durchschnittlicher ROAS</div>
+          <div class="metric-value">${metrics.roas.toFixed(1)}x</div>
+          <div class="metric-subtext">Creator-getriebene Kampagnen</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">Aktive Creator</div>
+          <div class="metric-value">${metrics.creators}</div>
+          <div class="metric-subtext">Demo-Pool – später API-basiert</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">Signals</div>
+          <div class="metric-value">${metrics.signals}</div>
+          <div class="metric-subtext">Hook-, Format- & Funnel-Signale</div>
+        </article>
+      </div>
+    </section>
+
+    <section class="dashboard-section">
+      <div class="dashboard-section-title">Top Creator</div>
+      <div class="dashboard-section-subtitle">
+        Ranking nach durchschnittlichem ROAS und Winner-Rate im Testing.
+      </div>
+
+      <div class="campaign-table-wrapper">
+        <table class="campaign-table">
+          <thead>
+            <tr>
+              <th>Creator</th>
+              <th>Vertical</th>
+              <th>Brand</th>
+              <th>Avg. ROAS</th>
+              <th>Tests</th>
+              <th>Winner</th>
+              <th>Win-Rate</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${leaderboard
+              .map((c) => {
+                const winRate = c.tests ? (c.winners / c.tests) * 100 : 0;
+                return `
+                <tr>
+                  <td>${c.handle}</td>
+                  <td>${c.vertical}</td>
+                  <td>${c.brand}</td>
+                  <td class="campaign-kpi">${c.avgRoas.toFixed(1)}x</td>
+                  <td>${c.tests}</td>
+                  <td>${c.winners}</td>
+                  <td>${winRate.toFixed(0)}%</td>
+                </tr>
+              `;
+              })
+              .join("")}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="dashboard-section">
+      <div class="dashboard-section-title">Brand Snapshot</div>
+      <div class="dashboard-section-subtitle">
+        Überblick, welche Brands wie stark mit Creators arbeiten.
+      </div>
+
+      <div class="reports-table-wrapper log-card">
+        <table class="log-table">
+          <thead>
+            <tr>
+              <th>Brand</th>
+              <th>Vertical</th>
+              <th>Spend (30d)</th>
+              <th>ROAS</th>
+              <th>Creator-Pool</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${brands
+              .map(
+                (b) => `
+              <tr>
+                <td>${b.name}</td>
+                <td>${b.vertical}</td>
+                <td>€${b.spend30d.toLocaleString("de-DE", {
+                  maximumFractionDigits: 0,
+                })}</td>
+                <td>${b.roas30d.toFixed(1)}x</td>
+                <td>${b.creatorCount} Creator</td>
+                <td>${b.activeCreators}</td>
+              </tr>
+            `
+              )
+              .join("")}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  `;
 }
