@@ -224,7 +224,7 @@ nav.sidebar {
   backdrop-filter: blur(26px);
   color: #e5e7eb;
 
-  z-index: 200; /* ← FIX: Topbar immer oben */
+  z-index: 100; /* ← FIX: Topbar immer oben */
 }
 
 /* ==============================
