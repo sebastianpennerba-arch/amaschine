@@ -64,6 +64,14 @@
   --input-border: #cfd2d8;
   --input-focus: #3b6af8;
 
+  /* --- SIDEBAR ICON COLORS (Duotone Gold) --- */
+  --sidebar-icon-active-fill: #c8a451;
+  --sidebar-icon-active-stroke: #9c8242;
+  --sidebar-icon-inactive-fill: #8f8057;
+  --sidebar-icon-inactive-stroke: #6e6244;
+  --sidebar-icon-hover-fill: #ddc36b;
+  --sidebar-icon-hover-stroke: #b1943f;
+
   /* --- DERIVED TOKENS --- */
   --color-background: var(--color-bg);
   --color-sidebar: var(--color-sidebar-bg);
@@ -147,7 +155,7 @@ nav.sidebar {
   left: 0;
   top: 0;
   bottom: 0;
-  width: 200px; /* vorher 230px → schlankere Sidebar */
+  width: 200px;
 
   background: radial-gradient(
       circle at 0% 0%,
@@ -160,7 +168,7 @@ nav.sidebar {
 
   display: flex;
   flex-direction: column;
-  padding: 24px 18px 18px; /* mehr Luft nach oben/unten */
+  padding: 24px 18px 18px;
   z-index: 40;
   backdrop-filter: blur(26px);
   color: #e5e7eb;
@@ -234,7 +242,8 @@ nav.sidebar {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  overflow-y: auto;
+  justify-content: center;      /* mittig im verfügbaren Bereich */
+  overflow-y: visible;          /* kein Scrollbalken mehr */
 }
 
 .sidebar-section-label {
@@ -255,8 +264,9 @@ nav.sidebar {
   border-radius: 10px;
   border: 1px solid transparent;
   background: transparent;
-  color: rgba(209, 213, 219, 0.85);
+  color: rgba(209, 213, 219, 0.9);
   font-size: 0.84rem;
+  font-weight: 600;               /* prägnanter Text */
   letter-spacing: 0.08em;
   text-transform: uppercase;
   display: flex;
@@ -271,15 +281,33 @@ nav.sidebar {
     color 0.16s ease;
 }
 
-.sidebar-nav-button .icon {
-  font-size: 0.9rem;
-  width: 18px;
-  display: inline-flex;
-  justify-content: center;
-}
-
 .sidebar-nav-button .label {
   flex: 1;
+}
+
+/* SVG ICONS IN SIDEBAR */
+.sidebar-nav-button .icon-svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.sidebar-nav-button .icon-layer-fill {
+  fill: var(--sidebar-icon-inactive-fill);
+  opacity: 0.85;
+  transition:
+    fill 0.16s ease,
+    opacity 0.16s ease;
+}
+
+.sidebar-nav-button .icon-layer-stroke {
+  fill: none;
+  stroke: var(--sidebar-icon-inactive-stroke);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition:
+    stroke 0.16s ease;
 }
 
 /* Hover / Active States */
@@ -295,6 +323,14 @@ nav.sidebar {
   transform: translateY(-1px);
 }
 
+.sidebar-nav-button:hover .icon-layer-fill {
+  fill: var(--sidebar-icon-hover-fill);
+}
+
+.sidebar-nav-button:hover .icon-layer-stroke {
+  stroke: var(--sidebar-icon-hover-stroke);
+}
+
 .sidebar-nav-button.active {
   background: radial-gradient(
     circle at 0% 0%,
@@ -304,6 +340,15 @@ nav.sidebar {
   border-color: rgba(129, 140, 248, 0.95);
   box-shadow: 0 22px 60px rgba(15, 23, 42, 0.95);
   color: #f9fafb;
+}
+
+.sidebar-nav-button.active .icon-layer-fill {
+  fill: var(--sidebar-icon-active-fill);
+  opacity: 1;
+}
+
+.sidebar-nav-button.active .icon-layer-stroke {
+  stroke: var(--sidebar-icon-active-stroke);
 }
 
 /* Sidebar Footer / Status */
@@ -382,13 +427,13 @@ nav.sidebar {
   display: flex;
   flex-direction: column;
   flex: 1;
-  margin-left: 200px; /* vorher 230px */
+  margin-left: 200px;
 }
 
 #topbar {
   position: fixed;
   top: 0;
-  left: 200px; /* vorher 230px */
+  left: 200px;
   right: 0;
   height: 92px;
   padding: 16px 32px;
@@ -421,50 +466,6 @@ nav.sidebar {
 
 #topbar .topbar-select-group label {
   color: rgba(209, 213, 219, 0.9);
-}
-
-/* Topbar-Selects: wieder wie echte, helle Dropdowns */
-#topbar .topbar-select {
-  background: var(--input-bg);
-  border-color: rgba(148, 163, 184, 0.9);
-  color: var(--color-text-main);
-}
-
-#topbar .topbar-select:hover {
-  border-color: var(--input-focus);
-  box-shadow:
-    0 18px 45px rgba(15, 23, 42, 0.35),
-    0 0 0 0.6px rgba(255, 255, 255, 0.9) inset;
-}
-
-/* Icon-Buttons und Meta-Button im Topbar dark/glassy */
-#topbar .icon-button {
-  border-color: rgba(148, 163, 184, 0.85);
-  background: radial-gradient(
-    circle at 0% 0%,
-    rgba(15, 23, 42, 0.98),
-    rgba(30, 64, 175, 0.96)
-  );
-  color: rgba(226, 232, 240, 0.96);
-}
-
-#topbar .icon-button:hover {
-  border-color: rgba(248, 250, 252, 0.98);
-  color: #f9fafb;
-}
-
-/* Meta-Button im Topbar: immer rot / "Feuer frei" */
-#topbar .meta-button {
-  border-color: rgba(248, 113, 113, 0.95);
-  background: radial-gradient(
-    circle at 0% 0%,
-    rgba(248, 113, 113, 0.98),
-    rgba(220, 38, 38, 0.98)
-  );
-  color: #fef2f2;
-  min-width: 150px;
-  font-size: 0.78rem;
-  letter-spacing: 0.18em;
 }
 
 .topbar-left,
@@ -508,7 +509,8 @@ nav.sidebar {
   gap: 10px;
 }
 
-/* Selects / Inputs */
+/* Selects / Inputs – matte, nicht mehr Button-Look */
+
 .topbar-select-group {
   display: flex;
   align-items: center;
@@ -524,28 +526,28 @@ nav.sidebar {
 
 .topbar-select {
   min-width: 220px;
-  padding: 7px 28px 7px 12px;
+  padding: 7px 30px 7px 10px;
   font-size: 0.84rem;
   color: var(--color-text-main);
-  background:
-    radial-gradient(circle at 0% 0%, rgba(248, 250, 252, 0.98), rgba(226, 232, 240, 0.9));
-  border-radius: 999px;
+  background-color: #f9fafb;
+  border-radius: 6px; /* kein rundes Bubble mehr */
   border: 1px solid var(--input-border);
   outline: none;
   appearance: none;
-  background-image:
-    linear-gradient(to bottom, transparent, transparent),
-    url("data:image/svg+xml,%3Csvg width='9' height='5' viewBox='0 0 9 5' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L4.5 4L8 1' stroke='%236b7280' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat, no-repeat;
-  background-position: right 12px center, right 12px center;
-  background-size: 9px 5px, 9px 5px;
+  background-image: url("data:image/svg+xml,%3Csvg width='9' height='5' viewBox='0 0 9 5' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L4.5 4L8 1' stroke='%236b7280' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 9px 5px;
 }
 
 .topbar-select:hover {
   border-color: var(--input-focus);
-  box-shadow:
-    0 18px 45px rgba(15, 23, 42, 0.26),
-    0 0 0 0.6px rgba(255, 255, 255, 0.9) inset;
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.12);
+}
+
+.topbar-select:focus-visible {
+  border-color: var(--input-focus);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.22);
 }
 
 /* Option-Layer im Dropdown – hell & lesbar */
@@ -554,7 +556,7 @@ nav.sidebar {
   color: var(--color-text-main);
 }
 
-/* Icon-Buttons (Global Default) */
+/* Icon-Buttons in der Topbar */
 .icon-button {
   width: 32px;
   height: 32px;
@@ -595,7 +597,29 @@ nav.sidebar {
   box-shadow: 0 0 0 2px #f9fafb;
 }
 
-/* Meta-Button (global) */
+/* Meta-Button (Topbar Fokus – rot, aggressiv) */
+#topbar .meta-button {
+  border-radius: 999px;
+  border: 1px solid rgba(248, 113, 113, 0.95);
+  padding: 7px 14px;
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(248, 113, 113, 0.98),
+    rgba(220, 38, 38, 0.98)
+  );
+  color: #fef2f2;
+  min-width: 160px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* Globaler Meta-Button Default (außerhalb Topbar) */
 .meta-button {
   border-radius: 999px;
   border: 1px solid rgba(37, 99, 235, 0.9);
@@ -634,13 +658,13 @@ nav.sidebar {
 
 .main-content {
   flex: 1;
-  padding: 120px 40px 40px; /* etwas mehr Raum */
+  padding: 120px 40px 40px;
 }
 
 /* Alle Views: zentriert, nur eine sichtbar */
 .view {
   display: none;
-  max-width: 1440px; /* vorher 1320px → mehr Breite nutzen */
+  max-width: 1440px;
   margin: 0 auto;
   padding: 28px 26px 44px;
   border-radius: 26px;
@@ -650,13 +674,13 @@ nav.sidebar {
     rgba(226, 232, 240, 0.94)
   );
   box-shadow:
-    0 24px 75px rgba(15, 23, 42, 0.36),
+    0 28px 90px rgba(15, 23, 42, 0.4),
     0 0 0 0.8px rgba(255, 255, 255, 0.9) inset;
   border: 1px solid rgba(148, 163, 184, 0.45);
   backdrop-filter: blur(26px);
 }
 
-/* Globale View-Überschrift ("Wo bin ich?") – Badge Style */
+/* Globale View-Überschrift ("Wo bin ich?") – Badge mit Punch */
 .view::before {
   content: attr(data-view-title);
   display: inline-flex;
@@ -666,12 +690,19 @@ nav.sidebar {
   padding: 4px 12px 4px 14px;
   font-size: 0.9rem;
   font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   border-radius: 999px;
-  color: var(--color-text-soft);
-  background: rgba(148, 163, 184, 0.08);
-  border: 1px solid rgba(148, 163, 184, 0.4);
+  color: rgba(148, 163, 184, 0.98);
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(15, 23, 42, 0.9),
+    rgba(30, 64, 175, 0.88)
+  );
+  border: 1px solid rgba(248, 250, 252, 0.6);
+  box-shadow:
+    0 18px 45px rgba(15, 23, 42, 0.7),
+    0 0 0 1px rgba(15, 23, 42, 0.9);
 }
 
 .view.active {
@@ -688,8 +719,8 @@ nav.sidebar {
 }
 
 .view-header h2 {
-  font-size: 1.32rem;
-  font-weight: 600;
+  font-size: 1.36rem;
+  font-weight: 650;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--color-text-main);
@@ -706,12 +737,12 @@ nav.sidebar {
 
 .card {
   background: var(--surface);
-  border-radius: 16px;
-  padding: 14px 14px 12px;
+  border-radius: 18px;
+  padding: 16px 16px 14px;
   border: 1px solid rgba(226, 232, 240, 0.96);
   box-shadow:
-    0 18px 45px rgba(15, 23, 42, 0.18),
-    0 0 0 0.4px rgba(255, 255, 255, 0.9) inset;
+    0 22px 60px rgba(15, 23, 42, 0.25),
+    0 0 0 0.4px rgba(255, 255, 255, 0.95) inset;
 }
 
 .card-header {
@@ -719,12 +750,12 @@ nav.sidebar {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .card-title {
-  font-size: 0.84rem;
-  font-weight: 600;
+  font-size: 0.86rem;
+  font-weight: 650;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-text-main);
@@ -739,14 +770,14 @@ nav.sidebar {
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 
 .kpi-item {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
 }
 
 .kpi-label {
@@ -757,8 +788,8 @@ nav.sidebar {
 }
 
 .kpi-value {
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 1.12rem;
+  font-weight: 700;
 }
 
 .kpi-badge {
@@ -797,20 +828,20 @@ nav.sidebar {
 .dashboard-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.1fr);
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: 18px;
+  margin-bottom: 18px;
 }
 
 .performance-section {
   display: grid;
   grid-template-columns: 2fr 1.2fr;
-  gap: 12px;
+  gap: 14px;
 }
 
 .dashboard-section {
   display: grid;
   grid-template-columns: 1.1fr 1.1fr;
-  gap: 12px;
+  gap: 14px;
 }
 
 /* Mini-Tables */
@@ -879,7 +910,7 @@ nav.sidebar {
    9) LOADER, TOASTS, MODAL
    ============================== */
 
-/* Global Loader Overlay (Baseline – VisionOS Style kommt aus sx-core.css) */
+/* Global Loader Overlay (Baseline – Feintuning in sx-core.css) */
 .global-loader {
   position: fixed;
   inset: 0;
@@ -1067,4 +1098,35 @@ nav.sidebar {
       0 0 0 8px rgba(59, 130, 246, 0),
       0 0 0 0.8px rgba(255, 255, 255, 0.9) inset;
   }
+}
+
+/* Micro Interactions Ergänzung (sx-core verstärkt das noch) */
+.view {
+  transition: opacity 0.18s ease-out, transform 0.12s ease-out;
+}
+
+.view.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.card,
+.metric-card,
+.dashboard-card,
+.creative-library-item,
+.report-card,
+.log-card {
+  transition:
+    box-shadow 0.18s ease-out,
+    transform 0.16s ease-out,
+    border-color 0.16s ease-out;
+}
+
+.card:hover,
+.metric-card:hover,
+.dashboard-card:hover,
+.creative-library-item:hover,
+.report-card:hover,
+.log-card:hover {
+  transform: translateY(-2px);
 }
