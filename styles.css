@@ -147,7 +147,7 @@ nav.sidebar {
   left: 0;
   top: 0;
   bottom: 0;
-  width: 230px;
+  width: 200px; /* vorher 230px → schlankere Sidebar */
 
   background: radial-gradient(
       circle at 0% 0%,
@@ -160,7 +160,7 @@ nav.sidebar {
 
   display: flex;
   flex-direction: column;
-  padding: 16px 16px 14px;
+  padding: 24px 18px 18px; /* mehr Luft nach oben/unten */
   z-index: 40;
   backdrop-filter: blur(26px);
   color: #e5e7eb;
@@ -170,15 +170,15 @@ nav.sidebar {
 .sidebar-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding-bottom: 12px;
-  margin-bottom: 12px;
+  justify-content: center;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
   border-bottom: 1px solid rgba(51, 65, 85, 0.9);
 }
 
 .sidebar-logo {
-  width: 180px;
-  height: 40px;
+  width: 176px;
+  height: 42px;
   border-radius: 12px;
   background:
     #020617 url("Logo_re_Sc.png") center center / contain no-repeat;
@@ -227,8 +227,8 @@ nav.sidebar {
 
 /* Navigation */
 .sidebar-nav {
-  margin-top: 12px;
-  padding-top: 12px;
+  margin-top: 18px;
+  padding-top: 14px;
   border-top: 1px solid rgba(51, 65, 85, 0.9);
   flex: 1;
   display: flex;
@@ -308,8 +308,8 @@ nav.sidebar {
 
 /* Sidebar Footer / Status */
 .sidebar-footer {
-  padding-top: 10px;
-  margin-top: 10px;
+  padding-top: 12px;
+  margin-top: 12px;
   border-top: 1px solid rgba(31, 41, 55, 0.9);
   display: flex;
   flex-direction: column;
@@ -334,7 +334,7 @@ nav.sidebar {
 
 /* Settings Button unten */
 .sidebar-footer-button {
-  margin-top: 8px;
+  margin-top: 10px;
   width: 100%;
   border-radius: 999px;
   border: 1px solid rgba(148, 163, 184, 0.85);
@@ -382,13 +382,13 @@ nav.sidebar {
   display: flex;
   flex-direction: column;
   flex: 1;
-  margin-left: 230px;
+  margin-left: 200px; /* vorher 230px */
 }
 
 #topbar {
   position: fixed;
   top: 0;
-  left: 230px;
+  left: 200px; /* vorher 230px */
   right: 0;
   height: 92px;
   padding: 16px 32px;
@@ -423,20 +423,21 @@ nav.sidebar {
   color: rgba(209, 213, 219, 0.9);
 }
 
+/* Topbar-Selects: wieder wie echte, helle Dropdowns */
 #topbar .topbar-select {
-  background:
-    radial-gradient(circle at 0% 0%, rgba(15, 23, 42, 0.96), rgba(30, 64, 175, 0.95));
+  background: var(--input-bg);
   border-color: rgba(148, 163, 184, 0.9);
-  color: #e5e7eb;
+  color: var(--color-text-main);
 }
 
 #topbar .topbar-select:hover {
-  border-color: rgba(248, 250, 252, 0.95);
+  border-color: var(--input-focus);
   box-shadow:
-    0 22px 60px rgba(15, 23, 42, 0.85),
-    0 0 0 0.6px rgba(249, 250, 251, 0.96) inset;
+    0 18px 45px rgba(15, 23, 42, 0.35),
+    0 0 0 0.6px rgba(255, 255, 255, 0.9) inset;
 }
 
+/* Icon-Buttons und Meta-Button im Topbar dark/glassy */
 #topbar .icon-button {
   border-color: rgba(148, 163, 184, 0.85);
   background: radial-gradient(
@@ -475,7 +476,7 @@ nav.sidebar {
 }
 
 .topbar-left {
-  min-width: 260px;
+  min-width: 240px;
 }
 
 .topbar-center {
@@ -527,7 +528,7 @@ nav.sidebar {
   font-size: 0.84rem;
   color: var(--color-text-main);
   background:
-    radial-gradient(circle at 0% 0%, rgba(248, 250, 252, 0.95), rgba(226, 232, 240, 0.9));
+    radial-gradient(circle at 0% 0%, rgba(248, 250, 252, 0.98), rgba(226, 232, 240, 0.9));
   border-radius: 999px;
   border: 1px solid var(--input-border);
   outline: none;
@@ -547,7 +548,13 @@ nav.sidebar {
     0 0 0 0.6px rgba(255, 255, 255, 0.9) inset;
 }
 
-/* Icon-Buttons in der Topbar */
+/* Option-Layer im Dropdown – hell & lesbar */
+.topbar-select option {
+  background: #ffffff;
+  color: var(--color-text-main);
+}
+
+/* Icon-Buttons (Global Default) */
 .icon-button {
   width: 32px;
   height: 32px;
@@ -627,16 +634,16 @@ nav.sidebar {
 
 .main-content {
   flex: 1;
-  padding: 128px 36px 36px;
+  padding: 120px 40px 40px; /* etwas mehr Raum */
 }
 
 /* Alle Views: zentriert, nur eine sichtbar */
 .view {
   display: none;
-  max-width: 1320px;
+  max-width: 1440px; /* vorher 1320px → mehr Breite nutzen */
   margin: 0 auto;
-  padding: 24px 22px 40px;
-  border-radius: 24px;
+  padding: 28px 26px 44px;
+  border-radius: 26px;
   background: radial-gradient(
     circle at 0% 0%,
     rgba(248, 250, 252, 0.98),
@@ -649,16 +656,22 @@ nav.sidebar {
   backdrop-filter: blur(26px);
 }
 
-/* Globale View-Überschrift ("Wo bin ich?") */
+/* Globale View-Überschrift ("Wo bin ich?") – Badge Style */
 .view::before {
   content: attr(data-view-title);
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 22px;
-  font-size: 0.95rem;
+  padding: 4px 12px 4px 14px;
+  font-size: 0.9rem;
   font-weight: 600;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
+  border-radius: 999px;
   color: var(--color-text-soft);
+  background: rgba(148, 163, 184, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.4);
 }
 
 .view.active {
@@ -866,11 +879,11 @@ nav.sidebar {
    9) LOADER, TOASTS, MODAL
    ============================== */
 
-/* Global Loader Overlay */
+/* Global Loader Overlay (Baseline – VisionOS Style kommt aus sx-core.css) */
 .global-loader {
   position: fixed;
   inset: 0;
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
   z-index: 200;
