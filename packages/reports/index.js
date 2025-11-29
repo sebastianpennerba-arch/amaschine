@@ -1,274 +1,455 @@
 // packages/reports/index.js
-// Reports Center – Executive Summaries & Exporte (Demo).
+// Block 3 – Reporting & Export Layer (Executive Summary, Weekly & Monthly View)
 
-export function render(root, AppState, { useDemoMode }) {
-  const DemoData = window.SignalOneDemo?.DemoData || null;
-  const brand = getCurrentBrand(AppState, DemoData);
-  const brandName = brand?.name || "Deine Brand";
-  const showToast = window.SignalOne?.showToast;
+function getDemoData() {
+  if (window.SignalOneDemo && window.SignalOneDemo.DemoData) {
+    return window.SignalOneDemo.DemoData;
+  }
+  return {
+    brands: [],
+    campaignsByBrand: {},
+  };
+}
 
-  const reports = getDemoReports(brandName);
+function getActiveBrand(AppState, DemoData) {
+  const brands = DemoData.brands || [];
+  if (!brands.length) return null;
+
+  if (AppState.selectedBrandId) {
+    const found = brands.find((b) => b.id === AppState.selectedBrandId);
+    if (found) return found;
+  }
+
+  return brands[0] || null;
+}
+
+function getCampaignsForBrand(brand, DemoData) {
+  if (!brand || !DemoData.campaignsByBrand) return [];
+  return DemoData.campaignsByBrand[brand.id] || [];
+}
+
+function formatCurrency(value) {
+  return value.toLocaleString("de-DE", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  });
+}
+
+// Grobe 4-Wochen-Aufteilung aus 30d-Spend + ROAS
+function buildWeeklyRows(brand) {
+  const rows = [];
+  if (!brand) return rows;
+
+  const totalSpend = brand.spend30d || 0;
+  const base = totalSpend / 4 || 0;
+  const roas = brand.roas30d || 0;
+
+  const factors = [0.9, 1.0, 1.1, 1.0];
+  const roasOffsets = [-0.3, 0, 0.2, -0.1];
+
+  for (let i = 0; i < 4; i++) {
+    const spend = Math.round(base * factors[i]);
+    const weekRoas = Math.max(0, roas + roasOffsets[i]);
+    const revenue = spend * weekRoas;
+
+    rows.push({
+      label: `Woche ${i + 1}`,
+      spend,
+      roas: weekRoas,
+      revenue,
+    });
+  }
+
+  return rows;
+}
+
+function buildBrandComparison(DemoData) {
+  const brands = DemoData.brands || [];
+  return brands.map((b) => {
+    const spend = b.spend30d || 0;
+    const roas = b.roas30d || 0;
+    const revenue = spend * roas;
+    return {
+      name: b.name,
+      vertical: b.vertical,
+      spend,
+      roas,
+      revenue,
+      health: b.campaignHealth || "unknown",
+    };
+  });
+}
+
+function deriveHighlights(DemoData) {
+  const brands = DemoData.brands || [];
+  if (!brands.length) return null;
+
+  let topRoas = brands[0];
+  let topSpend = brands[0];
+  let criticalBrand = null;
+
+  for (const b of brands) {
+    if (b.roas30d > topRoas.roas30d) topRoas = b;
+    if (b.spend30d > topSpend.spend30d) topSpend = b;
+    if (b.campaignHealth === "critical" && !criticalBrand) criticalBrand = b;
+  }
+
+  return {
+    topRoas,
+    topSpend,
+    criticalBrand,
+  };
+}
+
+export function render(root, AppState, ctx = {}) {
+  const DemoData = getDemoData();
+  const brand = getActiveBrand(AppState, DemoData);
+  const campaigns = getCampaignsForBrand(brand, DemoData);
+  const weeklyRows = buildWeeklyRows(brand);
+  const comparison = buildBrandComparison(DemoData);
+  const highlights = deriveHighlights(DemoData);
+  const isDemo = !!ctx.useDemoMode;
+
+  const spend30d = brand ? brand.spend30d || 0 : 0;
+  const roas30d = brand ? brand.roas30d || 0 : 0;
+  const revenue30d = spend30d * roas30d;
+  const avgDailySpend = spend30d / 30 || 0;
+
+  const brandLabel = brand ? brand.name : "Kein Werbekonto";
+  const campCount = campaigns.length;
 
   root.innerHTML = `
     <div class="view-header">
       <div>
-        <h2>Reports Center</h2>
+        <h2>Reports & Exports</h2>
         <p class="view-subtitle">
-          Weekly & Monthly Reports als Executive Summary – ready für CEO & Kunde.
+          Executive Summary & Performance-Reports für
+          <strong>${brandLabel}</strong> (letzte 30 Tage).
         </p>
+      </div>
+      <div class="topbar-status-group">
+        <span class="mode-badge">
+          <i class="fa-solid fa-robot"></i>
+          Modus: ${isDemo ? "Demo-Reporting" : "Live-Reporting"}
+        </span>
+        <span class="badge">
+          <i class="fa-solid fa-calendar-week"></i>
+          Zeitraum: Letzte 30 Tage
+        </span>
       </div>
     </div>
 
     <div class="reports-layout">
-      <!-- Linke Seite: Tabelle -->
-      <div class="reports-table-wrapper">
-        <table class="reports-table">
-          <thead>
-            <tr>
-              <th>Report</th>
-              <th>Zeitraum</th>
-              <th>Brand</th>
-              <th>Status</th>
-              <th>Export</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${reports
-              .map((r) => {
-                const statusBadge = statusBadgeFor(r.status);
-                return `
-                <tr>
-                  <td>
-                    <div class="log-message-main">${escapeHtml(r.title)}</div>
-                    <div class="log-message-sub">${escapeHtml(
-                      r.summary
-                    )}</div>
-                  </td>
-                  <td>${escapeHtml(r.range)}</td>
-                  <td>${escapeHtml(r.brand)}</td>
-                  <td>${statusBadge}</td>
-                  <td>
-                    <button
-                      class="report-download-button"
-                      data-report-id="${r.id}"
-                      type="button"
-                      style="padding:6px 10px;font-size:0.78rem;width:auto;"
-                    >
-                      Export (PDF Demo)
-                    </button>
-                  </td>
-                </tr>
-              `;
-              })
-              .join("")}
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Rechte Seite: Export-Panel -->
-      <div class="card">
-        <div class="sensei-card-header">
-          <div>
-            <div class="sensei-card-title">Report Generator</div>
-            <div class="sensei-card-subtitle">
-              Erzeuge Executive Reports für ${escapeHtml(brandName)}.
+      <!-- Linke Seite: KPIs + Tabellen -->
+      <div class="reports-main">
+        <div class="metric-grid">
+          <div class="metric-card">
+            <div class="metric-label">Ad Spend · 30 Tage</div>
+            <div class="metric-value">
+              ${spend30d ? formatCurrency(spend30d) : "–"}
+            </div>
+            <div class="metric-subtext">
+              Ø Tagesbudget: ${
+                spend30d ? formatCurrency(avgDailySpend) : "–"
+              }
             </div>
           </div>
-          <div class="sensei-ai-pill">AI Summary</div>
-        </div>
 
-        <div class="sensei-prompt-area">
-          <label class="sensei-prompt-label">Zeitraum</label>
-          <select id="reportRange" class="creative-filter-select" style="width:100%;">
-            <option value="7d">Letzte 7 Tage</option>
-            <option value="30d" selected>Letzte 30 Tage</option>
-            <option value="90d">Letzte 90 Tage</option>
-          </select>
+          <div class="metric-card">
+            <div class="metric-label">ROAS · 30 Tage</div>
+            <div class="metric-value">${roas30d ? roas30d.toFixed(1) + "x" : "–"}</div>
+            <div class="metric-subtext">
+              Geschätzter Umsatz: ${
+                revenue30d ? formatCurrency(revenue30d) : "–"
+              }
+            </div>
+          </div>
 
-          <label class="sensei-prompt-label" style="margin-top:8px;">Fokus</label>
-          <textarea
-            id="reportFocus"
-            class="sensei-prompt-textarea"
-            rows="3"
-            placeholder="z.B. „Profit-Fokus, Skalierung mit kontrolliertem Risiko, Creative Learnings highlighten“"
-          ></textarea>
+          <div class="metric-card">
+            <div class="metric-label">Aktive Kampagnen</div>
+            <div class="metric-value">${campCount}</div>
+            <div class="metric-subtext">
+              Basierend auf der Demo-Struktur deines Kontos.
+            </div>
+          </div>
 
-          <button id="reportGenerateButton" class="sensei-generate-button" type="button">
-            Report-Entwurf generieren
-          </button>
-
-          <div id="reportPreview" class="sensei-output" style="margin-top:10px;">
-            <h4>Executive Summary (Demo)</h4>
-            <p style="margin:0 0 6px 0;font-size:0.86rem;">
-              Hier wird der automatisch generierte Report-Text angezeigt – perfekt für Export oder Copy-Paste in Mails.
-            </p>
+          <div class="metric-card">
+            <div class="metric-label">Report-Typ</div>
+            <div class="metric-value">Weekly & Monthly</div>
+            <div class="metric-subtext">
+              Export vorbereitet, PDF-Engine folgt in P6.
+            </div>
           </div>
         </div>
 
-        <div class="report-hint-card" style="margin-top:12px;">
-          <strong>Hinweis:</strong> Im Live-Modus zieht SignalOne echte Meta-Daten,
-          baut eine Executive Summary und erzeugt fertige White-Label Reports.
+        <div class="report-card">
+          <div class="sensei-card-header">
+            <div>
+              <div class="sensei-card-title">Weekly Performance</div>
+              <div class="sensei-card-subtitle">
+                Aufteilung des 30-Tage-Profils auf vier Wochen-Blöcke.
+              </div>
+            </div>
+            <span class="sensei-ai-pill">
+              <i class="fa-solid fa-wave-square"></i>
+              Zeitreihen-Demo
+            </span>
+          </div>
+
+          <div class="campaign-table-wrapper" style="margin-top:10px;">
+            <table class="reports-table">
+              <thead>
+                <tr>
+                  <th>Woche</th>
+                  <th>Spend</th>
+                  <th>ROAS</th>
+                  <th>Umsatz (geschätzt)</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${
+                  weeklyRows.length
+                    ? weeklyRows
+                        .map(
+                          (row) => `
+                  <tr>
+                    <td>${row.label}</td>
+                    <td>${formatCurrency(row.spend)}</td>
+                    <td>${row.roas.toFixed(1)}x</td>
+                    <td>${formatCurrency(row.revenue)}</td>
+                  </tr>
+                `
+                        )
+                        .join("")
+                    : `
+                  <tr>
+                    <td colspan="4">Keine Daten verfügbar – wähle ein Werbekonto aus.</td>
+                  </tr>
+                `
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="report-card" style="margin-top:18px;">
+          <div class="sensei-card-header">
+            <div>
+              <div class="sensei-card-title">Monthly Brand Comparison</div>
+              <div class="sensei-card-subtitle">
+                Vergleich aller Demo-Brands innerhalb deines Signals-Setups.
+              </div>
+            </div>
+            <span class="sensei-ai-pill">
+              <i class="fa-solid fa-chart-column"></i>
+              Cross-Brand View
+            </span>
+          </div>
+
+          <div class="campaign-table-wrapper" style="margin-top:10px;">
+            <table class="reports-table">
+              <thead>
+                <tr>
+                  <th>Brand</th>
+                  <th>Vertical</th>
+                  <th>Spend 30d</th>
+                  <th>ROAS 30d</th>
+                  <th>Umsatz (geschätzt)</th>
+                  <th>Health</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${
+                  comparison.length
+                    ? comparison
+                        .map((row) => {
+                          let badgeClass = "badge-pill";
+                          if (row.health === "good") badgeClass += " badge-success";
+                          else if (row.health === "warning") badgeClass += " badge-warning";
+                          else if (row.health === "critical")
+                            badgeClass += " badge-danger";
+
+                          return `
+                    <tr>
+                      <td>${row.name}</td>
+                      <td>${row.vertical}</td>
+                      <td>${formatCurrency(row.spend)}</td>
+                      <td>${row.roas.toFixed(1)}x</td>
+                      <td>${formatCurrency(row.revenue)}</td>
+                      <td>
+                        <span class="${badgeClass}">
+                          ${
+                            row.health === "good"
+                              ? "Stark"
+                              : row.health === "warning"
+                              ? "Beobachten"
+                              : row.health === "critical"
+                              ? "Kritisch"
+                              : "n/a"
+                          }
+                        </span>
+                      </td>
+                    </tr>
+                  `;
+                        })
+                        .join("")
+                    : `
+                  <tr>
+                    <td colspan="6">Keine Brand-Daten verfügbar.</td>
+                  </tr>
+                `
+                }
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
+
+      <!-- Rechte Seite: Executive Summary + Highlights + Export -->
+      <aside class="reports-sidebar">
+        <div class="report-card">
+          <div class="sensei-card-header">
+            <div>
+              <div class="sensei-card-title">Executive Summary</div>
+              <div class="sensei-card-subtitle">
+                Kurzfassung für Stakeholder & Management.
+              </div>
+            </div>
+          </div>
+
+          <p style="font-size:0.86rem;color:#4b5563;margin-bottom:8px;">
+            Für <strong>${brandLabel}</strong> ergibt sich aktuell folgende Lage:
+          </p>
+          <ul style="margin-left:18px;font-size:0.86rem;color:#4b5563;">
+            <li>30-Tage Ad Spend von <strong>${
+              spend30d ? formatCurrency(spend30d) : "–"
+            }</strong> bei einem ROAS von <strong>${
+    roas30d ? roas30d.toFixed(1) + "x" : "–"
+  }</strong>.</li>
+            <li>Geschätzter Umsatz im betrachteten Zeitraum: <strong>${
+              revenue30d ? formatCurrency(revenue30d) : "–"
+            }</strong>.</li>
+            <li><strong>${campCount}</strong> relevante Kampagnen in deinem Fokus-Setup.</li>
+            <li>Reports laufen aktuell im <strong>${
+              isDemo ? "Demo-" : "Live-"
+            }Modus</strong> – ideal zum Onboarding & Testing.</li>
+          </ul>
+
+          <p style="margin-top:8px;font-size:0.8rem;color:#6b7280;">
+            Später kann hier ein vollständiger <strong>AI-generierter Text-Report</strong>
+            ausgegeben werden (inkl. Wording für Investor-Reports oder Weekly Memos).
+          </p>
+        </div>
+
+        <div class="report-card" style="margin-top:16px;">
+          <div class="sensei-card-header">
+            <div>
+              <div class="sensei-card-title">Highlights & Risks</div>
+              <div class="sensei-card-subtitle">
+                Sensei-Auszug aus deinem Brand-Set.
+              </div>
+            </div>
+          </div>
+
+          <ul style="margin-left:18px;font-size:0.85rem;color:#4b5563;">
+            <li>
+              <strong>Top ROAS Brand:</strong>
+              ${
+                highlights && highlights.topRoas
+                  ? `${highlights.topRoas.name} (${highlights.topRoas.roas30d.toFixed(
+                      1
+                    )}x)`
+                  : "–"
+              }
+            </li>
+            <li>
+              <strong>Höchster Spend:</strong>
+              ${
+                highlights && highlights.topSpend
+                  ? `${highlights.topSpend.name} (${formatCurrency(
+                      highlights.topSpend.spend30d
+                    )})`
+                  : "–"
+              }
+            </li>
+            <li>
+              <strong>Kritisches Konto:</strong>
+              ${
+                highlights && highlights.criticalBrand
+                  ? `${highlights.criticalBrand.name} (Health: kritisch)`
+                  : "aktuell kein Brand im Status 'kritisch' in der Demo."
+              }
+            </li>
+          </ul>
+
+          <p style="margin-top:8px;font-size:0.8rem;color:#6b7280;">
+            In einem späteren Ausbauschritt verlinkt dieser Block direkt in Sensei,
+            Creatives & Testing Log für eine vollständige Ursachenanalyse.
+          </p>
+        </div>
+
+        <div class="report-card" style="margin-top:16px;">
+          <div class="sensei-card-header">
+            <div>
+              <div class="sensei-card-title">Export Center</div>
+              <div class="sensei-card-subtitle">
+                Export-Optionen für Weekly & Monthly Reports.
+              </div>
+            </div>
+            <span class="sensei-ai-pill">
+              <i class="fa-solid fa-file-export"></i>
+              P6: PDF Engine
+            </span>
+          </div>
+
+          <p style="font-size:0.84rem;color:#4b5563;margin-bottom:10px;">
+            Aktuell im Demo-Modus – die Buttons zeigen dir nur den Flow.
+            In Phase P6 wird hier die echte PDF/CSV-Exportlogik angebunden.
+          </p>
+
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button type="button" id="exportWeeklyBtn" class="meta-button" style="width:100%;justify-content:center;">
+              <i class="fa-solid fa-file-arrow-down"></i>
+              &nbsp;Weekly Report (PDF Demo)
+            </button>
+            <button type="button" id="exportMonthlyBtn" class="sidebar-footer-button" style="width:100%;justify-content:center;">
+              <i class="fa-solid fa-table"></i>
+              &nbsp;Monthly CSV (Demo)
+            </button>
+          </div>
+
+          <p style="margin-top:10px;font-size:0.78rem;color:#6b7280;">
+            Geplante Formate: PDF, CSV, Google Sheets Connect, E-Mail Routing.
+          </p>
+        </div>
+      </aside>
     </div>
   `;
 
-  // Export Buttons
-  root.querySelectorAll("[data-report-id]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const id = btn.getAttribute("data-report-id");
-      if (!id) return;
-      showToast &&
-        showToast(
-          "Report-Export ist im Demo-Modus nur simuliert. (PDF-Export folgt in P6).",
+  // Interaktionen: Export-Buttons (Demo)
+  const weeklyBtn = root.querySelector("#exportWeeklyBtn");
+  const monthlyBtn = root.querySelector("#exportMonthlyBtn");
+
+  if (weeklyBtn) {
+    weeklyBtn.addEventListener("click", () => {
+      if (window.SignalOne && window.SignalOne.showToast) {
+        window.SignalOne.showToast(
+          "Weekly Report Export (Demo) – PDF Engine folgt in P6.",
           "success"
         );
+      }
     });
-  });
+  }
 
-  // Report Generator
-  const btnGen = root.querySelector("#reportGenerateButton");
-  const preview = root.querySelector("#reportPreview");
-  const rangeSel = root.querySelector("#reportRange");
-  const focusEl = root.querySelector("#reportFocus");
-
-  if (btnGen && preview && rangeSel && focusEl) {
-    btnGen.addEventListener("click", () => {
-      const range = /** @type {HTMLSelectElement} */ (rangeSel).value;
-      const focus = /** @type {HTMLTextAreaElement} */ (focusEl).value.trim();
-      const html = generateReportPreview({
-        range,
-        focus,
-        brandName,
-        useDemoMode,
-      });
-      preview.innerHTML = html;
-      showToast &&
-        showToast(
-          "Report-Entwurf aktualisiert – du kannst den Text direkt verwenden.",
+  if (monthlyBtn) {
+    monthlyBtn.addEventListener("click", () => {
+      if (window.SignalOne && window.SignalOne.showToast) {
+        window.SignalOne.showToast(
+          "Monthly CSV Export (Demo) – echter Export folgt in P6.",
           "success"
         );
+      }
     });
   }
-}
-
-function getCurrentBrand(AppState, DemoData) {
-  if (!DemoData || !DemoData.brands) return null;
-  const id = AppState.selectedBrandId;
-  if (!id) return DemoData.brands[0] || null;
-  return DemoData.brands.find((b) => b.id === id) || DemoData.brands[0] || null;
-}
-
-function getDemoReports(brandName) {
-  return [
-    {
-      id: "r1",
-      title: "Weekly Performance Report",
-      range: "KW " + getIsoWeek(),
-      brand: brandName,
-      status: "ready",
-      summary: "Kurzüberblick über Spend, ROAS, Top Creatives & Alerts.",
-    },
-    {
-      id: "r2",
-      title: "Monthly Executive Report",
-      range: currentMonthLabel(),
-      brand: brandName,
-      status: "draft",
-      summary: "Ideal für C-Level & Kunden – inkl. Strategieempfehlungen.",
-    },
-    {
-      id: "r3",
-      title: "Testing Summary",
-      range: "Letzte 30 Tage",
-      brand: brandName,
-      status: "in_progress",
-      summary: "Auswertung aller gespeicherten Tests im Testing Log.",
-    },
-  ];
-}
-
-function statusBadgeFor(status) {
-  if (status === "ready") {
-    return `<span class="badge-pill badge-success">Ready</span>`;
-  }
-  if (status === "in_progress") {
-    return `<span class="badge-pill badge-warning">In Arbeit</span>`;
-  }
-  if (status === "draft") {
-    return `<span class="badge-pill">Draft</span>`;
-  }
-  return `<span class="badge-pill">${escapeHtml(status || "n/a")}</span>`;
-}
-
-function generateReportPreview({ range, focus, brandName, useDemoMode }) {
-  const rangeLabel =
-    range === "7d"
-      ? "letzten 7 Tage"
-      : range === "30d"
-      ? "letzten 30 Tage"
-      : "letzten 90 Tage";
-
-  const focusHtml = focus
-    ? `<p style="margin:6px 0 8px 0;">Fokus laut Briefing: <strong>${escapeHtml(
-        focus
-      )}</strong></p>`
-    : "";
-
-  return `
-    <h4>Executive Summary – ${escapeHtml(brandName)}</h4>
-    <p style="margin:0 0 6px 0;font-size:0.86rem;">
-      Zeitraum: ${rangeLabel} · Quelle: ${
-    useDemoMode ? "Demo-Daten" : "Meta Live-Daten"
-  }
-    </p>
-    ${focusHtml}
-    <p style="margin:0 0 6px 0;font-size:0.86rem;">
-      1. <strong>Performance Overview:</strong> Spend, Umsatz und ROAS liegen im erwarteten Korridor.
-      Skalierung fand kontrolliert statt, ohne den Profit zu killen.
-    </p>
-    <p style="margin:0 0 6px 0;font-size:0.86rem;">
-      2. <strong>Creative Learnings:</strong> UGC-Hooks outperformen statische Creatives in fast allen wichtigen Zielgruppen.
-      Winner-Creatives wurden in die Main Scaling Kampagnen übernommen.
-    </p>
-    <p style="margin:0 0 6px 0;font-size:0.86rem;">
-      3. <strong>Testing & Next Steps:</strong> Die wichtigsten Tests wurden im Testing Log dokumentiert.
-      Auf Basis der gewonnenen Learnings empfiehlt Sensei, die Budgets moderat zu erhöhen und
-      weitere Creator mit ähnlichen Patterns einzubinden.
-    </p>
-    <p style="margin:8px 0 0 0;font-size:0.8rem;color:#6b7280;">
-      Dieser Text ist ein automatisch generierter Entwurf.
-      Im Live-Modus werden konkrete Zahlen, Creatives und Charts eingefügt.
-    </p>
-  `;
-}
-
-function getIsoWeek() {
-  const date = new Date();
-  const target = new Date(
-    date.valueOf() +
-      (date.getTimezoneOffset() + 60) * 60 * 1000 // grobe EU-Korrektur
-  );
-  const dayNr = (target.getDay() + 6) % 7;
-  target.setDate(target.getDate() - dayNr + 3);
-  const firstThursday = new Date(target.getFullYear(), 0, 4);
-  const diff =
-    target.getTime() - firstThursday.getTime() + (firstThursday.getDay() - 4) * 86400000;
-  const week = 1 + Math.round(diff / 604800000);
-  return week.toString().padStart(2, "0");
-}
-
-function currentMonthLabel() {
-  return new Date().toLocaleDateString("de-DE", {
-    month: "long",
-    year: "numeric",
-  });
-}
-
-function escapeHtml(str) {
-  if (!str) return "";
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
 }
