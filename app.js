@@ -198,14 +198,30 @@ const moduleIconIds = {
    SVG ICON HELPERS
 -----------------------------------------------------------*/
 function createSvgIconFromSymbol(symbolId, extraClass = "") {
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
   svg.setAttribute("viewBox", "0 0 24 24");
-  svg.classList.add(extraClass || "icon-svg");
-  if (!extraClass) svg.classList.add("icon-svg");
 
-  const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
-  use.setAttributeNS("http://www.w3.org/1999/xlink", "href", `#${symbolId}`);
-  svg.appendChild(use);
+  if (extraClass) {
+    svg.classList.add(extraClass);
+  } else {
+    svg.classList.add("icon-svg");
+  }
+
+  // NEU: Symbol-Inhalt klonen statt <use>, damit CSS (.icon-layer-*) greift
+  const symbol = document.getElementById(symbolId);
+  if (symbol) {
+    Array.from(symbol.childNodes).forEach((node) => {
+      if (node.nodeType === 1) {
+        svg.appendChild(node.cloneNode(true));
+      }
+    });
+  } else {
+    // Fallback auf <use>, falls Symbol fehlt
+    const use = document.createElementNS(svgNS, "use");
+    use.setAttributeNS("http://www.w3.org/1999/xlink", "href", `#${symbolId}`);
+    svg.appendChild(use);
+  }
 
   return svg;
 }
@@ -350,7 +366,15 @@ function updateSidebarActiveIcon(activeKey) {
     const symbol = document.getElementById(fillLayerId);
 
     const use = svg?.querySelector("use");
-    if (!use || !symbol) return;
+    if (!use || !symbol) {
+      // bei der neuen Clone-Variante existiert ggf. kein <use>, wir brauchen nur active-Klasse
+      if (module === activeKey) {
+        btn.classList.add("active");
+      } else {
+        btn.classList.remove("active");
+      }
+      return;
+    }
 
     if (module === activeKey) {
       btn.classList.add("active");
