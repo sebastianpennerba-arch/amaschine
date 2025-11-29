@@ -93,6 +93,8 @@ html,
 body {
   margin: 0;
   padding: 0;
+  /* horizontale Scroll-Leiste killen (Gold-Header-Strip) */
+  overflow-x: hidden;
 }
 
 body {
@@ -191,7 +193,8 @@ nav.sidebar {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  justify-content: flex-start; /* OBEN, nicht mittig */
+  /* vertikal zentriert */
+  justify-content: center;
   overflow-y: visible;
 }
 
@@ -237,6 +240,16 @@ nav.sidebar {
   pointer-events: none;
 }
 
+/* globale Grundfarbe für Stroke – wird in Sidebar überschrieben */
+.icon-layer-stroke {
+  fill: none;
+  stroke: #374151;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Sidebar: Gold-Duotone */
 .sidebar-nav-button .icon-layer-fill {
   fill: var(--sidebar-icon-inactive-fill);
   opacity: 0.85;
@@ -447,7 +460,9 @@ nav.sidebar {
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  color: var(--color-text-soft);
+  /* höherer Kontrast auf dunklem Topbar-Hintergrund */
+  color: rgba(226, 232, 240, 0.92);
+  font-weight: 600;
 }
 
 .topbar-select {
@@ -546,7 +561,8 @@ nav.sidebar {
   color: #fef2f2;
   min-width: 160px;
   font-size: 0.78rem;
-  font-weight: 600;
+  /* mehr Punch: fetter Text */
+  font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   display: inline-flex;
