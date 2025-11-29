@@ -1,304 +1,417 @@
 // packages/reports/index.js
-// Block 3 – Reporting & Export Layer (Executive Summary, Weekly & Monthly View)
+// Block 5 – Export Engine (Weekly/Monthly/Executive + CSV)
+// Nutzt DemoData aus window.SignalOneDemo, AppState & Meta/Demo-Guard aus app.js
 
-function getDemoData() {
-  if (window.SignalOneDemo && window.SignalOneDemo.DemoData) {
-    return window.SignalOneDemo.DemoData;
-  }
-  return {
+export function render(root, AppState, ctx = {}) {
+  const demoMode = ctx.useDemoMode ?? true;
+
+  const DemoData = (window.SignalOneDemo && window.SignalOneDemo.DemoData) || {
     brands: [],
     campaignsByBrand: {},
   };
-}
 
-function getActiveBrand(AppState, DemoData) {
-  const brands = DemoData.brands || [];
-  if (!brands.length) return null;
+  const now = new Date();
+  const todayLabel = now.toLocaleDateString("de-DE", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
 
-  if (AppState.selectedBrandId) {
-    const found = brands.find((b) => b.id === AppState.selectedBrandId);
-    if (found) return found;
+  const selectedBrand =
+    DemoData.brands.find((b) => b.id === AppState.selectedBrandId) ||
+    DemoData.brands[0] ||
+    null;
+
+  const brandName = selectedBrand ? selectedBrand.name : "Kein Konto ausgewählt";
+  const brandVertical = selectedBrand ? selectedBrand.vertical : "–";
+  const spend30d = selectedBrand ? selectedBrand.spend30d : 0;
+  const roas30d = selectedBrand ? selectedBrand.roas30d : 0;
+  const health = selectedBrand ? selectedBrand.campaignHealth : "n/a";
+
+  // --------------------------------------------------
+  // Helper: Health Label
+  // --------------------------------------------------
+  function healthLabel(h) {
+    if (h === "good") return "Stark";
+    if (h === "warning") return "Beobachten";
+    if (h === "critical") return "Kritisch";
+    return "n/a";
   }
 
-  return brands[0] || null;
-}
+  // --------------------------------------------------
+  // Helper: CSV Export
+  // --------------------------------------------------
+  function exportCsv(rangeKey) {
+    const rangeLabel =
+      rangeKey === "weekly"
+        ? "Letzte 7 Tage"
+        : rangeKey === "monthly"
+        ? "Letzte 30 Tage"
+        : "Executive";
 
-function getCampaignsForBrand(brand, DemoData) {
-  if (!brand || !DemoData.campaignsByBrand) return [];
-  return DemoData.campaignsByBrand[brand.id] || [];
-}
+    const sep = ";";
 
-function formatCurrency(value) {
-  return value.toLocaleString("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  });
-}
+    const header =
+      [
+        "Brand",
+        "Vertical",
+        "Zeitraum",
+        "Spend_30d",
+        "ROAS_30d",
+        "Campaign_Health",
+      ].join(sep) + "\n";
 
-// Grobe 4-Wochen-Aufteilung aus 30d-Spend + ROAS
-function buildWeeklyRows(brand) {
-  const rows = [];
-  if (!brand) return rows;
+    const row =
+      [
+        `"${brandName}"`,
+        `"${brandVertical}"`,
+        `"${rangeLabel}"`,
+        spend30d,
+        roas30d,
+        `"${healthLabel(health)}"`,
+      ].join(sep) + "\n";
 
-  const totalSpend = brand.spend30d || 0;
-  const base = totalSpend / 4 || 0;
-  const roas = brand.roas30d || 0;
+    const csv = header + row;
 
-  const factors = [0.9, 1.0, 1.1, 1.0];
-  const roasOffsets = [-0.3, 0, 0.2, -0.1];
-
-  for (let i = 0; i < 4; i++) {
-    const spend = Math.round(base * factors[i]);
-    const weekRoas = Math.max(0, roas + roasOffsets[i]);
-    const revenue = spend * weekRoas;
-
-    rows.push({
-      label: `Woche ${i + 1}`,
-      spend,
-      roas: weekRoas,
-      revenue,
+    const blob = new Blob([csv], {
+      type: "text/csv;charset=utf-8;",
     });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    const safeBrand = brandName.replace(/[^a-z0-9]+/gi, "_").toLowerCase();
+    a.download = `signalone_${safeBrand}_${rangeKey}_report.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    window.SignalOne.showToast("CSV Export vorbereitet.", "success");
   }
 
-  return rows;
-}
+  // --------------------------------------------------
+  // Helper: „PDF“ / Print-Export (browser print)
+  // --------------------------------------------------
+  function openPrintWindow(rangeKey) {
+    const rangeLabel =
+      rangeKey === "weekly"
+        ? "Weekly Performance Report"
+        : rangeKey === "monthly"
+        ? "Monthly Performance Report"
+        : "Executive Summary";
 
-function buildBrandComparison(DemoData) {
-  const brands = DemoData.brands || [];
-  return brands.map((b) => {
-    const spend = b.spend30d || 0;
-    const roas = b.roas30d || 0;
-    const revenue = spend * roas;
-    return {
-      name: b.name,
-      vertical: b.vertical,
-      spend,
-      roas,
-      revenue,
-      health: b.campaignHealth || "unknown",
-    };
-  });
-}
+    const campaignList =
+      (selectedBrand && DemoData.campaignsByBrand[selectedBrand.id]) || [];
+    const dateStr = todayLabel;
 
-function deriveHighlights(DemoData) {
-  const brands = DemoData.brands || [];
-  if (!brands.length) return null;
+    const html = `
+      <!DOCTYPE html>
+      <html lang="de">
+      <head>
+        <meta charset="UTF-8" />
+        <title>SignalOne – ${rangeLabel}</title>
+        <style>
+          * { box-sizing: border-box; font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif; }
+          body {
+            margin: 0;
+            padding: 32px 40px;
+            background: #f3f4f6;
+            color: #0f172a;
+          }
+          h1, h2, h3 {
+            margin: 0 0 8px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+          }
+          h1 { font-size: 18px; }
+          h2 { font-size: 14px; }
+          h3 { font-size: 12px; }
+          .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            border: 1px solid #cbd5e1;
+            background: #e5e7eb;
+            margin-left: 8px;
+          }
+          .pill {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            border: 1px solid #d1d5db;
+          }
+          .pill.good { background: #ecfdf3; border-color: #4ade80; color: #15803d; }
+          .pill.warning { background: #fffbeb; border-color: #facc15; color: #92400e; }
+          .pill.critical { background: #fef2f2; border-color: #f87171; color: #b91c1c; }
+          .meta {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 16px;
+          }
+          .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+            margin: 16px 0 24px;
+          }
+          .kpi-box {
+            border-radius: 12px;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+          }
+          .kpi-label {
+            font-size: 11px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #94a3b8;
+            margin-bottom: 4px;
+          }
+          .kpi-value {
+            font-size: 18px;
+            font-weight: 600;
+          }
+          .kpi-sub {
+            font-size: 11px;
+            color: #6b7280;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            margin-top: 8px;
+          }
+          th, td {
+            padding: 6px 8px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+          }
+          th {
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 10px;
+            color: #94a3b8;
+          }
+          tr:last-child td { border-bottom: none; }
+          .footer {
+            margin-top: 24px;
+            font-size: 10px;
+            color: #9ca3af;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 8px;
+          }
+          @media print {
+            body { background: #ffffff; }
+            .no-print { display: none !important; }
+          }
+        </style>
+      </head>
+      <body>
+        <header style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;">
+          <div>
+            <h1>SignalOne Report</h1>
+            <div class="meta">
+              ${rangeLabel}<br/>
+              Generiert am ${dateStr}${demoMode ? " · Demo Mode" : ""}
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:12px;font-weight:600;">${brandName}</div>
+            <div style="font-size:11px;color:#6b7280;">${brandVertical}</div>
+            <div style="margin-top:6px;">
+              <span class="pill ${health}">
+                Health: ${healthLabel(health)}
+              </span>
+            </div>
+          </div>
+        </header>
 
-  let topRoas = brands[0];
-  let topSpend = brands[0];
-  let criticalBrand = null;
+        <section>
+          <h2>Kern-KPIs</h2>
+          <div class="kpi-grid">
+            <div class="kpi-box">
+              <div class="kpi-label">Ad Spend (30d)</div>
+              <div class="kpi-value">${formatCurrency(spend30d, AppState.settings.currency)}</div>
+              <div class="kpi-sub">Basierend auf Demo-Konto</div>
+            </div>
+            <div class="kpi-box">
+              <div class="kpi-label">ROAS (30d)</div>
+              <div class="kpi-value">${roas30d.toFixed(2)}x</div>
+              <div class="kpi-sub">Return on Ad Spend</div>
+            </div>
+            <div class="kpi-box">
+              <div class="kpi-label">Campaign Health</div>
+              <div class="kpi-value">${healthLabel(health)}</div>
+              <div class="kpi-sub">Aus Kampagnensetup abgeleitet</div>
+            </div>
+          </div>
+        </section>
 
-  for (const b of brands) {
-    if (b.roas30d > topRoas.roas30d) topRoas = b;
-    if (b.spend30d > topSpend.spend30d) topSpend = b;
-    if (b.campaignHealth === "critical" && !criticalBrand) criticalBrand = b;
+        <section>
+          <h2>Campagnenübersicht</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${
+                campaignList.length
+                  ? campaignList
+                      .map(
+                        (c) => `
+                <tr>
+                  <td>${c.name}</td>
+                  <td>${c.status}</td>
+                </tr>
+              `
+                      )
+                      .join("")
+                  : `<tr><td colspan="2">Keine Kampagnen gefunden (Demo).</td></tr>`
+              }
+            </tbody>
+          </table>
+        </section>
+
+        <section style="margin-top:22px;">
+          <h2>Executive Notes</h2>
+          <p style="font-size:12px;color:#4b5563;max-width:640px;">
+            Dieser Report wurde automatisch von SignalOne generiert. In der Live-Version
+            werden hier automatisierte AI-Kommentare zu Performance-Treibern, Risiko-Signalen
+            und konkreten Next Steps eingeblendet.
+          </p>
+        </section>
+
+        <footer class="footer">
+          SignalOne · Automated Performance Reporting · ${todayLabel}
+        </footer>
+
+        <div class="no-print" style="margin-top:18px;">
+          <button onclick="window.print()" style="padding:6px 12px;border-radius:999px;border:1px solid #cbd5e1;background:#0f172a;color:#f9fafb;font-size:11px;">
+            Als PDF drucken
+          </button>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const w = window.open("", "_blank");
+    if (!w) {
+      window.SignalOne.showToast("Pop-Up für PDF-Druck blockiert.", "error");
+      return;
+    }
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
   }
 
-  return {
-    topRoas,
-    topSpend,
-    criticalBrand,
-  };
-}
+  function formatCurrency(value, currency) {
+    try {
+      return new Intl.NumberFormat("de-DE", {
+        style: "currency",
+        currency: currency || "EUR",
+        maximumFractionDigits: 0,
+      }).format(value || 0);
+    } catch (e) {
+      return `${value.toFixed ? value.toFixed(0) : value} ${currency || ""}`;
+    }
+  }
 
-export function render(root, AppState, ctx = {}) {
-  const DemoData = getDemoData();
-  const brand = getActiveBrand(AppState, DemoData);
-  const campaigns = getCampaignsForBrand(brand, DemoData);
-  const weeklyRows = buildWeeklyRows(brand);
-  const comparison = buildBrandComparison(DemoData);
-  const highlights = deriveHighlights(DemoData);
-  const isDemo = !!ctx.useDemoMode;
-
-  const spend30d = brand ? brand.spend30d || 0 : 0;
-  const roas30d = brand ? brand.roas30d || 0 : 0;
-  const revenue30d = spend30d * roas30d;
-  const avgDailySpend = spend30d / 30 || 0;
-
-  const brandLabel = brand ? brand.name : "Kein Werbekonto";
-  const campCount = campaigns.length;
+  // --------------------------------------------------
+  // UI Rendering
+  // --------------------------------------------------
 
   root.innerHTML = `
     <div class="view-header">
       <div>
-        <h2>Reports & Exports</h2>
+        <h2>Reports</h2>
         <p class="view-subtitle">
-          Executive Summary & Performance-Reports für
-          <strong>${brandLabel}</strong> (letzte 30 Tage).
+          Exportiere Weekly, Monthly & Executive Reports für dein Konto.
         </p>
-      </div>
-      <div class="topbar-status-group">
-        <span class="mode-badge">
-          <i class="fa-solid fa-robot"></i>
-          Modus: ${isDemo ? "Demo-Reporting" : "Live-Reporting"}
-        </span>
-        <span class="badge">
-          <i class="fa-solid fa-calendar-week"></i>
-          Zeitraum: Letzte 30 Tage
-        </span>
       </div>
     </div>
 
     <div class="reports-layout">
-      <!-- Linke Seite: KPIs + Tabellen -->
+      <!-- Linke Seite: Übersicht & Tabelle -->
       <div class="reports-main">
-        <div class="metric-grid">
-          <div class="metric-card">
-            <div class="metric-label">Ad Spend · 30 Tage</div>
-            <div class="metric-value">
-              ${spend30d ? formatCurrency(spend30d) : "–"}
-            </div>
-            <div class="metric-subtext">
-              Ø Tagesbudget: ${
-                spend30d ? formatCurrency(avgDailySpend) : "–"
-              }
-            </div>
-          </div>
-
-          <div class="metric-card">
-            <div class="metric-label">ROAS · 30 Tage</div>
-            <div class="metric-value">${roas30d ? roas30d.toFixed(1) + "x" : "–"}</div>
-            <div class="metric-subtext">
-              Geschätzter Umsatz: ${
-                revenue30d ? formatCurrency(revenue30d) : "–"
-              }
-            </div>
-          </div>
-
-          <div class="metric-card">
-            <div class="metric-label">Aktive Kampagnen</div>
-            <div class="metric-value">${campCount}</div>
-            <div class="metric-subtext">
-              Basierend auf der Demo-Struktur deines Kontos.
-            </div>
-          </div>
-
-          <div class="metric-card">
-            <div class="metric-label">Report-Typ</div>
-            <div class="metric-value">Weekly & Monthly</div>
-            <div class="metric-subtext">
-              Export vorbereitet, PDF-Engine folgt in P6.
-            </div>
-          </div>
-        </div>
-
         <div class="report-card">
           <div class="sensei-card-header">
             <div>
-              <div class="sensei-card-title">Weekly Performance</div>
+              <div class="sensei-card-title">Brand Overview</div>
               <div class="sensei-card-subtitle">
-                Aufteilung des 30-Tage-Profils auf vier Wochen-Blöcke.
+                ${brandName} · ${brandVertical}
               </div>
             </div>
-            <span class="sensei-ai-pill">
-              <i class="fa-solid fa-wave-square"></i>
-              Zeitreihen-Demo
+            <span class="badge-pill">
+              ${demoMode ? "Demo Mode" : "Live Mode"}
             </span>
           </div>
 
-          <div class="campaign-table-wrapper" style="margin-top:10px;">
+          <div class="kpi-grid">
+            <div class="metric-card">
+              <div class="metric-label">Ad Spend (30d)</div>
+              <div class="metric-value">${formatCurrency(
+                spend30d,
+                AppState.settings.currency
+              )}</div>
+              <div class="metric-subtext">Gesamtbudget der letzten 30 Tage</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">ROAS (30d)</div>
+              <div class="metric-value">${roas30d.toFixed(2)}x</div>
+              <div class="metric-subtext">Return on Ad Spend</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Campaign Health</div>
+              <div class="metric-value">${healthLabel(health)}</div>
+              <div class="metric-subtext">
+                Status des verbundenen Brand-Setups
+              </div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Report Datum</div>
+              <div class="metric-value" style="font-size:1.1rem;">${todayLabel}</div>
+              <div class="metric-subtext">
+                Snapshot zum Zeitpunkt des Exports
+              </div>
+            </div>
+          </div>
+
+          <div class="reports-table-wrapper" style="margin-top:18px;">
             <table class="reports-table">
               <thead>
                 <tr>
-                  <th>Woche</th>
-                  <th>Spend</th>
-                  <th>ROAS</th>
-                  <th>Umsatz (geschätzt)</th>
+                  <th>Kampagne</th>
+                  <th>Status</th>
                 </tr>
               </thead>
               <tbody>
                 ${
-                  weeklyRows.length
-                    ? weeklyRows
+                  selectedBrand &&
+                  DemoData.campaignsByBrand[selectedBrand.id] &&
+                  DemoData.campaignsByBrand[selectedBrand.id].length
+                    ? DemoData.campaignsByBrand[selectedBrand.id]
                         .map(
-                          (row) => `
-                  <tr>
-                    <td>${row.label}</td>
-                    <td>${formatCurrency(row.spend)}</td>
-                    <td>${row.roas.toFixed(1)}x</td>
-                    <td>${formatCurrency(row.revenue)}</td>
-                  </tr>
-                `
+                          (c) => `
+                      <tr>
+                        <td>${c.name}</td>
+                        <td>${c.status}</td>
+                      </tr>
+                    `
                         )
                         .join("")
                     : `
-                  <tr>
-                    <td colspan="4">Keine Daten verfügbar – wähle ein Werbekonto aus.</td>
-                  </tr>
-                `
-                }
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="report-card" style="margin-top:18px;">
-          <div class="sensei-card-header">
-            <div>
-              <div class="sensei-card-title">Monthly Brand Comparison</div>
-              <div class="sensei-card-subtitle">
-                Vergleich aller Demo-Brands innerhalb deines Signals-Setups.
-              </div>
-            </div>
-            <span class="sensei-ai-pill">
-              <i class="fa-solid fa-chart-column"></i>
-              Cross-Brand View
-            </span>
-          </div>
-
-          <div class="campaign-table-wrapper" style="margin-top:10px;">
-            <table class="reports-table">
-              <thead>
-                <tr>
-                  <th>Brand</th>
-                  <th>Vertical</th>
-                  <th>Spend 30d</th>
-                  <th>ROAS 30d</th>
-                  <th>Umsatz (geschätzt)</th>
-                  <th>Health</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${
-                  comparison.length
-                    ? comparison
-                        .map((row) => {
-                          let badgeClass = "badge-pill";
-                          if (row.health === "good") badgeClass += " badge-success";
-                          else if (row.health === "warning") badgeClass += " badge-warning";
-                          else if (row.health === "critical")
-                            badgeClass += " badge-danger";
-
-                          return `
                     <tr>
-                      <td>${row.name}</td>
-                      <td>${row.vertical}</td>
-                      <td>${formatCurrency(row.spend)}</td>
-                      <td>${row.roas.toFixed(1)}x</td>
-                      <td>${formatCurrency(row.revenue)}</td>
-                      <td>
-                        <span class="${badgeClass}">
-                          ${
-                            row.health === "good"
-                              ? "Stark"
-                              : row.health === "warning"
-                              ? "Beobachten"
-                              : row.health === "critical"
-                              ? "Kritisch"
-                              : "n/a"
-                          }
-                        </span>
+                      <td colspan="2">
+                        Keine Kampagnen im Demo-Datensatz gefunden.
                       </td>
                     </tr>
-                  `;
-                        })
-                        .join("")
-                    : `
-                  <tr>
-                    <td colspan="6">Keine Brand-Daten verfügbar.</td>
-                  </tr>
-                `
+                  `
                 }
               </tbody>
             </table>
@@ -306,150 +419,93 @@ export function render(root, AppState, ctx = {}) {
         </div>
       </div>
 
-      <!-- Rechte Seite: Executive Summary + Highlights + Export -->
+      <!-- Rechte Seite: Export Panel -->
       <aside class="reports-sidebar">
         <div class="report-card">
           <div class="sensei-card-header">
             <div>
-              <div class="sensei-card-title">Executive Summary</div>
-              <div class="sensei-card-subtitle">
-                Kurzfassung für Stakeholder & Management.
-              </div>
-            </div>
-          </div>
-
-          <p style="font-size:0.86rem;color:#4b5563;margin-bottom:8px;">
-            Für <strong>${brandLabel}</strong> ergibt sich aktuell folgende Lage:
-          </p>
-          <ul style="margin-left:18px;font-size:0.86rem;color:#4b5563;">
-            <li>30-Tage Ad Spend von <strong>${
-              spend30d ? formatCurrency(spend30d) : "–"
-            }</strong> bei einem ROAS von <strong>${
-    roas30d ? roas30d.toFixed(1) + "x" : "–"
-  }</strong>.</li>
-            <li>Geschätzter Umsatz im betrachteten Zeitraum: <strong>${
-              revenue30d ? formatCurrency(revenue30d) : "–"
-            }</strong>.</li>
-            <li><strong>${campCount}</strong> relevante Kampagnen in deinem Fokus-Setup.</li>
-            <li>Reports laufen aktuell im <strong>${
-              isDemo ? "Demo-" : "Live-"
-            }Modus</strong> – ideal zum Onboarding & Testing.</li>
-          </ul>
-
-          <p style="margin-top:8px;font-size:0.8rem;color:#6b7280;">
-            Später kann hier ein vollständiger <strong>AI-generierter Text-Report</strong>
-            ausgegeben werden (inkl. Wording für Investor-Reports oder Weekly Memos).
-          </p>
-        </div>
-
-        <div class="report-card" style="margin-top:16px;">
-          <div class="sensei-card-header">
-            <div>
-              <div class="sensei-card-title">Highlights & Risks</div>
-              <div class="sensei-card-subtitle">
-                Sensei-Auszug aus deinem Brand-Set.
-              </div>
-            </div>
-          </div>
-
-          <ul style="margin-left:18px;font-size:0.85rem;color:#4b5563;">
-            <li>
-              <strong>Top ROAS Brand:</strong>
-              ${
-                highlights && highlights.topRoas
-                  ? `${highlights.topRoas.name} (${highlights.topRoas.roas30d.toFixed(
-                      1
-                    )}x)`
-                  : "–"
-              }
-            </li>
-            <li>
-              <strong>Höchster Spend:</strong>
-              ${
-                highlights && highlights.topSpend
-                  ? `${highlights.topSpend.name} (${formatCurrency(
-                      highlights.topSpend.spend30d
-                    )})`
-                  : "–"
-              }
-            </li>
-            <li>
-              <strong>Kritisches Konto:</strong>
-              ${
-                highlights && highlights.criticalBrand
-                  ? `${highlights.criticalBrand.name} (Health: kritisch)`
-                  : "aktuell kein Brand im Status 'kritisch' in der Demo."
-              }
-            </li>
-          </ul>
-
-          <p style="margin-top:8px;font-size:0.8rem;color:#6b7280;">
-            In einem späteren Ausbauschritt verlinkt dieser Block direkt in Sensei,
-            Creatives & Testing Log für eine vollständige Ursachenanalyse.
-          </p>
-        </div>
-
-        <div class="report-card" style="margin-top:16px;">
-          <div class="sensei-card-header">
-            <div>
               <div class="sensei-card-title">Export Center</div>
               <div class="sensei-card-subtitle">
-                Export-Optionen für Weekly & Monthly Reports.
+                Dateien für Kunden, Slack oder E-Mail.
               </div>
             </div>
-            <span class="sensei-ai-pill">
-              <i class="fa-solid fa-file-export"></i>
-              P6: PDF Engine
-            </span>
           </div>
 
-          <p style="font-size:0.84rem;color:#4b5563;margin-bottom:10px;">
-            Aktuell im Demo-Modus – die Buttons zeigen dir nur den Flow.
-            In Phase P6 wird hier die echte PDF/CSV-Exportlogik angebunden.
-          </p>
-
-          <div style="display:flex;flex-direction:column;gap:8px;">
-            <button type="button" id="exportWeeklyBtn" class="meta-button" style="width:100%;justify-content:center;">
-              <i class="fa-solid fa-file-arrow-down"></i>
-              &nbsp;Weekly Report (PDF Demo)
+          <div style="display:flex;flex-direction:column;gap:10px;margin-top:6px;">
+            <button id="exportWeeklyPdf" class="meta-button" style="width:100%;justify-content:center;">
+              <i class="fa-solid fa-file-pdf"></i>&nbsp;Weekly Report (PDF Druck)
             </button>
-            <button type="button" id="exportMonthlyBtn" class="sidebar-footer-button" style="width:100%;justify-content:center;">
-              <i class="fa-solid fa-table"></i>
-              &nbsp;Monthly CSV (Demo)
+            <button id="exportMonthlyPdf" class="meta-button" style="width:100%;justify-content:center;">
+              <i class="fa-solid fa-file-pdf"></i>&nbsp;Monthly Report (PDF Druck)
+            </button>
+            <button id="exportExecPdf" class="meta-button" style="width:100%;justify-content:center;">
+              <i class="fa-solid fa-file-signature"></i>&nbsp;Executive Summary (PDF Druck)
             </button>
           </div>
 
-          <p style="margin-top:10px;font-size:0.78rem;color:#6b7280;">
-            Geplante Formate: PDF, CSV, Google Sheets Connect, E-Mail Routing.
+          <hr style="margin:14px 0;border:none;border-top:1px solid rgba(226,232,240,0.9);" />
+
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <button id="exportWeeklyCsv" class="sidebar-footer-button" style="width:100%;justify-content:center;">
+              <i class="fa-solid fa-file-csv"></i>&nbsp;Weekly CSV Export
+            </button>
+            <button id="exportMonthlyCsv" class="sidebar-footer-button" style="width:100%;justify-content:center;">
+              <i class="fa-solid fa-file-csv"></i>&nbsp;Monthly CSV Export
+            </button>
+          </div>
+
+          <p style="margin-top:12px;font-size:0.78rem;color:#6b7280;">
+            In der Live-Integration werden hier echte Meta- und Shopify-Daten
+            in PDFs & CSVs geschrieben. Aktuell nutzt das System deine Demo-Daten.
           </p>
         </div>
       </aside>
     </div>
   `;
 
-  // Interaktionen: Export-Buttons (Demo)
-  const weeklyBtn = root.querySelector("#exportWeeklyBtn");
-  const monthlyBtn = root.querySelector("#exportMonthlyBtn");
+  // --------------------------------------------------
+  // Event Wiring – Buttons
+  // --------------------------------------------------
 
-  if (weeklyBtn) {
-    weeklyBtn.addEventListener("click", () => {
-      if (window.SignalOne && window.SignalOne.showToast) {
-        window.SignalOne.showToast(
-          "Weekly Report Export (Demo) – PDF Engine folgt in P6.",
-          "success"
-        );
-      }
+  const weeklyPdfBtn = root.querySelector("#exportWeeklyPdf");
+  const monthlyPdfBtn = root.querySelector("#exportMonthlyPdf");
+  const execPdfBtn = root.querySelector("#exportExecPdf");
+  const weeklyCsvBtn = root.querySelector("#exportWeeklyCsv");
+  const monthlyCsvBtn = root.querySelector("#exportMonthlyCsv");
+
+  if (weeklyPdfBtn) {
+    weeklyPdfBtn.addEventListener("click", () => {
+      window.SignalOne.showToast("Weekly Report wird vorbereitet…", "info");
+      openPrintWindow("weekly");
     });
   }
 
-  if (monthlyBtn) {
-    monthlyBtn.addEventListener("click", () => {
-      if (window.SignalOne && window.SignalOne.showToast) {
-        window.SignalOne.showToast(
-          "Monthly CSV Export (Demo) – echter Export folgt in P6.",
-          "success"
-        );
-      }
+  if (monthlyPdfBtn) {
+    monthlyPdfBtn.addEventListener("click", () => {
+      window.SignalOne.showToast("Monthly Report wird vorbereitet…", "info");
+      openPrintWindow("monthly");
+    });
+  }
+
+  if (execPdfBtn) {
+    execPdfBtn.addEventListener("click", () => {
+      window.SignalOne.showToast(
+        "Executive Summary wird vorbereitet…",
+        "info"
+      );
+      openPrintWindow("executive");
+    });
+  }
+
+  if (weeklyCsvBtn) {
+    weeklyCsvBtn.addEventListener("click", () => {
+      exportCsv("weekly");
+    });
+  }
+
+  if (monthlyCsvBtn) {
+    monthlyCsvBtn.addEventListener("click", () => {
+      exportCsv("monthly");
     });
   }
 }
