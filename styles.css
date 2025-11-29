@@ -1,7 +1,6 @@
 /*
  * SignalOne – Vision Pro Titanium Light
  * Full UI: Sidebar, Topbar, Dashboard, Creatives, Campaigns, Sensei, Reports, Logs
- * HTML & JS bleiben unverändert – nur Optik.
  */
 
 /* ==============================
@@ -9,31 +8,27 @@
    ============================== */
 
 :root {
-  /* ----------------------------------------------- */
-  /* HASE PREMIUM THEME – GRAPHITE LUX + METAL CLOUD */
-  /* ----------------------------------------------- */
-
-  /* --- PRIMARY (Accent Color) --- */
-  --color-primary: #3b6af8;          /* Ice Blue Tech */
+  /* PRIMARY */
+  --color-primary: #3b6af8;
   --color-primary-hover: #315bd6;
   --color-primary-soft: #e8efff;
 
-  /* --- NEUTRAL BACKGROUND STACK --- */
-  --color-bg: #e5e7f2;               /* App Hintergrund */
-  --color-bg-panel: #ffffff;         /* Clean White Panel (sehr edel) */
-  --color-bg-soft: #f1f5f9;          /* Soft Neutral */
-  --color-bg-hover: #e7e9ed;         /* Touch Highlight */
+  /* NEUTRAL BACKGROUND STACK */
+  --color-bg: #e5e7f2;
+  --color-bg-panel: #ffffff;
+  --color-bg-soft: #f1f5f9;
+  --color-bg-hover: #e7e9ed;
 
-  /* --- GRAPHITE TEXT (kein hartes Schwarz) --- */
-  --color-text-main: #0f172a;        /* Heavy Graphite */
-  --color-text-soft: #4f535a;        /* Medium Graphite */
-  --color-text-muted: #6b7280;       /* Light Graphite */
+  /* GRAPHITE TEXT */
+  --color-text-main: #0f172a;
+  --color-text-soft: #4f535a;
+  --color-text-muted: #6b7280;
 
-  /* --- BORDERS --- */
-  --color-border-subtle: #e2e8f0;    /* Neutral Steel */
+  /* BORDERS */
+  --color-border-subtle: #e2e8f0;
   --color-border-strong: #c4c7cd;
 
-  /* --- STATUS COLORS --- */
+  /* STATUS COLORS */
   --color-success: #16a34a;
   --color-success-soft: rgba(22, 163, 74, 0.08);
   --color-warning: #ea980c;
@@ -41,30 +36,30 @@
   --color-danger: #e11d48;
   --color-danger-soft: rgba(225, 29, 72, 0.08);
 
-  /* --- SURFACES --- */
-  --color-sidebar-bg: #020617;       /* Dark Sidebar */
-  --color-topbar-bg: rgba(248, 250, 252, 0.96);
-  --color-surface: #ffffff;          /* Kartenflächen */
+  /* SURFACES */
+  --color-sidebar-bg: #020617;
+  --color-topbar-bg: rgba(15, 23, 42, 0.96);
+  --color-surface: #ffffff;
   --color-surface-soft: #f8fafc;
 
-  /* --- ULTRA MODERN SHADOWS --- */
+  /* SHADOWS */
   --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
   --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.12);
   --shadow-lg: 0 16px 40px rgba(15, 23, 42, 0.18);
   --shadow-card: 0 18px 45px rgba(15, 23, 42, 0.22);
   --shadow-soft: var(--shadow-md);
 
-  /* --- RADIUS --- */
+  /* RADIUS */
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 18px;
 
-  /* --- INPUTS --- */
-  --input-bg: #ffffff;             /* Clean Panel White */
+  /* INPUTS */
+  --input-bg: #ffffff;
   --input-border: #cfd2d8;
   --input-focus: #3b6af8;
 
-  /* --- SIDEBAR ICON COLORS (Duotone Gold) --- */
+  /* SIDEBAR ICON COLORS (Duotone Gold) */
   --sidebar-icon-active-fill: #c8a451;
   --sidebar-icon-active-stroke: #9c8242;
   --sidebar-icon-inactive-fill: #8f8057;
@@ -72,24 +67,15 @@
   --sidebar-icon-hover-fill: #ddc36b;
   --sidebar-icon-hover-stroke: #b1943f;
 
-  /* --- DERIVED TOKENS --- */
-  --color-background: var(--color-bg);
-  --color-sidebar: var(--color-sidebar-bg);
-  --color-topbar: var(--color-topbar-bg);
-  --color-card: var(--color-surface);
-
+  /* DERIVED */
   --surface: var(--color-surface);
   --surface-alt: var(--color-surface-soft);
-
   --text-primary: var(--color-text-main);
   --text-secondary: var(--color-text-muted);
-
   --border: var(--color-border-subtle);
-
   --success: var(--color-success);
   --warning: var(--color-warning);
   --danger: var(--color-danger);
-
   --accent: var(--color-primary);
 }
 
@@ -112,8 +98,8 @@ body {
 body {
   min-height: 100vh;
   display: flex;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
-    "Segoe UI", system-ui, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI",
+    system-ui, sans-serif;
   line-height: 1.45;
   letter-spacing: 0.01em;
   color: var(--color-text-main);
@@ -188,49 +174,12 @@ nav.sidebar {
   width: 176px;
   height: 42px;
   border-radius: 12px;
-  background:
-    #020617 url("Logo_re_Sc.png") center center / contain no-repeat;
+  background: #020617 url("Logo_re_Sc.png") center center / contain no-repeat;
   box-shadow:
     0 0 0 1px rgba(148, 163, 184, 0.6),
     0 18px 40px rgba(15, 23, 42, 0.8);
   text-indent: -9999px;
   overflow: hidden;
-}
-
-.sidebar-title-block {
-  display: flex;
-  flex-direction: column;
-}
-
-.sidebar-title {
-  font-size: 0.98rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #e5e7eb;
-}
-
-.sidebar-subtitle {
-  font-size: 0.74rem;
-  color: rgba(148, 163, 184, 0.9);
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-}
-
-/* Status-Pill unter Logo */
-.sidebar-status-pill {
-  margin-top: 8px;
-  font-size: 0.78rem;
-  padding: 4px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(55, 65, 81, 0.8);
-  background: radial-gradient(
-    circle at 0% 0%,
-    rgba(30, 64, 175, 0.8),
-    rgba(15, 23, 42, 0.98)
-  );
-  color: rgba(226, 232, 240, 0.98);
-  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.9);
 }
 
 /* Navigation */
@@ -242,16 +191,8 @@ nav.sidebar {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  justify-content: flex-start;    /* jetzt OBEN, nicht mehr mittig */
+  justify-content: flex-start; /* OBEN, nicht mittig */
   overflow-y: visible;
-}
-
-.sidebar-section-label {
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: rgba(156, 163, 175, 0.95);
-  margin-bottom: 4px;
 }
 
 .sidebar-nav-item {
@@ -292,6 +233,10 @@ nav.sidebar {
   flex-shrink: 0;
 }
 
+.icon-svg use {
+  pointer-events: none;
+}
+
 .sidebar-nav-button .icon-layer-fill {
   fill: var(--sidebar-icon-inactive-fill);
   opacity: 0.85;
@@ -306,8 +251,7 @@ nav.sidebar {
   stroke-width: 1.4;
   stroke-linecap: round;
   stroke-linejoin: round;
-  transition:
-    stroke 0.16s ease;
+  transition: stroke 0.16s ease;
 }
 
 /* Hover / Active States */
@@ -404,10 +348,6 @@ nav.sidebar {
     transform 0.06s ease;
 }
 
-.sidebar-footer-button i {
-  font-size: 0.9rem;
-}
-
 .sidebar-footer-button:hover {
   background: radial-gradient(
     circle at 0% 0%,
@@ -455,19 +395,6 @@ nav.sidebar {
   color: #e5e7eb;
 }
 
-.topbar-greeting-title,
-#topbarGreeting {
-  color: #f9fafb;
-}
-
-.topbar-greeting-meta span {
-  color: rgba(226, 232, 240, 0.9);
-}
-
-#topbar .topbar-select-group label {
-  color: rgba(209, 213, 219, 0.9);
-}
-
 .topbar-left,
 .topbar-center,
 .topbar-right {
@@ -495,21 +422,20 @@ nav.sidebar {
   gap: 3px;
 }
 
-.topbar-greeting-title {
+#topbarGreeting {
+  color: #f9fafb;
   font-size: 0.96rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.topbar-greeting-meta {
+.topbar-greeting-meta span {
+  color: rgba(226, 232, 240, 0.9);
   font-size: 0.78rem;
-  color: var(--color-text-muted);
-  display: flex;
-  gap: 10px;
 }
 
-/* Selects / Inputs – matte, nicht mehr Button-Look */
+/* Selects / Inputs */
 
 .topbar-select-group {
   display: flex;
@@ -550,7 +476,6 @@ nav.sidebar {
   box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.22);
 }
 
-/* Option-Layer im Dropdown – hell & lesbar */
 .topbar-select option {
   background: #ffffff;
   color: var(--color-text-main);
@@ -561,20 +486,31 @@ nav.sidebar {
   width: 32px;
   height: 32px;
   border-radius: 999px;
-  border: 1px solid var(--color-border-subtle);
-  background:
-    radial-gradient(circle at 0% 0%, rgba(248, 250, 252, 0.98), rgba(226, 232, 240, 0.95));
+  border: 1px solid rgba(148, 163, 184, 0.95);
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(248, 250, 252, 0.98),
+    rgba(226, 232, 240, 0.96)
+  );
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: #4b5563;
-  font-size: 0.98rem;
   position: relative;
   transition:
     background 0.16s ease,
     box-shadow 0.16s ease,
     transform 0.06s ease,
     border-color 0.16s ease;
+}
+
+.icon-svg-top {
+  width: 18px;
+  height: 18px;
+}
+
+.icon-svg-top use {
+  pointer-events: none;
 }
 
 .icon-button:hover {
@@ -619,7 +555,7 @@ nav.sidebar {
   gap: 6px;
 }
 
-/* Globaler Meta-Button Default (außerhalb Topbar) */
+/* Default Meta Button elsewhere */
 .meta-button {
   border-radius: 999px;
   border: 1px solid rgba(37, 99, 235, 0.9);
@@ -661,13 +597,13 @@ nav.sidebar {
   padding: 120px 0 40px;
 }
 
-/* Alle Views: zentriert Panel + Full-Width Header Strip */
+/* View Panel */
 .view {
   position: relative;
   display: none;
   max-width: 1440px;
-  margin: 40px auto 0;
-  padding: 28px 26px 44px;
+  margin: 54px auto 0;
+  padding: 24px 26px 44px;
   border-radius: 26px;
   background: radial-gradient(
     circle at 0% 0%,
@@ -681,19 +617,19 @@ nav.sidebar {
   backdrop-filter: blur(26px);
 }
 
-/* FULL-WIDTH HEADER STRIP – Variante 3 (über ganze Seite) */
+/* FULL-WIDTH GOLD HEADER STRIP (Theme C) */
 .view::before {
   content: attr(data-view-title);
   position: absolute;
   top: -46px;
   left: 50%;
   transform: translateX(-50%);
-  width: 100vw;             /* Full-Width über Fenster */
+  width: 100vw;
   height: 46px;
 
   display: flex;
   align-items: center;
-  padding: 0 40px 0 260px;  /* links Platz für Sidebar, rechts Luft */
+  padding: 0 40px 0 260px;
   box-sizing: border-box;
 
   font-size: 1.08rem;
@@ -701,48 +637,61 @@ nav.sidebar {
   letter-spacing: 0.18em;
   text-transform: uppercase;
 
-  border-bottom: 1px solid rgba(15, 23, 42, 0.4);
-
-  z-index: -1; /* hinter der Card, aber visuell als Kante */
+  border-bottom: 1px solid rgba(146, 101, 22, 0.6);
+  z-index: -1;
 }
 
-/* Theme A – Titanium Dark */
-.view[data-header-theme="a"]::before {
-  background: linear-gradient(90deg, #020617, #111827, #020617);
-  color: #e5e7eb;
-}
-
-/* Theme B – Blue Titanium Gradient */
-.view[data-header-theme="b"]::before {
-  background: linear-gradient(90deg, #1d2a5c, #1d4ed8, #38bdf8);
-  color: #e5f0ff;
-}
-
-/* Theme C – Premium Gold Strip */
 .view[data-header-theme="c"]::before {
   background: linear-gradient(90deg, #c8a451, #e0c26a, #b08934);
   color: #111827;
-  border-bottom-color: rgba(146, 101, 22, 0.6);
 }
 
-/* Theme D – Black Glass Strip (VisionOS) */
-.view[data-header-theme="d"]::before {
-  background: linear-gradient(
-    90deg,
-    rgba(15, 23, 42, 0.92),
-    rgba(15, 23, 42, 0.7),
-    rgba(15, 23, 42, 0.92)
-  );
-  color: #e5e7eb;
-  backdrop-filter: blur(18px);
+/* Subheader unter Gold-Leiste (Brand / Konto / Kontext) */
+.view-subheader {
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.4);
 }
 
-/* View-Visible */
-.view.active {
-  display: block;
+.subheader-line-1,
+.subheader-line-2 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
-/* Inner Header (optional innerhalb Cards) */
+.subheader-line-1 {
+  margin-bottom: 2px;
+}
+
+.subheader-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.subheader-brand-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+}
+
+.subheader-role {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.subheader-line-2 {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.subheader-divider {
+  opacity: 0.8;
+}
+
+/* Inner Header (wird für redundante H2 entschärft) */
 .view-header {
   display: flex;
   align-items: baseline;
@@ -751,17 +700,14 @@ nav.sidebar {
   margin-bottom: 18px;
 }
 
+/* H2 im Grid sind redundant zur Gold-Leiste → dezenter */
 .view-header h2 {
-  font-size: 1.36rem;
-  font-weight: 650;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-text-main);
-}
-
-.view-subtitle {
   font-size: 0.9rem;
-  color: var(--color-text-muted);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+  opacity: 0.8;
 }
 
 /* ==============================
@@ -921,8 +867,11 @@ nav.sidebar {
   border: 1px solid rgba(148, 163, 184, 0.7);
   padding: 7px 10px;
   font-size: 0.8rem;
-  background:
-    radial-gradient(circle at 0% 0%, rgba(248, 250, 252, 0.98), rgba(226, 232, 240, 0.96));
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(248, 250, 252, 0.98),
+    rgba(226, 232, 240, 0.96)
+  );
   color: var(--color-text-main);
   outline: none;
   min-width: 160px;
@@ -943,7 +892,6 @@ nav.sidebar {
    9) LOADER, TOASTS, MODAL
    ============================== */
 
-/* Global Loader Overlay (Baseline – Feintuning in sx-core.css) */
 .global-loader {
   position: fixed;
   inset: 0;
@@ -1003,8 +951,11 @@ nav.sidebar {
   padding: 9px 13px;
   border-radius: 999px;
   font-size: 0.82rem;
-  background:
-    radial-gradient(circle at 0% 0%, rgba(248, 250, 252, 0.98), rgba(226, 232, 240, 0.96));
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(248, 250, 252, 0.98),
+    rgba(226, 232, 240, 0.96)
+  );
   border: 1px solid rgba(148, 163, 184, 0.7);
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.34);
   opacity: 0;
@@ -1048,8 +999,11 @@ nav.sidebar {
   width: 100%;
   padding: 16px 16px 14px;
   border-radius: 16px;
-  background:
-    radial-gradient(circle at 0% 0%, rgba(248, 250, 252, 0.98), rgba(226, 232, 240, 0.96));
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(248, 250, 252, 0.98),
+    rgba(226, 232, 240, 0.96)
+  );
   border: 1px solid rgba(148, 163, 184, 0.9);
   box-shadow: var(--shadow-lg);
 }
@@ -1074,8 +1028,11 @@ nav.sidebar {
   height: 28px;
   border-radius: 999px;
   border: 1px solid rgba(156, 163, 175, 0.9);
-  background:
-    radial-gradient(circle at 0% 0%, rgba(248, 250, 252, 0.98), rgba(226, 232, 240, 0.96));
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(248, 250, 252, 0.98),
+    rgba(226, 232, 240, 0.96)
+  );
   display: inline-flex;
   align-items: center;
   justify-content: center;
