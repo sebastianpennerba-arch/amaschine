@@ -6,23 +6,135 @@
     <title>SignalOne – Dashboard</title>
     <link rel="stylesheet" href="styles.css" />
     <link rel="stylesheet" href="sx-core.css" />
-    <!-- Icon-Font nur für UI-Icons, kein Framework -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-      referrerpolicy="no-referrer"
-    />
   </head>
+
   <body>
-    <!-- Sidebar Navigation (Grundgerüst bleibt erhalten) -->
+    <!-- ===============================================
+         SVG ICON LIBRARY (INLINE, INVISIBLE)
+         =============================================== -->
+    <svg width="0" height="0" style="position:absolute;visibility:hidden">
+      <!-- DASHBOARD -->
+      <symbol id="icon-dashboard" viewBox="0 0 24 24">
+        <rect class="icon-layer-fill" x="3" y="3" width="7" height="7" rx="2"/>
+        <rect class="icon-layer-stroke" x="3" y="3" width="7" height="7" rx="2"/>
+        <rect class="icon-layer-fill" x="14" y="3" width="7" height="7" rx="2"/>
+        <rect class="icon-layer-stroke" x="14" y="3" width="7" height="7" rx="2"/>
+        <rect class="icon-layer-fill" x="3" y="14" width="7" height="7" rx="2"/>
+        <rect class="icon-layer-stroke" x="3" y="14" width="7" height="7" rx="2"/>
+        <rect class="icon-layer-fill" x="14" y="14" width="7" height="7" rx="2"/>
+        <rect class="icon-layer-stroke" x="14" y="14" width="7" height="7" rx="2"/>
+      </symbol>
+
+      <!-- CREATIVE LIBRARY -->
+      <symbol id="icon-library" viewBox="0 0 24 24">
+        <rect class="icon-layer-fill" x="4" y="3" width="16" height="18" rx="2"/>
+        <rect class="icon-layer-stroke" x="4" y="3" width="16" height="18" rx="2"/>
+        <rect class="icon-layer-stroke" x="8" y="7" width="8" height="2" rx="1"/>
+        <rect class="icon-layer-stroke" x="8" y="11" width="8" height="2" rx="1"/>
+        <rect class="icon-layer-stroke" x="8" y="15" width="6" height="2" rx="1"/>
+      </symbol>
+
+      <!-- CAMPAIGNS -->
+      <symbol id="icon-campaigns" viewBox="0 0 24 24">
+        <circle class="icon-layer-fill" cx="12" cy="12" r="9" />
+        <circle class="icon-layer-stroke" cx="12" cy="12" r="9" />
+        <path class="icon-layer-stroke" d="M12 7v5l4 2"/>
+      </symbol>
+
+      <!-- SENSEI / AI -->
+      <symbol id="icon-sensei" viewBox="0 0 24 24">
+        <circle class="icon-layer-fill" cx="12" cy="12" r="10"/>
+        <circle class="icon-layer-stroke" cx="12" cy="12" r="10"/>
+        <circle class="icon-layer-stroke" cx="12" cy="12" r="4"/>
+      </symbol>
+
+      <!-- TESTING LOG -->
+      <symbol id="icon-testing" viewBox="0 0 24 24">
+        <rect class="icon-layer-fill" x="4" y="3" width="16" height="18" rx="2"/>
+        <rect class="icon-layer-stroke" x="4" y="3" width="16" height="18" rx="2"/>
+        <path class="icon-layer-stroke" d="M8 7h8M8 12h8M8 17h6"/>
+      </symbol>
+
+      <!-- REPORTS -->
+      <symbol id="icon-reports" viewBox="0 0 24 24">
+        <rect class="icon-layer-fill" x="3" y="3" width="18" height="18" rx="3"/>
+        <rect class="icon-layer-stroke" x="3" y="3" width="18" height="18" rx="3"/>
+        <path class="icon-layer-stroke" d="M8 14l3 3 5-7"/>
+      </symbol>
+
+      <!-- CREATOR INSIGHTS -->
+      <symbol id="icon-creators" viewBox="0 0 24 24">
+        <circle class="icon-layer-fill" cx="12" cy="8" r="4"/>
+        <circle class="icon-layer-stroke" cx="12" cy="8" r="4"/>
+        <path class="icon-layer-stroke" d="M6 21v-2c0-2.2 2.5-4 6-4s6 1.8 6 4v2"/>
+      </symbol>
+
+      <!-- ANALYTICS -->
+      <symbol id="icon-analytics" viewBox="0 0 24 24">
+        <rect class="icon-layer-fill" x="4" y="14" width="4" height="6" rx="1"/>
+        <rect class="icon-layer-stroke" x="4" y="14" width="4" height="6" rx="1"/>
+        <rect class="icon-layer-fill" x="10" y="10" width="4" height="10" rx="1"/>
+        <rect class="icon-layer-stroke" x="10" y="10" width="4" height="10" rx="1"/>
+        <rect class="icon-layer-fill" x="16" y="6" width="4" height="14" rx="1"/>
+        <rect class="icon-layer-stroke" x="16" y="6" width="4" height="14" rx="1"/>
+      </symbol>
+
+      <!-- TEAM -->
+      <symbol id="icon-team" viewBox="0 0 24 24">
+        <circle class="icon-layer-fill" cx="8" cy="8" r="3"/>
+        <circle class="icon-layer-stroke" cx="8" cy="8" r="3"/>
+        <circle class="icon-layer-fill" cx="16" cy="8" r="3"/>
+        <circle class="icon-layer-stroke" cx="16" cy="8" r="3"/>
+        <path class="icon-layer-stroke" d="M4 21v-2c0-2 2-4 4-4s4 2 4 4v2"/>
+        <path class="icon-layer-stroke" d="M12 21v-2c0-2 2-4 4-4s4 2 4 4v2"/>
+      </symbol>
+
+      <!-- BRANDS -->
+      <symbol id="icon-brands" viewBox="0 0 24 24">
+        <circle class="icon-layer-fill" cx="12" cy="12" r="10"/>
+        <circle class="icon-layer-stroke" cx="12" cy="12" r="10"/>
+        <path class="icon-layer-stroke" d="M2 12h20M12 2v20"/>
+      </symbol>
+
+      <!-- SHOPIFY -->
+      <symbol id="icon-shopify" viewBox="0 0 24 24">
+        <path class="icon-layer-fill" d="M5 4l14 2v12l-14 2z"/>
+        <path class="icon-layer-stroke" d="M5 4l14 2v12l-14 2z"/>
+        <path class="icon-layer-stroke" d="M9 8l6 1"/>
+        <path class="icon-layer-stroke" d="M9 12l6 1"/>
+      </symbol>
+
+      <!-- ROAST -->
+      <symbol id="icon-roast" viewBox="0 0 24 24">
+        <path class="icon-layer-fill" d="M12 2c4 4 4 8 0 12-4-4-4-8 0-12z"/>
+        <path class="icon-layer-stroke" d="M12 2c4 4 4 8 0 12-4-4-4-8 0-12z"/>
+        <circle class="icon-layer-stroke" cx="12" cy="16" r="5"/>
+      </symbol>
+
+      <!-- ONBOARDING -->
+      <symbol id="icon-onboarding" viewBox="0 0 24 24">
+        <circle class="icon-layer-fill" cx="12" cy="12" r="10"/>
+        <circle class="icon-layer-stroke" cx="12" cy="12" r="10"/>
+        <path class="icon-layer-stroke" d="M8 12l2 2 4-4"/>
+      </symbol>
+
+      <!-- SETTINGS -->
+      <symbol id="icon-settings" viewBox="0 0 24 24">
+        <circle class="icon-layer-fill" cx="12" cy="12" r="3"/>
+        <circle class="icon-layer-stroke" cx="12" cy="12" r="3"/>
+        <path class="icon-layer-stroke" d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V22a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82A1.65 1.65 0 0 0 2 12.91V13a2 2 0 1 1 0-4v.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82L3.12 6.12a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.1A1.65 1.65 0 0 0 9.59 2H9.5a2 2 0 1 1 4 0h-.09a1.65 1.65 0 0 0 1 1.51h.1a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.1A1.65 1.65 0 0 0 22 9.5v.09a2 2 0 1 1 0 4v-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </symbol>
+    </svg>
+
+    <!-- ===============================================
+         SIDEBAR
+         =============================================== -->
     <nav class="sidebar">
       <div class="sidebar-header">
         <div class="sidebar-logo">SignalOne</div>
       </div>
 
-      <ul class="sidebar-nav" id="navbar">
-        <!-- Navigation wird von app.js dynamisch gefüllt -->
-      </ul>
+      <ul class="sidebar-nav" id="navbar"></ul>
 
       <div class="sidebar-footer">
         <div class="sidebar-status-row">
@@ -39,21 +151,19 @@
         </div>
 
         <button id="settingsButton" class="sidebar-footer-button" type="button">
-          <i class="fa-solid fa-sliders"></i>
           Settings
         </button>
       </div>
     </nav>
 
-    <!-- Main Layout -->
+    <!-- ===============================================
+         APP-SHELL + TOPBAR
+         =============================================== -->
     <div class="app-shell">
-      <!-- Topbar -->
       <header id="topbar">
         <div class="topbar-left">
           <div class="topbar-greeting">
-            <div class="topbar-greeting-title" id="topbarGreeting">
-              Guten Tag, SignalOne Nutzer!
-            </div>
+            <div id="topbarGreeting">Guten Tag, Nutzer!</div>
             <div class="topbar-greeting-meta">
               <span id="topbarDate">Datum: –</span>
               <span id="topbarTime">Zeit: –</span>
@@ -63,14 +173,14 @@
 
         <div class="topbar-center">
           <div class="topbar-select-group">
-            <label for="brandSelect">Brand</label>
+            <label>Brand</label>
             <select id="brandSelect" class="topbar-select">
               <option>Werbekonto auswählen</option>
             </select>
           </div>
 
           <div class="topbar-select-group">
-            <label for="campaignSelect">Kampagne</label>
+            <label>Kampagne</label>
             <select id="campaignSelect" class="topbar-select">
               <option>Kampagne auswählen</option>
             </select>
@@ -78,128 +188,37 @@
         </div>
 
         <div class="topbar-right">
-          <button id="metaConnectButton" class="meta-button" type="button">
-            Meta verbinden
-          </button>
-
-          <button id="notificationsButton" class="icon-button" type="button">
-            <i class="fa-regular fa-bell"></i>
+          <button id="metaConnectButton" class="meta-button">Meta verbinden</button>
+          <button id="notificationsButton" class="icon-button">
             <span id="notificationsDot" class="notification-dot hidden"></span>
           </button>
-
-          <button id="profileButton" class="icon-button" type="button">
-            <i class="fa-regular fa-user"></i>
-          </button>
-
-          <button id="logoutButton" class="icon-button" type="button">
-            <i class="fa-solid fa-arrow-right-from-bracket"></i>
-          </button>
+          <button id="profileButton" class="icon-button"></button>
+          <button id="logoutButton" class="icon-button"></button>
         </div>
       </header>
 
-      <!-- Content Area -->
+      <!-- ===============================================
+           MAIN CONTENT VIEWS
+           =============================================== -->
       <main class="main-content">
-        <!-- Dashboard View -->
-        <section
-          id="dashboardView"
-          class="view active"
-          data-view-title="Dashboard"
-        ></section>
-
-        <!-- Creative Library -->
-        <section
-          id="creativeLibraryView"
-          class="view"
-          data-view-title="Creative Library"
-        ></section>
-
-        <!-- Campaigns -->
-        <section
-          id="campaignsView"
-          class="view"
-          data-view-title="Kampagnen"
-        ></section>
-
-        <!-- Sensei / AI Suite -->
-        <section
-          id="senseiView"
-          class="view"
-          data-view-title="Sensei / AI Suite"
-        ></section>
-
-        <!-- Testing Log -->
-        <section
-          id="testingLogView"
-          class="view"
-          data-view-title="Testing Log"
-        ></section>
-
-        <!-- Reports & Export -->
-        <section
-          id="reportsView"
-          class="view"
-          data-view-title="Reports & Export"
-        ></section>
-
-        <!-- Settings View -->
-        <section
-          id="settingsView"
-          class="view"
-          data-view-title="Settings"
-        ></section>
-
-        <!-- Creator Insights -->
-        <section
-          id="creatorInsightsView"
-          class="view"
-          data-view-title="Creator Insights"
-        ></section>
-
-        <!-- Analytics -->
-        <section
-          id="analyticsView"
-          class="view"
-          data-view-title="Analytics"
-        ></section>
-
-        <!-- Team -->
-        <section
-          id="teamView"
-          class="view"
-          data-view-title="Team"
-        ></section>
-
-        <!-- Brands -->
-        <section
-          id="brandsView"
-          class="view"
-          data-view-title="Brands"
-        ></section>
-
-        <!-- Shopify -->
-        <section
-          id="shopifyView"
-          class="view"
-          data-view-title="Shopify"
-        ></section>
-
-        <!-- Roast -->
-        <section
-          id="roastView"
-          class="view"
-          data-view-title="Roast"
-        ></section>
-
-        <!-- Onboarding -->
-        <section
-          id="onboardingView"
-          class="view"
-          data-view-title="Onboarding"
-        ></section>
+        <section id="dashboardView" class="view active" data-view-title="Dashboard"></section>
+        <section id="creativeLibraryView" class="view" data-view-title="Creative Library"></section>
+        <section id="campaignsView" class="view" data-view-title="Kampagnen"></section>
+        <section id="senseiView" class="view" data-view-title="Sensei"></section>
+        <section id="testingLogView" class="view" data-view-title="Testing Log"></section>
+        <section id="reportsView" class="view" data-view-title="Reports & Export"></section>
+        <section id="creatorInsightsView" class="view" data-view-title="Creator Insights"></section>
+        <section id="analyticsView" class="view" data-view-title="Analytics"></section>
+        <section id="teamView" class="view" data-view-title="Team"></section>
+        <section id="brandsView" class="view" data-view-title="Brands"></section>
+        <section id="shopifyView" class="view" data-view-title="Shopify"></section>
+        <section id="roastView" class="view" data-view-title="Roast"></section>
+        <section id="onboardingView" class="view" data-view-title="Onboarding"></section>
+        <section id="settingsView" class="view" data-view-title="Settings"></section>
       </main>
     </div>
 
-    <!-- Global Loader Overlay -->
+    <!-- GLOBAL LOADER -->
     <div id="globalLoader" class="global-loader hidden">
       <div class="global-loader-inner">
         <div class="loader-dot"></div>
@@ -209,35 +228,21 @@
       </div>
     </div>
 
-    <!-- Toast Container -->
+    <!-- TOAST CONTAINER -->
     <div id="toastContainer"></div>
 
-    <!-- Zentrales Modal-System -->
-    <div
-      id="modalOverlay"
-      class="modal-overlay hidden"
-      aria-hidden="true"
-      role="dialog"
-    >
+    <!-- MODAL -->
+    <div id="modalOverlay" class="modal-overlay hidden" aria-hidden="true">
       <div class="modal">
         <div class="modal-header">
-          <h2 id="modalTitle" class="modal-title">System Dialog</h2>
-          <button
-            id="modalCloseButton"
-            class="modal-close"
-            type="button"
-            aria-label="Modal schließen"
-          >
-            <i class="fa-solid fa-xmark"></i>
-          </button>
+          <h2 id="modalTitle">System Dialog</h2>
+          <button id="modalCloseButton" class="modal-close">×</button>
         </div>
-        <div id="modalBody" class="modal-body">
-          <!-- Dynamischer Inhalt -->
-        </div>
+        <div id="modalBody" class="modal-body"></div>
       </div>
     </div>
 
-    <!-- App Script -->
+    <!-- SCRIPT -->
     <script type="module" src="app.js"></script>
   </body>
 </html>
