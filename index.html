@@ -50,22 +50,30 @@
       <!-- Topbar -->
       <header id="topbar">
         <div class="topbar-left">
-          <div class="topbar-greeting-title" id="topbarGreeting">
-            Guten Tag, SignalOne Nutzer!
-          </div>
-          <div class="topbar-greeting-meta">
-            <span id="topbarDate">Datum: –</span>
-            <span id="topbarTime">Zeit: –</span>
+          <div class="topbar-greeting">
+            <div class="topbar-greeting-title" id="topbarGreeting">
+              Guten Tag, SignalOne Nutzer!
+            </div>
+            <div class="topbar-greeting-meta">
+              <span id="topbarDate">Datum: –</span>
+              <span id="topbarTime">Zeit: –</span>
+            </div>
           </div>
         </div>
 
         <div class="topbar-center">
-          <select id="brandSelect" class="topbar-select">
-            <option>Werbekonto auswählen</option>
-          </select>
-          <select id="campaignSelect" class="topbar-select">
-            <option>Kampagne auswählen</option>
-          </select>
+          <div class="topbar-select-group">
+            <label for="brandSelect">Brand</label>
+            <select id="brandSelect" class="topbar-select">
+              <option>Werbekonto auswählen</option>
+            </select>
+          </div>
+          <div class="topbar-select-group">
+            <label for="campaignSelect">Kampagne</label>
+            <select id="campaignSelect" class="topbar-select">
+              <option>Kampagne auswählen</option>
+            </select>
+          </div>
         </div>
 
         <div class="topbar-right">
@@ -81,8 +89,8 @@
             Meta verbinden
           </button>
 
-          <button id="demoToggle" class="icon-button" type="button">
-            <i class="fa-solid fa-vial-circle-check"></i>
+          <button id="demoToggle" class="demo-toggle-button" type="button">
+            Demo: AN
           </button>
 
           <button id="notificationsButton" class="icon-button" type="button">
@@ -102,20 +110,76 @@
 
       <!-- Content Area -->
       <main class="main-content">
-        <section id="dashboardView" class="view active"></section>
-        <section id="creativeLibraryView" class="view"></section>
-        <section id="campaignsView" class="view"></section>
-        <section id="senseiView" class="view"></section>
-        <section id="testingLogView" class="view"></section>
-        <section id="reportsView" class="view"></section>
-        <section id="settingsView" class="view"></section>
-        <section id="creatorInsightsView" class="view"></section>
-        <section id="analyticsView" class="view"></section>
-        <section id="teamView" class="view"></section>
-        <section id="brandsView" class="view"></section>
-        <section id="shopifyView" class="view"></section>
-        <section id="roastView" class="view"></section>
-        <section id="onboardingView" class="view"></section>
+        <section
+          id="dashboardView"
+          class="view active"
+          data-view-title="Dashboard"
+        ></section>
+        <section
+          id="creativeLibraryView"
+          class="view"
+          data-view-title="Creative Library"
+        ></section>
+        <section
+          id="campaignsView"
+          class="view"
+          data-view-title="Kampagnen"
+        ></section>
+        <section
+          id="senseiView"
+          class="view"
+          data-view-title="Sensei AI"
+        ></section>
+        <section
+          id="testingLogView"
+          class="view"
+          data-view-title="Testing Log"
+        ></section>
+        <section
+          id="reportsView"
+          class="view"
+          data-view-title="Reports & Export"
+        ></section>
+        <section
+          id="settingsView"
+          class="view"
+          data-view-title="Settings"
+        ></section>
+        <section
+          id="creatorInsightsView"
+          class="view"
+          data-view-title="Creator Insights"
+        ></section>
+        <section
+          id="analyticsView"
+          class="view"
+          data-view-title="Analytics"
+        ></section>
+        <section
+          id="teamView"
+          class="view"
+          data-view-title="Team"
+        ></section>
+        <section
+          id="brandsView"
+          class="view"
+          data-view-title="Brands"
+        ></section>
+        <section
+          id="shopifyView"
+          class="view"
+          data-view-title="Shopify"
+        ></section>
+        <section
+          id="roastView"
+          class="view"
+          data-view-title="Roast"
+        ></section>
+        <section
+          id="onboardingView"
+          class="view"
+          data-view-title="Onboarding"
+        ></section>
       </main>
     </div>
 
