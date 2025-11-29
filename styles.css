@@ -6,6 +6,17 @@
 /* ==============================
    1) DESIGN TOKENS
    ============================== */
+svg[width="0"][height="0"] {
+  all: unset !important;
+  position: absolute !important;
+  width: 0 !important;
+  height: 0 !important;
+  visibility: hidden !important;
+  overflow: hidden !important;
+  display: block !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
 
 :root {
   --color-primary: #3b6af8;
