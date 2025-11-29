@@ -1,7 +1,6 @@
 /*
  * SignalOne – Vision Pro Titanium Light
  * Full UI: Sidebar, Topbar, Dashboard, Creatives, Campaigns, Sensei, Reports, Logs
- * HTML & JS bleiben unverändert – nur Optik.
  */
 
 /* ==============================
@@ -9,31 +8,27 @@
    ============================== */
 
 :root {
-  /* ----------------------------------------------- */
-  /* HASE PREMIUM THEME – GRAPHITE LUX + METAL CLOUD */
-  /* ----------------------------------------------- */
-
-  /* --- PRIMARY (Accent Color) --- */
-  --color-primary: #3b6af8;          /* Ice Blue Tech */
+  /* PRIMARY (Accent Color) */
+  --color-primary: #3b6af8;
   --color-primary-hover: #315bd6;
   --color-primary-soft: #e8efff;
 
-  /* --- NEUTRAL BACKGROUND STACK --- */
-  --color-bg: #e5e7f2;               /* App Hintergrund */
-  --color-bg-panel: #ffffff;         /* Clean White Panel (sehr edel) */
-  --color-bg-soft: #f1f5f9;          /* Soft Neutral */
-  --color-bg-hover: #e7e9ed;         /* Touch Highlight */
+  /* NEUTRAL BACKGROUND STACK */
+  --color-bg: #e5e7f2;
+  --color-bg-panel: #ffffff;
+  --color-bg-soft: #f1f5f9;
+  --color-bg-hover: #e7e9ed;
 
-  /* --- GRAPHITE TEXT (kein hartes Schwarz) --- */
-  --color-text-main: #0f172a;        /* Heavy Graphite */
-  --color-text-soft: #4f535a;        /* Medium Graphite */
-  --color-text-muted: #6b7280;       /* Light Graphite */
+  /* GRAPHITE TEXT */
+  --color-text-main: #0f172a;
+  --color-text-soft: #4f535a;
+  --color-text-muted: #6b7280;
 
-  /* --- BORDERS --- */
-  --color-border-subtle: #e2e8f0;    /* Neutral Steel */
+  /* BORDERS */
+  --color-border-subtle: #e2e8f0;
   --color-border-strong: #c4c7cd;
 
-  /* --- STATUS COLORS --- */
+  /* STATUS COLORS */
   --color-success: #16a34a;
   --color-success-soft: rgba(22, 163, 74, 0.08);
   --color-warning: #ea980c;
@@ -41,30 +36,30 @@
   --color-danger: #e11d48;
   --color-danger-soft: rgba(225, 29, 72, 0.08);
 
-  /* --- SURFACES --- */
-  --color-sidebar-bg: #020617;       /* Dark Sidebar */
+  /* SURFACES */
+  --color-sidebar-bg: #020617;
   --color-topbar-bg: rgba(248, 250, 252, 0.96);
-  --color-surface: #ffffff;          /* Kartenflächen */
+  --color-surface: #ffffff;
   --color-surface-soft: #f8fafc;
 
-  /* --- ULTRA MODERN SHADOWS --- */
+  /* SHADOWS */
   --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
   --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.12);
   --shadow-lg: 0 16px 40px rgba(15, 23, 42, 0.18);
   --shadow-card: 0 18px 45px rgba(15, 23, 42, 0.22);
   --shadow-soft: var(--shadow-md);
 
-  /* --- RADIUS --- */
+  /* RADIUS */
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 18px;
 
-  /* --- INPUTS --- */
-  --input-bg: #ffffff;             /* Clean Panel White */
+  /* INPUTS */
+  --input-bg: #ffffff;
   --input-border: #cfd2d8;
   --input-focus: #3b6af8;
 
-  /* --- DERIVED TOKENS --- */
+  /* DERIVED */
   --color-background: var(--color-bg);
   --color-sidebar: var(--color-sidebar-bg);
   --color-topbar: var(--color-topbar-bg);
@@ -138,14 +133,13 @@ button {
 }
 
 /* ==============================
-   3) SIDEBAR – VISION PRO PANEL
+   3) SIDEBAR
    ============================== */
 
 nav.sidebar {
   position: fixed;
+  inset-block: 0;
   left: 0;
-  top: 0;
-  bottom: 0;
   width: 220px;
 
   background: radial-gradient(
@@ -167,6 +161,7 @@ nav.sidebar {
 }
 
 /* Logo / Header */
+
 .sidebar-header {
   display: flex;
   align-items: center;
@@ -190,32 +185,8 @@ nav.sidebar {
   overflow: hidden;
 }
 
-/* Footer System-Status */
-.sidebar-footer {
-  margin-top: auto;
-  padding-top: 18px;
-  border-top: 1px solid rgba(51, 65, 85, 0.9);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.sidebar-status-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.78rem;
-  color: rgba(148, 163, 184, 0.9);
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: rgba(148, 163, 184, 0.7);
-}
-
 /* Navigation */
+
 .sidebar-nav {
   margin-top: 4px;
   padding-top: 8px;
@@ -227,7 +198,8 @@ nav.sidebar {
   overflow-y: auto;
 }
 
-/* Scrollbar dezent */
+/* Scrollbar */
+
 .sidebar-nav::-webkit-scrollbar {
   width: 6px;
 }
@@ -241,7 +213,6 @@ nav.sidebar {
   border-radius: 999px;
 }
 
-/* Nav-Buttons */
 .sidebar-nav-item {
   list-style: none;
 }
@@ -273,7 +244,6 @@ nav.sidebar {
   text-align: center;
 }
 
-/* Normaler Hover */
 .sidebar-nav-button:hover {
   background: radial-gradient(
     circle at 0% 0%,
@@ -285,7 +255,6 @@ nav.sidebar {
   transform: translateY(-1px);
 }
 
-/* Aktiver Eintrag */
 .sidebar-nav-button.active {
   background: radial-gradient(
     circle at 0% 0%,
@@ -299,7 +268,32 @@ nav.sidebar {
     0 0 0 0.6px rgba(255, 255, 255, 0.1) inset;
 }
 
-/* Footer in Sidebar */
+/* Footer / Status */
+
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 18px;
+  border-top: 1px solid rgba(51, 65, 85, 0.9);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar-status-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: rgba(148, 163, 184, 0.9);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.7);
+}
+
 .sidebar-footer-button {
   width: 100%;
   padding: 9px 10px;
@@ -352,14 +346,14 @@ nav.sidebar {
   top: 0;
   left: 220px;
   right: 0;
-  height: 96px;
-  padding: 18px 32px;
-  z-index: 50;
+  height: 100px;
+  padding: 20px 36px;
+  z-index: 60;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 24px;
 
   background: linear-gradient(
     135deg,
@@ -381,11 +375,13 @@ nav.sidebar {
 
 .topbar-left {
   min-width: 280px;
+  max-width: 360px;
 }
 
 .topbar-center {
   flex: 1;
   justify-content: center;
+  min-width: 420px;
 }
 
 .topbar-right {
@@ -406,6 +402,9 @@ nav.sidebar {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .topbar-greeting-meta {
@@ -416,7 +415,8 @@ nav.sidebar {
   opacity: 0.9;
 }
 
-/* Topbar Controls – Brand/Campaign Select */
+/* Selects */
+
 .topbar-select-group {
   display: flex;
   align-items: center;
@@ -458,7 +458,8 @@ nav.sidebar {
     0 0 0 0.6px rgba(255, 255, 255, 1) inset;
 }
 
-/* Topbar Buttons (Icons) */
+/* Icon Buttons */
+
 .icon-button {
   width: 32px;
   height: 32px;
@@ -491,7 +492,8 @@ nav.sidebar {
   transform: translateY(-1px);
 }
 
-/* Notifications Dot */
+/* Notifications dot */
+
 .notification-dot {
   position: absolute;
   top: 6px;
@@ -503,21 +505,58 @@ nav.sidebar {
   box-shadow: 0 0 0 2px rgba(248, 250, 252, 1);
 }
 
+/* CTA Meta Button – rot „Feuer frei“ */
+
+#topbar .meta-button {
+  border-radius: 999px;
+  border: 1px solid rgba(248, 113, 113, 0.95);
+  padding: 8px 18px;
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(248, 113, 113, 0.98),
+    rgba(239, 68, 68, 0.98)
+  );
+  color: #fef2f2;
+  min-width: 160px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    box-shadow 0.16s ease,
+    transform 0.06s ease,
+    border-color 0.16s ease,
+    background 0.16s ease;
+}
+
+#topbar .meta-button:hover {
+  border-color: rgba(248, 113, 113, 1);
+  box-shadow:
+    0 24px 72px rgba(127, 29, 29, 0.8),
+    0 0 0 0.7px rgba(255, 255, 255, 1) inset;
+  transform: translateY(-1px);
+}
+
 /* ==============================
    5) MAIN CONTENT & VIEWS
    ============================== */
 
 .main-content {
   flex: 1;
-  padding: 112px 32px 32px;
+  padding: 136px 40px 32px;
 }
 
-/* Alle Views: zentriert, nur eine sichtbar */
+/* View Container */
+
 .view {
   display: none;
-  max-width: 1320px;
+  width: 100%;
+  max-width: 1440px;
   margin: 0 auto;
-  padding: 26px 22px 40px;
+  padding: 28px 26px 42px;
   border-radius: 24px;
   background: radial-gradient(
     circle at 0% 0%,
@@ -531,11 +570,12 @@ nav.sidebar {
   backdrop-filter: blur(26px);
 }
 
-/* Globale View-Überschrift ("Wo bin ich?") */
+/* „Wo bin ich?“ Label */
+
 .view::before {
   content: attr(data-view-title);
   display: block;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
   font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: 0.18em;
@@ -547,7 +587,6 @@ nav.sidebar {
   display: block;
 }
 
-/* View-Header */
 .view-header {
   display: flex;
   align-items: baseline;
@@ -572,7 +611,6 @@ nav.sidebar {
    6) GENERISCHE CARDS & KPI
    ============================== */
 
-/* Card-Grundlayout */
 .card {
   background: var(--color-surface);
   border-radius: 18px;
@@ -583,7 +621,6 @@ nav.sidebar {
     0 0 0 0.4px rgba(255, 255, 255, 0.9) inset;
 }
 
-/* Headline-Row in Card */
 .card-header {
   display: flex;
   align-items: center;
@@ -605,7 +642,6 @@ nav.sidebar {
   color: var(--color-text-muted);
 }
 
-/* KPI-Gitter */
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -645,7 +681,6 @@ nav.sidebar {
   color: var(--color-text-muted);
 }
 
-/* KPI Badge */
 .kpi-badge {
   display: inline-flex;
   align-items: center;
@@ -659,7 +694,6 @@ nav.sidebar {
   color: #4b5563;
 }
 
-/* Status Colors */
 .kpi-badge.good {
   background: rgba(22, 163, 74, 0.08);
   border-color: rgba(22, 163, 74, 0.5);
@@ -679,31 +713,28 @@ nav.sidebar {
 }
 
 /* ==============================
-   7) DASHBOARD SPEZIFISCH
+   7) DASHBOARD LAYOUT
    ============================== */
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.1fr);
-  gap: 16px;
-  margin-bottom: 16px;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1.05fr);
+  gap: 18px;
+  margin-bottom: 18px;
 }
 
-/* Performance-Sektion (links) */
 .performance-section {
   display: grid;
   grid-template-columns: 2fr 1.2fr;
   gap: 12px;
 }
 
-/* Kleine Charts / Sektionen (rechts) */
 .dashboard-section {
   display: grid;
   grid-template-columns: 1.1fr 1.1fr;
   gap: 12px;
 }
 
-/* Tables im Dashboard (Mini-Version) */
 .table-mini {
   width: 100%;
   border-collapse: collapse;
@@ -742,7 +773,6 @@ nav.sidebar {
   align-items: center;
 }
 
-/* Searchbar / Filter */
 .meta-input {
   border-radius: 999px;
   border: 1px solid rgba(148, 163, 184, 0.7);
@@ -762,7 +792,6 @@ nav.sidebar {
   color: var(--color-text-soft);
 }
 
-/* Primary Button (z. B. "Neues Creative") */
 .meta-button {
   border-radius: 999px;
   border: 1px solid rgba(37, 99, 235, 0.9);
@@ -795,29 +824,6 @@ nav.sidebar {
   transform: translateY(-1px);
 }
 
-/* Topbar CTA Variante (immer rot) */
-#topbar .meta-button {
-  border-color: rgba(248, 113, 113, 0.95);
-  background: radial-gradient(
-    circle at 0% 0%,
-    rgba(248, 113, 113, 0.98),
-    rgba(239, 68, 68, 0.98)
-  );
-  color: #fef2f2;
-  min-width: 150px;
-  font-size: 0.78rem;
-  letter-spacing: 0.18em;
-}
-
-#topbar .meta-button:hover {
-  border-color: rgba(248, 113, 113, 1);
-  box-shadow:
-    0 24px 72px rgba(127, 29, 29, 0.8),
-    0 0 0 0.7px rgba(255, 255, 255, 1) inset;
-  transform: translateY(-1px);
-}
-
-/* Creative Grid */
 .creative-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -842,7 +848,6 @@ nav.sidebar {
   gap: 8px;
 }
 
-/* Thumbnail */
 .creative-thumb {
   width: 100%;
   border-radius: 12px;
@@ -855,7 +860,6 @@ nav.sidebar {
   );
 }
 
-/* Tags / Meta-Info */
 .creative-meta {
   display: flex;
   justify-content: space-between;
@@ -866,7 +870,7 @@ nav.sidebar {
 }
 
 /* ==============================
-   9) CAMPAIGNS VIEW
+   9) CAMPAIGNS / TESTING / SENSEI / REPORTS
    ============================== */
 
 .campaigns-header {
@@ -882,7 +886,6 @@ nav.sidebar {
   gap: 10px;
 }
 
-/* Tabelle für Kampagnen */
 .campaign-table-wrapper {
   margin-top: 12px;
   border-radius: 16px;
@@ -933,9 +936,7 @@ nav.sidebar {
   background: rgba(248, 250, 252, 0.96);
 }
 
-/* ==============================
-   10) TESTING LOG VIEW
-   ============================== */
+/* Testing */
 
 .testing-log-grid {
   display: grid;
@@ -943,7 +944,6 @@ nav.sidebar {
   gap: 12px;
 }
 
-/* Left: Table */
 .testing-table-wrapper {
   border-radius: 16px;
   border: 1px solid rgba(226, 232, 240, 1);
@@ -977,7 +977,6 @@ nav.sidebar {
   color: var(--color-text-soft);
 }
 
-/* Right: Detail Card */
 .testing-detail-card {
   border-radius: 16px;
   border: 1px solid rgba(226, 232, 240, 1);
@@ -992,9 +991,7 @@ nav.sidebar {
   padding: 12px 12px 10px;
 }
 
-/* ==============================
-   11) SENSEI – AI SUITE
-   ============================== */
+/* Sensei */
 
 .sensei-layout {
   display: grid;
@@ -1002,7 +999,6 @@ nav.sidebar {
   gap: 14px;
 }
 
-/* Sensei Hauptkarte */
 .sensei-card {
   border-radius: 18px;
   background: radial-gradient(
@@ -1017,7 +1013,6 @@ nav.sidebar {
   padding: 14px 14px 12px;
 }
 
-/* Headline und Icon */
 .sensei-card-header {
   display: flex;
   align-items: center;
@@ -1037,7 +1032,6 @@ nav.sidebar {
   color: var(--color-text-muted);
 }
 
-/* Sensei Avatare / Icon */
 .sensei-avatar {
   width: 34px;
   height: 34px;
@@ -1056,7 +1050,6 @@ nav.sidebar {
   color: #eff6ff;
 }
 
-/* Sensei Tabs */
 .sensei-tabs {
   display: inline-flex;
   border-radius: 999px;
@@ -1100,7 +1093,6 @@ nav.sidebar {
     0 0 0 0.7px rgba(255, 255, 255, 1) inset;
 }
 
-/* Sensei Output Panel */
 .sensei-output {
   margin-top: 10px;
   padding: 10px 11px;
@@ -1111,15 +1103,7 @@ nav.sidebar {
   color: #111827;
 }
 
-/* Sensei Bullet-Listen */
-.sensei-output ul {
-  margin: 6px 0 4px 18px;
-  padding: 0;
-}
-
-/* ==============================
-   12) REPORTS VIEW
-   ============================== */
+/* Reports */
 
 .reports-layout {
   display: grid;
@@ -1153,7 +1137,6 @@ nav.sidebar {
     0 0 0 0.7px rgba(255, 255, 255, 0.95) inset;
 }
 
-/* Reports Table */
 .reports-table-wrapper {
   margin-top: 10px;
 }
@@ -1178,7 +1161,6 @@ nav.sidebar {
   color: var(--color-text-soft);
 }
 
-/* Pill / Badge in Reports */
 .badge-pill {
   border-radius: 999px;
   padding: 4px 10px;
@@ -1190,7 +1172,7 @@ nav.sidebar {
 }
 
 /* ==============================
-   13) TEAM VIEW (NEU)
+   10) TEAM BADGES
    ============================== */
 
 .team-avatar {
@@ -1211,7 +1193,7 @@ nav.sidebar {
 .badge-analyst { background:#6b7280; color:white; padding:3px 8px; border-radius:999px; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em;}
 
 /* ==============================
-   14) GLOBAL TOASTS
+   11) TOASTS / MODAL / LOADER
    ============================== */
 
 #toastContainer {
@@ -1269,10 +1251,6 @@ nav.sidebar {
   background: var(--color-danger-soft);
 }
 
-/* ==============================
-   15) GLOBAL MODAL
-   ============================== */
-
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -1280,7 +1258,7 @@ nav.sidebar {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
+  z-index: 200;
   backdrop-filter: blur(18px);
 }
 
@@ -1310,35 +1288,11 @@ nav.sidebar {
   justify-content: space-between;
 }
 
-.modal-title {
-  font-size: 0.95rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.modal-close-button {
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.7);
-  background: rgba(248, 250, 252, 0.98);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.82rem;
-  color: #4b5563;
-}
-
 .modal-body {
   padding: 14px 16px 16px;
   font-size: 0.86rem;
   color: #111827;
 }
-
-/* ==============================
-   16) GLOBAL LOADER (ORBIT)
-   ============================== */
 
 .global-loader {
   position: fixed;
@@ -1346,7 +1300,7 @@ nav.sidebar {
   display: none;
   align-items: center;
   justify-content: center;
-  z-index: 200;
+  z-index: 300;
   backdrop-filter: blur(10px);
 }
 
@@ -1393,9 +1347,7 @@ nav.sidebar {
   }
 }
 
-/* ==============================
-   17) SKELETON BLOCKS
-   ============================== */
+/* Skeleton */
 
 .skeleton-block {
   border-radius: 999px;
@@ -1419,7 +1371,7 @@ nav.sidebar {
 }
 
 /* ==============================
-   18) MISC POLISH & OVERRIDES
+   12) MISC / TYPO / RESPONSIVE
    ============================== */
 
 .metric-card,
@@ -1449,7 +1401,6 @@ nav.sidebar {
   border-color: rgba(148, 163, 184, 0.9);
 }
 
-/* ICON BUTTONS */
 .icon-button,
 .creative-card-menu {
   border-radius: 999px;
@@ -1483,7 +1434,6 @@ nav.sidebar {
   transform: translateY(-1px);
 }
 
-/* TYPOGRAPHY POLISH — spacing + weight */
 h1, h2, h3, h4 {
   font-weight: 600 !important;
   letter-spacing: 0.05em !important;
@@ -1495,7 +1445,8 @@ h1, h2, h3, h4 {
   color: #64748b !important;
 }
 
-/* RESPONSIVE POLISH */
+/* RESPONSIVE */
+
 @media (max-width: 1024px) {
   .app-shell {
     margin-left: 0;
@@ -1510,10 +1461,15 @@ h1, h2, h3, h4 {
   }
 
   .main-content {
-    padding: 112px 12px 24px;
+    padding: 120px 12px 24px;
   }
 
   .view {
-    padding: 20px 18px 40px !important;
+    padding: 20px 18px 36px;
+    max-width: 100%;
+  }
+
+  .topbar-center {
+    display: none;
   }
 }
