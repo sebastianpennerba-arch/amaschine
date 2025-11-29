@@ -178,6 +178,7 @@ const modules = {
   analytics: () => import("./packages/analytics/index.js"),
   roast: () => import("./packages/roast/index.js"),
   shopify: () => import("./packages/shopify/index.js"),
+  settings: () => import("./packages/settings/index.js"),
 };
 
 const moduleLabels = {
@@ -194,6 +195,7 @@ const moduleLabels = {
   shopify: "Shopify",
   roast: "Roast",
   onboarding: "Onboarding",
+  settings: "Settings",
 };
 
 const viewIdMap = {
@@ -210,6 +212,7 @@ const viewIdMap = {
   shopify: "shopifyView",
   roast: "roastView",
   onboarding: "onboardingView",
+  settings: "settingsView",
 };
 
 // Module, die einen Meta-Connect oder Demo-Mode benötigen
