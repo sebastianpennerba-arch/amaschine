@@ -1,7 +1,7 @@
 /*
  * app.js – SignalOne Core Backbone
  * Navigation • View Handling • Meta Simulation • Toasts • Modal
- * + Punch-Mode: Gold SVG Icon Activation
+ * + Gold-Icon Sidebar & Brand-Subheader
  */
 
 /* ----------------------------------------------------------
@@ -30,13 +30,13 @@ const AppState = {
   selectedBrandId: null,
   selectedCampaignId: null,
   teamMembers: [],
-  licenseLevel: "free", // free | pro | agency
+  licenseLevel: "free",
   notifications: [],
   systemHealthy: true,
 };
 
 /* ----------------------------------------------------------
-   DEMO-DATA (unchanged)
+   DEMO-DATA
 -----------------------------------------------------------*/
 const DemoData = {
   brands: [
@@ -176,9 +176,7 @@ const modulesRequiringMeta = [
   "reports",
 ];
 
-/* ----------------------------------------------------------
-   ICON MAPPING (SVG IDs in index.html)
------------------------------------------------------------*/
+/* ICON IDs MAPPING (SIDEBAR) */
 const moduleIconIds = {
   dashboard: "icon-dashboard",
   creativeLibrary: "icon-library",
@@ -197,7 +195,23 @@ const moduleIconIds = {
 };
 
 /* ----------------------------------------------------------
-   VIEW CONTROL
+   SVG ICON HELPERS
+-----------------------------------------------------------*/
+function createSvgIconFromSymbol(symbolId, extraClass = "") {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.classList.add(extraClass || "icon-svg");
+  if (!extraClass) svg.classList.add("icon-svg");
+
+  const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+  use.setAttributeNS("http://www.w3.org/1999/xlink", "href", `#${symbolId}`);
+  svg.appendChild(use);
+
+  return svg;
+}
+
+/* ----------------------------------------------------------
+   VIEW & TOPBAR HELPERS
 -----------------------------------------------------------*/
 function getLabelForModule(key) {
   return moduleLabels[key] || key;
@@ -220,9 +234,6 @@ function setActiveView(viewId) {
   });
 }
 
-/* ----------------------------------------------------------
-   TOPBAR LOGIC
------------------------------------------------------------*/
 function getGreetingPrefix() {
   const h = new Date().getHours();
   if (h < 5) return "Gute Nacht";
@@ -231,14 +242,16 @@ function getGreetingPrefix() {
   return "Guten Abend";
 }
 
+function getActiveBrand() {
+  const id = AppState.selectedBrandId || DemoData.brands[0]?.id;
+  if (!id) return null;
+  return DemoData.brands.find((b) => b.id === id) || DemoData.brands[0] || null;
+}
+
 function getEffectiveBrandOwnerName() {
   if (AppState.meta?.user?.name) return AppState.meta.user.name;
-
-  if (AppState.selectedBrandId) {
-    const b = DemoData.brands.find((br) => br.id === AppState.selectedBrandId);
-    if (b?.ownerName) return b.ownerName;
-  }
-
+  const brand = getActiveBrand();
+  if (brand?.ownerName) return brand.ownerName;
   return "SignalOne Nutzer";
 }
 
@@ -268,39 +281,81 @@ function updateTopbarDateTime() {
   }
 }
 
-function updateTopbarTitle() {
-  updateTopbarGreeting();
+/* ----------------------------------------------------------
+   SUBHEADER (AKTIVES WERBEKONTO)
+-----------------------------------------------------------*/
+function getActiveBrandContext() {
+  const brand = getActiveBrand();
+  if (!brand) return null;
+
+  const campaigns = DemoData.campaignsByBrand[brand.id] || [];
+  const count = campaigns.length;
+  const campaignText =
+    count === 1 ? "1 Kampagne sichtbar" : `${count} Kampagnen sichtbar`;
+
+  return {
+    name: brand.ownerName || brand.name || "Unbekanntes Werbekonto",
+    vertical: brand.vertical || "n/a",
+    campaignText,
+  };
+}
+
+function updateViewSubheaders() {
+  const views = document.querySelectorAll(".view");
+  if (!views.length) return;
+
+  const ctx = getActiveBrandContext();
+  if (!ctx) return;
+
+  views.forEach((section) => {
+    if (!section) return;
+    let header = section.querySelector(".view-subheader");
+    if (!header) {
+      header = document.createElement("div");
+      header.className = "view-subheader";
+      section.insertBefore(header, section.firstChild || null);
+    }
+
+    header.innerHTML = `
+      <div class="subheader-line-1">
+        <span class="subheader-icon-slot"></span>
+        <span class="subheader-brand-name">${ctx.name}</span>
+        <span class="subheader-role">— Aktives Werbekonto</span>
+      </div>
+      <div class="subheader-line-2">
+        <span class="subheader-campaigns">${ctx.campaignText}</span>
+        <span class="subheader-divider">•</span>
+        <span class="subheader-industry">Industry: ${ctx.vertical}</span>
+      </div>
+    `;
+
+    const slot = header.querySelector(".subheader-icon-slot");
+    if (slot) {
+      const icon = createSvgIconFromSymbol("icon-workspace", "subheader-icon");
+      slot.replaceWith(icon);
+    }
+  });
 }
 
 /* ----------------------------------------------------------
-   SIDEBAR ICON STATE LOGIC (Punch-Mode)
+   SIDEBAR ICON STATE LOGIC
 -----------------------------------------------------------*/
 function updateSidebarActiveIcon(activeKey) {
   const buttons = document.querySelectorAll(".sidebar-nav-button");
 
   buttons.forEach((btn) => {
     const module = btn.dataset.module;
-
     const svg = btn.querySelector(".icon-svg");
-    if (!svg) return;
+    const fillLayerId = moduleIconIds[module];
+    const symbol = document.getElementById(fillLayerId);
 
-    const fillLayer = svg.querySelector(".icon-layer-fill");
-    const strokeLayer = svg.querySelector(".icon-layer-stroke");
+    const use = svg?.querySelector("use");
+    if (!use || !symbol) return;
 
     if (module === activeKey) {
       btn.classList.add("active");
-
-      fillLayer.style.fill = "var(--sidebar-icon-active-fill)";
-      fillLayer.style.opacity = "1";
-
-      strokeLayer.style.stroke = "var(--sidebar-icon-active-stroke)";
     } else {
       btn.classList.remove("active");
-
-      fillLayer.style.fill = "var(--sidebar-icon-inactive-fill)";
-      fillLayer.style.opacity = "0.85";
-
-      strokeLayer.style.stroke = "var(--sidebar-icon-inactive-stroke)";
     }
   });
 }
@@ -325,7 +380,6 @@ function renderNav() {
 
   Object.keys(modules).forEach((key) => {
     if (key === "settings") return;
-
     if (license === "free" && restrictedForFree.includes(key)) return;
 
     const li = document.createElement("li");
@@ -336,10 +390,9 @@ function renderNav() {
     btn.className = "sidebar-nav-button";
     btn.dataset.module = key;
 
-    /* ICON (Will be replaced via index.html) */
-    const iconSvg = document.getElementById(moduleIconIds[key])?.cloneNode(true);
-    if (iconSvg) {
-      iconSvg.classList.add("icon-svg");
+    const symbolId = moduleIconIds[key];
+    if (symbolId) {
+      const iconSvg = createSvgIconFromSymbol(symbolId, "icon-svg");
       btn.appendChild(iconSvg);
     }
 
@@ -356,76 +409,6 @@ function renderNav() {
   });
 
   updateSidebarActiveIcon(AppState.currentModule);
-}
-
-/* ----------------------------------------------------------
-   MODULE LOADING
------------------------------------------------------------*/
-async function loadModule(key) {
-  const loader = modules[key];
-  const viewId = getViewIdForModule(key);
-  const section = document.getElementById(viewId);
-
-  if (!loader || !section) {
-    console.warn("[SignalOne] Modul nicht gefunden:", key, viewId);
-    return;
-  }
-
-  if (
-    modulesRequiringMeta.includes(key) &&
-    !AppState.metaConnected &&
-    !useDemoMode()
-  ) {
-    section.innerHTML =
-      "<p>Dieses Modul benötigt eine Meta-Verbindung oder den Demo-Modus.</p>";
-    showToast("Bitte Meta verbinden oder Demo-Modus aktivieren.", "warning");
-    updateCampaignHealthUI();
-    return;
-  }
-
-  showGlobalLoader();
-  applySectionSkeleton(section);
-
-  try {
-    const module = await loader();
-    if (module?.render) {
-      section.innerHTML = "";
-      module.render(section, AppState, { useDemoMode: useDemoMode() });
-      fadeIn(section);
-    } else {
-      section.textContent = `Das Modul "${key}" ist noch nicht implementiert.`;
-    }
-    AppState.systemHealthy = true;
-  } catch (err) {
-    console.error("[SignalOne] Fehler beim Laden", key, err);
-    section.textContent = `Fehler beim Laden des Moduls "${key}".`;
-    showToast(`Fehler beim Laden von ${getLabelForModule(key)}`, "error");
-    pushNotification("error", `Modulfehler: ${getLabelForModule(key)}`, {
-      module: key,
-      error: String(err),
-    });
-    AppState.systemHealthy = false;
-  } finally {
-    hideGlobalLoader();
-    updateSystemHealthUI();
-  }
-}
-
-/* ----------------------------------------------------------
-   NAVIGATION
------------------------------------------------------------*/
-async function navigateTo(key) {
-  if (!modules[key]) return;
-
-  AppState.currentModule = key;
-
-  const viewId = getViewIdForModule(key);
-  setActiveView(viewId);
-  updateTopbarTitle();
-  renderNav();
-  updateSidebarActiveIcon(key);
-
-  await loadModule(key);
 }
 
 /* ----------------------------------------------------------
@@ -447,6 +430,7 @@ function toggleMetaConnection() {
   updateMetaStatusUI();
   updateCampaignHealthUI();
   updateTopbarGreeting();
+  updateViewSubheaders();
 
   loadModule(AppState.currentModule);
 }
@@ -467,12 +451,14 @@ function populateBrandSelect() {
     select.appendChild(opt);
   });
 
-  if (!AppState.selectedBrandId) {
+  if (!AppState.selectedBrandId && DemoData.brands[0]) {
     AppState.selectedBrandId = DemoData.brands[0].id;
     select.value = DemoData.brands[0].id;
   } else {
-    select.value = AppState.selectedBrandId;
+    select.value = AppState.selectedBrandId || "";
   }
+
+  updateViewSubheaders();
 }
 
 function populateCampaignSelect() {
@@ -506,6 +492,7 @@ function wireBrandAndCampaignSelects() {
       populateCampaignSelect();
       updateCampaignHealthUI();
       updateTopbarGreeting();
+      updateViewSubheaders();
       loadModule(AppState.currentModule);
     });
   }
@@ -513,7 +500,10 @@ function wireBrandAndCampaignSelects() {
   if (campaignSelect) {
     campaignSelect.addEventListener("change", () => {
       AppState.selectedCampaignId = campaignSelect.value || null;
+
+      // WICHTIG: Kampagnen-Auswahl wirkt nicht auf alle Views, aber Grundlogik bleibt hier.
       loadModule(AppState.currentModule);
+      updateViewSubheaders();
     });
   }
 }
@@ -641,9 +631,7 @@ function updateCampaignHealthUI() {
 
   if (!dot || !label) return;
 
-  const brand = DemoData.brands.find(
-    (b) => b.id === AppState.selectedBrandId
-  );
+  const brand = getActiveBrand();
 
   if (!brand) {
     dot.style.backgroundColor = "var(--color-text-soft)";
@@ -697,14 +685,73 @@ function fadeIn(el) {
   requestAnimationFrame(() => (el.style.opacity = 1));
 }
 
-function fadeOut(el, cb) {
-  if (!el) return;
-  el.style.opacity = 1;
-  el.style.transition = "opacity 0.18s ease";
-  requestAnimationFrame(() => {
-    el.style.opacity = 0;
-    setTimeout(() => cb && cb(), 180);
-  });
+/* ----------------------------------------------------------
+   MODULE LOADING & NAVIGATION
+-----------------------------------------------------------*/
+async function loadModule(key) {
+  const loader = modules[key];
+  const viewId = getViewIdForModule(key);
+  const section = document.getElementById(viewId);
+
+  if (!loader || !section) {
+    console.warn("[SignalOne] Modul nicht gefunden:", key, viewId);
+    return;
+  }
+
+  if (
+    modulesRequiringMeta.includes(key) &&
+    !AppState.metaConnected &&
+    !useDemoMode()
+  ) {
+    section.innerHTML =
+      "<p>Dieses Modul benötigt eine Meta-Verbindung oder den Demo-Modus.</p>";
+    showToast("Bitte Meta verbinden oder Demo-Modus aktivieren.", "warning");
+    updateCampaignHealthUI();
+    return;
+  }
+
+  showGlobalLoader();
+  applySectionSkeleton(section);
+
+  try {
+    const module = await loader();
+    if (module?.render) {
+      section.innerHTML = "";
+      module.render(section, AppState, { useDemoMode: useDemoMode() });
+      fadeIn(section);
+    } else {
+      section.textContent = `Das Modul "${key}" ist noch nicht implementiert.`;
+    }
+    AppState.systemHealthy = true;
+  } catch (err) {
+    console.error("[SignalOne] Fehler beim Laden", key, err);
+    section.textContent = `Fehler beim Laden des Moduls "${key}".`;
+    showToast(`Fehler beim Laden von ${getLabelForModule(key)}`, "error");
+    pushNotification("error", `Modulfehler: ${getLabelForModule(key)}`, {
+      module: key,
+      error: String(err),
+    });
+    AppState.systemHealthy = false;
+  } finally {
+    hideGlobalLoader();
+    updateSystemHealthUI();
+    updateViewSubheaders();
+  }
+}
+
+async function navigateTo(key) {
+  if (!modules[key]) return;
+
+  AppState.currentModule = key;
+
+  const viewId = getViewIdForModule(key);
+  setActiveView(viewId);
+  renderNav();
+  updateSidebarActiveIcon(key);
+  updateTopbarGreeting();
+  updateViewSubheaders();
+
+  await loadModule(key);
 }
 
 /* ----------------------------------------------------------
@@ -719,7 +766,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const initialViewId = getViewIdForModule(AppState.currentModule);
   setActiveView(initialViewId);
-  updateTopbarTitle();
 
   document
     .getElementById("metaConnectButton")
@@ -728,11 +774,10 @@ document.addEventListener("DOMContentLoaded", () => {
   updateMetaStatusUI();
   updateSystemHealthUI();
   updateCampaignHealthUI();
+  updateViewSubheaders();
 
   const settingsBtn = document.getElementById("settingsButton");
-  if (settingsBtn) {
-    settingsBtn.addEventListener("click", () => navigateTo("settings"));
-  }
+  settingsBtn?.addEventListener("click", () => navigateTo("settings"));
 
   // Modal Close
   const modalCloseBtn = document.getElementById("modalCloseButton");
@@ -784,6 +829,7 @@ document.addEventListener("DOMContentLoaded", () => {
     updateMetaStatusUI();
     updateCampaignHealthUI();
     updateTopbarGreeting();
+    updateViewSubheaders();
     showToast("Session zurückgesetzt (Demo-Logout).", "success");
   });
 
@@ -811,7 +857,6 @@ window.SignalOne = {
     showGlobalLoader,
     hideGlobalLoader,
     fadeIn,
-    fadeOut,
     useDemoMode,
   },
 };
