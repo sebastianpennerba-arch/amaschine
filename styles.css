@@ -9,46 +9,50 @@
    ============================== */
 
 :root {
-  /* --- BRAND COLORS --- */
-  --color-primary: #2a66ff;
-  --color-primary-hover: #1e4cd6;
-  --color-primary-soft: #e7efff;
+  /* ----------------------------------------------- */
+  /* HASE PREMIUM THEME – GRAPHITE LUX + METAL CLOUD */
+  /* ----------------------------------------------- */
 
-  /* --- BASE / BACKGROUND --- */
-  --color-bg: #f6f7fb;              /* sehr hell, nicht weiß */
-  --color-bg-panel: #ffffff;        /* echte Karten */
-  --color-bg-soft: #f1f3f7;
-  --color-bg-hover: #eef1f7;
+  /* --- PRIMARY (Accent Color) --- */
+  --color-primary: #3b6af8;          /* Ice Blue Tech */
+  --color-primary-hover: #315bd6;
+  --color-primary-soft: #e8efff;
 
-  /* --- TEXT --- */
-  --color-text: #1c1f27;            /* modern dark graphite */
-  --color-text-soft: #6b7280;
-  --color-text-muted: #9ca3af;
+  /* --- NEUTRAL BACKGROUND STACK (Kein Weiß, kein Grau) --- */
+  --color-bg: #f4f5f7;               /* Cloud Metal */
+  --color-bg-panel: #ffffff;         /* Clean White Panel (sehr edel) */
+  --color-bg-soft: #eeeff2;          /* Soft Neutral */
+  --color-bg-hover: #e7e9ed;         /* Touch Highlight */
 
-  /* --- BORDERS / LINES --- */
-  --color-border: #d9dce3;
-  --color-border-strong: #c9ccd4;
+  /* --- GRAPHITE TEXT (kein Schwarz) --- */
+  --color-text: #1b1d22;             /* Heavy Graphite */
+  --color-text-soft: #4f535a;        /* Medium Graphite */
+  --color-text-muted: #7b7f87;       /* Light Graphite */
+
+  /* --- BORDERS --- */
+  --color-border: #d5d8dd;           /* Neutral Steel */
+  --color-border-strong: #c4c7cd;
 
   /* --- STATUS COLORS --- */
-  --color-success: #22c55e;
-  --color-warning: #f59e0b;
-  --color-danger: #ef4444;
+  --color-success: #20b760;
+  --color-warning: #ec9a1f;
+  --color-danger: #e24b4b;
 
-  /* --- SHADOWS (keine 90er Röhrenflecken) --- */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.07);
-  --shadow-lg: 0 6px 16px rgba(0, 0, 0, 0.08);
-  --shadow-card: 0 8px 24px rgba(28, 31, 39, 0.06);
+  /* --- ULTRA MODERN SHADOWS --- */
+  --shadow-sm: 0 1px 3px rgba(20, 22, 28, 0.07);
+  --shadow-md: 0 3px 8px rgba(20, 22, 28, 0.08);
+  --shadow-lg: 0 8px 30px rgba(20, 22, 28, 0.10);
+  --shadow-card: 0 10px 40px rgba(20, 22, 28, 0.06);
 
   /* --- RADIUS --- */
   --radius-sm: 8px;
   --radius-md: 12px;
-  --radius-lg: 16px;
+  --radius-lg: 18px;
 
-  /* --- INPUTS / FIELDS --- */
-  --input-bg: #ffffff;
-  --input-border: #cfd3db;
-  --input-focus: #2a66ff;
+  /* --- INPUTS --- */
+  --input-bg: #ffffff;             /* Clean Panel White */
+  --input-border: #cfd2d8;
+  --input-focus: #3b6af8;
 }
 
 :root {
