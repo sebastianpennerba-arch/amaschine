@@ -9,22 +9,197 @@
   </head>
 
   <body>
-    
-<!-- SVG ICON LIBRARY (IMMUNE TO STYLES) -->
-<svg width="0" height="0" style="position:absolute; visibility:hidden; pointer-events:none; display:block;">
-  <g style="display:none">
-    <!-- deine <symbol>-Definitionen hier -->
-  </g>
-</svg>
+    <!-- ===============================================
+         SVG ICON LIBRARY (INLINE, INVISIBLE)
+         =============================================== -->
+    <svg width="0" height="0" style="position:absolute;visibility:hidden">
+      <!-- SIDEBAR ICONS -->
+      <!-- DASHBOARD / OVERVIEW -->
+      <symbol id="icon-dashboard" viewBox="0 0 24 24">
+        <rect class="icon-layer-fill" x="3" y="3" width="8" height="8" rx="2" />
+        <rect class="icon-layer-stroke" x="3" y="3" width="8" height="8" rx="2" />
+        <rect class="icon-layer-stroke" x="3" y="14" width="4" height="7" rx="1.5" />
+        <rect class="icon-layer-stroke" x="10" y="14" width="4" height="7" rx="1.5" />
+        <rect class="icon-layer-stroke" x="17" y="14" width="4" height="7" rx="1.5" />
+        <path class="icon-layer-stroke" d="M15 5h4v4" />
+        <path class="icon-layer-stroke" d="M12 8l3-3" />
+      </symbol>
+
+      <!-- CREATIVE LIBRARY / VIDEO -->
+      <symbol id="icon-library" viewBox="0 0 24 24">
+        <rect class="icon-layer-fill" x="4" y="4" width="16" height="16" rx="2" />
+        <rect class="icon-layer-stroke" x="4" y="4" width="16" height="16" rx="2" />
+        <rect class="icon-layer-fill" x="7" y="7" width="6" height="10" rx="1" />
+        <rect class="icon-layer-stroke" x="7" y="7" width="6" height="10" rx="1" />
+        <polygon class="icon-layer-stroke" points="15,9 18,11 15,13" />
+        <circle class="icon-layer-stroke" cx="16.5" cy="15.5" r="0.8" />
+      </symbol>
+
+      <!-- CAMPAIGNS / FLAG & FUNNEL -->
+      <symbol id="icon-campaigns" viewBox="0 0 24 24">
+        <path class="icon-layer-fill" d="M5 4h8l2 3-2 3H5z" />
+        <path class="icon-layer-stroke" d="M5 4h8l2 3-2 3H5z" />
+        <line class="icon-layer-stroke" x1="5" y1="4" x2="5" y2="20" />
+        <path class="icon-layer-stroke" d="M14 12h5l-2 3 2 3h-5" />
+      </symbol>
+
+      <!-- SENSEI / BRAIN -->
+      <symbol id="icon-sensei" viewBox="0 0 24 24">
+        <path
+          class="icon-layer-fill"
+          d="M9 4a3 3 0 0 0-3 3v2.2A3 3 0 0 0 5 12a3 3 0 0 0 1 2.2V16a3 3 0 0 0 3 3"
+        />
+        <path
+          class="icon-layer-fill"
+          d="M15 4a3 3 0 0 1 3 3v2.2A3 3 0 0 1 19 12a3 3 0 0 1-1 2.2V16a3 3 0 0 1-3 3"
+        />
+        <path
+          class="icon-layer-stroke"
+          d="M9 4a3 3 0 0 0-3 3v2.2A3 3 0 0 0 5 12a3 3 0 0 0 1 2.2V16a3 3 0 0 0 3 3h1"
+        />
+        <path
+          class="icon-layer-stroke"
+          d="M15 4a3 3 0 0 1 3 3v2.2A3 3 0 0 1 19 12a3 3 0 0 1-1 2.2V16a3 3 0 0 1-3 3h-1"
+        />
+        <path class="icon-layer-stroke" d="M10 9h1.5M12.5 11H14M10 13h1.5" />
+      </symbol>
+
+      <!-- TESTING LOG / BEAKER -->
+      <symbol id="icon-testing" viewBox="0 0 24 24">
+        <path
+          class="icon-layer-stroke"
+          d="M9 3h6M10 3v5.5L6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l-4-10.5V3"
+        />
+        <path class="icon-layer-fill" d="M9 11h6l2 5H7z" />
+        <circle class="icon-layer-stroke" cx="11" cy="13" r="0.7" />
+        <circle class="icon-layer-stroke" cx="13" cy="15" r="0.7" />
+      </symbol>
+
+      <!-- REPORTS / CHECKED DOC -->
+      <symbol id="icon-reports" viewBox="0 0 24 24">
+        <rect class="icon-layer-fill" x="5" y="3" width="14" height="18" rx="2" />
+        <rect class="icon-layer-stroke" x="5" y="3" width="14" height="18" rx="2" />
+        <path class="icon-layer-stroke" d="M9 8h6M9 11h4" />
+        <path class="icon-layer-stroke" d="M9 16l2 2 4-5" />
+      </symbol>
+
+      <!-- CREATOR INSIGHTS / USER STAR -->
+      <symbol id="icon-creators" viewBox="0 0 24 24">
+        <circle class="icon-layer-fill" cx="9" cy="8" r="3" />
+        <circle class="icon-layer-stroke" cx="9" cy="8" r="3" />
+        <path class="icon-layer-stroke" d="M4 21v-1.5C4 17.5 6 16 9 16s5 1.5 5 3.5V21" />
+        <path
+          class="icon-layer-stroke"
+          d="M17.5 9.2l.7 1.4 1.5.2-1.1 1.1.3 1.5-1.4-.7-1.4.7.3-1.5-1.1-1.1 1.5-.2z"
+        />
+      </symbol>
+
+      <!-- ANALYTICS / BARS & LINE -->
+      <symbol id="icon-analytics" viewBox="0 0 24 24">
+        <rect class="icon-layer-fill" x="4" y="12" width="4" height="8" rx="1" />
+        <rect class="icon-layer-stroke" x="4" y="12" width="4" height="8" rx="1" />
+        <rect class="icon-layer-fill" x="10" y="9" width="4" height="11" rx="1" />
+        <rect class="icon-layer-stroke" x="10" y="9" width="4" height="11" rx="1" />
+        <rect class="icon-layer-fill" x="16" y="6" width="4" height="14" rx="1" />
+        <rect class="icon-layer-stroke" x="16" y="6" width="4" height="14" rx="1" />
+        <path class="icon-layer-stroke" d="M4 10l4-3 4 2 4-4 4 3" />
+      </symbol>
+
+      <!-- TEAM / TWO USERS -->
+      <symbol id="icon-team" viewBox="0 0 24 24">
+        <circle class="icon-layer-fill" cx="8" cy="8" r="3" />
+        <circle class="icon-layer-stroke" cx="8" cy="8" r="3" />
+        <circle class="icon-layer-fill" cx="16" cy="8" r="3" />
+        <circle class="icon-layer-stroke" cx="16" cy="8" r="3" />
+        <path class="icon-layer-stroke" d="M3 21v-1.5C3 17.5 5 16 8 16s5 1.5 5 3.5V21" />
+        <path class="icon-layer-stroke" d="M11 21v-1.5c0-2 2-3.5 5-3.5s5 1.5 5 3.5V21" />
+      </symbol>
+
+      <!-- BRANDS / GLOBE -->
+      <symbol id="icon-brands" viewBox="0 0 24 24">
+        <circle class="icon-layer-fill" cx="12" cy="12" r="9" />
+        <circle class="icon-layer-stroke" cx="12" cy="12" r="9" />
+        <path class="icon-layer-stroke" d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
+      </symbol>
+
+      <!-- SHOPIFY / BAG -->
+      <symbol id="icon-shopify" viewBox="0 0 24 24">
+        <path
+          class="icon-layer-fill"
+          d="M6 7a2 2 0 0 1 2-2h8l2 3v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"
+        />
+        <path
+          class="icon-layer-stroke"
+          d="M6 7a2 2 0 0 1 2-2h8l2 3v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"
+        />
+        <path class="icon-layer-stroke" d="M10 9h2.5a2 2 0 1 1-2 2.2" />
+      </symbol>
+
+      <!-- ROAST / FLAME -->
+      <symbol id="icon-roast" viewBox="0 0 24 24">
+        <path
+          class="icon-layer-fill"
+          d="M12 3c3 3 4 5.5 4 8a4 4 0 0 1-8 0c0-2.5 1-5 4-8z"
+        />
+        <path
+          class="icon-layer-stroke"
+          d="M12 3c3 3 4 5.5 4 8a4 4 0 0 1-8 0c0-2.5 1-5 4-8z"
+        />
+        <path
+          class="icon-layer-stroke"
+          d="M12 22a4 4 0 0 1-4-4c0-1.6.9-3 2.2-3.6"
+        />
+      </symbol>
+
+      <!-- ONBOARDING / ROCKET -->
+      <symbol id="icon-onboarding" viewBox="0 0 24 24">
+        <path
+          class="icon-layer-fill"
+          d="M12 2c4 1 7 4.5 7 9.5 0 1.5-.3 3-1 4.5L12 22l-6-6.9c-.7-1.5-1-3-1-4.5C5 6.5 8 3 12 2z"
+        />
+        <path
+          class="icon-layer-stroke"
+          d="M12 2c4 1 7 4.5 7 9.5 0 1.5-.3 3-1 4.5L12 22l-6-6.9c-.7-1.5-1-3-1-4.5C5 6.5 8 3 12 2z"
+        />
+        <circle class="icon-layer-stroke" cx="12" cy="9" r="2" />
+      </symbol>
+
+      <!-- SETTINGS / COG -->
+      <symbol id="icon-settings" viewBox="0 0 24 24">
+        <circle class="icon-layer-fill" cx="12" cy="12" r="3" />
+        <circle class="icon-layer-stroke" cx="12" cy="12" r="3" />
+        <path
+          class="icon-layer-stroke"
+          d="M4 13h2l1 2.5-1.5 1.5 2.1 2.1 1.5-1.5L11 20h2l1-2.4 1.5 1.5 2.1-2.1-1.5-1.5L20 13v-2l-2.4-1 1.5-1.5-2.1-2.1-1.5 1.5L13 4h-2l-1 2.5-1.5-1.5-2.1 2.1 1.5 1.5L4 11z"
+        />
+      </symbol>
+
+      <!-- WORKSPACE / ACCOUNT ICON (SUBHEADER) -->
+      <symbol id="icon-workspace" viewBox="0 0 24 24">
+        <rect class="icon-layer-fill" x="4" y="5" width="16" height="14" rx="3" />
+        <rect class="icon-layer-stroke" x="4" y="5" width="16" height="14" rx="3" />
+        <circle class="icon-layer-stroke" cx="9" cy="11" r="2.3" />
+        <path class="icon-layer-stroke" d="M7.2 16.5c.5-1.3 1.4-2 2.8-2s2.3.7 2.8 2" />
+        <path class="icon-layer-stroke" d="M15 9h3" />
+        <path class="icon-layer-stroke" d="M15 12h2.5" />
+      </symbol>
 
       <!-- TOPBAR ICONS -->
-<!-- BELL / NOTIFICATIONS (besseres Design) -->
-<symbol id="icon-bell" viewBox="0 0 24 24">
-  <path class="icon-layer-fill" d="M12 3a7 7 0 0 1 7 7v4l1.5 2.5H3.5L5 14v-4a7 7 0 0 1 7-7z" />
-  <path class="icon-layer-stroke" d="M12 3a7 7 0 0 1 7 7v4l1.5 2.5H3.5L5 14v-4a7 7 0 0 1 7-7z" />
-  <path class="icon-layer-stroke" d="M10 19.5a2 2 0 0 0 4 0" />
-  <circle class="icon-layer-fill" cx="18" cy="6" r="3" />
-</symbol>
+      <!-- INFO -->
+      <symbol id="icon-info" viewBox="0 0 24 24">
+        <circle class="icon-layer-stroke" cx="12" cy="12" r="9" />
+        <line class="icon-layer-stroke" x1="12" y1="8" x2="12" y2="12.5" />
+        <circle class="icon-layer-stroke" cx="12" cy="6" r="0.6" />
+      </symbol>
+
+      <!-- BELL (Reserve) -->
+      <symbol id="icon-bell" viewBox="0 0 24 24">
+        <path
+          class="icon-layer-stroke"
+          d="M15 17h-6a4 4 0 0 1-4-4v-1a7 7 0 0 1 14 0v1a4 4 0 0 1-4 4Z"
+        />
+        <path class="icon-layer-stroke" d="M10 21a2 2 0 0 0 4 0" />
+      </symbol>
 
       <!-- USER -->
       <symbol id="icon-user" viewBox="0 0 24 24">
@@ -32,12 +207,12 @@
         <path class="icon-layer-stroke" d="M4 21c0-4 4-7 8-7s8 3 8 7" />
       </symbol>
 
-<!-- LOG OUT / EXIT (klarer als Power-Icon) -->
-<symbol id="icon-logout" viewBox="0 0 24 24">
-  <path class="icon-layer-stroke" d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-  <path class="icon-layer-stroke" d="M16 17l5-5-5-5" />
-  <path class="icon-layer-stroke" d="M21 12H9" />
-</symbol>
+      <!-- POWER -->
+      <symbol id="icon-power" viewBox="0 0 24 24">
+        <line class="icon-layer-stroke" x1="12" y1="3" x2="12" y2="11" />
+        <path class="icon-layer-stroke" d="M7.5 5.75a7 7 0 1 0 9 0" />
+      </symbol>
+    </svg>
 
     <!-- ===============================================
          SIDEBAR
@@ -125,7 +300,7 @@
             aria-label="Info &amp; Benachrichtigungen"
           >
             <svg class="icon-svg-top" aria-hidden="true">
-              <use href="#icon-bell"></use>
+              <use href="#icon-info"></use>
             </svg>
             <span id="notificationsDot" class="notification-dot hidden"></span>
           </button>
@@ -150,7 +325,7 @@
             aria-label="Demo-Logout / Reset"
           >
             <svg class="icon-svg-top" aria-hidden="true">
-               <use href="#icon-logout"></use>
+              <use href="#icon-power"></use>
             </svg>
           </button>
         </div>
