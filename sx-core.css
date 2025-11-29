@@ -1,11 +1,12 @@
 /*
  * SignalOne UX Core (sx-core.css)
- * VisionOS Loader • Skeleton Loader • Micro Interactions • Elite Feedback
- * Lädt NACH styles.css und überschreibt gezielt nur UX-Basics.
+ * Fusion Build – 100% kompatibel zu styles.css
+ * Enthält NUR UX-Enhancements, KEINE Layout-Overrides
+ * Loader • Skeleton • Micro Interactions • Feedback
  */
 
 /* =========================================================
-   1) GLOBAL LOADER – VisionOS Orb (OPTIMIERT)
+   1) GLOBAL LOADER – VisionOS Orb (SAFE)
    ========================================================= */
 
 #globalLoader {
@@ -14,21 +15,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 200;
+  z-index: 300; /* NICHT niedriger als Topbar */
 
   background: radial-gradient(
     circle at 10% 0%,
-    rgba(255, 255, 255, 0.98),
-    rgba(248, 250, 252, 0.96)
+    rgba(255,255,255,0.98),
+    rgba(248,250,252,0.96)
   );
+
   backdrop-filter: blur(24px) saturate(1.4);
 
   opacity: 1;
   pointer-events: auto;
 
   transition: 
-    opacity 0.24s cubic-bezier(0.4, 0, 0.2, 1),
-    backdrop-filter 0.24s ease;
+    opacity .24s cubic-bezier(0.4,0,0.2,1),
+    backdrop-filter .24s ease;
 }
 
 #globalLoader.hidden {
@@ -37,7 +39,6 @@
   backdrop-filter: blur(0px);
 }
 
-/* Loader Inner Bubble – Elite Glow */
 .global-loader-inner {
   display: flex;
   flex-direction: column;
@@ -47,71 +48,42 @@
   padding: 18px 24px;
   border-radius: 999px;
 
-  background: radial-gradient(
-    circle at 0% 0%,
-    #ffffff,
-    #f1f5f9
-  );
-
-  border: 1.5px solid rgba(148, 163, 184, 0.6);
+  background: radial-gradient(circle at 0% 0%, #fff, #f1f5f9);
+  border: 1.5px solid rgba(148,163,184,0.6);
 
   box-shadow:
-    0 28px 80px rgba(15, 23, 42, 0.28),
-    0 0 0 0.8px rgba(255, 255, 255, 0.98) inset,
-    0 0 40px rgba(59, 130, 246, 0.12);
+    0 28px 80px rgba(15,23,42,0.28),
+    0 0 0 0.8px rgba(255,255,255,0.98) inset,
+    0 0 40px rgba(59,130,246,0.12);
 
   animation: loaderBreath 2.4s ease-in-out infinite;
 }
 
 @keyframes loaderBreath {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.02);
-  }
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
 }
 
-.global-loader-inner span {
-  font-size: 0.84rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  color: #475569;
-  text-transform: uppercase;
-}
-
-/* Loader Dots – Synchronized Dance */
 .loader-dot {
   width: 10px;
   height: 10px;
   margin: 0 5px;
   border-radius: 999px;
   background: linear-gradient(135deg, #3b82f6, #2563eb);
-  box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
-  animation: loaderPulse 1.2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+  box-shadow: 0 0 12px rgba(59,130,246,0.4);
+  animation: loaderPulse 1.2s infinite cubic-bezier(0.4,0,0.6,1);
 }
 
-.loader-dot:nth-child(2) {
-  animation-delay: 0.2s;
-}
-.loader-dot:nth-child(3) {
-  animation-delay: 0.4s;
-}
+.loader-dot:nth-child(2) { animation-delay: .2s; }
+.loader-dot:nth-child(3) { animation-delay: .4s; }
 
 @keyframes loaderPulse {
-  0%, 100% {
-    transform: translateY(0) scale(1);
-    opacity: 0.6;
-  }
-  50% {
-    transform: translateY(-8px) scale(1.15);
-    opacity: 1;
-    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.6);
-  }
+  0%,100% { transform: translateY(0) scale(1); opacity: .6; }
+  50% { transform: translateY(-8px) scale(1.15); opacity: 1; }
 }
 
 /* =========================================================
-   2) SKELETON LOADER – Elite Shimmer
+   2) SKELETON LOADER (SAFE)
    ========================================================= */
 
 .skeleton-block {
@@ -130,260 +102,108 @@
 }
 
 @keyframes skeletonPulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
+  0%,100% { opacity: 1; }
+  50% { opacity: .7; }
 }
 
 .skeleton-block::after {
   content: "";
   position: absolute;
   inset: 0;
-
   transform: translateX(-100%);
 
   background: linear-gradient(
     110deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.7) 40%,
+    rgba(255,255,255,0.7) 40%,
     transparent 80%
   );
 
-  animation: sxSkeletonShimmer 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: sxSkeletonShimmer 1.8s cubic-bezier(0.4,0,0.2,1) infinite;
 }
 
 @keyframes sxSkeletonShimmer {
-  from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: translateX(100%);
-  }
-}
-
-.view .skeleton-block + .skeleton-block {
-  margin-top: 12px;
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(100%); }
 }
 
 /* =========================================================
-   3) MICRO INTERACTIONS – Elite Motion Design
+   3) MICRO INTERACTIONS (SAFE)
    ========================================================= */
 
-/* View Transitions */
-.view {
-  transition: 
-    opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-  transform: translateY(8px);
-  opacity: 0;
-}
-
+/* NICHT überschreiben:
+   .view (display, padding, position) 
+   Nur Animation */
 .view.active {
-  opacity: 1;
-  transform: translateY(0);
+  animation: fadeViewIn .3s ease forwards;
 }
 
-/* Card Hover – Magnetic Lift */
-.card,
-.metric-card,
-.dashboard-card,
-.creative-library-item,
-.report-card,
-.log-card {
-  transition:
-    box-shadow 0.24s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.24s cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 0.24s ease;
-  cursor: pointer;
+@keyframes fadeViewIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
+/* Card Hover – nur Schatten & Transform, KEINE Borders */
 .card:hover,
-.metric-card:hover,
-.dashboard-card:hover,
 .creative-library-item:hover,
 .report-card:hover,
 .log-card:hover {
-  transform: translateY(-4px) scale(1.01);
-  box-shadow:
-    0 32px 90px rgba(15, 23, 42, 0.35),
-    0 0 0 1px rgba(59, 130, 246, 0.2) inset;
-  border-color: rgba(59, 130, 246, 0.4);
+  transform: translateY(-4px);
+  box-shadow: 0 28px 70px rgba(15,23,42,0.22);
 }
 
-/* Button Press – Tactile Feedback */
+/* Buttons – Micro-Press (OHNE layout-shift) */
 button,
-.sidebar-nav-button,
 .meta-button,
 .icon-button,
-.sidebar-footer-button {
-  transition:
-    background 0.18s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.24s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.12s cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 0.18s ease;
-  position: relative;
+.sidebar-nav-button {
+  transition: transform .12s ease, box-shadow .24s ease;
 }
 
 button:active,
-.sidebar-nav-button:active,
 .meta-button:active,
 .icon-button:active,
-.sidebar-footer-button:active {
-  transform: translateY(2px) scale(0.97);
-  box-shadow: 
-    0 4px 12px rgba(15, 23, 42, 0.15),
-    0 0 0 0.4px rgba(255, 255, 255, 0.6) inset;
-}
-
-/* Ripple Effect on Click */
-@keyframes ripple {
-  from {
-    transform: scale(0);
-    opacity: 0.6;
-  }
-  to {
-    transform: scale(2);
-    opacity: 0;
-  }
-}
-
-button::before,
-.sidebar-nav-button::before,
-.meta-button::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.5), transparent);
-  opacity: 0;
-  pointer-events: none;
-}
-
-button:active::before,
-.sidebar-nav-button:active::before,
-.meta-button:active::before {
-  animation: ripple 0.6s ease-out;
-}
-
-/* Table Row Hover – Subtle Highlight */
-table tbody tr {
-  transition: 
-    background 0.18s ease,
-    box-shadow 0.18s ease;
-}
-
-table tbody tr:hover {
-  background: rgba(59, 130, 246, 0.04);
-  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.1) inset;
-}
-
-/* Select Focus – Elite Glow */
-select:focus-visible,
-input:focus-visible,
-.topbar-select:focus-visible,
-.meta-input:focus-visible {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 
-    0 0 0 3px rgba(59, 130, 246, 0.15),
-    0 8px 24px rgba(59, 130, 246, 0.2);
-  transform: translateY(-1px);
-}
-
-/* Smooth Scroll */
-html {
-  scroll-behavior: smooth;
+.sidebar-nav-button:active {
+  transform: scale(.97);
 }
 
 /* =========================================================
-   4) TOAST ANIMATIONS – Slide & Fade
+   4) TOAST • MODAL • TABLE (SAFE)
    ========================================================= */
 
 .toast {
-  animation: toastSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: toastSlideIn .32s ease;
 }
 
 @keyframes toastSlideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-.toast.visible {
-  animation: toastSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* =========================================================
-   5) MODAL ANIMATIONS – Scale & Blur
-   ========================================================= */
-
-.modal-overlay {
-  animation: modalFadeIn 0.3s ease;
-}
-
-@keyframes modalFadeIn {
-  from {
-    opacity: 0;
-    backdrop-filter: blur(0px);
-  }
-  to {
-    opacity: 1;
-    backdrop-filter: blur(12px);
-  }
+  from { opacity: 0; transform: translateX(10px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
 .modal {
-  animation: modalScaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: modalPop .34s cubic-bezier(.34,1.56,.64,1);
 }
 
-@keyframes modalScaleIn {
-  from {
-    transform: scale(0.85);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+table tbody tr:hover {
+  background: rgba(59,130,246,0.04);
 }
 
 /* =========================================================
-   6) LOADING STATES – Pulse & Glow
+   5) INPUT FOCUS (SAFE)
    ========================================================= */
 
-.loading-pulse {
-  animation: loadingPulse 1.5s ease-in-out infinite;
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59,130,246,.15);
 }
 
-@keyframes loadingPulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-/* Status Dot Breathing */
-.status-dot {
-  animation: statusBreath 2s ease-in-out infinite;
-}
-
-@keyframes statusBreath {
-  0%, 100% {
-    box-shadow: 0 0 0 2px rgba(15, 23, 42, 1);
-  }
-  50% {
-    box-shadow: 0 0 0 2px rgba(15, 23, 42, 1), 0 0 8px currentColor;
-  }
-}
-
-/* End of Elite UX Core */
+/* =========================================================
+   ENDE – KEINE STRUKTUR-OVERRIDES
+   ========================================================= */
