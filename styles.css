@@ -183,7 +183,7 @@ nav.sidebar {
   overflow: hidden;
 }
 
-/* Navigation */
+/* Navigation - DIREKT unter Logo, horizontal zentriert */
 .sidebar-nav {
   margin-top: 0;
   padding-top: 0;
@@ -192,7 +192,7 @@ nav.sidebar {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  justify-content: center;
+  justify-content: flex-start;
   overflow-y: visible;
   padding: 0;
 }
@@ -203,7 +203,8 @@ nav.sidebar {
 
 .sidebar-nav-button {
   width: 100%;
-  padding: 10px 12px;
+  height: 44px;
+  padding: 0 12px 0 14px;
   border-radius: 12px;
   border: 1.5px solid rgba(51, 65, 85, 0.6);
   background: radial-gradient(
@@ -218,8 +219,8 @@ nav.sidebar {
   text-transform: uppercase;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
+  justify-content: flex-start;
+  gap: 12px;
   transition:
     background 0.2s cubic-bezier(0.4, 0, 0.2, 1),
     border-color 0.2s ease,
@@ -233,9 +234,10 @@ nav.sidebar {
 
 .sidebar-nav-button .label {
   flex: 0 1 auto;
+  text-align: left;
 }
 
-/* SVG ICONS IN SIDEBAR */
+/* SVG ICONS IN SIDEBAR - gleiche Höhe wie Text */
 .sidebar-nav-button .icon-svg {
   width: 22px;
   height: 22px;
@@ -317,7 +319,7 @@ nav.sidebar {
 /* Sidebar Footer / Status */
 .sidebar-footer {
   padding-top: 12px;
-  margin-top: 12px;
+  margin-top: auto;
   border-top: 1px solid rgba(31, 41, 55, 0.9);
   display: flex;
   flex-direction: column;
@@ -708,18 +710,18 @@ nav.sidebar {
 
 /* Subheader unter Gold-Leiste (Brand / Konto / Kontext) */
 .view-subheader {
-  margin-bottom: 24px;
-  padding: 14px 18px;
-  border-radius: 14px;
+  margin-bottom: 28px;
+  padding: 16px 20px;
+  border-radius: 16px;
   background: radial-gradient(
     circle at 0% 0%,
-    rgba(255, 255, 255, 0.95),
-    rgba(248, 250, 252, 0.92)
+    rgba(255, 255, 255, 0.98),
+    rgba(248, 250, 252, 0.95)
   );
-  border: 1px solid rgba(148, 163, 184, 0.35);
+  border: 1.5px solid rgba(148, 163, 184, 0.4);
   box-shadow: 
-    0 8px 24px rgba(15, 23, 42, 0.12),
-    0 0 0 0.5px rgba(255, 255, 255, 0.8) inset;
+    0 12px 32px rgba(15, 23, 42, 0.15),
+    0 0 0 0.6px rgba(255, 255, 255, 0.9) inset;
 }
 
 .subheader-line-1,
@@ -731,31 +733,31 @@ nav.sidebar {
 }
 
 .subheader-line-1 {
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .subheader-icon {
   width: 20px;
   height: 20px;
   flex-shrink: 0;
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
 .subheader-brand-name {
-  font-size: 0.94rem;
+  font-size: 0.98rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--color-text-main);
 }
 
 .subheader-role {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 500;
   color: var(--color-text-soft);
 }
 
 .subheader-line-2 {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: var(--color-text-muted);
 }
 
@@ -794,7 +796,7 @@ nav.sidebar {
 }
 
 /* ==============================
-   6) GENERIC CARDS & KPI
+   6) ELITE CARDS & KPI - POWER UPGRADE!
    ============================== */
 
 .card {
@@ -824,8 +826,8 @@ nav.sidebar {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 14px;
-  padding-bottom: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
   border-bottom: 1px solid rgba(226, 232, 240, 0.6);
 }
 
@@ -843,78 +845,169 @@ nav.sidebar {
   font-weight: 500;
 }
 
-/* KPI Grid */
+/* KPI Grid - MIT POWER & TRENDS! */
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
 }
 
 .kpi-item {
+  position: relative;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: radial-gradient(
+flex-direction: column;
+gap: 8px;
+padding: 18px 16px;
+border-radius: 14px;
+background: radial-gradient(
 circle at 0% 0%,
-rgba(248, 250, 252, 0.9),
-rgba(241, 245, 249, 0.95)
+rgba(255, 255, 255, 0.95),
+rgba(248, 250, 252, 0.98)
 );
-border: 1px solid rgba(226, 232, 240, 0.8);
-box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+border: 1.5px solid rgba(226, 232, 240, 0.9);
+box-shadow:
+0 8px 24px rgba(15, 23, 42, 0.12),
+0 0 0 0.5px rgba(255, 255, 255, 0.9) inset;
 transition:
-transform 0.2s ease,
-box-shadow 0.2s ease;
+transform 0.24s cubic-bezier(0.4, 0, 0.2, 1),
+box-shadow 0.24s cubic-bezier(0.4, 0, 0.2, 1),
+border-color 0.2s ease;
+overflow: hidden;
+}
+/* Trend-Indicator Background (subtil) */
+.kpi-item::before {
+content: "";
+position: absolute;
+top: 0;
+right: 0;
+width: 60%;
+height: 100%;
+opacity: 0.04;
+pointer-events: none;
+background: linear-gradient(135deg, transparent 40%, currentColor);
+transition: opacity 0.3s ease;
 }
 .kpi-item:hover {
-transform: translateY(-2px);
-box-shadow: 0 8px 20px rgba(15, 23, 42, 0.15);
+transform: translateY(-3px) scale(1.02);
+box-shadow:
+0 16px 48px rgba(15, 23, 42, 0.2),
+0 0 0 1px rgba(59, 130, 246, 0.15) inset;
+border-color: rgba(59, 130, 246, 0.4);
+}
+.kpi-item:hover::before {
+opacity: 0.08;
 }
 .kpi-label {
 text-transform: uppercase;
-letter-spacing: 0.14em;
+letter-spacing: 0.16em;
 font-size: 0.72rem;
-font-weight: 600;
+font-weight: 700;
 color: var(--color-text-soft);
+display: flex;
+align-items: center;
+gap: 6px;
+}
+/* Trend-Icon in Label (optional, für spätere Erweiterung) */
+.kpi-label::before {
+content: "▪";
+font-size: 0.6rem;
+opacity: 0.5;
 }
 .kpi-value {
-font-size: 1.24rem;
+font-size: 1.4rem;
 font-weight: 800;
-letter-spacing: -0.02em;
+letter-spacing: -0.03em;
 color: var(--color-text-main);
+line-height: 1.2;
+position: relative;
+z-index: 1;
+}
+/* Trend-Indikator neben Wert */
+.kpi-value::after {
+content: attr(data-trend);
+position: absolute;
+right: 0;
+top: 50%;
+transform: translateY(-50%);
+font-size: 1.1rem;
+font-weight: 700;
+opacity: 0.7;
 }
 .kpi-badge {
 display: inline-flex;
 align-items: center;
 justify-content: center;
 border-radius: 999px;
-padding: 3px 10px;
+padding: 4px 12px;
 font-size: 0.72rem;
 font-weight: 700;
-letter-spacing: 0.08em;
+letter-spacing: 0.1em;
 text-transform: uppercase;
-border: 1px solid transparent;
+border: 1.5px solid transparent;
 align-self: flex-start;
+box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+transition:
+transform 0.2s ease,
+box-shadow 0.2s ease;
 }
-/* Status Colors */
+.kpi-badge:hover {
+transform: scale(1.05);
+}
+/* Status Colors - MIT POWER! */
 .kpi-badge.good {
-background: var(--color-success-soft);
-border-color: rgba(22, 163, 74, 0.5);
-color: #166534;
-box-shadow: 0 2px 8px rgba(22, 163, 74, 0.15);
+background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(22, 163, 74, 0.12));
+border-color: rgba(22, 163, 74, 0.6);
+color: #15803d;
+box-shadow:
+0 4px 16px rgba(22, 163, 74, 0.25),
+0 0 20px rgba(34, 197, 94, 0.1);
+}
+.kpi-item:has(.kpi-badge.good) {
+border-color: rgba(22, 163, 74, 0.3);
+}
+.kpi-item:has(.kpi-badge.good)::before {
+background: linear-gradient(135deg, transparent 40%, rgba(34, 197, 94, 1));
 }
 .kpi-badge.warning {
-background: var(--color-warning-soft);
-border-color: rgba(245, 158, 11, 0.55);
-color: #92400e;
-box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+background: linear-gradient(135deg, rgba(251, 191, 36, 0.18), rgba(245, 158, 11, 0.15));
+border-color: rgba(245, 158, 11, 0.65);
+color: #b45309;
+box-shadow:
+0 4px 16px rgba(245, 158, 11, 0.25),
+0 0 20px rgba(251, 191, 36, 0.1);
+}
+.kpi-item:has(.kpi-badge.warning) {
+border-color: rgba(245, 158, 11, 0.35);
+}
+.kpi-item:has(.kpi-badge.warning)::before {
+background: linear-gradient(135deg, transparent 40%, rgba(251, 191, 36, 1));
 }
 .kpi-badge.critical {
-background: var(--color-danger-soft);
-border-color: rgba(220, 38, 38, 0.55);
-color: #b91c1c;
-box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);
+background: linear-gradient(135deg, rgba(239, 68, 68, 0.18), rgba(220, 38, 38, 0.15));
+border-color: rgba(220, 38, 38, 0.65);
+color: #991b1b;
+box-shadow:
+0 4px 16px rgba(220, 38, 38, 0.3),
+0 0 20px rgba(239, 68, 68, 0.12);
+animation: pulse-critical 2s ease-in-out infinite;
+}
+@keyframes pulse-critical {
+0%, 100% {
+box-shadow:
+0 4px 16px rgba(220, 38, 38, 0.3),
+0 0 20px rgba(239, 68, 68, 0.12);
+}
+50% {
+box-shadow:
+0 6px 20px rgba(220, 38, 38, 0.5),
+0 0 28px rgba(239, 68, 68, 0.2);
+}
+}
+.kpi-item:has(.kpi-badge.critical) {
+border-color: rgba(220, 38, 38, 0.4);
+}
+.kpi-item:has(.kpi-badge.critical)::before {
+background: linear-gradient(135deg, transparent 40%, rgba(239, 68, 68, 1));
 }
 /* ==============================
 7) DASHBOARD GRIDS / TABLES
@@ -935,7 +1028,7 @@ display: grid;
 grid-template-columns: 1fr 1fr;
 gap: 16px;
 }
-/* Mini-Tables */
+/* Mini-Tables - ELITE EDITION */
 .table-mini {
 width: 100%;
 border-collapse: collapse;
@@ -950,26 +1043,42 @@ rgba(248, 250, 252, 0.95)
 }
 .table-mini th,
 .table-mini td {
-padding: 10px 8px;
+padding: 12px 10px;
 border-bottom: 1px solid rgba(226, 232, 240, 0.6);
 text-align: left;
 }
 .table-mini th {
 text-transform: uppercase;
-letter-spacing: 0.14em;
+letter-spacing: 0.16em;
 font-size: 0.72rem;
 font-weight: 700;
 color: var(--color-text-soft);
 }
 .table-mini td {
-font-weight: 500;
+font-weight: 600;
 color: var(--color-text-main);
 }
 .table-mini tbody tr {
-transition: background 0.18s ease;
+transition:
+background 0.18s ease,
+transform 0.12s ease;
 }
 .table-mini tbody tr:hover {
-background: rgba(59, 130, 246, 0.04);
+background: rgba(59, 130, 246, 0.05);
+transform: translateX(2px);
+}
+/* Number Highlighting in Tables */
+.table-mini td[data-type="currency"],
+.table-mini td[data-type="number"],
+.table-mini td[data-type="percentage"] {
+font-weight: 700;
+font-size: 0.86rem;
+}
+.table-mini td[data-trend="up"] {
+color: var(--color-success);
+}
+.table-mini td[data-trend="down"] {
+color: var(--color-danger);
 }
 /* ==============================
 8) CREATIVE LIBRARY
@@ -1283,6 +1392,9 @@ grid-template-columns: 1fr;
 }
 .creative-grid {
 grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+.kpi-grid {
+grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 }
 }
 @media (max-width: 768px) {
