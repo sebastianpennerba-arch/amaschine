@@ -251,29 +251,27 @@ nav.sidebar {
   box-shadow: 0 28px 90px rgba(15,23,42,0.4), 0 0 0 0.8px rgba(255,255,255,0.9) inset;
 }
 
-/* GOLD HEADER STRIP — FIXED FOR SIDEBAR */
+/* GOLD HEADER STRIP – bündig mit dem View, NICHT über der Sidebar */
 .view::before {
   content: attr(data-view-title);
   position: absolute;
   top: -46px;
-
-  left: 200px; /* ← FIX: Sidebar offset */
-  width: calc(100vw - 200px); /* ← FIX: nicht über Sidebar */
-
+  left: 0;
+  right: 0;
   height: 46px;
-  padding-left: 40px;
+
   display: flex;
   align-items: center;
+  padding: 0 32px;
+  box-sizing: border-box;
 
   font-size: 1.08rem;
   font-weight: 650;
   letter-spacing: 0.18em;
   text-transform: uppercase;
 
-  border-bottom: 1px solid rgba(146,101,22,0.6);
-  background: linear-gradient(90deg, #c8a451, #e0c26a, #b08934);
-
-  z-index: 20; /* ← Kein negativer z-index */
+  border-bottom: 1px solid rgba(146, 101, 22, 0.6);
+  z-index: 1;
 }
 
 /* ==============================
