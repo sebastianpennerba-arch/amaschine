@@ -1,109 +1,95 @@
-/*
- * Sensei Render
- * Stellt das Strategy Center dar:
- *  - Budget Leak
- *  - Scaling Opportunities
- *  - Creative Fatigue
- *  - High-Level Recommendations
- */
+/* ----------------------------------------------------------
+   SENSEI – render.js
+   Premium VisionOS UI
+-----------------------------------------------------------*/
 
-import {
-  detectBudgetLeak,
-  detectScalingOpportunity,
-  detectCreativeFatigue,
-  getRecommendations,
-} from "./compute.js";
+import { generateSenseiInsights, computeSenseiSummary } from "./compute.js";
+import { formatCurrency, formatNumber, formatPercent } from "../utils/format.js";
 
-export function render(container, AppState) {
-  container.innerHTML = "";
+/* ----------------------------------------------------------
+   Empfehlungen-Karte
+-----------------------------------------------------------*/
+function senseiCardHTML(item) {
+  const tone =
+    item.label === "GOOD"
+      ? "good"
+      : item.label === "WARNING"
+      ? "warning"
+      : "critical";
 
-  const heading = document.createElement("h2");
-  heading.textContent = "Sensei Strategy Center";
-  container.appendChild(heading);
+  return `
+    <article class="sensei-card">
+      <header class="sensei-card-header">
+        <div class="sensei-title">${item.name}</div>
+        <div class="sensei-badge ${tone}">${item.score}/100</div>
+      </header>
 
-  const intro = document.createElement("p");
-  intro.textContent =
-    "Tägliche Action Items basierend auf deinen Kampagnen- und Creative-Daten.";
-  container.appendChild(intro);
+      <div class="sensei-meta">
+        <span>${item.creator}</span> •
+        <span>${item.hook}</span>
+      </div>
 
-  const campaigns = [
-    { id: 1, name: "Brand Static", roas: 2.1, spend: 12890 },
-    { id: 2, name: "UGC Scale Test", roas: 5.8, spend: 18420 },
-    { id: 3, name: "Retargeting Cold", roas: 1.3, spend: 8340 },
-  ];
-  const creatives = [
-    { id: 1, title: "Mia_v3", ageDays: 25, ctr: 0.028 },
-    { id: 2, title: "Static_v12", ageDays: 32, ctr: 0.009 },
-    { id: 3, title: "Tom_Testimonial_v1", ageDays: 14, ctr: 0.034 },
-  ];
+      <div class="sensei-kpis">
+        <div><label>ROAS</label> ${formatNumber(item.metrics.roas, 1, "x")}</div>
+        <div><label>Spend</label> ${formatCurrency(item.metrics.spend)}</div>
+        <div><label>CTR</label> ${formatPercent(item.metrics.ctr * 100, 1)}</div>
+        <div><label>CPM</label> ${formatCurrency(item.metrics.cpm)}</div>
+      </div>
 
-  const leaks = detectBudgetLeak(campaigns);
-  const opps = detectScalingOpportunity(campaigns);
-  const fatigued = detectCreativeFatigue(creatives);
-  const recs = getRecommendations();
+      <p class="sensei-reco">${item.recommendation}</p>
 
-  container.appendChild(
-    createCard(
-      "Budget Leaks",
-      leaks.length
-        ? leaks.map(
-            (c) =>
-              `${c.name}: ROAS ${c.roas.toFixed(
-                2
-              )}x – Spend €${c.spend.toLocaleString("de-DE")}`
-          )
-        : ["Keine offensichtlichen Budget-Leaks entdeckt."]
-    )
-  );
-
-  container.appendChild(
-    createCard(
-      "Scaling Opportunities",
-      opps.length
-        ? opps.map(
-            (c) =>
-              `${c.name}: ROAS ${c.roas.toFixed(
-                2
-              )}x – Skalierung empfohlen.`
-          )
-        : ["Aktuell keine klaren Scaling-Kandidaten."]
-    )
-  );
-
-  container.appendChild(
-    createCard(
-      "Creative Fatigue",
-      fatigued.length
-        ? fatigued.map(
-            (cr) =>
-              `${cr.title}: ${cr.ageDays} Tage Laufzeit, CTR ${(
-                cr.ctr * 100
-              ).toFixed(2)} %`
-          )
-        : ["Keine Creatives mit klaren Fatigue-Signalen gefunden."]
-    )
-  );
-
-  container.appendChild(
-    createCard(
-      "Sensei Empfehlungen",
-      recs.map((r) => `${r.title}: ${r.description}`)
-    )
-  );
+      <footer class="sensei-actions">
+        <button data-action="scale" data-id="${item.id}">Skalieren</button>
+        <button data-action="variants" data-id="${item.id}">Varianten</button>
+        <button data-action="log" data-id="${item.id}">Testing-Log</button>
+      </footer>
+    </article>
+  `;
 }
 
-function createCard(title, lines) {
-  const card = document.createElement("div");
-  card.className = "sensei-card";
-  const h3 = document.createElement("h3");
-  h3.textContent = title;
-  card.appendChild(h3);
-  const ul = document.createElement("ul");
-  lines.forEach((line) => {
-    const li = document.createElement("li");
-    li.textContent = line;
-    ul.appendChild(li);
+/* ----------------------------------------------------------
+   MAIN RENDER
+-----------------------------------------------------------*/
+export function render(section, appState, opts = {}) {
+  const creatives = window.SignalOneDemo?.BASE_CREATIVES || [];
+  const insights = generateSenseiInsights(creatives);
+  const summary = computeSenseiSummary(insights);
+
+  section.innerHTML = `
+    <div class="sensei-view-root">
+
+      <header class="sensei-header">
+        <div>
+          <div class="view-kicker">AdSensei • AI Suite</div>
+          <h2 class="view-headline">Sensei – AI Recommendations</h2>
+          <p class="view-subline">
+            Strategische Vorschläge basierend auf Creatives, Hooks & KPIs.
+          </p>
+
+          <div class="sensei-meta-row">
+            <span class="view-meta-pill">Avg Score: ${summary.avgScore}</span>
+            <span class="view-meta-pill">Good: ${summary.good}</span>
+            <span class="view-meta-pill">Warning: ${summary.warning}</span>
+            <span class="view-meta-pill">Critical: ${summary.critical}</span>
+          </div>
+        </div>
+      </header>
+
+      <section class="sensei-grid" data-role="grid"></section>
+
+    </div>
+  `;
+
+  const grid = section.querySelector("[data-role='grid']");
+  grid.innerHTML = insights.map(senseiCardHTML).join("");
+
+  // ACTIONS
+  grid.addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+
+    const id = btn.dataset.id;
+    const action = btn.dataset.action;
+    window.SignalOne.showToast(`Sensei: ${action} → ${id}`, "success");
   });
-  card.appendChild(ul);
-  return card;
 }
