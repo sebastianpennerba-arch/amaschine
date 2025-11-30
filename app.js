@@ -105,12 +105,33 @@ const DemoData = {
   },
 };
 
+// SOFORT nach Definition global verfügbar machen
+window.SignalOneDemo = window.SignalOneDemo || {};
+window.SignalOneDemo.DemoData = DemoData;
+
 function useDemoMode() {
   if (AppState.settings.demoMode) return true;
   if (!AppState.metaConnected) return true;
   return false;
 }
-import MetaAuth from "./packages/metaAuth/index.js";
+
+/* ----------------------------------------------------------
+   BOOTSTRAP BRAND SELECT
+-----------------------------------------------------------*/
+document.addEventListener("DOMContentLoaded", () => {
+  // BRANDS SOFORT LADEN
+  const brandSelect = document.getElementById("brandSelect");
+  if (brandSelect && DemoData.brands) {
+    brandSelect.innerHTML = DemoData.brands
+      .map(b => `<option value="${b.id}">${b.name}</option>`)
+      .join("");
+
+    // DEFAULT MARKIEREN
+    const defaultBrand = DemoData.brands[0];
+    brandSelect.value = defaultBrand.id;
+    AppState.selectedBrandId = defaultBrand.id;
+  }
+});
 
 // DEMO BRANDS IN DROPDOWN LADEN — OPTION C
 
