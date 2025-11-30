@@ -1,59 +1,79 @@
-/*
- * Creator Insights Render
- * Zeigt eine Rangliste der Creator und ermöglicht einen Deep Dive
- * in einem System-Modal.
- */
+/* ----------------------------------------------------------
+   CREATOR INSIGHTS – render.js
+   Premium VisionOS UI
+-----------------------------------------------------------*/
 
-import { aggregateByCreator } from "./compute.js";
-import { renderProfile } from "./sections.js";
+import { buildCreatorInsights, computeCreatorSummary } from "./compute.js";
+import { formatCurrency, formatNumber, formatPercent } from "../utils/format.js";
 
-export function render(container, AppState) {
-  container.innerHTML = "";
+/* ----------------------------------------------------------
+   Creator Card
+-----------------------------------------------------------*/
+function creatorCardHTML(c) {
+  return `
+    <article class="creator-card">
+      <header class="creator-header">
+        <div class="creator-name">${c.creator}</div>
+        <div class="creator-count">${c.count} Creatives</div>
+      </header>
 
-  const heading = document.createElement("h2");
-  heading.textContent = "Creator Leaderboard";
-  container.appendChild(heading);
+      <div class="creator-kpis">
+        <div><label>Spend</label>${formatCurrency(c.spend)}</div>
+        <div><label>ROAS</label>${formatNumber(c.avgRoas, 1, "x")}</div>
+        <div><label>CTR</label>${formatPercent(c.avgCtr * 100, 1)}</div>
+      </div>
 
-  const description = document.createElement("p");
-  description.textContent =
-    "Sieh, welche Creator den größten Impact auf ROAS und Revenue haben.";
-  container.appendChild(description);
+      <footer class="creator-actions">
+        <button data-action="brief" data-id="${c.creator}">Briefings</button>
+        <button data-action="top" data-id="${c.creator}">Top Creatives</button>
+      </footer>
+    </article>
+  `;
+}
 
-  const creatives = [
-    { id: 1, creator: "Mia", roas: 6.2, spend: 6200 },
-    { id: 2, creator: "Tom", roas: 5.1, spend: 4800 },
-    { id: 3, creator: "Mia", roas: 5.9, spend: 8200 },
-    { id: 4, creator: "Lisa", roas: 4.8, spend: 3100 },
-    { id: 5, creator: "Sarah", roas: 2.3, spend: 4200 },
-  ];
+/* ----------------------------------------------------------
+   MAIN RENDER
+-----------------------------------------------------------*/
+export function render(section, appState, opts = {}) {
+  const creatives = window.SignalOneDemo?.BASE_CREATIVES || [];
+  const list = buildCreatorInsights(creatives);
+  const summary = computeCreatorSummary(list);
 
-  const list = aggregateByCreator(creatives).sort(
-    (a, b) => b.avgRoas - a.avgRoas
-  );
+  section.innerHTML = `
+    <div class="creator-view-root">
 
-  const table = document.createElement("table");
-  const header = document.createElement("tr");
-  ["Creator", "Creatives", "Avg. ROAS", "Spend", "Aktion"].forEach((h) => {
-    const th = document.createElement("th");
-    th.textContent = h;
-    header.appendChild(th);
+      <header class="creator-header-main">
+        <div>
+          <div class="view-kicker">AdSensei • Creator Intelligence</div>
+          <h2 class="view-headline">Creator Insights</h2>
+          <p class="view-subline">
+            Sichtbarkeit, Performance & kreative Stärken deiner Creator.
+          </p>
+
+          <div class="creator-meta-row">
+            <span class="view-meta-pill">Creators: ${summary.creators}</span>
+            <span class="view-meta-pill">Spend: ${summary.spend}</span>
+            <span class="view-meta-pill">Avg ROAS: ${summary.avgRoas}</span>
+            <span class="view-meta-pill subtle">CTR: ${summary.avgCtr}</span>
+          </div>
+        </div>
+      </header>
+
+      <section class="creator-grid" data-role="grid"></section>
+
+    </div>
+  `;
+
+  const grid = section.querySelector("[data-role='grid']");
+  grid.innerHTML = list.map(creatorCardHTML).join("");
+
+  grid.addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+
+    window.SignalOne.showToast(
+      `Creator Action: ${btn.dataset.action} (${btn.dataset.id})`,
+      "success"
+    );
   });
-  table.appendChild(header);
-
-  list.forEach((item) => {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${item.creator}</td>
-      <td>${item.count}</td>
-      <td>${item.avgRoas.toFixed(2)}x</td>
-      <td>€${item.spend.toLocaleString("de-DE")}</td>
-      <td><button type="button" data-creator="${item.creator}">Profil</button></td>
-    `;
-    row.querySelector("button").onclick = () => {
-      renderProfile(item);
-    };
-    table.appendChild(row);
-  });
-
-  container.appendChild(table);
 }
