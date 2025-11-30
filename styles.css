@@ -1,13 +1,3 @@
-/*
- * SignalOne – Vision Pro Titanium Light
- * Final Stable Version – 100% Fixed
- * Sidebar Centering + Gold Icons + Gold Header Fix
- */
-
-/* ============================================================
-   1) DESIGN TOKENS
-   ============================================================ */
-
 :root {
   --color-primary: #3b6af8;
   --color-primary-hover: #315bd6;
@@ -37,10 +27,6 @@
   --sidebar-icon-hover-stroke: #b1943f;
 }
 
-/* ============================================================
-   2) RESET & BASE
-   ============================================================ */
-
 * {
   box-sizing: border-box;
 }
@@ -49,10 +35,8 @@ body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
-
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui;
   line-height: 1.45;
-
   background:
     radial-gradient(circle at 0% 0%, #ffffff 92%, rgba(226, 232, 240, 0.8)),
     radial-gradient(circle at 100% 0%, #e0e7ff 86%, transparent),
@@ -63,35 +47,24 @@ body {
   display: none !important;
 }
 
-/* ============================================================
-   3) SIDEBAR – FIXED + PERFECT CENTERING
-   ============================================================ */
-
 nav.sidebar {
   position: fixed;
   top: 0;
   left: 0;
   bottom: 0;
-
   width: 200px;
-
   background: linear-gradient(145deg, #020617, #020617);
   border-right: 1px solid rgba(15, 23, 42, 0.9);
-
   display: flex;
   flex-direction: column;
-  align-items: center;     /* TRUE CENTER FIX */
+  align-items: center;
   text-align: center;
-
   padding: 24px 0 18px;
 }
-
-/* Logo */
 
 .sidebar-header {
   width: 100%;
   padding-bottom: 12px;
-
   border-bottom: 1px solid rgba(51, 65, 85, 0.85);
   display: flex;
   justify-content: center;
@@ -104,56 +77,40 @@ nav.sidebar {
   border-radius: 12px;
 }
 
-/* ============================================================
-   4) SIDEBAR NAVIGATION – CENTERED & CLEAN
-   ============================================================ */
-
 .sidebar-nav {
   width: 100%;
   margin-top: 16px;
   padding-top: 12px;
-
   border-top: 1px solid rgba(51, 65, 85, 0.85);
-
   display: flex;
   flex-direction: column;
-  align-items: center;     /* FIX: exakt mittig */
+  align-items: center;
   justify-content: flex-start;
-
   gap: 14px;
 }
 
 .sidebar-nav-item {
   list-style: none;
 }
-/* ============================================================
-   5) SIDEBAR BUTTONS – FINAL VERSION
-   ============================================================ */
 
 .sidebar-nav-button {
-  width: 150px;                          /* kompakt, zentrierbar */
-  padding: 8px 10px;                     /* kompakte Höhe */
+  width: 150px;
+  padding: 8px 10px;
   border-radius: 12px;
-
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(148, 163, 184, 0.25);
-
   display: flex;
-  flex-direction: column;                /* ICON oben → Label unten */
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   gap: 4px;
-
   font-size: 0.78rem;
   letter-spacing: 0.08em;
   font-weight: 600;
-
   color: rgba(229, 231, 235, 0.95);
   text-transform: uppercase;
   text-align: center;
-
   cursor: pointer;
-
   transition:
     background 0.18s ease,
     border-color 0.18s ease,
@@ -162,19 +119,11 @@ nav.sidebar {
     color 0.18s ease;
 }
 
-/* ============================================================
-   ICON SYSTEM – HARDCODED GOLD (DUPLEX TONE)
-   ============================================================ */
-
-/* 1. Reset all inherited fills (prevents black icons) */
-.sidebar-nav-button .icon-svg *,
-.sidebar-nav-button .icon-layer-fill,
-.sidebar-nav-button .icon-layer-stroke {
-  fill: none !important;
-  stroke: none !important;
+.sidebar-nav-button .icon-svg * {
+  fill: currentColor !important;
+  stroke: currentColor !important;
 }
 
-/* 2. Apply gold tones */
 .sidebar-nav-button .icon-layer-fill {
   fill: var(--sidebar-icon-inactive-fill) !important;
 }
@@ -188,17 +137,11 @@ nav.sidebar {
   height: 22px;
 }
 
-/* Label */
 .sidebar-nav-button .label {
   margin-top: 2px;
   font-size: 0.75rem;
   color: rgba(229, 231, 235, 0.92);
 }
-
-
-/* ============================================================
-   HOVER STATE – PREMIUM
-   ============================================================ */
 
 .sidebar-nav-button:hover {
   background: radial-gradient(
@@ -206,12 +149,9 @@ nav.sidebar {
     rgba(70, 88, 110, 0.85),
     rgba(20, 30, 45, 0.95)
   );
-
   border-color: rgba(200, 200, 230, 0.85);
   color: #fff;
-
   transform: translateY(-2px);
-
   box-shadow:
     0 18px 40px rgba(10, 15, 25, 0.85),
     0 0 0 1px rgba(255, 255, 255, 0.15) inset;
@@ -225,24 +165,16 @@ nav.sidebar {
   stroke: var(--sidebar-icon-hover-stroke) !important;
 }
 
-
-/* ============================================================
-   ACTIVE STATE – STRONG, PREMIUM
-   ============================================================ */
-
 .sidebar-nav-button.active {
   background: linear-gradient(145deg, #2748b8, #17294f);
   border-color: rgba(160, 180, 255, 0.95);
   color: #fff;
-
   transform: translateY(-2px);
-
   box-shadow:
     0 22px 60px rgba(10, 15, 25, 1),
     0 0 0 1px rgba(255, 255, 255, 0.25) inset;
 }
 
-/* Active icon (pure gold) */
 .sidebar-nav-button.active .icon-layer-fill {
   fill: var(--sidebar-icon-active-fill) !important;
 }
@@ -251,16 +183,10 @@ nav.sidebar {
   stroke: var(--sidebar-icon-active-stroke) !important;
 }
 
-
-/* ============================================================
-   SIDEBAR STATUS (unten)
-   ============================================================ */
-
 .sidebar-status-row {
   display: flex;
   align-items: center;
   gap: 6px;
-
   font-size: 0.72rem;
   color: rgba(226, 232, 240, 0.85);
 }
@@ -283,26 +209,19 @@ nav.sidebar {
   background: var(--color-danger);
 }
 
-/* SETTINGS BUTTON BELOW */
 .sidebar-footer-button {
   margin-top: 12px;
   width: 150px;
   padding: 8px 0;
-
   font-size: 0.78rem;
   font-weight: 700;
-
   border-radius: 12px;
   border: 1px solid rgba(148, 163, 184, 0.45);
-
   background: rgba(255, 255, 255, 0.03);
   color: rgba(226, 232, 240, 0.85);
-
   letter-spacing: 0.12em;
   text-transform: uppercase;
-
   cursor: pointer;
-
   transition:
     background 0.18s ease,
     border-color 0.18s ease,
@@ -314,40 +233,29 @@ nav.sidebar {
   border-color: rgba(229, 231, 235, 0.75);
   transform: translateY(-2px);
 }
-/* ============================================================
-   6) TOPBAR (stabil + blur)
-   ============================================================ */
-
 #topbar {
   position: fixed;
   top: 0;
-  left: 200px;               /* Sidebar width */
+  left: 200px;
   right: 0;
-
   height: 92px;
   padding: 16px 32px;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-
   z-index: 50;
-
   background: radial-gradient(
     circle at 0% 0%,
     rgba(15, 23, 42, 0.98),
     rgba(15, 23, 42, 0.94)
   );
   border-bottom: 1px solid rgba(15, 23, 42, 0.8);
-
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.75);
-
   backdrop-filter: blur(26px);
   color: #e5e7eb;
 }
 
-/* Greeting left */
 .topbar-left {
   display: flex;
   flex-direction: column;
@@ -358,10 +266,6 @@ nav.sidebar {
   font-size: 0.78rem;
   color: rgba(226, 232, 240, 0.9);
 }
-
-/* ============================================================
-   TOPBAR SELECT GROUPS
-   ============================================================ */
 
 .topbar-center {
   display: flex;
@@ -387,16 +291,12 @@ nav.sidebar {
   min-width: 210px;
   padding: 7px 30px 7px 10px;
   border-radius: 6px;
-
   background-color: #f9fafb;
   border: 1px solid #cfd2d8;
-
   font-size: 0.84rem;
   color: var(--color-text-main);
-
   appearance: none;
   outline: none;
-
   background-image: url("data:image/svg+xml,%3Csvg width='9' height='5' ... %3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
@@ -406,10 +306,6 @@ nav.sidebar {
   border-color: var(--color-primary);
 }
 
-/* ============================================================
-   TOPBAR RIGHT – ICON BUTTONS
-   ============================================================ */
-
 .topbar-right {
   display: flex;
   align-items: center;
@@ -418,25 +314,19 @@ nav.sidebar {
 
 .icon-button {
   position: relative;
-
   width: 32px;
   height: 32px;
   border-radius: 999px;
-
   border: 1px solid rgba(148, 163, 184, 0.9);
-
   background: radial-gradient(
     circle at 0% 0%,
     rgba(248, 250, 252, 0.98),
     rgba(226, 232, 240, 0.96)
   );
-
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
   color: #4b5563;
-
   transition:
     background 0.18s ease,
     border-color 0.18s ease,
@@ -447,7 +337,6 @@ nav.sidebar {
 .icon-button:hover {
   border-color: var(--color-primary);
   transform: translateY(-1px);
-
   box-shadow:
     0 20px 50px rgba(15, 23, 42, 0.35),
     0 0 0 1px rgba(255, 255, 255, 0.9) inset;
@@ -458,47 +347,35 @@ nav.sidebar {
   height: 18px;
 }
 
-/* Notification Dot */
 .notification-dot {
   position: absolute;
   top: 6px;
   right: 6px;
-
   width: 7px;
   height: 7px;
   border-radius: 999px;
-
   background: #f97316;
   box-shadow: 0 0 0 2px #f9fafb;
 }
 
-/* ============================================================
-   META CONNECT BUTTON
-   ============================================================ */
-
 .meta-button {
   border-radius: 999px;
   border: 1px solid rgba(248, 113, 113, 0.95);
-
   padding: 7px 14px;
   min-width: 160px;
-
   background: radial-gradient(
     circle at 0% 0%,
     rgba(248, 113, 113, 0.98),
     rgba(220, 38, 38, 0.98)
   );
-
   color: #fef2f2;
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
   transition:
     background 0.18s ease,
     border-color 0.18s ease,
@@ -508,49 +385,40 @@ nav.sidebar {
 
 .meta-button:hover {
   transform: translateY(-1px);
-
   box-shadow:
     0 24px 70px rgba(30, 64, 175, 0.6),
     0 0 0 1px rgba(255, 255, 255, 0.85) inset;
 }
-
-/* ============================================================
-   MAIN CONTENT LAYOUT
-   ============================================================ */
 
 .main-content {
   flex: 1;
   padding: 120px 0 40px;
 }
 
-
-/* ============================================================
-   VIEW PANELS (Glassmorphism)
-   ============================================================ */
+.view-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
 .view {
   display: none;
-
   position: relative;
+  width: 100%;
   max-width: 1440px;
-
   margin: 54px auto 0;
   padding: 24px 26px 44px;
-
   border-radius: 26px;
-
   background: radial-gradient(
     circle at 0% 0%,
     rgba(248, 250, 252, 0.98),
     rgba(226, 232, 240, 0.94)
   );
-
   border: 1px solid rgba(148, 163, 184, 0.45);
-
   box-shadow:
     0 28px 90px rgba(15, 23, 42, 0.4),
     0 0 0 1px rgba(255, 255, 255, 0.9) inset;
-
   backdrop-filter: blur(26px);
 }
 
@@ -558,30 +426,21 @@ nav.sidebar {
   display: block;
 }
 
-
-/* ============================================================
-   GOLD HEADER – FIXED (NO SHIFT, NO OVERLAP)
-   ============================================================ */
-
 .view::before {
   content: attr(data-view-title);
-
   position: absolute;
   top: -46px;
-  left: 0;
-
-  width: calc(100%);              /* FIXED */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
   height: 46px;
-
   display: flex;
   align-items: center;
-  padding-left: 30px;             /* beautiful centered feeling */
-
+  padding-left: 30px;
   font-size: 1.08rem;
   font-weight: 650;
   text-transform: uppercase;
   letter-spacing: 0.18em;
-
   border-bottom: 1px solid rgba(146, 101, 22, 0.6);
 }
 
@@ -589,10 +448,6 @@ nav.sidebar {
   background: linear-gradient(90deg, #c8a451, #e0c26a, #b08934);
   color: #111827;
 }
-/* ============================================================
-   KPI GRIDS
-   ============================================================ */
-
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -646,11 +501,6 @@ nav.sidebar {
   color: #b91c1c;
 }
 
-
-/* ============================================================
-   DASHBOARD BLOCKS
-   ============================================================ */
-
 .dashboard-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.1fr);
@@ -669,8 +519,6 @@ nav.sidebar {
   grid-template-columns: 1.1fr 1.1fr;
   gap: 14px;
 }
-
-/* MINI TABLES */
 
 .table-mini {
   width: 100%;
@@ -692,11 +540,6 @@ nav.sidebar {
   color: var(--color-text-soft);
 }
 
-
-/* ============================================================
-   CREATIVE LIBRARY
-   ============================================================ */
-
 .creative-library-header {
   display: flex;
   justify-content: space-between;
@@ -716,13 +559,11 @@ nav.sidebar {
   border: 1px solid rgba(148, 163, 184, 0.7);
   padding: 7px 10px;
   font-size: 0.8rem;
-
   background: radial-gradient(
     circle at 0% 0%,
     rgba(248, 250, 252, 0.98),
     rgba(226, 232, 240, 0.96)
   );
-
   color: var(--color-text-main);
   outline: none;
   min-width: 160px;
@@ -738,19 +579,12 @@ nav.sidebar {
   gap: 10px;
 }
 
-
-/* ============================================================
-   GLOBAL LOADER
-   ============================================================ */
-
 .global-loader {
   position: fixed;
   inset: 0;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   z-index: 200;
   backdrop-filter: blur(10px);
 }
@@ -764,7 +598,6 @@ nav.sidebar {
   flex-direction: column;
   align-items: center;
   gap: 10px;
-
   color: var(--color-text-muted);
   font-size: 0.8rem;
 }
@@ -773,13 +606,10 @@ nav.sidebar {
   width: 9px;
   height: 9px;
   border-radius: 999px;
-
   background: #3b82f6;
-
   box-shadow:
     0 0 0 0 rgba(59, 130, 246, 0.5),
     0 0 0 1px rgba(255, 255, 255, 0.9) inset;
-
   animation: loader-pulse 1s infinite ease-in-out alternate;
 }
 
@@ -790,45 +620,31 @@ nav.sidebar {
 .loader-dot:nth-child(3) {
   animation-delay: 0.24s;
 }
-
-
-/* ============================================================
-   TOAST SYSTEM
-   ============================================================ */
-
 #toastContainer {
   position: fixed;
   right: 24px;
   bottom: 24px;
-
   display: flex;
   flex-direction: column;
   gap: 8px;
-
   z-index: 220;
 }
 
 .toast {
   min-width: 220px;
   max-width: 320px;
-
   padding: 9px 13px;
   border-radius: 999px;
-
   font-size: 0.82rem;
-
   background: radial-gradient(
     circle at 0% 0%,
     rgba(248, 250, 252, 0.98),
     rgba(226, 232, 240, 0.96)
   );
-
   border: 1px solid rgba(148, 163, 184, 0.7);
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.34);
-
   opacity: 0;
   transform: translateY(6px);
-
   transition:
     opacity 0.18s ease,
     transform 0.18s ease;
@@ -851,37 +667,27 @@ nav.sidebar {
   border-color: rgba(239, 68, 68, 0.85);
 }
 
-
-/* ============================================================
-   MODAL (System Dialog)
-   ============================================================ */
-
 .modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.66);
-
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 210;
-
   backdrop-filter: blur(12px);
 }
 
 .modal {
   max-width: 420px;
   width: 100%;
-
   padding: 16px 16px 14px;
   border-radius: 16px;
-
   background: radial-gradient(
     circle at 0% 0%,
     rgba(248, 250, 252, 0.98),
     rgba(226, 232, 240, 0.96)
   );
-
   border: 1px solid rgba(148, 163, 184, 0.9);
   box-shadow: 0 22px 60px rgba(15, 23, 42, 0.35);
 }
@@ -905,19 +711,15 @@ nav.sidebar {
   width: 28px;
   height: 28px;
   border-radius: 999px;
-
   border: 1px solid rgba(156, 163, 175, 0.9);
-
   background: radial-gradient(
     circle at 0% 0%,
     rgba(248, 250, 252, 0.98),
     rgba(226, 232, 240, 0.96)
   );
-
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
   font-size: 0.9rem;
   color: #4b5563;
 }
@@ -931,11 +733,6 @@ nav.sidebar {
   font-size: 0.86rem;
   color: var(--color-text-main);
 }
-
-
-/* ============================================================
-   ANIMATIONS (Micro UI)
-   ============================================================ */
 
 @keyframes loader-pulse {
   0% {
