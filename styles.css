@@ -93,7 +93,6 @@ html,
 body {
   margin: 0;
   padding: 0;
-  /* horizontale Scroll-Leiste killen (Gold-Header-Strip) */
   overflow-x: hidden;
 }
 
@@ -135,7 +134,7 @@ img {
 }
 
 /* ==============================
-   3) SIDEBAR
+   3) SIDEBAR – **DEINE VERSION (neu)**
    ============================== */
 
 nav.sidebar {
@@ -143,37 +142,36 @@ nav.sidebar {
   left: 0;
   top: 0;
   bottom: 0;
-  width: 200px;
 
-  background: radial-gradient(
-      circle at 0% 0%,
-      rgba(15, 23, 42, 0.96),
-      rgba(15, 23, 42, 0.92)
-    ),
-    linear-gradient(145deg, #020617, #020617);
+  width: 200px;
+  padding: 24px 0 18px;
+
+  background: #020617;
   border-right: 1px solid rgba(15, 23, 42, 0.9);
   box-shadow: var(--shadow-soft);
 
   display: flex;
   flex-direction: column;
-  padding: 24px 18px 18px;
-  z-index: 40;
-  backdrop-filter: blur(26px);
+  align-items: center;
+
   color: #e5e7eb;
+  z-index: 40;
 }
 
-/* Logo / Header */
+/* ---------- LOGO ---------- */
+
 .sidebar-header {
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   padding-bottom: 16px;
   margin-bottom: 16px;
+  width: 100%;
   border-bottom: 1px solid rgba(51, 65, 85, 0.9);
 }
 
 .sidebar-logo {
-  width: 176px;
+  width: 160px;
   height: 42px;
   border-radius: 12px;
   background: #020617 url("Logo_re_Sc.png") center center / contain no-repeat;
@@ -184,39 +182,48 @@ nav.sidebar {
   overflow: hidden;
 }
 
-/* Navigation */
+/* ---------- MENU (vertikal zentriert, 160px breit) ---------- */
+
 .sidebar-nav {
   margin-top: 18px;
-  padding-top: 14px;
-  border-top: 1px solid rgba(51, 65, 85, 0.9);
+  padding: 0;
+  list-style: none;
+
   flex: 1;
+  width: 100%;
+
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  /* vertikal zentriert */
-  justify-content: center;
-  overflow-y: visible;
+  align-items: center;
+
+  gap: 12px;
 }
 
 .sidebar-nav-item {
-  list-style: none;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .sidebar-nav-button {
-  width: 100%;
-  padding: 9px 10px;
-  border-radius: 10px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: rgba(209, 213, 219, 0.9);
-  font-size: 0.84rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  width: 160px;
+  padding: 10px 0;
+  border-radius: 12px;
+
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   gap: 9px;
+
+  text-transform: uppercase;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: rgba(209, 213, 219, 0.9);
+
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+
   transition:
     background 0.16s ease,
     border-color 0.16s ease,
@@ -226,58 +233,23 @@ nav.sidebar {
 }
 
 .sidebar-nav-button .label {
-  flex: 1;
+  text-align: center;
 }
 
-/* SVG ICONS IN SIDEBAR */
+/* ICONS */
 .sidebar-nav-button .icon-svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
 }
 
-.icon-svg use {
-  pointer-events: none;
-}
-
-/* globale Grundfarbe für Stroke – wird in Sidebar überschrieben */
-.icon-layer-stroke {
-  fill: none;
-  stroke: #374151;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* Sidebar: Gold-Duotone */
-.sidebar-nav-button .icon-layer-fill {
-  fill: var(--sidebar-icon-inactive-fill);
-  opacity: 0.85;
-  transition:
-    fill 0.16s ease,
-    opacity 0.16s ease;
-}
-
-.sidebar-nav-button .icon-layer-stroke {
-  fill: none;
-  stroke: var(--sidebar-icon-inactive-stroke);
-  stroke-width: 1.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  transition: stroke 0.16s ease;
-}
-
-/* Hover / Active States */
+/* ---------- HOVER ---------- */
 .sidebar-nav-button:hover {
-  background: radial-gradient(
-    circle at 0% 0%,
-    rgba(51, 65, 85, 0.95),
-    rgba(15, 23, 42, 0.98)
-  );
-  border-color: rgba(148, 163, 184, 0.9);
-  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.9);
+  background: rgba(255,255,255,0.14);
+  border-color: rgba(255,255,255,0.28);
   color: #f9fafb;
   transform: translateY(-1px);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.9);
 }
 
 .sidebar-nav-button:hover .icon-layer-fill {
@@ -288,33 +260,34 @@ nav.sidebar {
   stroke: var(--sidebar-icon-hover-stroke);
 }
 
+/* ---------- ACTIVE ---------- */
+
 .sidebar-nav-button.active {
-  background: radial-gradient(
-    circle at 0% 0%,
-    rgba(30, 64, 175, 0.98),
-    rgba(15, 23, 42, 0.98)
-  );
+  background: rgba(59, 130, 246, 0.12);
   border-color: rgba(129, 140, 248, 0.95);
-  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.95);
-  color: #f9fafb;
+  color: #ffffff;
 }
 
 .sidebar-nav-button.active .icon-layer-fill {
   fill: var(--sidebar-icon-active-fill);
-  opacity: 1;
 }
 
 .sidebar-nav-button.active .icon-layer-stroke {
   stroke: var(--sidebar-icon-active-stroke);
 }
 
-/* Sidebar Footer / Status */
+/* ---------- FOOTER / STATUS ---------- */
+
 .sidebar-footer {
+  width: 100%;
   padding-top: 12px;
   margin-top: 12px;
+
   border-top: 1px solid rgba(31, 41, 55, 0.9);
+
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 6px;
 }
 
@@ -334,33 +307,37 @@ nav.sidebar {
   box-shadow: 0 0 0 2px rgba(15, 23, 42, 1);
 }
 
-/* Settings Button unten */
+/* SETTINGS BUTTON */
 .sidebar-footer-button {
+  width: 160px;
   margin-top: 10px;
-  width: 100%;
+
   border-radius: 999px;
   border: 1px solid rgba(148, 163, 184, 0.85);
   padding: 8px 10px;
+
   background: radial-gradient(
     circle at 0% 0%,
     rgba(15, 23, 42, 0.98),
     rgba(30, 64, 175, 0.9)
   );
   color: #e5e7eb;
+
   font-size: 0.78rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  display: inline-flex;
+
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+
   transition:
     background 0.16s ease,
     border-color 0.16s ease,
     box-shadow 0.16s ease,
     transform 0.06s ease;
 }
-
 .sidebar-footer-button:hover {
   background: radial-gradient(
     circle at 0% 0%,
@@ -374,7 +351,7 @@ nav.sidebar {
 
 /* ==============================
    4) APP-SHELL & TOPBAR
-   ============================== */
+============================== */
 
 .app-shell {
   display: flex;
@@ -460,7 +437,6 @@ nav.sidebar {
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  /* höherer Kontrast auf dunklem Topbar-Hintergrund */
   color: rgba(226, 232, 240, 0.92);
   font-weight: 600;
 }
@@ -496,7 +472,8 @@ nav.sidebar {
   color: var(--color-text-main);
 }
 
-/* Icon-Buttons in der Topbar */
+/* ICON BUTTONS */
+
 .icon-button {
   width: 32px;
   height: 32px;
@@ -511,6 +488,7 @@ nav.sidebar {
   align-items: center;
   justify-content: center;
   color: #4b5563;
+
   position: relative;
   transition:
     background 0.16s ease,
@@ -548,48 +526,56 @@ nav.sidebar {
   box-shadow: 0 0 0 2px #f9fafb;
 }
 
-/* Meta-Button (Topbar Fokus – rot, aggressiv) */
+/* META CONNECT BUTTON (TOPBAR SPECIAL) */
+
 #topbar .meta-button {
   border-radius: 999px;
   border: 1px solid rgba(248, 113, 113, 0.95);
   padding: 7px 14px;
+
   background: radial-gradient(
     circle at 0% 0%,
     rgba(248, 113, 113, 0.98),
     rgba(220, 38, 38, 0.98)
   );
   color: #fef2f2;
+
   min-width: 160px;
   font-size: 0.78rem;
-  /* mehr Punch: fetter Text */
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
 }
 
-/* Default Meta Button elsewhere */
+/* GENERAL META BUTTON */
+
 .meta-button {
   border-radius: 999px;
   border: 1px solid rgba(37, 99, 235, 0.9);
   padding: 7px 12px;
+
   background: radial-gradient(
     circle at 0% 0%,
     rgba(59, 130, 246, 0.96),
     rgba(147, 197, 253, 0.95)
   );
+
   color: #f9fafb;
   font-size: 0.8rem;
   font-weight: 500;
   letter-spacing: 0.16em;
   text-transform: uppercase;
+
   display: inline-flex;
   align-items: center;
   gap: 6px;
   justify-content: center;
+
   transition:
     box-shadow 0.16s ease,
     transform 0.06s ease,
@@ -603,10 +589,9 @@ nav.sidebar {
     0 0 0 0.6px rgba(255, 255, 255, 0.9) inset;
   transform: translateY(-1px);
 }
-
 /* ==============================
    5) MAIN CONTENT & VIEWS
-   ============================== */
+============================== */
 
 .main-content {
   flex: 1;
@@ -620,12 +605,14 @@ nav.sidebar {
   max-width: 1440px;
   margin: 54px auto 0;
   padding: 24px 26px 44px;
+
   border-radius: 26px;
   background: radial-gradient(
     circle at 0% 0%,
     rgba(248, 250, 252, 0.98),
     rgba(226, 232, 240, 0.94)
   );
+
   box-shadow:
     0 28px 90px rgba(15, 23, 42, 0.4),
     0 0 0 0.8px rgba(255, 255, 255, 0.9) inset;
@@ -633,7 +620,7 @@ nav.sidebar {
   backdrop-filter: blur(26px);
 }
 
-/* FULL-WIDTH GOLD HEADER STRIP (Theme C) */
+/* GOLD HEADER STRIP */
 .view::before {
   content: attr(data-view-title);
   position: absolute;
@@ -662,7 +649,7 @@ nav.sidebar {
   color: #111827;
 }
 
-/* Subheader unter Gold-Leiste (Brand / Konto / Kontext) */
+/* SUBHEADER */
 .view-subheader {
   margin-bottom: 16px;
   padding-bottom: 10px;
@@ -681,16 +668,9 @@ nav.sidebar {
   margin-bottom: 2px;
 }
 
-.subheader-icon {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-}
-
 .subheader-brand-name {
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--color-text-main);
 }
 
 .subheader-role {
@@ -703,11 +683,7 @@ nav.sidebar {
   color: var(--color-text-muted);
 }
 
-.subheader-divider {
-  opacity: 0.8;
-}
-
-/* Inner Header (wird für redundante H2 entschärft) */
+/* VIEW HEADER */
 .view-header {
   display: flex;
   align-items: baseline;
@@ -716,7 +692,6 @@ nav.sidebar {
   margin-bottom: 18px;
 }
 
-/* H2 im Grid sind redundant zur Gold-Leiste → dezenter */
 .view-header h2 {
   font-size: 0.9rem;
   font-weight: 600;
@@ -727,13 +702,14 @@ nav.sidebar {
 }
 
 /* ==============================
-   6) GENERIC CARDS & KPI
-   ============================== */
+   6) CARDS & KPI
+============================== */
 
 .card {
   background: var(--surface);
   border-radius: 18px;
   padding: 16px 16px 14px;
+
   border: 1px solid rgba(226, 232, 240, 0.96);
   box-shadow:
     0 22px 60px rgba(15, 23, 42, 0.25),
@@ -753,7 +729,6 @@ nav.sidebar {
   font-weight: 650;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--color-text-main);
 }
 
 .card-subtitle {
@@ -761,7 +736,8 @@ nav.sidebar {
   color: var(--color-text-muted);
 }
 
-/* KPI Grid */
+/* KPI GRID */
+
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -797,28 +773,27 @@ nav.sidebar {
   border: 1px solid transparent;
 }
 
-/* Status Colors */
 .kpi-badge.good {
   background: var(--color-success-soft);
-  border-color: rgba(22, 163, 74, 0.5);
+  border-color: rgba(22,163,74,0.5);
   color: #166534;
 }
 
 .kpi-badge.warning {
   background: var(--color-warning-soft);
-  border-color: rgba(245, 158, 11, 0.55);
+  border-color: rgba(245,158,11,0.55);
   color: #92400e;
 }
 
 .kpi-badge.critical {
   background: var(--color-danger-soft);
-  border-color: rgba(220, 38, 38, 0.55);
+  border-color: rgba(220,38,38,0.55);
   color: #b91c1c;
 }
 
 /* ==============================
    7) DASHBOARD GRIDS / TABLES
-   ============================== */
+============================== */
 
 .dashboard-grid {
   display: grid;
@@ -839,7 +814,8 @@ nav.sidebar {
   gap: 14px;
 }
 
-/* Mini-Tables */
+/* MINI TABLES */
+
 .table-mini {
   width: 100%;
   border-collapse: collapse;
@@ -862,7 +838,7 @@ nav.sidebar {
 
 /* ==============================
    8) CREATIVE LIBRARY
-   ============================== */
+============================== */
 
 .creative-library-header {
   display: flex;
@@ -883,11 +859,13 @@ nav.sidebar {
   border: 1px solid rgba(148, 163, 184, 0.7);
   padding: 7px 10px;
   font-size: 0.8rem;
+
   background: radial-gradient(
     circle at 0% 0%,
-    rgba(248, 250, 252, 0.98),
-    rgba(226, 232, 240, 0.96)
+    rgba(248,250,252,0.98),
+    rgba(226,232,240,0.96)
   );
+
   color: var(--color-text-main);
   outline: none;
   min-width: 160px;
@@ -897,16 +875,98 @@ nav.sidebar {
   color: var(--color-text-soft);
 }
 
-/* Creative Grid */
 .creative-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
 }
 
+/* Creative Items */
+
+.creative-library-item {
+  border-radius: 16px;
+  padding: 12px;
+  background: #ffffff;
+
+  border: 1px solid rgba(226,232,240,0.7);
+  box-shadow:
+    0 16px 50px rgba(15,23,42,0.18),
+    0 0 0 0.8px rgba(255,255,255,0.85) inset;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.creative-library-item:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 22px 60px rgba(15,23,42,0.25),
+    0 0 0 1px rgba(255,255,255,0.95) inset;
+}
+
+.creative-thumb {
+  width: 100%;
+  height: 120px;
+  border-radius: 12px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.creative-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.creative-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.creative-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.creative-kpi {
+  font-size: 0.74rem;
+  color: var(--color-text-soft);
+}
+
+.creative-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.creative-actions button {
+  font-size: 0.72rem;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(148,163,184,0.6);
+  background: #ffffff;
+  color: var(--color-text-main);
+
+  transition:
+    background 0.14s ease,
+    border-color 0.14s ease,
+    box-shadow 0.14s ease;
+}
+
+.creative-actions button:hover {
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary);
+  box-shadow: 0 5px 20px rgba(59,130,246,0.25);
+}
 /* ==============================
    9) LOADER, TOASTS, MODAL
-   ============================== */
+============================== */
 
 .global-loader {
   position: fixed;
@@ -937,20 +997,31 @@ nav.sidebar {
   border-radius: 999px;
   background: #3b82f6;
   box-shadow:
-    0 0 0 0 rgba(59, 130, 246, 0.5),
-    0 0 0 0.8px rgba(255, 255, 255, 0.9) inset;
+    0 0 0 0 rgba(59,130,246,0.5),
+    0 0 0 0.8px rgba(255,255,255,0.9) inset;
   animation: loader-pulse 1s infinite ease-in-out alternate;
 }
 
 .loader-dot:nth-child(2) {
   animation-delay: 0.12s;
 }
-
 .loader-dot:nth-child(3) {
   animation-delay: 0.24s;
 }
 
-/* Toasts */
+@keyframes loader-pulse {
+  from {
+    transform: translateY(0);
+    opacity: 0.6;
+  }
+  to {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+
+/* TOASTS */
+
 #toastContainer {
   position: fixed;
   right: 24px;
@@ -966,16 +1037,21 @@ nav.sidebar {
   max-width: 320px;
   padding: 9px 13px;
   border-radius: 999px;
+
   font-size: 0.82rem;
+
   background: radial-gradient(
     circle at 0% 0%,
-    rgba(248, 250, 252, 0.98),
-    rgba(226, 232, 240, 0.96)
+    rgba(248,250,252,0.98),
+    rgba(226,232,240,0.96)
   );
-  border: 1px solid rgba(148, 163, 184, 0.7);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.34);
+
+  border: 1px solid rgba(148,163,184,0.7);
+  box-shadow: 0 18px 40px rgba(15,23,42,0.34);
+
   opacity: 0;
   transform: translateY(6px);
+
   transition:
     opacity 0.18s ease,
     transform 0.18s ease;
@@ -987,22 +1063,23 @@ nav.sidebar {
 }
 
 .toast-success {
-  border-color: rgba(22, 163, 74, 0.75);
+  border-color: rgba(22,163,74,0.75);
 }
 
 .toast-warning {
-  border-color: rgba(245, 158, 11, 0.8);
+  border-color: rgba(245,158,11,0.8);
 }
 
 .toast-error {
-  border-color: rgba(239, 68, 68, 0.85);
+  border-color: rgba(239,68,68,0.85);
 }
 
-/* Modal Overlay */
+/* MODAL OVERLAY */
+
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.66);
+  background: rgba(15,23,42,0.66);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1015,124 +1092,139 @@ nav.sidebar {
   width: 100%;
   padding: 16px 16px 14px;
   border-radius: 16px;
+
   background: radial-gradient(
     circle at 0% 0%,
-    rgba(248, 250, 252, 0.98),
-    rgba(226, 232, 240, 0.96)
+    rgba(248,250,252,0.98),
+    rgba(226,232,240,0.96)
   );
-  border: 1px solid rgba(148, 163, 184, 0.9);
+
+  border: 1px solid rgba(148,163,184,0.9);
   box-shadow: var(--shadow-lg);
 }
 
 .modal-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 8px;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
 .modal-title {
-  font-size: 0.94rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
+  font-size: 0.9rem;
+  font-weight: 650;
   text-transform: uppercase;
+  letter-spacing: 0.14em;
 }
 
 .modal-close {
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  border: 1px solid rgba(156, 163, 175, 0.9);
-  background: radial-gradient(
-    circle at 0% 0%,
-    rgba(248, 250, 252, 0.98),
-    rgba(226, 232, 240, 0.96)
-  );
-  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+
+  background: rgba(241,245,249,0.8);
+  display: flex;
   align-items: center;
   justify-content: center;
-  color: #4b5563;
-  font-size: 0.9rem;
+
+  transition:
+    background 0.16s ease,
+    box-shadow 0.16s ease;
 }
 
 .modal-close:hover {
-  border-color: rgba(239, 68, 68, 0.9);
-  color: #b91c1c;
+  background: rgba(226,232,240,1);
+  box-shadow: 0 0 0 1px rgba(59,130,246,0.25);
 }
 
-.modal-body {
-  font-size: 0.86rem;
+.modal-content {
+  font-size: 0.82rem;
   color: var(--color-text-main);
+  line-height: 1.5;
 }
 
 /* ==============================
-   10) HELPERS & ANIMATIONS
-   ============================== */
+   10) ANIMATIONS
+============================== */
 
-.skeleton-block {
-  border-radius: 10px;
-  background: linear-gradient(
-    90deg,
-    rgba(226, 232, 240, 0.8),
-    rgba(241, 245, 249, 1),
-    rgba(226, 232, 240, 0.8)
-  );
-  background-size: 200% 100%;
-  animation: skeleton 1.2s ease-in-out infinite;
-}
-
-@keyframes skeleton {
-  0% {
-    background-position: 200% 0;
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
   }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-@keyframes loader-pulse {
-  0% {
+  to {
+    opacity: 1;
     transform: translateY(0);
-    box-shadow:
-      0 0 0 0 rgba(59, 130, 246, 0.5),
-      0 0 0 0.8px rgba(255, 255, 255, 0.9) inset;
-  }
-  100% {
-    transform: translateY(-4px);
-    box-shadow:
-      0 0 0 8px rgba(59, 130, 246, 0),
-      0 0 0 0.8px rgba(255, 255, 255, 0.9) inset;
   }
 }
 
-/* Micro Interactions Ergänzung (sx-core verstärkt das noch) */
-.view {
-  transition: opacity 0.18s ease-out, transform 0.12s ease-out;
+.fade-in-up {
+  animation: fadeInUp 0.24s ease forwards;
 }
 
-.view.active {
-  opacity: 1;
-  transform: translateY(0);
+/* ==============================
+   11) TOOLTIP SYSTEM
+============================== */
+
+[data-tooltip] {
+  position: relative;
 }
 
-.card,
-.metric-card,
-.dashboard-card,
-.creative-library-item,
-.report-card,
-.log-card {
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+
+  padding: 6px 10px;
+  background: rgba(15,23,42,0.94);
+  color: #f9fafb;
+
+  font-size: 0.74rem;
+  white-space: nowrap;
+
+  border-radius: 6px;
+  opacity: 0;
+  pointer-events: none;
+
   transition:
-    box-shadow 0.18s ease-out,
-    transform 0.16s ease-out,
-    border-color 0.16s ease-out;
+    opacity 0.18s ease,
+    transform 0.18s ease;
 }
 
-.card:hover,
-.metric-card:hover,
-.dashboard-card:hover,
-.creative-library-item:hover,
-.report-card:hover,
-.log-card:hover {
-  transform: translateY(-2px);
+[data-tooltip]:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-2px);
 }
+
+/* ==============================
+   12) RESPONSIVE (Minimal)
+============================== */
+
+@media (max-width: 1200px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .creative-grid {
+    grid-template-columns: repeat(3, minmax(0,1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .creative-grid {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .creative-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==============================
+   END OF FILE
+============================== */
