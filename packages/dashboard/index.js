@@ -1,655 +1,592 @@
-// packages/dashboard/index.js
-// Enterprise Dashboard Grid für SignalOne
-// Nutzt DemoData (window.SignalOneDemo) + AppState (Brand/Kampagne/Mode).
-
-export function render(rootEl, AppState, env = {}) {
-  if (!rootEl) return;
-
-  const useDemo =
-    typeof env.useDemoMode === "boolean" ? env.useDemoMode : true;
-
-  const demo = window.SignalOneDemo && window.SignalOneDemo.DemoData;
-  const brands = demo && demo.brands ? demo.brands : [];
-
-  let brandId = AppState.selectedBrandId;
-  if (!brandId && brands.length) {
-    brandId = brands[0].id;
-  }
-
-  const brand =
-    brands.find((b) => b.id === brandId) || (brands.length ? brands[0] : null);
-
-  rootEl.innerHTML = "";
-
-  if (!useDemo && !AppState.metaConnected) {
-    const p = document.createElement("p");
-    p.textContent =
-      "Live-Modus aktiv. Dashboard wartet auf echte Meta-Daten, sobald das Backend angebunden ist.";
-    rootEl.appendChild(p);
-    return;
-  }
-
-  // ---- KPI / Demo Daten vorbereiten --------------------------------------
-
-  const spend = brand ? brand.spend30d : 0;
-  const roas = brand ? brand.roas30d : 0;
-  const revenue = spend * roas;
-  const kpis = getKpisForBrand(brand ? brand.id : null, spend, roas);
-  const alerts = getAlertsForBrand(brand);
-  const trendData = getTrendDataForBrand(brand);
-  const leaderboard = getLeaderboardForBrand(brand);
-
-  // ---- Hero-Bereich ------------------------------------------------------
-
-  const hero = document.createElement("div");
-  hero.className = "dashboard-hero";
-
-  const heroStatus = document.createElement("div");
-  heroStatus.className = "dashboard-hero-status";
-  if (brand) {
-    heroStatus.textContent = `${brand.name} • ROAS ${roas.toFixed(
-      1
-    )}x • Spend 30 Tage: ${formatCurrency(spend)}`;
-  } else {
-    heroStatus.textContent = "Kein Werbekonto ausgewählt.";
-  }
-
-  const heroTitle = document.createElement("h2");
-  heroTitle.className = "dashboard-hero-title";
-  heroTitle.textContent = "SignalOne Performance Dashboard";
-
-  const heroSubtitle = document.createElement("p");
-  heroSubtitle.className = "dashboard-hero-subtitle";
-  if (brand) {
-    heroSubtitle.textContent = useDemo
-      ? `Demo-Modus aktiv – simulierte Meta-Daten für ${brand.vertical}.`
-      : `Live-Modus – Daten werden aus Meta geladen, sobald das Backend angebunden ist.`;
-  } else {
-    heroSubtitle.textContent =
-      "Wähle links ein Modul und oben ein Werbekonto, um zu starten.";
-  }
-
-  hero.appendChild(heroStatus);
-  hero.appendChild(heroTitle);
-  hero.appendChild(heroSubtitle);
-
-  rootEl.appendChild(hero);
-
-  // ---- KPI Grid ----------------------------------------------------------
-
-  const kpiGrid = document.createElement("div");
-  kpiGrid.className = "kpi-grid";
-
-  kpis.forEach((k) => {
-    const card = document.createElement("div");
-    card.className = "kpi-card";
-
-    const label = document.createElement("strong");
-    label.textContent = k.label;
-
-    const value = document.createElement("div");
-    value.textContent = k.value;
-
-    card.appendChild(label);
-    card.appendChild(value);
-    kpiGrid.appendChild(card);
-  });
-
-  rootEl.appendChild(kpiGrid);
-
-  // ---- Main Grid: Links Trends & Insight, Rechts Alerts ------------------
-
-  const mainGrid = document.createElement("div");
-  // minimal inline Layout, Rest kommt aus bestehenden Card-Styles
-  mainGrid.style.display = "grid";
-  mainGrid.style.gridTemplateColumns = "minmax(0, 2.2fr) minmax(0, 1.4fr)";
-  mainGrid.style.gap = "16px";
-  mainGrid.style.marginBottom = "24px";
-
-  const leftCol = document.createElement("div");
-  const rightCol = document.createElement("div");
-
-  // Trends Card (nutzt sensei-card Style)
-  const trendsCard = document.createElement("div");
-  trendsCard.className = "sensei-card";
-  const trendsTitle = document.createElement("h3");
-  trendsTitle.textContent = "Performance-Tendenz (letzte 7 Tage)";
-  const trendsList = document.createElement("ul");
-  trendsList.style.listStyle = "none";
-  trendsList.style.paddingLeft = "0";
-  trendsList.style.margin = "8px 0 0";
-
-  trendData.forEach((t) => {
-    const li = document.createElement("li");
-    li.style.display = "flex";
-    li.style.alignItems = "center";
-    li.style.gap = "8px";
-    li.style.marginBottom = "4px";
-
-    const label = document.createElement("span");
-    label.style.minWidth = "70px";
-    label.style.fontSize = "0.8rem";
-    label.textContent = t.label;
-
-    const barWrapper = document.createElement("div");
-    barWrapper.style.flex = "1";
-    barWrapper.style.height = "6px";
-    barWrapper.style.borderRadius = "999px";
-    barWrapper.style.background = "#e0ddd8";
-
-    const bar = document.createElement("div");
-    bar.style.height = "100%";
-    bar.style.borderRadius = "999px";
-    bar.style.width = `${t.relative}%`;
-    bar.style.background =
-      "linear-gradient(90deg, var(--color-primary), #7e9e7a)";
-
-    barWrapper.appendChild(bar);
-
-    const value = document.createElement("span");
-    value.style.fontSize = "0.8rem";
-    value.textContent = t.value;
-
-    li.appendChild(label);
-    li.appendChild(barWrapper);
-    li.appendChild(value);
-    trendsList.appendChild(li);
-  });
-
-  trendsCard.appendChild(trendsTitle);
-  trendsCard.appendChild(trendsList);
-
-  // Insight Card (nutzt dashboard-insight)
-  const insightCard = document.createElement("div");
-  insightCard.className = "dashboard-insight";
-
-  const insightTitle = document.createElement("strong");
-  insightTitle.textContent = "Sensei Insight";
-
-  const insightBody = document.createElement("p");
-  insightBody.style.marginTop = "6px";
-  insightBody.style.fontSize = "0.9rem";
-  insightBody.style.lineHeight = "1.5";
-
-  insightBody.textContent = getInsightText(brand, kpis, alerts);
-
-  insightCard.appendChild(insightTitle);
-  insightCard.appendChild(insightBody);
-
-  leftCol.appendChild(trendsCard);
-  leftCol.appendChild(insightCard);
-
-  // Alerts rechts
-  const alertsCard = document.createElement("div");
-  alertsCard.className = "sensei-card";
-
-  const alertsTitle = document.createElement("h3");
-  alertsTitle.textContent = "Alerts & Checks";
-
-  alertsCard.appendChild(alertsTitle);
-
-  if (!alerts.length) {
-    const empty = document.createElement("p");
-    empty.className = "dashboard-alerts-empty";
-    empty.textContent = "Keine kritischen Alerts für dieses Konto.";
-    alertsCard.appendChild(empty);
-  } else {
-    alerts.forEach((a) => {
-      const row = document.createElement("div");
-      row.className = "alert";
-      if (a.severity === "warning") row.classList.add("alert-warning");
-      if (a.severity === "critical") row.classList.add("alert-critical");
-
-      const title = document.createElement("strong");
-      title.textContent = a.title + " ";
-
-      const msg = document.createElement("span");
-      msg.textContent = a.message;
-
-      row.appendChild(title);
-      row.appendChild(msg);
-      alertsCard.appendChild(row);
-    });
-  }
-
-  rightCol.appendChild(alertsCard);
-
-  mainGrid.appendChild(leftCol);
-  mainGrid.appendChild(rightCol);
-
-  rootEl.appendChild(mainGrid);
-
-  // ---- Creative Leaderboard (volle Breite, Enterprise-Style) -------------
-
-  const lbWrapper = document.createElement("div");
-  lbWrapper.className = "campaign-table";
-
-  const table = document.createElement("table");
-
-  const thead = document.createElement("thead");
-  const headerRow = document.createElement("tr");
-  [
-    "Creative",
-    "Tags",
-    "Spend (30d)",
-    "ROAS",
-    "CTR",
-    "CPM",
-    "Status",
-  ].forEach((h) => {
-    const th = document.createElement("th");
-    th.textContent = h;
-    headerRow.appendChild(th);
-  });
-  thead.appendChild(headerRow);
-
-  const tbody = document.createElement("tbody");
-  leaderboard.forEach((c) => {
-    const tr = document.createElement("tr");
-
-    // Name
-    const tdName = document.createElement("td");
-    tdName.textContent = c.name;
-    tr.appendChild(tdName);
-
-    // Tags
-    const tdTags = document.createElement("td");
-    tdTags.textContent = c.tags.join(" • ");
-    tr.appendChild(tdTags);
-
-    // Spend
-    const tdSpend = document.createElement("td");
-    tdSpend.textContent = formatCurrency(c.spend);
-    tr.appendChild(tdSpend);
-
-    // ROAS
-    const tdRoas = document.createElement("td");
-    tdRoas.textContent = `${c.roas.toFixed(1)}x`;
-    tr.appendChild(tdRoas);
-
-    // CTR
-    const tdCtr = document.createElement("td");
-    tdCtr.textContent = `${c.ctr.toFixed(2)} %`;
-    tr.appendChild(tdCtr);
-
-    // CPM
-    const tdCpm = document.createElement("td");
-    tdCpm.textContent = formatCurrency(c.cpm);
-    tr.appendChild(tdCpm);
-
-    // Status
-    const tdStatus = document.createElement("td");
-    tdStatus.textContent = c.status;
-    tr.appendChild(tdStatus);
-
-    tbody.appendChild(tr);
-  });
-
-  table.appendChild(thead);
-  table.appendChild(tbody);
-  lbWrapper.appendChild(table);
-
-  rootEl.appendChild(lbWrapper);
+/*
+ * packages/dashboard/index.js
+ * SignalOne Demo-Dashboard
+ * Nutzt DemoData über window.SignalOneDemo und respektiert Meta/Demo-Status.
+ */
+
+function getDemoData() {
+  return window.SignalOneDemo?.DemoData || null;
 }
 
-// ---- Helper: KPI Daten pro Brand -----------------------------------------
+function getActiveBrandFromState(appState) {
+  const demo = getDemoData();
+  if (!demo || !demo.brands || !demo.brands.length) return null;
 
-function getKpisForBrand(brandId, spend, roas) {
-  // simple presets pro Brand für realistische KPIs
-  const presets = {
-    acme_fashion: {
-      cpm: 8.4,
-      ctr: 2.7,
-      cpc: 0.72,
-      conv: 2180,
-      profitMargin: 0.32,
-    },
-    techgadgets_pro: {
-      cpm: 11.9,
-      ctr: 1.9,
-      cpc: 1.12,
-      conv: 890,
-      profitMargin: 0.28,
-    },
-    beautylux_cosmetics: {
-      cpm: 7.6,
-      ctr: 3.4,
-      cpc: 0.61,
-      conv: 3420,
-      profitMargin: 0.36,
-    },
-    fitlife_supplements: {
-      cpm: 9.1,
-      ctr: 2.3,
-      cpc: 0.83,
-      conv: 1460,
-      profitMargin: 0.30,
-    },
-    homezen_living: {
-      cpm: 10.4,
-      ctr: 1.7,
-      cpc: 1.02,
-      conv: 620,
-      profitMargin: 0.24,
-    },
-  };
-
-  const p = presets[brandId] || {
-    cpm: 9.5,
-    ctr: 2.2,
-    cpc: 0.9,
-    conv: 1000,
-    profitMargin: 0.3,
-  };
-
-  const revenue = spend * roas;
-  const profit = revenue * p.profitMargin;
-
-  return [
-    {
-      key: "spend",
-      label: "Ad Spend (30 Tage)",
-      value: formatCurrency(spend),
-    },
-    {
-      key: "revenue",
-      label: "Revenue (30 Tage)",
-      value: formatCurrency(revenue),
-    },
-    {
-      key: "roas",
-      label: "ROAS",
-      value: `${roas.toFixed(1)}x`,
-    },
-    {
-      key: "cpm",
-      label: "CPM",
-      value: formatCurrency(p.cpm),
-    },
-    {
-      key: "ctr",
-      label: "CTR",
-      value: `${p.ctr.toFixed(2)} %`,
-    },
-    {
-      key: "cpc",
-      label: "CPC",
-      value: formatCurrency(p.cpc),
-    },
-    {
-      key: "conversions",
-      label: "Conversions (30 Tage)",
-      value: formatNumber(p.conv),
-    },
-    {
-      key: "profit",
-      label: "Estimated Profit",
-      value: formatCurrency(profit),
-    },
-  ];
+  const id = appState.selectedBrandId || demo.brands[0].id;
+  return demo.brands.find((b) => b.id === id) || demo.brands[0];
 }
-
-// ---- Helper: Alerts pro Brand --------------------------------------------
-
-function getAlertsForBrand(brand) {
-  if (!brand) return [];
-  const alerts = [];
-
-  if (brand.roas30d < 3.0) {
-    alerts.push({
-      severity: "critical",
-      title: "ROAS unter Ziel",
-      message:
-        "Der 30-Tage-ROAS liegt unter 3.0x. Prüfe Creatives, Zielgruppen und Budgets.",
-    });
-  } else if (brand.roas30d < 4.0) {
-    alerts.push({
-      severity: "warning",
-      title: "ROAS leicht unter Benchmark",
-      message:
-        "Der ROAS ist leicht unter deinem typischen Niveau. Mögliche Creative-Fatigue.",
-    });
-  }
-
-  if (brand.spend30d > 50000 && brand.roas30d < 4.0) {
-    alerts.push({
-      severity: "critical",
-      title: "High Spend bei mäßigem ROAS",
-      message:
-        "Du skalierst bereits stark, aber der ROAS fällt. Sensei empfiehlt: neue UGC-Hooks testen.",
-    });
-  }
-
-  if (brand.campaignHealth === "critical") {
-    alerts.push({
-      severity: "critical",
-      title: "Campaign Health kritisch",
-      message:
-        "Mehrere Kampagnen zeigen schwache Performance. Prüfe Zielgruppen-Overlap und Budgetverteilung.",
-    });
-  } else if (brand.campaignHealth === "warning") {
-    alerts.push({
-      severity: "warning",
-      title: "Campaign Health beobachten",
-      message:
-        "Einige Kampagnen laufen stabil, andere brechen ein. Priorisiere Winner-Budgets.",
-    });
-  }
-
-  if (!alerts.length) {
-    alerts.push({
-      severity: "info",
-      title: "Alles stabil",
-      message:
-        "Keine kritischen Probleme erkannt. Nutze die Zeit für strukturierte Tests und neue Creatives.",
-    });
-  }
-
-  return alerts;
-}
-
-// ---- Helper: Trenddaten ---------------------------------------------------
-
-function getTrendDataForBrand(brand) {
-  if (!brand) return [];
-
-  // Simpler Demo-Ansatz: 7 Tage mit leichter Variation
-  const base = brand.roas30d;
-  const days = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
-
-  const arr = days.map((d, idx) => {
-    const factor = 1 + (idx - 3) * 0.03; // kleine Kurve
-    const roas = Math.max(1.0, base * factor);
-    return {
-      label: d,
-      value: `${roas.toFixed(1)}x`,
-      numeric: roas,
-    };
-  });
-
-  const max = Math.max(...arr.map((a) => a.numeric)) || 1;
-  return arr.map((a) => ({
-    ...a,
-    relative: Math.max(8, (a.numeric / max) * 100), // immer min 8% Breite
-  }));
-}
-
-// ---- Helper: Creative Leaderboard ----------------------------------------
-
-function getLeaderboardForBrand(brand) {
-  if (!brand) return [];
-
-  const dataByBrand = {
-    acme_fashion: [
-      {
-        id: "acme_creative_1",
-        name: "UGC – „Outfit in 10 Sekunden“",
-        tags: ["Winner", "UGC", "Hook: Fast Try-On"],
-        spend: 12890,
-        roas: 6.2,
-        ctr: 3.4,
-        cpm: 7.8,
-        status: "Scaling",
-      },
-      {
-        id: "acme_creative_2",
-        name: "Static – Lookbook Herbst",
-        tags: ["Evergreen", "Static"],
-        spend: 6210,
-        roas: 4.1,
-        ctr: 2.1,
-        cpm: 8.2,
-        status: "Stable",
-      },
-      {
-        id: "acme_creative_3",
-        name: "UGC – „Outfit Fail Fix“",
-        tags: ["Testing", "UGC"],
-        spend: 3120,
-        roas: 3.2,
-        ctr: 2.9,
-        cpm: 9.1,
-        status: "Testing",
-      },
-    ],
-    techgadgets_pro: [
-      {
-        id: "tech_creative_1",
-        name: "Product Demo – 30 Sek.",
-        tags: ["Winner", "Demo", "Hook: Problem → Lösung"],
-        spend: 9420,
-        roas: 4.3,
-        ctr: 2.1,
-        cpm: 12.3,
-        status: "Scaling",
-      },
-      {
-        id: "tech_creative_2",
-        name: "Unboxing – Creator Review",
-        tags: ["UGC", "Creator"],
-        spend: 5310,
-        roas: 3.1,
-        ctr: 1.7,
-        cpm: 11.4,
-        status: "Testing",
-      },
-    ],
-    beautylux_cosmetics: [
-      {
-        id: "beauty_creative_1",
-        name: "Before/After – Skin Routine",
-        tags: ["Winner", "UGC", "Hook: Transformation"],
-        spend: 15870,
-        roas: 7.1,
-        ctr: 3.9,
-        cpm: 7.1,
-        status: "Scaling",
-      },
-      {
-        id: "beauty_creative_2",
-        name: "Static – Ingredient Callout",
-        tags: ["Evergreen", "Static"],
-        spend: 7640,
-        roas: 5.2,
-        ctr: 2.8,
-        cpm: 8.0,
-        status: "Stable",
-      },
-    ],
-    fitlife_supplements: [
-      {
-        id: "fit_creative_1",
-        name: "UGC – „30 Tage Progress Story“",
-        tags: ["Winner", "UGC"],
-        spend: 9740,
-        roas: 4.9,
-        ctr: 2.6,
-        cpm: 9.5,
-        status: "Scaling",
-      },
-      {
-        id: "fit_creative_2",
-        name: "Coach POV – Gym Routine",
-        tags: ["Testing", "UGC"],
-        spend: 4130,
-        roas: 3.5,
-        ctr: 2.2,
-        cpm: 8.9,
-        status: "Testing",
-      },
-    ],
-    homezen_living: [
-      {
-        id: "home_creative_1",
-        name: "Before/After – Wohnzimmer Makeover",
-        tags: ["Winner", "Hook: Raum-Transformation"],
-        spend: 6820,
-        roas: 4.0,
-        ctr: 1.9,
-        cpm: 10.1,
-        status: "Scaling",
-      },
-      {
-        id: "home_creative_2",
-        name: "Static – Moodboard Cozy Home",
-        tags: ["Static", "Testing"],
-        spend: 2940,
-        roas: 2.6,
-        ctr: 1.3,
-        cpm: 11.2,
-        status: "Testing",
-      },
-    ],
-  };
-
-  const list = dataByBrand[brand.id] || [];
-  // Sicherheitshalber sortieren nach ROAS und Spend
-  return [...list].sort((a, b) => b.roas - a.roas || b.spend - a.spend);
-}
-
-// ---- Helper: Insight Text -------------------------------------------------
-
-function getInsightText(brand, kpis, alerts) {
-  if (!brand) {
-    return "Wähle oben ein Werbekonto, um konkrete Insights zu erhalten. Sensei wertet dann deine Performance der letzten 30 Tage aus.";
-  }
-
-  const roasKpi = kpis.find((k) => k.key === "roas");
-  const profitKpi = kpis.find((k) => k.key === "profit");
-  const mainAlert = alerts[0];
-
-  let base = `Für ${brand.name} liegt der aktuelle 30-Tage-ROAS bei ${
-    roasKpi ? roasKpi.value : `${brand.roas30d.toFixed(1)}x`
-  } mit einem geschätzten Profit von ${
-    profitKpi ? profitKpi.value : "–"
-  }. `;
-
-  if (mainAlert && mainAlert.severity === "critical") {
-    base +=
-      "Sensei stuft die Situation als kritisch ein – priorisiere jetzt starke Creatives und senke Budget in schwachen Ad-Sets.";
-  } else if (mainAlert && mainAlert.severity === "warning") {
-    base +=
-      "Es gibt Frühindikatoren für eine Verschlechterung. Plane neue Tests (Hooks, Thumbnails, First 3 Seconds), bevor der ROAS weiter fällt.";
-  } else {
-    base +=
-      "Keine kritischen Probleme in Sicht. Nutze das Momentum, um Winner weiter zu skalieren und strukturierte Creative-Tests aufzusetzen.";
-  }
-
-  return base;
-}
-
-// ---- Formatting Helper ----------------------------------------------------
 
 function formatCurrency(value) {
-  if (!value || isNaN(value)) value = 0;
-  return new Intl.NumberFormat("de-DE", {
+  if (value == null || Number.isNaN(value)) return "–";
+  return value.toLocaleString("de-DE", {
     style: "currency",
     currency: "EUR",
     maximumFractionDigits: 0,
-  }).format(value);
+  });
 }
 
-function formatNumber(value) {
-  if (!value || isNaN(value)) value = 0;
-  return new Intl.NumberFormat("de-DE").format(value);
+function formatNumber(value, fractionDigits = 0, suffix = "") {
+  if (value == null || Number.isNaN(value)) return "–";
+  return (
+    value.toLocaleString("de-DE", {
+      minimumFractionDigits: fractionDigits,
+      maximumFractionDigits: fractionDigits,
+    }) + suffix
+  );
+}
+
+function formatPercent(value, fractionDigits = 2) {
+  if (value == null || Number.isNaN(value)) return "–";
+  return (
+    value.toLocaleString("de-DE", {
+      minimumFractionDigits: fractionDigits,
+      maximumFractionDigits: fractionDigits,
+    }) + " %"
+  );
+}
+
+/**
+ * Demo-Metriken pro Brand: Basis ist spend30d / roas30d aus DemoData,
+ * der Rest ist ein konsistenter Fake-Layer.
+ */
+function buildBrandMetrics(brand) {
+  if (!brand) {
+    return {
+      spend30d: 0,
+      roas30d: 0,
+      revenue30d: 0,
+      estimatedProfit: 0,
+      ctr30d: 0,
+      cpc: 0,
+      cpm: 0,
+      conversions30d: 0,
+    };
+  }
+
+  const overrides = {
+    acme_fashion: {
+      ctr30d: 2.7,
+      cpc: 1,
+      cpm: 8,
+      conversions30d: 2180,
+    },
+    techgadgets_pro: {
+      ctr30d: 1.9,
+      cpc: 1.4,
+      cpm: 11,
+      conversions30d: 940,
+    },
+    beautylux_cosmetics: {
+      ctr30d: 3.4,
+      cpc: 0.9,
+      cpm: 7,
+      conversions30d: 3620,
+    },
+    fitlife_supplements: {
+      ctr30d: 2.3,
+      cpc: 1.1,
+      cpm: 9,
+      conversions30d: 1740,
+    },
+    homezen_living: {
+      ctr30d: 1.8,
+      cpc: 1.3,
+      cpm: 12,
+      conversions30d: 680,
+    },
+  };
+
+  const baseSpend = brand.spend30d || 0;
+  const baseRoas = brand.roas30d || 0;
+  const revenue30d = baseSpend * baseRoas;
+  const estimatedProfit = revenue30d - baseSpend;
+
+  const extra =
+    overrides[brand.id] || {
+      ctr30d: 2.4,
+      cpc: 1.1,
+      cpm: 9,
+      conversions30d: Math.round(revenue30d / 120),
+    };
+
+  return {
+    spend30d: baseSpend,
+    roas30d: baseRoas,
+    revenue30d,
+    estimatedProfit,
+    ctr30d: extra.ctr30d,
+    cpc: extra.cpc,
+    cpm: extra.cpm,
+    conversions30d: extra.conversions30d,
+  };
+}
+
+/**
+ * Demo-Performance-Tendenz (letzte 7 Tage) – leichte Variation pro Brand.
+ */
+function buildPerformanceTrend(brand) {
+  const base = [
+    { label: "Mo", roas: 4.4 },
+    { label: "Di", roas: 4.5 },
+    { label: "Mi", roas: 4.7 },
+    { label: "Do", roas: 4.8 },
+    { label: "Fr", roas: 4.9 },
+    { label: "Sa", roas: 5.1 },
+    { label: "So", roas: 5.2 },
+  ];
+
+  if (!brand) return base;
+
+  const factorMap = {
+    acme_fashion: 1,
+    techgadgets_pro: 0.8,
+    beautylux_cosmetics: 1.15,
+    fitlife_supplements: 0.95,
+    homezen_living: 0.75,
+  };
+
+  const factor = factorMap[brand.id] ?? 1;
+  return base.map((d) => ({
+    label: d.label,
+    roas: +(d.roas * factor).toFixed(1),
+  }));
+}
+
+function buildAlertCopy(brand, metrics, isDemo, isConnected) {
+  const healthCopy = {
+    good: "Alles stabil – keine kritischen Probleme erkannt.",
+    warning:
+      "Einige Kampagnen laufen leicht unter Ziel. Nutze strukturierte Tests, um Performance zu stabilisieren.",
+    critical:
+      "Mehrere Kampagnen sind klar unter Ziel. Fokus auf Creative-Testing & Budget-Shift notwendig.",
+  };
+
+  const health = brand?.campaignHealth || "good";
+  const baseLine = healthCopy[health];
+
+  const modeLine = isConnected
+    ? isDemo
+      ? "Meta ist verbunden (Demo). Live-Sync kann jederzeit aktiviert werden."
+      : "Meta ist live verbunden. Änderungen wirken direkt auf deine Kampagnen."
+    : "Meta ist aktuell nicht verbunden. Du arbeitest im reinen Demo-Modus.";
+
+  const profitLine =
+    metrics.estimatedProfit > 0
+      ? `Aktueller 30-Tage-ROAS liegt bei ${formatNumber(
+          metrics.roas30d,
+          1,
+          "x"
+        )} mit einem geschätzten Profit von ${formatCurrency(
+          metrics.estimatedProfit
+        )}.`
+      : "Profit-Schätzung aktuell neutral – Fokus auf Effizienz & Tests.";
+
+  return { baseLine, modeLine, profitLine };
+}
+
+function buildSenseiInsight(brand, metrics) {
+  if (!brand || !metrics) return "";
+
+  const profitNice = formatCurrency(metrics.estimatedProfit);
+  const roasNice = formatNumber(metrics.roas30d, 1, "x");
+
+  return `
+    Für <strong>${brand.name}</strong> liegt der aktuelle 30-Tage-ROAS bei
+    <strong>${roasNice}</strong> bei einem geschätzten Profit von
+    <strong>${profitNice}</strong>. Keine kritischen Probleme im Account sichtbar.
+    Nutze das Momentum, um den Gewinner weiter zu skalieren und strukturierte Creative-Tests aufzusetzen.
+  `;
+}
+
+function buildCreativesDemoRows(brand) {
+  const base = [
+    {
+      name: "UGC – „Outfit Haul” (Reel)",
+      tag: "UGC • Hook-Test",
+      spend: 18320,
+      roas: 5.1,
+      status: "Winner",
+    },
+    {
+      name: "Static – „New Collection”",
+      tag: "Static • Angle-Test",
+      spend: 9420,
+      roas: 4.3,
+      status: "Scaling",
+    },
+    {
+      name: "Story – „-20% Drop”",
+      tag: "Story • Offer-Test",
+      spend: 6620,
+      roas: 3.8,
+      status: "Learning",
+    },
+  ];
+
+  // sehr leichte Variation nach Brand, aber rein kosmetisch
+  if (!brand) return base;
+
+  const factorMap = {
+    techgadgets_pro: 0.9,
+    beautylux_cosmetics: 1.2,
+    fitlife_supplements: 1.05,
+    homezen_living: 0.8,
+  };
+
+  const f = factorMap[brand.id] ?? 1;
+  return base.map((c) => ({
+    ...c,
+    spend: Math.round(c.spend * f),
+    roas: +(c.roas * f).toFixed(1),
+  }));
+}
+
+function buildTagsDemoRows() {
+  return [
+    { tag: "Problem → Lösung", usage: "32%", note: "Startet stark in UGC & Static." },
+    { tag: "Before / After", usage: "21%", note: "Besonders effektiv im Beauty-Vertical." },
+    { tag: "„POV: ...“-Hooks", usage: "17%", note: "Gut für Reels mit Creator-Fokus." },
+    { tag: "Reframing Price", usage: "12%", note: "Funktioniert in Retargeting sehr stabil." },
+  ];
+}
+
+function buildCampaignTableRows(brand, metrics) {
+  const demo = getDemoData();
+  const campaigns = demo?.campaignsByBrand?.[brand?.id] || [];
+
+  return campaigns.map((c, idx) => {
+    // simple fakes, leicht gestaffelt
+    const spend = (metrics.spend30d || 0) * (0.25 - idx * 0.04);
+    const roas = metrics.roas30d - idx * 0.4;
+    const cpm = metrics.cpm + idx * 1.2;
+    const ctr = Math.max(0.9, metrics.ctr30d - idx * 0.3);
+
+    return {
+      name: c.name,
+      status: c.status,
+      spend,
+      roas,
+      cpm,
+      ctr,
+    };
+  });
+}
+
+function renderPerformanceTrendHtml(trend) {
+  if (!trend || !trend.length) return "";
+
+  const maxRoas = trend.reduce((m, d) => (d.roas > m ? d.roas : m), 0) || 1;
+
+  const rows = trend
+    .map((d) => {
+      const width = Math.max(8, Math.round((d.roas / maxRoas) * 100));
+      return `
+        <div class="perf-row" style="display:flex;align-items:center;gap:8px;margin:4px 0;">
+          <div style="width:18px;font-size:0.78rem;color:var(--color-text-soft);">${d.label}</div>
+          <div style="flex:1;">
+            <div
+              style="
+                height:7px;
+                border-radius:999px;
+                background:linear-gradient(90deg,#d1d5db,#e5e7eb);
+                overflow:hidden;
+              "
+            >
+              <div
+                style="
+                  width:${width}%;
+                  height:100%;
+                  border-radius:inherit;
+                  background:linear-gradient(90deg,#4f46e5,#22c55e);
+                "
+              ></div>
+            </div>
+          </div>
+          <div style="width:40px;text-align:right;font-size:0.78rem;font-variant-numeric:tabular-nums;">
+            ${formatNumber(d.roas, 1, "x")}
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+
+  return `<div style="margin-top:6px;">${rows}</div>`;
+}
+
+export function render(section, appState, opts = {}) {
+  const isDemo = typeof opts.useDemoMode === "function" ? opts.useDemoMode : () => true;
+  const demoModeActive = !!isDemo();
+  const isConnected = !!appState.metaConnected;
+
+  const brand = getActiveBrandFromState(appState);
+  const metrics = buildBrandMetrics(brand);
+  const trend = buildPerformanceTrend(brand);
+  const alerts = buildAlertCopy(brand, metrics, demoModeActive, isConnected);
+  const creatives = buildCreativesDemoRows(brand);
+  const tags = buildTagsDemoRows();
+  const campaigns = buildCampaignTableRows(brand, metrics);
+  const senseiInsight = buildSenseiInsight(brand, metrics);
+
+  const spendNice = formatCurrency(metrics.spend30d);
+  const revenueNice = formatCurrency(metrics.revenue30d);
+  const profitNice = formatCurrency(metrics.estimatedProfit);
+
+  const modeLabel = demoModeActive ? "Demo-Modus aktiv" : "Live-Daten";
+  const modeBadgeClass = demoModeActive
+    ? "kpi-badge warning"
+    : "kpi-badge good";
+
+  const brandLine =
+    brand && brand.name && metrics.roas30d
+      ? `${brand.name} • ROAS ${formatNumber(metrics.roas30d, 1, "x")} • Spend 30 Tage: ${spendNice}`
+      : "Keine Brand ausgewählt – Demo-Fallback aktiv.";
+
+  section.innerHTML = `
+    <div class="view-header">
+      <div>
+        <h2>SignalOne Performance Dashboard</h2>
+        <p class="view-header-sub">
+          ${
+            brand
+              ? `${brand.name} • ${brand.vertical}`
+              : "SignalOne Demo-Workspace"
+          }
+        </p>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="${modeBadgeClass}">
+            ${modeLabel}
+          </span>
+          <span style="font-size:0.78rem;color:var(--color-text-soft);">
+            ${isConnected ? "Meta verbunden" : "Meta nicht verbunden"}
+          </span>
+        </div>
+        <span style="font-size:0.74rem;color:var(--color-text-muted);">
+          ${brandLine}
+        </span>
+      </div>
+    </div>
+
+    <div class="card dashboard-card" style="margin-bottom:16px;">
+      <div class="card-header" style="display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-bottom:10px;">
+        <div>
+          <h3 class="card-title">Account KPIs (letzte 30 Tage)</h3>
+          <p class="card-subtitle">
+            Simulierte Meta-Daten – verhalten sich später identisch zu Live-Daten.
+          </p>
+        </div>
+        <div style="text-align:right;font-size:0.78rem;color:var(--color-text-soft);">
+          <div>Standard-Range: Letzte 30 Tage</div>
+          <div>Währung: EUR • Zeitzone: Europe/Berlin</div>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-item">
+          <div class="kpi-label">Ad Spend (30 Tage)</div>
+          <div class="kpi-value">${spendNice}</div>
+          <div class="kpi-meta">Budget, das in Meta Ads investiert wurde.</div>
+        </div>
+
+        <div class="kpi-item">
+          <div class="kpi-label">Revenue (30 Tage)</div>
+          <div class="kpi-value">${revenueNice}</div>
+          <div class="kpi-meta">Umsatz, der aus bezahltem Traffic stammt.</div>
+        </div>
+
+        <div class="kpi-item">
+          <div class="kpi-label">ROAS</div>
+          <div class="kpi-value">${formatNumber(metrics.roas30d, 1, "x")}</div>
+          <div class="kpi-meta">Return on Ad Spend des Accounts.</div>
+        </div>
+
+        <div class="kpi-item">
+          <div class="kpi-label">CTR</div>
+          <div class="kpi-value">${formatPercent(metrics.ctr30d)}</div>
+          <div class="kpi-meta">Durchschnittliche Click-Through-Rate.</div>
+        </div>
+
+        <div class="kpi-item">
+          <div class="kpi-label">CPC</div>
+          <div class="kpi-value">${formatCurrency(metrics.cpc)}</div>
+          <div class="kpi-meta">Durchschnittlicher Cost per Click.</div>
+        </div>
+
+        <div class="kpi-item">
+          <div class="kpi-label">CPM</div>
+          <div class="kpi-value">${formatCurrency(metrics.cpm)}</div>
+          <div class="kpi-meta">Kosten pro 1.000 Impressionen.</div>
+        </div>
+
+        <div class="kpi-item">
+          <div class="kpi-label">Conversions (30 Tage)</div>
+          <div class="kpi-value">
+            ${metrics.conversions30d.toLocaleString("de-DE")}
+          </div>
+          <div class="kpi-meta">Trackbare Käufe / Leads aus den Kampagnen.</div>
+        </div>
+
+        <div class="kpi-item">
+          <div class="kpi-label">Estimated Profit</div>
+          <div class="kpi-value">${profitNice}</div>
+          <div class="kpi-meta">
+            Vereinfachte Profit-Schätzung: Umsatz – Ad Spend.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="card dashboard-card">
+        <div class="card-header">
+          <div>
+            <h3 class="card-title">Performance-Tendenz (letzte 7 Tage)</h3>
+            <p class="card-subtitle">
+              Zeigt, ob dein ROAS Momentum gewinnt oder verliert.
+            </p>
+          </div>
+        </div>
+        ${renderPerformanceTrendHtml(trend)}
+      </div>
+
+      <div class="card dashboard-card">
+        <div class="card-header">
+          <div>
+            <h3 class="card-title">Alerts & Checks</h3>
+            <p class="card-subtitle">
+              Automatische SignalOne-Checks über alle Kampagnen.
+            </p>
+          </div>
+        </div>
+        <div style="font-size:0.82rem;color:var(--color-text-main);">
+          <p style="margin-bottom:6px;">
+            <strong>${alerts.baseLine}</strong>
+          </p>
+          <ul style="margin:0 0 8px 18px;padding:0;font-size:0.8rem;color:var(--color-text-muted);line-height:1.5;">
+            <li>${alerts.modeLine}</li>
+            <li>${alerts.profitLine}</li>
+            <li>Keine kritischen Systemfehler – System Health ist <strong>OK</strong>.</li>
+          </ul>
+          <p style="margin:0;font-size:0.78rem;color:var(--color-text-soft);">
+            Später: echte Alert-Engine mit Webhooks, Slack & E-Mail.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card dashboard-card" style="margin-bottom:16px;">
+      <div class="card-header">
+        <h3 class="card-title">Sensei Insight</h3>
+        <p class="card-subtitle">
+          Kurz-Zusammenfassung, wie dein Account aktuell performt – Demo-Version.
+        </p>
+      </div>
+      <div style="font-size:0.86rem;color:var(--color-text-main);">
+        ${senseiInsight}
+      </div>
+    </div>
+
+    <div class="dashboard-section">
+      <div class="card dashboard-card">
+        <div class="card-header">
+          <h3 class="card-title">Top Creatives (letzte 30 Tage)</h3>
+          <p class="card-subtitle">Demo-Daten: verhalten sich wie echte Library.</p>
+        </div>
+        <table class="table-mini">
+          <thead>
+            <tr>
+              <th>Creative</th>
+              <th>Tag</th>
+              <th>Spend</th>
+              <th>ROAS</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${creatives
+              .map(
+                (c) => `
+              <tr>
+                <td>${c.name}</td>
+                <td>${c.tag}</td>
+                <td>${formatCurrency(c.spend)}</td>
+                <td>${formatNumber(c.roas, 1, "x")}</td>
+                <td>${c.status}</td>
+              </tr>`
+              )
+              .join("")}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card dashboard-card">
+        <div class="card-header">
+          <h3 class="card-title">Tag / Angle Overview</h3>
+          <p class="card-subtitle">Welche Creative-Ansätze aktuell ziehen.</p>
+        </div>
+        <table class="table-mini">
+          <thead>
+            <tr>
+              <th>Tag</th>
+              <th>Nutzung</th>
+              <th>Notiz</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tags
+              .map(
+                (t) => `
+              <tr>
+                <td>${t.tag}</td>
+                <td>${t.usage}</td>
+                <td>${t.note}</td>
+              </tr>`
+              )
+              .join("")}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card dashboard-card" style="margin-top:16px;">
+      <div class="card-header">
+        <h3 class="card-title">Kampagnen-Übersicht (30 Tage)</h3>
+        <p class="card-subtitle">
+          Kompakte Demo-Tabelle – später 1:1 durch Live-Meta-Insights ersetzt.
+        </p>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Kampagne</th>
+            <th>Status</th>
+            <th>Spend (30d)</th>
+            <th>ROAS</th>
+            <th>CPM</th>
+            <th>CTR</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${
+            campaigns.length
+              ? campaigns
+                  .map(
+                    (c) => `
+                <tr>
+                  <td>${c.name}</td>
+                  <td>${c.status}</td>
+                  <td>${formatCurrency(c.spend)}</td>
+                  <td>${formatNumber(c.roas, 1, "x")}</td>
+                  <td>${formatCurrency(c.cpm)}</td>
+                  <td>${formatPercent(c.ctr)}</td>
+                </tr>`
+                  )
+                  .join("")
+              : `<tr><td colspan="6">Für dieses Werbekonto sind in der Demo aktuell keine Kampagnen hinterlegt.</td></tr>`
+          }
+        </tbody>
+      </table>
+    </div>
+  `;
 }
