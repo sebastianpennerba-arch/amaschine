@@ -110,6 +110,7 @@ function useDemoMode() {
   if (!AppState.metaConnected) return true;
   return false;
 }
+import MetaAuth from "./packages/metaAuth/index.js";
 
 // DEMO BRANDS IN DROPDOWN LADEN — OPTION C
 
@@ -811,7 +812,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document
     .getElementById("metaConnectButton")
-    ?.addEventListener("click", toggleMetaConnection);
+    ?.addEventListener("click", () => {
+      MetaAuth.connectWithPopup();
 
   updateMetaStatusUI();
   updateSystemHealthUI();
