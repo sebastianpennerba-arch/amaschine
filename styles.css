@@ -1,6 +1,6 @@
 /*
  * SignalOne – Vision Pro Titanium Light
- * Full UI: Sidebar, Topbar, Dashboard, Creatives, Campaigns, Sensei, Reports, Logs
+ * Sidebar Fixes: Gold Icons, Zentrierung, Kompakte Buttons
  */
 
 /* ==============================
@@ -8,122 +8,60 @@
    ============================== */
 
 :root {
-  /* PRIMARY */
   --color-primary: #3b6af8;
   --color-primary-hover: #315bd6;
   --color-primary-soft: #e8efff;
 
-  /* NEUTRAL BACKGROUND STACK */
   --color-bg: #e5e7f2;
   --color-bg-panel: #ffffff;
-  --color-bg-soft: #f1f5f9;
-  --color-bg-hover: #e7e9ed;
 
-  /* GRAPHITE TEXT */
   --color-text-main: #0f172a;
   --color-text-soft: #4f535a;
   --color-text-muted: #6b7280;
 
-  /* BORDERS */
   --color-border-subtle: #e2e8f0;
-  --color-border-strong: #c4c7cd;
 
-  /* STATUS COLORS */
   --color-success: #16a34a;
-  --color-success-soft: rgba(22, 163, 74, 0.08);
   --color-warning: #ea980c;
-  --color-warning-soft: rgba(234, 152, 12, 0.1);
   --color-danger: #e11d48;
-  --color-danger-soft: rgba(225, 29, 72, 0.08);
 
-  /* SURFACES */
-  --color--bg: #020617;
+  --color-sidebar-bg: #020617;
   --color-topbar-bg: rgba(15, 23, 42, 0.96);
-  --color-surface: #ffffff;
-  --color-surface-soft: #f8fafc;
 
-  /* SHADOWS */
-  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
-  --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.12);
-  --shadow-lg: 0 16px 40px rgba(15, 23, 42, 0.18);
-  --shadow-card: 0 18px 45px rgba(15, 23, 42, 0.22);
-  --shadow-soft: var(--shadow-md);
-
-  /* RADIUS */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
-
-  /* INPUTS */
-  --input-bg: #ffffff;
-  --input-border: #cfd2d8;
-  --input-focus: #3b6af8;
-
-  /*  ICON COLORS (Duotone Gold) */
-  ---icon-active-fill: #c8a451;
-  ---icon-active-stroke: #9c8242;
-  ---icon-inactive-fill: #8f8057;
-  ---icon-inactive-stroke: #6e6244;
-  ---icon-hover-fill: #ddc36b;
-  ---icon-hover-stroke: #b1943f;
-
-  /* DERIVED */
-  --surface: var(--color-surface);
-  --surface-alt: var(--color-surface-soft);
-  --text-primary: var(--color-text-main);
-  --text-secondary: var(--color-text-muted);
-  --border: var(--color-border-subtle);
-  --success: var(--color-success);
-  --warning: var(--color-warning);
-  --danger: var(--color-danger);
-  --accent: var(--color-primary);
+  --sidebar-icon-active-fill: #c8a451;
+  --sidebar-icon-active-stroke: #9c8242;
+  --sidebar-icon-inactive-fill: #8f8057;
+  --sidebar-icon-inactive-stroke: #6e6244;
+  --sidebar-icon-hover-fill: #ddc36b;
+  --sidebar-icon-hover-stroke: #b1943f;
 }
 
 /* ==============================
    2) RESET & BASE
    ============================== */
 
-*,
-*::before,
-*::after {
+* {
   box-sizing: border-box;
 }
 
-html,
 body {
   margin: 0;
   padding: 0;
-  overflow-x: hidden; /* Gold-Header Strip Fix */
-}
+  overflow-x: hidden;
 
-body {
-  min-height: 100vh;
-  display: flex;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI",
-    system-ui, sans-serif;
-  line-height: 1.45;
-  letter-spacing: 0.01em;
-  color: var(--color-text-main);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui;
   background:
     radial-gradient(circle at 0% 0%, #ffffff 92%, rgba(226, 232, 240, 0.8)),
     radial-gradient(circle at 100% 0%, #e0e7ff 86%, transparent),
     linear-gradient(145deg, #eef1f6, #e5e7f2);
-  -webkit-font-smoothing: antialiased;
 }
 
 .hidden {
   display: none !important;
 }
 
-button {
-  font-family: inherit;
-  border: none;
-  background: none;
-  cursor: pointer;
-}
-
 /* ==============================
-   3)  (mit neuer horizontaler Navigation)
+   3) SIDEBAR – FIXED, ZENTRIERT
    ============================== */
 
 nav.sidebar {
@@ -131,96 +69,80 @@ nav.sidebar {
   left: 0;
   top: 0;
   bottom: 0;
-  width: 200px;
 
-  background: radial-gradient(
-      circle at 0% 0%,
-      rgba(15, 23, 42, 0.96),
-      rgba(15, 23, 42, 0.92)
-    ),
-    linear-gradient(145deg, #020617, #020617);
-  border-right: 1px solid rgba(15, 23, 42, 0.9);
-  box-shadow: var(--shadow-soft);
+  width: 200px;
+  background: linear-gradient(145deg, #020617, #020617);
 
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  align-items: center; 
-  padding: 24px 18px 18px;
-  z-index: 40;
-  backdrop-filter: blur(26px);
-  color: #e5e7eb;
+  align-items: center;          /* NEU: ALLES horizontal zentriert */
+
+  padding: 24px 0 18px;
+  border-right: 1px solid rgba(15, 23, 42, 0.9);
 }
 
-/* Logo / Header */
 .sidebar-header {
   width: 100%;
   display: flex;
-  align-items: center;
   justify-content: center;
-  padding-bottom: 10px;
-  margin-bottom: 10px;
-  border-bottom: 1px solid rgba(51, 65, 85, 0.9);
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.85);
 }
 
 .sidebar-logo {
   width: 176px;
   height: 42px;
-  border-radius: 12px;
   background: #020617 url("Logo_re_Sc.png") center center / contain no-repeat;
-  text-indent: -9999px;
-  overflow: hidden;
-  box-shadow:
-    0 0 0 1px rgba(148, 163, 184, 0.6),
-    0 18px 40px rgba(15, 23, 42, 0.8);
+  border-radius: 12px;
 }
 
-/* ----------------------------------------------
-   NEU: Sidebar Navigation — horizontal statt vertikal
-   ---------------------------------------------- */
+/* ==============================
+   4) SIDEBAR NAVIGATION – FINAL FIX
+   ============================== */
 
 .sidebar-nav {
-  margin-top: 14px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(51, 65, 85, 0.9);
+  width: 100%;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(51, 65, 85, 0.85);
 
-  flex: 1;
   display: flex;
+  flex-direction: column;      /* Vertical stack BUT centered */
+  justify-content: flex-start;
+  align-items: center;          /* Buttons centered */
 
-  /* NEU */
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: center;     /* horizontal perfekt zentriert */
-  align-items: center;         /* vertikal mittig */
-  text-align: center;          /* Labels schön zentriert */
-
-  gap: 16px 12px;              /* mehr Abstand */
+  gap: 14px;
 }
+/* ============================================================
+   SIDEBAR BUTTONS – NEUE VERSION (kompakt + gold + mittig)
+   ============================================================ */
 
 .sidebar-nav-item {
   list-style: none;
 }
 
+/* BUTTON BASIS */
 .sidebar-nav-button {
-  padding: 12px 14px;
-  min-width: 165px;
+  width: 150px;                     /* kompakte Breite */
+  padding: 8px 10px;                /* kompakter */
+  border-radius: 12px;
 
-  border-radius: 14px;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-
-  background: rgba(255,255,255,0.04);
-  color: rgba(229, 231, 235, 0.95);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(148, 163, 184, 0.25);
 
   display: flex;
-  flex-direction: column; /* ICON ÜBER LABEL */
-  align-items: center;
+  flex-direction: column;           /* ICON über Label */
   justify-content: center;
-  gap: 6px;
+  align-items: center;
+  gap: 4px;
 
   font-size: 0.78rem;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
+  letter-spacing: 0.08em;
   font-weight: 600;
+  color: rgba(229, 231, 235, 0.95);
+  text-transform: uppercase;
+
+  text-align: center;
 
   transition:
     background 0.18s ease,
@@ -230,212 +152,72 @@ nav.sidebar {
     color 0.18s ease;
 }
 
-/* HOVER – viel stärker */
+/* ICONS (GOLD FIX – DUOTONE BLEIBT!) */
+.sidebar-nav-button .icon-svg {
+  width: 22px;
+  height: 22px;
+}
+
+.sidebar-nav-button .icon-layer-fill {
+  fill: var(--sidebar-icon-inactive-fill) !important;
+}
+
+.sidebar-nav-button .icon-layer-stroke {
+  stroke: var(--sidebar-icon-inactive-stroke) !important;
+}
+
+/* ICON + LABEL-ABSTAND */
+.sidebar-nav-button .label {
+  margin-top: 2px;
+  font-size: 0.75rem;
+}
+
+/* HOVER – PREMIUM */
 .sidebar-nav-button:hover {
   background: radial-gradient(
     circle at 50% 0%,
-    rgba(70, 88, 110, 0.9),
+    rgba(70, 88, 110, 0.85),
     rgba(20, 30, 45, 0.95)
   );
-  border-color: rgba(200, 200, 230, 0.8);
+  border-color: rgba(200, 200, 230, 0.85);
   color: #fff;
 
   box-shadow:
-    0 20px 55px rgba(10, 15, 25, 0.95),
-    0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+    0 18px 40px rgba(10, 15, 25, 0.85),
+    0 0 0 1px rgba(255, 255, 255, 0.15) inset;
 
   transform: translateY(-2px);
 }
 
-/* ACTIVE – kräftiges Gold */
+.sidebar-nav-button:hover .icon-layer-fill {
+  fill: var(--sidebar-icon-hover-fill) !important;
+}
+
+.sidebar-nav-button:hover .icon-layer-stroke {
+  stroke: var(--sidebar-icon-hover-stroke) !important;
+}
+
+/* ACTIVE – KRÄFTIG, SAUBER, PREMIUM */
 .sidebar-nav-button.active {
   background: linear-gradient(145deg, #2748b8, #17294f);
   border-color: rgba(160, 180, 255, 0.95);
   color: #fff;
 
   box-shadow:
-    0 26px 70px rgba(10, 15, 25, 1),
-    0 0 0 1px rgba(255, 255, 255, 0.28) inset;
+    0 22px 60px rgba(10, 15, 25, 1),
+    0 0 0 1px rgba(255, 255, 255, 0.25) inset;
 }
 
 .sidebar-nav-button.active .icon-layer-fill {
-  fill: var(--sidebar-icon-active-fill);
+  fill: var(--sidebar-icon-active-fill) !important;
 }
 
 .sidebar-nav-button.active .icon-layer-stroke {
-  stroke: var(--sidebar-icon-active-stroke);
+  stroke: var(--sidebar-icon-active-stroke) !important;
 }
-
-.sidebar-nav-button .label {
-  margin-top: 4px;
-  font-size: 0.75rem;
-}
-
-/* ICONS */
-
-.sidebar-nav-button .icon-svg {
-  width: 22px;
-  height: 22px;
-}
-/* ----------------------------------------------
-   SIDEBAR ICON COLORS + STATES
-   ---------------------------------------------- */
-
-/* Stroke ist global gesetzt – Sidebar überschreibt */
-.icon-layer-stroke {
-  fill: none;
-  stroke: #374151;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* Inaktive Icons */
-.sidebar-nav-button .icon-layer-fill {
-  fill: var(--sidebar-icon-inactive-fill);
-  opacity: 0.85;
-  transition: fill 0.16s ease, opacity 0.16s ease;
-}
-
-.sidebar-nav-button .icon-layer-stroke {
-  stroke: var(--sidebar-icon-inactive-stroke);
-  stroke-width: 1.4;
-  transition: stroke 0.16s ease;
-}
-
-/* ----------------------------------------------
-   HOVER STATE (Deutlich stärker hervorgehoben)
-   ---------------------------------------------- */
-.sidebar-nav-button:hover {
-  background: radial-gradient(
-    circle at 0% 0%,
-    rgba(51, 65, 85, 0.94),
-    rgba(15, 23, 42, 0.98)
-  );
-  border-color: rgba(148, 163, 184, 0.9);
-  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.9);
-  transform: translateY(-1px);
-  color: #f9fafb;
-}
-
-.sidebar-nav-button:hover .icon-layer-fill {
-  fill: var(--sidebar-icon-hover-fill);
-}
-
-.sidebar-nav-button:hover .icon-layer-stroke {
-  stroke: var(--sidebar-icon-hover-stroke);
-}
-
-/* ----------------------------------------------
-   ACTIVE STATE (Gold)
-   ---------------------------------------------- */
-.sidebar-nav-button.active {
-  background: radial-gradient(
-    circle at 0% 0%,
-    rgba(30, 64, 175, 0.98),
-    rgba(15, 23, 42, 0.98)
-  );
-  border-color: rgba(129, 140, 248, 0.95);
-  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.95);
-  color: #f9fafb;
-}
-
-.sidebar-nav-button.active .icon-layer-fill {
-  fill: var(--sidebar-icon-active-fill);
-  opacity: 1;
-}
-
-.sidebar-nav-button.active .icon-layer-stroke {
-  stroke: var(--sidebar-icon-active-stroke);
-}
-
-/* ----------------------------------------------
-   SIDEBAR FOOTER / STATUS-ROWS
-   ---------------------------------------------- */
-.sidebar-footer {
-  padding-top: 12px;
-  margin-top: 12px;
-  border-top: 1px solid rgba(31, 41, 55, 0.9);
-
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.sidebar-status-row {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-
-  font-size: 0.78rem;
-  color: rgba(156, 163, 175, 0.96);
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: rgba(75, 85, 99, 1);
-  box-shadow: 0 0 0 2px rgba(15, 23, 42, 1);
-}
-
-/* ----------------------------------------------
-   FOOTER SETTINGS BUTTON
-   ---------------------------------------------- */
-
-.sidebar-footer-button {
-  margin-top: 10px;
-  width: 100%;
-  border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.85);
-  padding: 8px 10px;
-
-  background: radial-gradient(
-    circle at 0% 0%,
-    rgba(15, 23, 42, 0.98),
-    rgba(30, 64, 175, 0.9)
-  );
-
-  color: #e5e7eb;
-  font-size: 0.78rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-
-  transition:
-    background 0.16s ease,
-    border-color 0.16s ease,
-    box-shadow 0.16s ease,
-    transform 0.06s ease;
-}
-
-.sidebar-footer-button:hover {
-  background: radial-gradient(
-    circle at 0% 0%,
-    rgba(59, 130, 246, 0.85),
-    rgba(30, 64, 175, 0.95)
-  );
-  border-color: rgba(129, 140, 248, 0.95);
-  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.9);
-  transform: translateY(-1px);
-}
-
-/* ----------------------------------------------
-   APP SHELL & TOPBAR – (unverändert außer kleinen Optimierungen)
-   ---------------------------------------------- */
-
-.app-shell {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  margin-left: 200px;
-}
+/* ============================================================
+   5) TOPBAR
+   ============================================================ */
 
 #topbar {
   position: fixed;
@@ -447,6 +229,7 @@ nav.sidebar {
   padding: 16px 32px;
 
   z-index: 50;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -458,60 +241,28 @@ nav.sidebar {
     rgba(15, 23, 42, 0.94)
   );
 
-  border-bottom: 1px solid rgba(15, 23, 42, 0.9);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.8);
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.75);
 
   backdrop-filter: blur(26px);
-
   color: #e5e7eb;
 }
 
-.topbar-left,
-.topbar-center,
-.topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
+/* Greeting */
 .topbar-left {
-  min-width: 240px;
-}
-
-.topbar-center {
-  flex: 1;
-  justify-content: center;
-}
-
-.topbar-right {
-  justify-content: flex-end;
-}
-/* ----------------------------------------------
-   TOPBAR – Greeting
-   ---------------------------------------------- */
-
-.topbar-greeting {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-}
-
-#topbarGreeting {
-  color: #f9fafb;
-  font-size: 0.96rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  gap: 4px;
 }
 
 .topbar-greeting-meta span {
-  color: rgba(226, 232, 240, 0.9);
   font-size: 0.78rem;
+  color: rgba(226, 232, 240, 0.9);
 }
 
-/* ----------------------------------------------
-   TOPBAR – SELECTS
-   ---------------------------------------------- */
+/* ============================================================
+   TOPBAR SELECTS
+   ============================================================ */
 
 .topbar-select-group {
   display: flex;
@@ -530,42 +281,36 @@ nav.sidebar {
 .topbar-select {
   min-width: 220px;
   padding: 7px 30px 7px 10px;
-  font-size: 0.84rem;
-
-  color: var(--color-text-main);
-  background-color: #f9fafb;
-
   border-radius: 6px;
-  border: 1px solid var(--input-border);
-  outline: none;
+
+  background-color: #f9fafb;
+  border: 1px solid #cfd2d8;
+
+  font-size: 0.84rem;
+  color: var(--color-text-main);
 
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg width='9' height='5' viewBox='0 0 9 5' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L4.5 4L8 1' stroke='%236b7280' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E");
+  outline: none;
+
+  background-image: url("data:image/svg+xml,%3Csvg width='9' height='5' ... %3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
-  background-size: 9px 5px;
 }
 
 .topbar-select:hover {
-  border-color: var(--input-focus);
-  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.12);
+  border-color: var(--color-primary);
 }
 
-.topbar-select:focus-visible {
-  border-color: var(--input-focus);
-  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.22);
-}
-
-/* ----------------------------------------------
-   TOPBAR — ICON BUTTONS
-   ---------------------------------------------- */
+/* ============================================================
+   TOPBAR ICON BUTTONS
+   ============================================================ */
 
 .icon-button {
   width: 32px;
   height: 32px;
   border-radius: 999px;
 
-  border: 1px solid rgba(148, 163, 184, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.9);
 
   background: radial-gradient(
     circle at 0% 0%,
@@ -578,13 +323,19 @@ nav.sidebar {
   justify-content: center;
 
   color: #4b5563;
-  position: relative;
-
   transition:
-    background 0.16s ease,
-    box-shadow 0.16s ease,
-    transform 0.06s ease,
-    border-color 0.16s ease;
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.1s ease,
+    box-shadow 0.18s ease;
+}
+
+.icon-button:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+  box-shadow:
+    0 20px 50px rgba(15, 23, 42, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.9) inset;
 }
 
 .icon-svg-top {
@@ -592,16 +343,7 @@ nav.sidebar {
   height: 18px;
 }
 
-.icon-button:hover {
-  border-color: var(--color-primary);
-  color: #1d4ed8;
-  box-shadow:
-    0 20px 50px rgba(15, 23, 42, 0.35),
-    0 0 0 0.6px rgba(255, 255, 255, 0.95) inset;
-  transform: translateY(-1px);
-}
-
-/* Notification dot */
+/* Notification Dot */
 .notification-dot {
   position: absolute;
   top: 6px;
@@ -613,14 +355,16 @@ nav.sidebar {
   box-shadow: 0 0 0 2px #f9fafb;
 }
 
-/* ----------------------------------------------
-   META CONNECT BUTTON (oben rechts, rot)
-   ---------------------------------------------- */
+/* ============================================================
+   META CONNECT BUTTON
+   ============================================================ */
 
-#topbar .meta-button {
+.meta-button {
   border-radius: 999px;
   border: 1px solid rgba(248, 113, 113, 0.95);
+
   padding: 7px 14px;
+  min-width: 160px;
 
   background: radial-gradient(
     circle at 0% 0%,
@@ -629,7 +373,6 @@ nav.sidebar {
   );
 
   color: #fef2f2;
-  min-width: 160px;
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.18em;
@@ -638,38 +381,35 @@ nav.sidebar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
 
   transition:
-    box-shadow 0.16s ease,
-    transform 0.06s ease,
-    background 0.16s ease,
-    border-color 0.16s ease;
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.1s ease,
+    box-shadow 0.18s ease;
 }
 
 .meta-button:hover {
+  transform: translateY(-1px);
   box-shadow:
     0 24px 70px rgba(30, 64, 175, 0.6),
-    0 0 0 0.6px rgba(255, 255, 255, 0.9) inset;
-
-  transform: translateY(-1px);
+    0 0 0 1px rgba(255, 255, 255, 0.85) inset;
 }
 
-/* ----------------------------------------------
+/* ============================================================
    MAIN CONTENT
-   ---------------------------------------------- */
+   ============================================================ */
 
 .main-content {
   flex: 1;
   padding: 120px 0 40px;
 }
 
-/* ----------------------------------------------
-   VIEW PANEL (Glassmorphism + Gold Header)
-   ---------------------------------------------- */
+/* ============================================================
+   VIEW PANEL (Glassmorphism)
+   ============================================================ */
 
 .view {
-  position: relative;
   display: none;
 
   max-width: 1440px;
@@ -684,33 +424,37 @@ nav.sidebar {
     rgba(226, 232, 240, 0.94)
   );
 
+  border: 1px solid rgba(148, 163, 184, 0.45);
+
   box-shadow:
     0 28px 90px rgba(15, 23, 42, 0.4),
-    0 0 0 0.8px rgba(255, 255, 255, 0.9) inset;
+    0 0 0 1px rgba(255, 255, 255, 0.9) inset;
 
-  border: 1px solid rgba(148, 163, 184, 0.45);
   backdrop-filter: blur(26px);
 }
 
-/* -----------------------------
-   GOLD HEADER STRIP (THEME C)
-   ----------------------------- */
+.view.active {
+  display: block;
+}
+
+/* ============================================================
+   GOLD HEADER STRIP
+   ============================================================ */
 
 .view::before {
   content: attr(data-view-title);
   position: absolute;
+
   top: -46px;
   left: 50%;
   transform: translateX(-50%);
 
   width: 100vw;
   height: 46px;
+  padding-left: 260px;
 
   display: flex;
   align-items: center;
-
-  padding: 0 40px 0 260px;
-  box-sizing: border-box;
 
   font-size: 1.08rem;
   font-weight: 650;
@@ -718,118 +462,15 @@ nav.sidebar {
   text-transform: uppercase;
 
   border-bottom: 1px solid rgba(146, 101, 22, 0.6);
-  z-index: -1;
 }
 
 .view[data-header-theme="c"]::before {
   background: linear-gradient(90deg, #c8a451, #e0c26a, #b08934);
   color: #111827;
 }
-
-/* ----------------------------------------------
-   SUBHEADER (Brand Info)
-   ---------------------------------------------- */
-
-.view-subheader {
-  margin-bottom: 16px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.4);
-}
-
-.subheader-line-1,
-.subheader-line-2 {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.subheader-line-1 {
-  margin-bottom: 2px;
-}
-
-.subheader-icon {
-  width: 18px;
-  height: 18px;
-}
-
-.subheader-brand-name {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--color-text-main);
-}
-
-.subheader-role {
-  font-size: 0.78rem;
-  color: var(--color-text-muted);
-}
-
-.subheader-line-2 {
-  font-size: 0.78rem;
-  color: var(--color-text-muted);
-}
-
-.subheader-divider {
-  opacity: 0.8;
-}
-/* ----------------------------------------------
-   VIEW INNER HEADER
-   ---------------------------------------------- */
-
-.view-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 18px;
-}
-
-.view-header h2 {
-  font-size: 0.9rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-text-soft);
-  opacity: 0.8;
-}
-
-/* ==============================
-   6) GENERIC CARDS & KPI
-   ============================== */
-
-.card {
-  background: var(--surface);
-  border-radius: 18px;
-  padding: 16px 16px 14px;
-  border: 1px solid rgba(226, 232, 240, 0.96);
-
-  box-shadow:
-    0 22px 60px rgba(15, 23, 42, 0.25),
-    0 0 0 0.4px rgba(255, 255, 255, 0.95) inset;
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-.card-title {
-  font-size: 0.86rem;
-  font-weight: 650;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--color-text-main);
-}
-
-.card-subtitle {
-  font-size: 0.8rem;
-  color: var(--color-text-muted);
-}
-
-/* KPI Grid */
+/* ============================================================
+   KPI GRIDS
+   ============================================================ */
 
 .kpi-grid {
   display: grid;
@@ -884,9 +525,9 @@ nav.sidebar {
   color: #b91c1c;
 }
 
-/* ==============================
-   7) DASHBOARD GRIDS / TABLES
-   ============================== */
+/* ============================================================
+   DASHBOARD BLOCKS
+   ============================================================ */
 
 .dashboard-grid {
   display: grid;
@@ -907,7 +548,7 @@ nav.sidebar {
   gap: 14px;
 }
 
-/* Mini-Tables */
+/* MINI TABLES */
 
 .table-mini {
   width: 100%;
@@ -929,9 +570,9 @@ nav.sidebar {
   color: var(--color-text-soft);
 }
 
-/* ==============================
-   8) CREATIVE LIBRARY
-   ============================== */
+/* ============================================================
+   CREATIVE LIBRARY
+   ============================================================ */
 
 .creative-library-header {
   display: flex;
@@ -974,9 +615,9 @@ nav.sidebar {
   gap: 10px;
 }
 
-/* ==============================
-   9) LOADER, TOASTS & MODAL
-   ============================== */
+/* ============================================================
+   GLOBAL LOADER
+   ============================================================ */
 
 .global-loader {
   position: fixed;
@@ -1020,7 +661,9 @@ nav.sidebar {
   animation-delay: 0.24s;
 }
 
-/* Toasts */
+/* ============================================================
+   TOASTS
+   ============================================================ */
 
 #toastContainer {
   position: fixed;
@@ -1073,7 +716,9 @@ nav.sidebar {
   border-color: rgba(239, 68, 68, 0.85);
 }
 
-/* Modal */
+/* ============================================================
+   MODAL
+   ============================================================ */
 
 .modal-overlay {
   position: fixed;
@@ -1102,7 +747,7 @@ nav.sidebar {
   );
 
   border: 1px solid rgba(148, 163, 184, 0.9);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.35);
 }
 
 .modal-header {
@@ -1126,6 +771,7 @@ nav.sidebar {
   border-radius: 999px;
 
   border: 1px solid rgba(156, 163, 175, 0.9);
+
   background: radial-gradient(
     circle at 0% 0%,
     rgba(248, 250, 252, 0.98),
@@ -1136,13 +782,13 @@ nav.sidebar {
   align-items: center;
   justify-content: center;
 
-  color: #4b5563;
   font-size: 0.9rem;
+  color: #4b5563;
 }
 
 .modal-close:hover {
-  border-color: rgba(239, 68, 68, 0.9);
   color: #b91c1c;
+  border-color: rgba(239, 68, 68, 0.9);
 }
 
 .modal-body {
@@ -1150,18 +796,9 @@ nav.sidebar {
   color: var(--color-text-main);
 }
 
-/* ==============================
-   10) HELPERS & ANIMATIONS
-   ============================== */
-
-@keyframes skeleton {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
 
 @keyframes loader-pulse {
   0% {
@@ -1178,8 +815,6 @@ nav.sidebar {
   }
 }
 
-/* Micro-Interactions */
-
 .view {
   transition: opacity 0.18s ease-out, transform 0.12s ease-out;
 }
@@ -1187,25 +822,4 @@ nav.sidebar {
 .view.active {
   opacity: 1;
   transform: translateY(0);
-}
-
-.card,
-.metric-card,
-.dashboard-card,
-.creative-library-item,
-.report-card,
-.log-card {
-  transition:
-    box-shadow 0.18s ease-out,
-    transform 0.16s ease-out,
-    border-color 0.16s ease-out;
-}
-
-.card:hover,
-.metric-card:hover,
-.dashboard-card:hover,
-.creative-library-item:hover,
-.report-card:hover,
-.log-card:hover {
-  transform: translateY(-2px);
 }
