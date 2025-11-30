@@ -1904,6 +1904,25 @@ table td {
   }
 }
 
+/* ============================================================
+   CREATIVE MODAL – FULL SIZE OVERRIDE
+   ============================================================ */
+
+.modal:has(.creative-modal) {
+  max-width: 1080px;        /* breites Creative Layout */
+  width: 92%;
+  border-radius: 22px;
+  padding: 0;               /* Creative Modal bringt eigenes Padding */
+}
+
+.modal:has(.creative-modal) .modal-header {
+  display: none;            /* wir benutzen NICHT den globalen Header */
+}
+
+.modal:has(.creative-modal) #modalBody {
+  padding: 0;               /* Creative Modal hat eigenes Layout */
+}
+
 /* ==============================
    END OF FILE
 ============================== */
