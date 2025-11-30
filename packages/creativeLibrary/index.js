@@ -809,7 +809,9 @@ export function render(section, appState, opts = {}) {
     section.innerHTML = `
       <div class="view-empty">
         <p>Für die Creative Library stehen aktuell noch keine Demo-Daten bereit.</p>
-        <p class="view-empty-sub">Bitte stelle sicher, dass das Demo-Dataset geladen ist oder verbinde einen Meta-Account.</p>
+        <p class="view-empty-sub">
+          Bitte stelle sicher, dass das Demo-Dataset geladen ist oder verbinde einen Meta-Account.
+        </p>
       </div>
     `;
     return;
@@ -826,7 +828,8 @@ export function render(section, appState, opts = {}) {
 
   section.innerHTML = `
     <div class="creative-view-root">
-      <header class="creative-view-header">
+      <!-- HEADER / KPI-STRIP -->
+      <header class="creative-library-header">
         <div class="creative-view-title">
           <div class="view-kicker">AdSensei • Creative Cockpit</div>
           <h2 class="view-headline">
@@ -845,6 +848,7 @@ export function render(section, appState, opts = {}) {
             </span>
           </div>
         </div>
+
         <div class="creative-view-right">
           <div class="creative-view-kpis">
             <div class="creative-mini-kpi">
@@ -879,7 +883,8 @@ export function render(section, appState, opts = {}) {
               </span>
             </div>
           </div>
-          <div class="creative-view-actions">
+
+          <div class="creative-library-actions">
             <button class="btn ghost small" type="button">
               Layout
             </button>
@@ -890,6 +895,7 @@ export function render(section, appState, opts = {}) {
         </div>
       </header>
 
+      <!-- FILTERLEISTE (Bucket + Suche + Sortierung) -->
       <section class="creative-filter-bar">
         <div class="creative-filter-chips" data-role="bucket-chips">
           <button class="chip active" data-bucket="all">Alle Creatives</button>
@@ -898,26 +904,23 @@ export function render(section, appState, opts = {}) {
           <button class="chip" data-bucket="loser">Loser</button>
         </div>
         <div class="creative-filter-inputs">
-          <div class="creative-search">
-            <input
-              type="search"
-              class="creative-search-input"
-              placeholder="Suche nach Hook, Creator, Kampagne..."
-              data-role="search"
-            />
-          </div>
-          <div class="creative-select-group">
-            <select class="creative-select" data-role="sort">
-              <option value="score_desc">Sortierung: Score (hoch → niedrig)</option>
-              <option value="roas_desc">ROAS (hoch → niedrig)</option>
-              <option value="spend_desc">Spend (hoch → niedrig)</option>
-              <option value="ctr_desc">CTR (hoch → niedrig)</option>
-              <option value="days_desc">Laufzeit (neu → alt)</option>
-            </select>
-          </div>
+          <input
+            type="search"
+            class="meta-input"
+            placeholder="Suche nach Hook, Creator, Kampagne..."
+            data-role="search"
+          />
+          <select class="meta-input" data-role="sort">
+            <option value="score_desc">Sortierung: Score (hoch → niedrig)</option>
+            <option value="roas_desc">ROAS (hoch → niedrig)</option>
+            <option value="spend_desc">Spend (hoch → niedrig)</option>
+            <option value="ctr_desc">CTR (hoch → niedrig)</option>
+            <option value="days_desc">Laufzeit (neu → alt)</option>
+          </select>
         </div>
       </section>
 
+      <!-- TAGS / HASHTAGS -->
       <section class="creative-tags-row">
         <div class="creative-tags" data-role="tags">
           <button class="tag-pill active" data-tag="all">
@@ -941,7 +944,8 @@ export function render(section, appState, opts = {}) {
         </div>
       </section>
 
-      <section class="creative-library-grid" data-role="grid">
+      <!-- GRID -->
+      <section class="creative-grid" data-role="grid">
         <!-- Cards werden via JS gerendert -->
       </section>
     </div>
@@ -1038,6 +1042,7 @@ export function render(section, appState, opts = {}) {
   }
 
   function thumbClass(creative) {
+    // Basis-Klasse nutzt dein CSS (.creative-thumb), Theme-Klassen können später ergänzt werden
     return "creative-thumb creative-thumb-" + (creative.thumbTheme || "default");
   }
 
@@ -1066,88 +1071,67 @@ export function render(section, appState, opts = {}) {
 
         return `
           <article
-            class="creative-card"
+            class="creative-library-item"
             data-creative-id="${creative.id}"
             data-bucket="${creative.bucket}"
           >
             <div class="${thumbClass(creative)}">
-              <div class="creative-rank-badge">#${rank}</div>
-              ${platformPillHtml(creative)}
-              <div class="creative-thumb-overlay"></div>
+              <!-- Optional: Badge Layer -->
             </div>
-            <div class="creative-card-body">
-              <div class="creative-card-header">
-                <div class="creative-title-block">
-                  <h3 class="creative-title">${creative.name}</h3>
-                  <p class="creative-subtitle">${creative.title || ""}</p>
+
+            <div class="creative-info">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;">
+                <div>
+                  <div class="creative-title">${creative.name}</div>
+                  <div class="creative-kpi">
+                    ${creative.title || ""}
+                  </div>
                 </div>
-                <div class="creative-badges">
+                <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
                   ${bucketBadgeHtml(creative)}
-                  <span class="badge badge-soft">
-                    Score ${creative.score}/100
-                  </span>
+                  <span class="badge badge-soft">Score ${creative.score}/100</span>
                 </div>
               </div>
 
-              <div class="creative-meta">
-                <span>🎬 ${creative.hook || "Hook unbekannt"}</span>
-                <span>👤 ${creative.creator || "Unbekannter Creator"}</span>
-                <span>🧪 ${creative.campaignName || "Kampagne n/a"}</span>
+              <div class="creative-kpi" style="margin-top:4px;">
+                <strong>#${rank}</strong> • ${platformPillHtml(creative)} •
+                🎬 ${creative.hook || "Hook unbekannt"} •
+                👤 ${creative.creator || "Unbekannter Creator"}
               </div>
 
-              <div class="creative-kpi-row">
-                <div class="creative-kpi">
-                  <span class="creative-kpi-label">ROAS</span>
-                  <span class="creative-kpi-value">${roas}</span>
-                </div>
-                <div class="creative-kpi">
-                  <span class="creative-kpi-label">Spend</span>
-                  <span class="creative-kpi-value">${spend}</span>
-                </div>
-                <div class="creative-kpi">
-                  <span class="creative-kpi-label">CTR</span>
-                  <span class="creative-kpi-value">${ctr}</span>
-                </div>
-                <div class="creative-kpi">
-                  <span class="creative-kpi-label">CPM</span>
-                  <span class="creative-kpi-value">${cpm}</span>
-                </div>
+              <div class="creative-kpi" style="margin-top:4px;">
+                ROAS ${roas} • Spend ${spend} • CTR ${ctr} • CPM ${cpm}
               </div>
 
-              <footer class="creative-card-footer">
-                <div class="creative-footer-left">
-                  <span class="creative-footer-meta">
-                    ${creative.metrics.purchases || 0} Purchases •
-                    ${creative.daysActive || 0} Tage live
-                  </span>
-                </div>
-                <div class="creative-footer-actions">
-                  <button
-                    type="button"
-                    class="btn-link"
-                    data-action="details"
-                    data-creative-id="${creative.id}"
-                  >
-                    Details
-                  </button>
-                  <button
-                    type="button"
-                    class="btn-link"
-                    data-action="variants"
-                    data-creative-id="${creative.id}"
-                  >
-                    Varianten (${creative.variantsCount || 1})
-                  </button>
-                  <button
-                    type="button"
-                    class="btn-link bold"
-                    data-action="testslot"
-                    data-creative-id="${creative.id}"
-                  >
-                    Test-Slot
-                  </button>
-                </div>
-              </footer>
+              <div class="creative-kpi" style="margin-top:2px;">
+                ${creative.metrics.purchases || 0} Purchases •
+                ${creative.daysActive || 0} Tage live •
+                ${creative.campaignName || "Kampagne n/a"}
+              </div>
+            </div>
+
+            <div class="creative-actions">
+              <button
+                type="button"
+                data-action="details"
+                data-creative-id="${creative.id}"
+              >
+                Details
+              </button>
+              <button
+                type="button"
+                data-action="variants"
+                data-creative-id="${creative.id}"
+              >
+                Varianten (${creative.variantsCount || 1})
+              </button>
+              <button
+                type="button"
+                data-action="testslot"
+                data-creative-id="${creative.id}"
+              >
+                Test-Slot
+              </button>
             </div>
           </article>
         `;
@@ -1230,7 +1214,6 @@ export function render(section, appState, opts = {}) {
     openCreativeModal(creative, action, brand);
   });
 }
-
 /* ----------------------------------------------------------
    MODAL RENDERING (uses global SignalOne modal helper)
 -----------------------------------------------------------*/
@@ -1246,6 +1229,57 @@ function openCreativeModal(creative, action, brand) {
   const bucketLabel = getBucketLabel(creative.bucket);
   const tone = getBucketTone(creative.bucket);
 
+  let viewLabel = "Performance-Details";
+  let viewIntro = "";
+  let nextStepsHtml = "";
+
+  if (action === "variants") {
+    viewLabel = "Varianten & Iterationen";
+    viewIntro =
+      "Du siehst hier die Performance-Basis für neue Varianten. Nutze die Insights, um Hook, Intro und Creators gezielt zu iterieren.";
+    nextStepsHtml = `
+      <ul class="creative-modal-list">
+        <li><strong>Variante 1:</strong> Hook Remix (gleiche Story, anderer Einstieg)</li>
+        <li><strong>Variante 2:</strong> 15s Cutdown für Reels / Shorts</li>
+        <li><strong>Variante 3:</strong> Static/Carousel Ableitung für Retargeting</li>
+      </ul>
+      <div class="creative-modal-actions">
+        <button type="button" class="btn primary small">Variant-Briefing anlegen</button>
+        <button type="button" class="btn ghost small">Mit Creator teilen (Demo)</button>
+      </div>
+    `;
+  } else if (action === "testslot") {
+    viewLabel = "Testing-Slot Planung";
+    viewIntro =
+      "Plane dieses Creative in den nächsten strukturierten Test-Slot ein. Fokus: saubere Lernfragen statt wildem Duplizieren.";
+    nextStepsHtml = `
+      <p class="creative-modal-text">
+        Empfohlener Slot: <strong>Nächster 7-Tage-Testzyklus</strong> mit klarer Lernfrage
+        (z. B. „Hook A vs. Hook B“, „UGC vs. Static“).
+      </p>
+      <ul class="creative-modal-list">
+        <li><strong>Budget-Empfehlung:</strong> 5–10 % deines Tagesbudgets</li>
+        <li><strong>Mindestlaufzeit:</strong> 3 Tage oder 50–100 Conversions</li>
+        <li><strong>Vergleichsgruppe:</strong> Aktueller Top-Winner im gleichen Funnel-Step</li>
+      </ul>
+      <div class="creative-modal-actions">
+        <button type="button" class="btn primary small">In Testing Log einplanen</button>
+        <button type="button" class="btn ghost small">Test-Setup anzeigen (Demo)</button>
+      </div>
+    `;
+  } else {
+    // Default "Details"
+    viewIntro =
+      "Schneller Deep Dive in Performance & Story dieses Creatives – ideal für Skalierungs- oder Pause-Entscheidungen.";
+    nextStepsHtml = `
+      <div class="creative-modal-actions">
+        <button type="button" class="btn primary small">Skalierung planen</button>
+        <button type="button" class="btn ghost small">Briefing für neue UGC-Variante</button>
+        <button type="button" class="btn ghost small">Zum Testing Log</button>
+      </div>
+    `;
+  }
+
   const bodyHtml = `
     <div class="creative-modal">
       <header class="creative-modal-header">
@@ -1257,6 +1291,7 @@ function openCreativeModal(creative, action, brand) {
           </p>
         </div>
         <div class="creative-modal-badges">
+          <span class="badge badge-soft">Ansicht: ${viewLabel}</span>
           <span class="badge badge-${tone}">${bucketLabel.toUpperCase()}</span>
           <span class="badge badge-soft">Score ${creative.score}/100</span>
         </div>
@@ -1268,7 +1303,9 @@ function openCreativeModal(creative, action, brand) {
             "creative-thumb-" + (creative.thumbTheme || "default")
           }">
             <div class="creative-modal-thumb-overlay">
-              <span class="creative-modal-thumb-label">Video / Thumbnail Preview (Demo)</span>
+              <span class="creative-modal-thumb-label">
+                Video / Thumbnail Preview (Demo)
+              </span>
             </div>
           </div>
 
@@ -1303,6 +1340,9 @@ function openCreativeModal(creative, action, brand) {
         <div class="creative-modal-right">
           <section class="creative-modal-section">
             <h4>Story Breakdown</h4>
+            <p class="creative-modal-text" style="margin-bottom:6px;">
+              ${viewIntro}
+            </p>
             <ul class="creative-modal-list">
               <li><strong>Hook:</strong> ${creative.hook || "n/a"}</li>
               <li><strong>Creator:</strong> ${creative.creator || "n/a"}</li>
@@ -1327,11 +1367,7 @@ function openCreativeModal(creative, action, brand) {
 
           <section class="creative-modal-section">
             <h4>Nächste Schritte</h4>
-            <div class="creative-modal-actions">
-              <button type="button" class="btn primary small">Varianten planen</button>
-              <button type="button" class="btn ghost small">Briefing generieren</button>
-              <button type="button" class="btn ghost small">Zum Testing Log</button>
-            </div>
+            ${nextStepsHtml}
           </section>
         </div>
       </section>
