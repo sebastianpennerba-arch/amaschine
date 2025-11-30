@@ -1,113 +1,172 @@
-/*
- * Campaigns Render
- * Zeigt eine Tabelle aller Kampagnen mit Kennzahlen, Status-Badges
- * und einem Detail-Button, der das zentrale System-Modal nutzt.
- */
+/* ----------------------------------------------------------
+   CAMPAIGNS – render.js
+   Premium UI Version (VisionOS Titanium)
+-----------------------------------------------------------*/
 
-import { computeCampaignStats } from "./compute.js";
-import { renderCampaignDetail } from "./sections.js";
+import { buildCampaignsForBrand, computeCampaignSummary } from "./compute.js";
+import { formatCurrency, formatNumber, formatPercent } from "../utils/format.js";
 
-export function render(container, AppState) {
-  container.innerHTML = "";
+/* ----------------------------------------------------------
+   COMPONENT: Kampagnen-Karte
+-----------------------------------------------------------*/
+function campaignCardHTML(c) {
+  const statusIcon =
+    c.status === "ACTIVE"
+      ? "🟢"
+      : c.status === "PAUSED"
+      ? "⏸"
+      : "🧪";
 
-  const heading = document.createElement("h2");
-  heading.textContent = "Kampagnen-Übersicht";
-  container.appendChild(heading);
+  const tone = c.health.label; // good | warning | critical
 
-  // Beispiel-Kampagnen – später via Meta/API ersetzen
-  const campaigns = [
-    {
-      id: 1,
-      name: "Brand Awareness",
-      spend: 12890,
-      roas: 2.1,
-      ctr: 0.014,
-    },
-    {
-      id: 2,
-      name: "UGC Scale Test",
-      spend: 18420,
-      roas: 5.8,
-      ctr: 0.039,
-    },
-    {
-      id: 3,
-      name: "Retargeting Cold",
-      spend: 8340,
-      roas: 1.3,
-      ctr: 0.009,
-    },
-    {
-      id: 4,
-      name: "Testing: Hook Battle",
-      spend: 2100,
-      roas: 4.2,
-      ctr: 0.031,
-    },
-  ];
+  return `
+    <article class="campaign-card" data-id="${c.id}">
+      <header class="campaign-card-header">
+        <div class="campaign-card-title">
+          ${statusIcon} ${c.name}
+        </div>
+        <div class="campaign-health-badge ${tone}">
+          ${c.health.score} / 100
+        </div>
+      </header>
 
-  const enriched = computeCampaignStats(campaigns);
+      <div class="campaign-card-kpis">
+        <div class="campaign-kpi">
+          <label>Spend</label>
+          <span>${formatCurrency(c.metrics.spend)}</span>
+        </div>
+        <div class="campaign-kpi">
+          <label>ROAS</label>
+          <span>${formatNumber(c.metrics.roas, 1, "x")}</span>
+        </div>
+        <div class="campaign-kpi">
+          <label>CTR</label>
+          <span>${formatPercent(c.metrics.ctr * 100, 1)}</span>
+        </div>
+        <div class="campaign-kpi">
+          <label>CPM</label>
+          <span>${formatCurrency(c.metrics.cpm)}</span>
+        </div>
+        <div class="campaign-kpi">
+          <label>Purchases</label>
+          <span>${c.metrics.purchases}</span>
+        </div>
+      </div>
 
-  const table = document.createElement("table");
-  table.className = "campaign-table";
-
-  const headerRow = document.createElement("tr");
-  ["Kampagne", "Spend", "ROAS", "CTR", "Status", "Action"].forEach((col) => {
-    const th = document.createElement("th");
-    th.textContent = col;
-    headerRow.appendChild(th);
-  });
-  table.appendChild(headerRow);
-
-  enriched.forEach((c) => {
-    const row = document.createElement("tr");
-
-    const statusBadge = `<span class="badge ${badgeClassForStatus(
-      c.status
-    )}">${labelForStatus(c.status)}</span>`;
-
-    row.innerHTML = `
-      <td>${c.name}</td>
-      <td>€${c.spend.toLocaleString("de-DE")}</td>
-      <td>${c.roas.toFixed(2)}x</td>
-      <td>${(c.ctr * 100).toFixed(2)} %</td>
-      <td>${statusBadge}</td>
-      <td><button type="button" data-id="${c.id}">Details</button></td>
-    `;
-
-    const btn = row.querySelector("button");
-    btn.onclick = () => {
-      renderCampaignDetail(c, AppState);
-    };
-
-    table.appendChild(row);
-  });
-
-  container.appendChild(table);
+      <footer class="campaign-card-actions">
+        <button data-action="details" data-id="${c.id}">Details</button>
+        <button data-action="sensei" data-id="${c.id}">Sensei</button>
+        <button data-action="logs" data-id="${c.id}">Testing Log</button>
+      </footer>
+    </article>
+  `;
 }
 
-function badgeClassForStatus(status) {
-  switch (status) {
-    case "scaling":
-      return "badge-online";
-    case "watch":
-      return "badge-warning";
-    case "failing":
-      return "badge-offline";
-    default:
-      return "badge-offline";
-  }
+/* ----------------------------------------------------------
+   COMPONENT: Grid
+-----------------------------------------------------------*/
+function renderGrid(container, list) {
+  container.innerHTML = list.map(campaignCardHTML).join("");
 }
 
-function labelForStatus(status) {
-  switch (status) {
-    case "scaling":
-      return "Scaling";
-    case "watch":
-      return "Review";
-    case "failing":
-      return "Failing";
-    default:
-      return status;
+/* ----------------------------------------------------------
+   MAIN RENDER FUNCTION
+-----------------------------------------------------------*/
+export function render(section, appState, opts = {}) {
+  const brandId = appState.selectedBrandId;
+  const DemoData = window.SignalOneDemo?.DemoData;
+
+  const campaigns = buildCampaignsForBrand(brandId, DemoData);
+  const summary = computeCampaignSummary(campaigns);
+
+  section.innerHTML = `
+    <div class="campaign-view-root">
+
+      <!-- Header -->
+      <header class="campaign-header">
+        <div>
+          <div class="view-kicker">AdSensei • Campaign Engine</div>
+          <h2 class="view-headline">Kampagnen – ${brandId}</h2>
+          <p class="view-subline">
+            Performance, Status & Optimierung – intelligent sortiert.
+          </p>
+          <div class="campaign-meta-row">
+            <span class="view-meta-pill">Spend ${summary.spendTotal}</span>
+            <span class="view-meta-pill">ROAS ${summary.avgROAS}</span>
+            <span class="view-meta-pill">CTR ${summary.avgCTR}</span>
+            <span class="view-meta-pill subtle">
+              ${summary.activeCount} Active •
+              ${summary.testingCount} Testing •
+              ${summary.pausedCount} Paused
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Filterbar -->
+      <section class="campaign-filter-bar">
+        <div class="campaign-filter-group">
+          <button class="chip active" data-filter="all">Alle</button>
+          <button class="chip" data-filter="ACTIVE">Active</button>
+          <button class="chip" data-filter="TESTING">Testing</button>
+          <button class="chip" data-filter="PAUSED">Paused</button>
+        </div>
+
+        <div class="campaign-search-group">
+          <input type="search" placeholder="Suche..." class="meta-input" data-role="search"/>
+        </div>
+      </section>
+
+      <!-- GRID -->
+      <section class="campaign-grid" data-role="grid"></section>
+
+    </div>
+  `;
+
+  /* ---------------------------------------
+     LOGIC
+  --------------------------------------- */
+  const gridEl = section.querySelector('[data-role="grid"]');
+  const searchEl = section.querySelector('[data-role="search"]');
+  const filterBtns = section.querySelectorAll("[data-filter]");
+
+  let state = {
+    filter: "all",
+    search: "",
+  };
+
+  function update() {
+    let list = campaigns.slice();
+
+    if (state.filter !== "all") {
+      list = list.filter((c) => c.status === state.filter);
+    }
+
+    if (state.search) {
+      list = list.filter((c) =>
+        c.name.toLowerCase().includes(state.search.toLowerCase())
+      );
+    }
+
+    renderGrid(gridEl, list);
   }
+
+  /* FILTER EVENTS */
+  filterBtns.forEach((b) =>
+    b.addEventListener("click", () => {
+      filterBtns.forEach((x) => x.classList.remove("active"));
+      b.classList.add("active");
+      state.filter = b.dataset.filter;
+      update();
+    })
+  );
+
+  /* SEARCH EVENT */
+  searchEl.addEventListener("input", () => {
+    state.search = searchEl.value;
+    update();
+  });
+
+  /* INITIAL PAINT */
+  update();
 }
