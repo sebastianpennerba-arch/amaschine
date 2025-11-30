@@ -36,7 +36,7 @@ const AppState = {
 };
 
 /* ----------------------------------------------------------
-   DEMO-DATA
+   DEMO-DATA (DIREKT HIER DEFINIEREN!)
 -----------------------------------------------------------*/
 const DemoData = {
   brands: [
@@ -105,9 +105,12 @@ const DemoData = {
   },
 };
 
-// SOFORT nach Definition global verfügbar machen
+// SOFORT GLOBAL VERFÜGBAR MACHEN
 window.SignalOneDemo = window.SignalOneDemo || {};
 window.SignalOneDemo.DemoData = DemoData;
+window.SignalOneDemo.brands = DemoData.brands; // Für Kompatibilität
+
+console.log("✅ DemoData geladen:", DemoData.brands.length, "Brands");
 
 function useDemoMode() {
   if (AppState.settings.demoMode) return true;
@@ -115,41 +118,7 @@ function useDemoMode() {
   return false;
 }
 
-/* ----------------------------------------------------------
-   BOOTSTRAP BRAND SELECT
------------------------------------------------------------*/
-document.addEventListener("DOMContentLoaded", () => {
-  // BRANDS SOFORT LADEN
-  const brandSelect = document.getElementById("brandSelect");
-  if (brandSelect && DemoData.brands) {
-    brandSelect.innerHTML = DemoData.brands
-      .map(b => `<option value="${b.id}">${b.name}</option>`)
-      .join("");
-
-    // DEFAULT MARKIEREN
-    const defaultBrand = DemoData.brands[0];
-    brandSelect.value = defaultBrand.id;
-    AppState.selectedBrandId = defaultBrand.id;
-  }
-});
-
-// DEMO BRANDS IN DROPDOWN LADEN — OPTION C
-
-if (window.SignalOneDemo?.brands) {
-    const brandSelect = document.getElementById("brandSelect");
-    if (brandSelect) {
-        brandSelect.innerHTML = window.SignalOneDemo.brands
-            .map(b => `<option value="${b.id}">${b.name}</option>`)
-            .join("");
-
-        // DEFAULT MARKIEREN
-        const defaultBrand = window.SignalOneDemo.brands[0];
-        brandSelect.value = defaultBrand.id;
-
-        // STATE UPDATEN
-        AppState.selectedBrandId = defaultBrand.id;
-    }
-}
+import MetaAuth from "./packages/metaAuth/index.js";
 
 /* ----------------------------------------------------------
    MODULE REGISTRY & LABELS
@@ -248,7 +217,6 @@ function createSvgIconFromSymbol(symbolId, extraClass = "") {
     svg.classList.add("icon-svg");
   }
 
-  // NEU: Symbol-Inhalt klonen statt <use>, damit CSS (.icon-layer-*) greift
   const symbol = document.getElementById(symbolId);
   if (symbol) {
     Array.from(symbol.childNodes).forEach((node) => {
@@ -257,7 +225,6 @@ function createSvgIconFromSymbol(symbolId, extraClass = "") {
       }
     });
   } else {
-    // Fallback auf <use>, falls Symbol fehlt
     const use = document.createElementNS(svgNS, "use");
     use.setAttributeNS("http://www.w3.org/1999/xlink", "href", `#${symbolId}`);
     svg.appendChild(use);
@@ -407,7 +374,6 @@ function updateSidebarActiveIcon(activeKey) {
 
     const use = svg?.querySelector("use");
     if (!use || !symbol) {
-      // bei der neuen Clone-Variante existiert ggf. kein <use>, wir brauchen nur active-Klasse
       if (module === activeKey) {
         btn.classList.add("active");
       } else {
@@ -564,8 +530,6 @@ function wireBrandAndCampaignSelects() {
   if (campaignSelect) {
     campaignSelect.addEventListener("change", () => {
       AppState.selectedCampaignId = campaignSelect.value || null;
-
-      // WICHTIG: Kampagnen-Auswahl wirkt nicht auf alle Views, aber Grundlogik bleibt hier.
       loadModule(AppState.currentModule);
       updateViewSubheaders();
     });
@@ -822,6 +786,9 @@ async function navigateTo(key) {
    BOOTSTRAP
 -----------------------------------------------------------*/
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("🚀 SignalOne Bootstrap startet...");
+  console.log("✅ DemoData verfügbar:", DemoData.brands.length, "Brands");
+  
   renderNav();
 
   populateBrandSelect();
@@ -831,12 +798,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const initialViewId = getViewIdForModule(AppState.currentModule);
   setActiveView(initialViewId);
 
-document
-  .getElementById("metaConnectButton")
-  ?.addEventListener("click", () => {
-    MetaAuth.connectWithPopup();
-  });
-    
+  document
+    .getElementById("metaConnectButton")
+    ?.addEventListener("click", () => {
+      MetaAuth.connectWithPopup();
+    });
+
   updateMetaStatusUI();
   updateSystemHealthUI();
   updateCampaignHealthUI();
@@ -845,7 +812,6 @@ document
   const settingsBtn = document.getElementById("settingsButton");
   settingsBtn?.addEventListener("click", () => navigateTo("settings"));
 
-  // Modal Close
   const modalCloseBtn = document.getElementById("modalCloseButton");
   const modalOverlay = document.getElementById("modalOverlay");
   modalCloseBtn?.addEventListener("click", closeSystemModal);
@@ -853,7 +819,6 @@ document
     if (evt.target === modalOverlay) closeSystemModal();
   });
 
-  // Profile Modal
   const profileBtn = document.getElementById("profileButton");
   profileBtn?.addEventListener("click", () => {
     openSystemModal(
@@ -863,7 +828,6 @@ document
     );
   });
 
-  // Notifications
   const notificationsBtn = document.getElementById("notificationsButton");
   notificationsBtn?.addEventListener("click", () => {
     if (!AppState.notifications.length) {
@@ -886,7 +850,6 @@ document
     clearNotifications();
   });
 
-  // Logout
   const logoutBtn = document.getElementById("logoutButton");
   logoutBtn?.addEventListener("click", () => {
     AppState.metaConnected = false;
@@ -907,14 +870,13 @@ document
   }, 60000);
 
   loadModule(AppState.currentModule);
+  
+  console.log("✅ SignalOne Bootstrap abgeschlossen!");
 });
 
 /* ----------------------------------------------------------
    EXPOSED GLOBAL API
 -----------------------------------------------------------*/
-// Falls du DemoData zusätzlich brauchst:
-window.SignalOneDemo = window.SignalOneDemo || {};
-window.SignalOneDemo.DemoData = DemoData;
 window.SignalOne = {
   AppState,
   navigateTo,
