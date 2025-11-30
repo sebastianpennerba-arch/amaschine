@@ -5,7 +5,7 @@
 
 /* DEMO DATA ACCESS HELPERS */
 function getDemoData() {
-  return window.SignalOneDemo?.DemoData || null;
+  return window.SignalOneDemo || null;
 }
 
 function getActiveBrandFromState(appState) {
