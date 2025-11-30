@@ -125,7 +125,7 @@ if (window.SignalOneDemo?.brands) {
         brandSelect.value = defaultBrand.id;
 
         // STATE UPDATEN
-        appState.selectedBrandId = defaultBrand.id;
+        AppState.selectedBrandId = defaultBrand.id;
     }
 }
 
