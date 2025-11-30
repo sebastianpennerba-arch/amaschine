@@ -671,6 +671,12 @@ nav.sidebar {
   color: #111827;
 }
 
+.view.is-active {
+  display: block;
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
 /* SUBHEADER */
 .view-subheader {
   margin-bottom: 16px;
