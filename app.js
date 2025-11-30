@@ -810,11 +810,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const initialViewId = getViewIdForModule(AppState.currentModule);
   setActiveView(initialViewId);
 
-  document
-    .getElementById("metaConnectButton")
-    ?.addEventListener("click", () => {
-      MetaAuth.connectWithPopup();
-
+document
+  .getElementById("metaConnectButton")
+  ?.addEventListener("click", () => {
+    MetaAuth.connectWithPopup();
+  });
+    
   updateMetaStatusUI();
   updateSystemHealthUI();
   updateCampaignHealthUI();
