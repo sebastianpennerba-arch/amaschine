@@ -645,7 +645,7 @@ nav.sidebar {
 .view::before {
   content: attr(data-view-title);
   position: absolute;
-  top: -100px;
+  top: -54px;
   left: 50%;
   transform: translateX(-50%);
   width: 100vw;
