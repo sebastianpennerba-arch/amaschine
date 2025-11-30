@@ -889,6 +889,7 @@ document.addEventListener("DOMContentLoaded", () => {
    EXPOSED GLOBAL API
 -----------------------------------------------------------*/
 // Falls du DemoData zusätzlich brauchst:
+window.SignalOneDemo = window.SignalOneDemo || {};
 window.SignalOneDemo.DemoData = DemoData;
 window.SignalOne = {
   AppState,
