@@ -616,7 +616,7 @@ nav.sidebar {
 
 .main-content {
   flex: 1;
-  padding: 80px 0 40px;
+  padding: 120px 0 40px;
 }
 
 /* View Panel */
@@ -624,7 +624,7 @@ nav.sidebar {
   position: relative;
   display: none;
   max-width: 1440px;
-  margin: 0 auto 0;
+  margin: 54px auto 0;
   padding: 24px 26px 44px;
 
   border-radius: 26px;
@@ -645,7 +645,7 @@ nav.sidebar {
 .view::before {
   content: attr(data-view-title);
   position: absolute;
-  top: -46px;
+  top: -100px;
   left: 50%;
   transform: translateX(-50%);
   width: 100vw;
@@ -662,7 +662,7 @@ nav.sidebar {
   text-transform: uppercase;
 
   border-bottom: 1px solid rgba(146, 101, 22, 0.6);
-  z-index: 35;
+  z-index: 55;
 }
 
 .view[data-header-theme="c"]::before {
