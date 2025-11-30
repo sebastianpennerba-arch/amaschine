@@ -70,29 +70,15 @@ const BASE_CREATIVES = window.SignalOneDemo?.BASE_CREATIVES || [];
 
 /* BRAND-AJUSTED CREATIVE DATA */
 function buildCreativesForBrand(brand) {
-  if (!brand) return BASE_CREATIVES.map((c) => ({ ...c }));
+  if (!brand || !window.SignalOneDemo?.BASE_CREATIVES) return [];
 
-  const baseRoas = 4.8;
-  const baseSpend30d = 47892;
+  const base = window.SignalOneDemo.BASE_CREATIVES;
 
-  const roasFactor = brand.roas30d / baseRoas;
-  const spendFactor = brand.spend30d / baseSpend30d;
-
-  return BASE_CREATIVES.map((c, idx) => {
-    const scaledRoas = c.metrics.roas * roasFactor;
-    const scaledSpend = Math.round((c.metrics.spend * spendFactor) / 50) * 50;
-
-    return {
-      ...c,
-      id: brand.id + "__" + c.id,
-      brandId: brand.id,
-      metrics: {
-        ...c.metrics,
-        roas: Number(scaledRoas.toFixed(1)),
-        spend: scaledSpend,
-      },
-    };
-  });
+  // Jeder Creative bekommt die korrekte Brand-ID injected
+  return base.map(c => ({
+    ...c,
+    brandId: brand.id,
+  }));
 }
 
 /* TAG COUNTS */
