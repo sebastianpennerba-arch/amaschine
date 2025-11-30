@@ -1,101 +1,95 @@
-/*
- * Analytics Render
- * Visualisiert:
- *  - Creative Performance Map (als Punkte-Grid)
- *  - Hook-Analyse
- *  - Funnel Health
- */
+/* ----------------------------------------------------------
+   ANALYTICS – render.js
+   Premium VisionOS KPI & Trend UI
+-----------------------------------------------------------*/
 
-import {
-  computePerformanceMap,
-  computeHookStats,
-  computeFunnelScore,
-} from "./compute.js";
+import { buildAnalytics } from "./compute.js";
+import { formatCurrency, formatNumber, formatPercent } from "../utils/format.js";
 
-export function render(container, AppState) {
-  container.innerHTML = "";
+/* ----------------------------------------------------------
+   Trend Chart
+-----------------------------------------------------------*/
+function trendChartHTML(points, colorVar = "#3b82f6") {
+  const max = Math.max(...points);
+  const min = Math.min(...points);
 
-  const heading = document.createElement("h2");
-  heading.textContent = "Advanced Analytics";
-  container.appendChild(heading);
+  const mapped = points
+    .map((v, i) => {
+      const x = (i / (points.length - 1)) * 100;
+      const y = 100 - ((v - min) / (max - min)) * 100;
+      return `${x},${y}`;
+    })
+    .join(" ");
 
-  // Beispiel-Daten
-  const creatives = [
-    { id: 1, spend: 6200, roas: 6.8, hook: "Problem/Solution" },
-    { id: 2, spend: 4800, roas: 5.9, hook: "Testimonial" },
-    { id: 3, spend: 3100, roas: 5.2, hook: "Before/After" },
-    { id: 4, spend: 3200, roas: 1.8, hook: "Direct CTA" },
-  ];
-  const funnel = {
-    impressions: 100000,
-    clicks: 3200,
-    purchases: 280,
-  };
+  return `
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="analytics-chart">
+      <polyline points="${mapped}" class="analytics-line" style="stroke:${colorVar}"></polyline>
+    </svg>
+  `;
+}
 
-  const perfMap = computePerformanceMap(creatives);
-  const hookStats = computeHookStats(creatives);
-  const funnelScore = computeFunnelScore(funnel);
+/* ----------------------------------------------------------
+   MAIN RENDER
+-----------------------------------------------------------*/
+export function render(section, appState, opts = {}) {
+  const creatives = window.SignalOneDemo?.BASE_CREATIVES || [];
+  const stats = buildAnalytics(creatives);
 
-  // Performance Map
-  const perfSection = document.createElement("section");
-  perfSection.innerHTML = "<h3>Creative Performance Map</h3>";
-  const perfLegend = document.createElement("p");
-  perfLegend.textContent =
-    "Jeder Punkt repräsentiert ein Creative (ROAS vs. Spend). Dunklere Punkte = höhere ROAS.";
-  perfSection.appendChild(perfLegend);
+  section.innerHTML = `
+    <div class="analytics-view-root">
 
-  const perfGrid = document.createElement("div");
-  perfGrid.style.display = "grid";
-  perfGrid.style.gridTemplateColumns =
-    "repeat(auto-fit, minmax(8px, 1fr))";
-  perfGrid.style.gap = "2px";
+      <header class="analytics-header">
+        <div>
+          <div class="view-kicker">AdSensei • Analytics</div>
+          <h2 class="view-headline">Analytics Übersicht</h2>
+          <p class="view-subline">Alle KPIs auf einen Blick – mit Trends der letzten 14 Sessions.</p>
 
-  perfMap.forEach((p) => {
-    const dot = document.createElement("div");
-    dot.style.height = "8px";
-    dot.style.borderRadius = "999px";
-    dot.style.opacity = "0.9";
-    // einfache visuelle Kodierung
-    const roasBucket = p.y >= 5 ? "high" : p.y >= 3 ? "mid" : "low";
-    if (roasBucket === "high") {
-      dot.style.backgroundColor = "#22c55e";
-    } else if (roasBucket === "mid") {
-      dot.style.backgroundColor = "#f59e0b";
-    } else {
-      dot.style.backgroundColor = "#ef4444";
-    }
-    dot.title = `ID ${p.id} – Spend €${p.x.toLocaleString(
-      "de-DE"
-    )}, ROAS ${p.y.toFixed(2)}x`;
-    perfGrid.appendChild(dot);
-  });
+          <div class="analytics-meta-row">
+            <span class="view-meta-pill">ROAS: ${stats.avg.roas}</span>
+            <span class="view-meta-pill">CPM: ${stats.avg.cpm}</span>
+            <span class="view-meta-pill">CTR: ${stats.avg.ctr}</span>
+            <span class="view-meta-pill">Purchases: ${stats.avg.purchases}</span>
+          </div>
+        </div>
+      </header>
 
-  perfSection.appendChild(perfGrid);
+      <section class="analytics-grid">
+        
+        <article class="analytics-card">
+          <div class="analytics-card-title">Spend Trend</div>
+          <div class="analytics-card-body">
+            ${trendChartHTML(stats.spendTrend)}
+          </div>
+        </article>
 
-  // Hook Stats
-  const hookSection = document.createElement("section");
-  hookSection.innerHTML = "<h3>Hook-Analyse</h3>";
-  hookStats.forEach((h) => {
-    const p = document.createElement("p");
-    p.textContent = `${h.hook}: Ø ROAS ${h.avgRoas.toFixed(
-      2
-    )}x (n=${h.count})`;
-    hookSection.appendChild(p);
-  });
+        <article class="analytics-card">
+          <div class="analytics-card-title">ROAS Trend</div>
+          <div class="analytics-card-body">
+            ${trendChartHTML(stats.roasTrend, "#16a34a")}
+          </div>
+        </article>
 
-  // Funnel Health
-  const funnelSection = document.createElement("section");
-  funnelSection.innerHTML = "<h3>Funnel Health</h3>";
+        <article class="analytics-kpi-card">
+          <div class="analytics-kpi">
+            <label>Spend</label>
+            <span>${stats.avg.spend}</span>
+          </div>
+          <div class="analytics-kpi">
+            <label>ROAS</label>
+            <span>${stats.avg.roas}</span>
+          </div>
+          <div class="analytics-kpi">
+            <label>CTR</label>
+            <span>${stats.avg.ctr}</span>
+          </div>
+          <div class="analytics-kpi">
+            <label>CPM</label>
+            <span>${stats.avg.cpm}</span>
+          </div>
+        </article>
 
-  const ctr = (funnelScore.ctr * 100).toFixed(2);
-  const cv = (funnelScore.cvRate * 100).toFixed(2);
-  const score = (funnelScore.score * 100).toFixed(1);
+      </section>
 
-  const fText = document.createElement("p");
-  fText.textContent = `CTR: ${ctr} % · Conversion Rate: ${cv} % · Score: ${score}/100`;
-  funnelSection.appendChild(fText);
-
-  container.appendChild(perfSection);
-  container.appendChild(hookSection);
-  container.appendChild(funnelSection);
+    </div>
+  `;
 }
