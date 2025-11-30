@@ -1,35 +1,46 @@
-/*
- * Analytics Compute
- * Stellt Analysefunktionen bereit: Performance Map, Hook-Analyse,
- * Funnel Score.
- */
+/* ----------------------------------------------------------
+   ANALYTICS – compute.js
+   Premium Cross-KPI Analytics Layer
+-----------------------------------------------------------*/
 
-export function computePerformanceMap(creatives) {
-  return creatives.map((c) => ({
-    id: c.id,
-    x: c.spend,
-    y: c.roas,
-  }));
-}
+import { formatCurrency, formatNumber, formatPercent } from "../utils/format.js";
 
-export function computeHookStats(creatives) {
-  const hooks = {};
+/* ----------------------------------------------------------
+   Demo KPI Generierung
+-----------------------------------------------------------*/
+export function buildAnalytics(creatives) {
+  const totals = {
+    spend: 0,
+    roas: 0,
+    ctr: 0,
+    cpm: 0,
+    purchases: 0,
+    count: creatives.length
+  };
+
   creatives.forEach((c) => {
-    if (!hooks[c.hook]) hooks[c.hook] = { count: 0, roasSum: 0 };
-    hooks[c.hook].count += 1;
-    hooks[c.hook].roasSum += c.roas;
+    totals.spend += c.metrics.spend;
+    totals.roas += c.metrics.roas;
+    totals.ctr += c.metrics.ctr;
+    totals.cpm += c.metrics.cpm;
+    totals.purchases += c.metrics.purchases;
   });
-  return Object.keys(hooks).map((hook) => ({
-    hook,
-    count: hooks[hook].count,
-    avgRoas: hooks[hook].roasSum / hooks[hook].count,
-  }));
-}
 
-export function computeFunnelScore(funnel) {
-  const ctr = funnel.clicks / funnel.impressions || 0;
-  const cvRate = funnel.purchases / funnel.clicks || 0;
-  // Score simple: 50% CTR, 50% CR
-  const score = ((ctr * 100) / 4 + (cvRate * 100) / 4) / 2; // normiert auf 0–100
-  return { ctr, cvRate, score: score / 100 };
+  const avg = {
+    spend: formatCurrency(totals.spend),
+    roas: formatNumber(totals.roas / totals.count, 1, "x"),
+    ctr: formatPercent((totals.ctr / totals.count) * 100, 1),
+    cpm: formatCurrency(totals.cpm / totals.count),
+    purchases: totals.purchases
+  };
+
+  /* Trend Simulation */
+  const spendTrend = Array.from({ length: 14 }).map(
+    () => Math.round((totals.spend / totals.count) * (0.8 + Math.random() * 0.4))
+  );
+  const roasTrend = Array.from({ length: 14 }).map(
+    () => Number(((totals.roas / totals.count) * (0.8 + Math.random() * 0.4)).toFixed(1))
+  );
+
+  return { avg, spendTrend, roasTrend };
 }
