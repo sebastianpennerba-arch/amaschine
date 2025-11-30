@@ -134,7 +134,26 @@ img {
 }
 
 /* ==============================
-   3) SIDEBAR – **DEINE VERSION (neu)**
+   3) SIDEBAR ICON BASE STYLES (FIX!)
+   ============================== */
+
+.icon-layer-fill {
+  fill: var(--sidebar-icon-inactive-fill);
+  stroke: none;
+  transition: fill 0.16s ease;
+}
+
+.icon-layer-stroke {
+  fill: none;
+  stroke: var(--sidebar-icon-inactive-stroke);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke 0.16s ease;
+}
+
+/* ==============================
+   4) SIDEBAR
    ============================== */
 
 nav.sidebar {
@@ -349,9 +368,8 @@ nav.sidebar {
   box-shadow: 0 22px 60px rgba(15, 23, 42, 0.9);
   transform: translateY(-1px);
 }
-
 /* ==============================
-   4) APP-SHELL & TOPBAR
+   5) APP-SHELL & TOPBAR
 ============================== */
 
 .app-shell {
@@ -590,8 +608,9 @@ nav.sidebar {
     0 0 0 0.6px rgba(255, 255, 255, 0.9) inset;
   transform: translateY(-1px);
 }
+
 /* ==============================
-   5) MAIN CONTENT & VIEWS
+   6) MAIN CONTENT & VIEWS
 ============================== */
 
 .main-content {
@@ -684,6 +703,19 @@ nav.sidebar {
   color: var(--color-text-muted);
 }
 
+.subheader-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.subheader-icon .icon-layer-fill {
+  fill: #9ca3af;
+}
+
+.subheader-icon .icon-layer-stroke {
+  stroke: #6b7280;
+}
+
 /* VIEW HEADER */
 .view-header {
   display: flex;
@@ -703,7 +735,7 @@ nav.sidebar {
 }
 
 /* ==============================
-   6) CARDS & KPI
+   7) CARDS & KPI
 ============================== */
 
 .card {
@@ -793,7 +825,7 @@ nav.sidebar {
 }
 
 /* ==============================
-   7) DASHBOARD GRIDS / TABLES
+   8) DASHBOARD GRIDS / TABLES
 ============================== */
 
 .dashboard-grid {
@@ -836,9 +868,8 @@ nav.sidebar {
   font-size: 0.7rem;
   color: var(--color-text-soft);
 }
-
 /* ==============================
-   8) CREATIVE LIBRARY
+   9) CREATIVE LIBRARY
 ============================== */
 
 .creative-library-header {
@@ -965,8 +996,9 @@ nav.sidebar {
   border-color: var(--color-primary);
   box-shadow: 0 5px 20px rgba(59,130,246,0.25);
 }
+
 /* ==============================
-   9) LOADER, TOASTS, MODAL
+   10) LOADER, TOASTS, MODAL
 ============================== */
 
 .global-loader {
@@ -1111,7 +1143,8 @@ nav.sidebar {
   margin-bottom: 12px;
 }
 
-.modal-title {
+.modal-title,
+#modalTitle {
   font-size: 0.9rem;
   font-weight: 650;
   text-transform: uppercase;
@@ -1128,6 +1161,9 @@ nav.sidebar {
   align-items: center;
   justify-content: center;
 
+  font-size: 1.2rem;
+  line-height: 1;
+
   transition:
     background 0.16s ease,
     box-shadow 0.16s ease;
@@ -1138,14 +1174,16 @@ nav.sidebar {
   box-shadow: 0 0 0 1px rgba(59,130,246,0.25);
 }
 
-.modal-content {
+.modal-content,
+.modal-body,
+#modalBody {
   font-size: 0.82rem;
   color: var(--color-text-main);
   line-height: 1.5;
 }
 
 /* ==============================
-   10) ANIMATIONS
+   11) ANIMATIONS
 ============================== */
 
 @keyframes fadeInUp {
@@ -1164,7 +1202,7 @@ nav.sidebar {
 }
 
 /* ==============================
-   11) TOOLTIP SYSTEM
+   12) TOOLTIP SYSTEM
 ============================== */
 
 [data-tooltip] {
@@ -1201,7 +1239,75 @@ nav.sidebar {
 }
 
 /* ==============================
-   12) RESPONSIVE (Minimal)
+   13) ADDITIONAL UTILITY CLASSES
+============================== */
+
+.metric-card,
+.dashboard-card,
+.report-card,
+.log-card {
+  background: var(--surface);
+  border-radius: 18px;
+  padding: 16px 16px 14px;
+
+  border: 1px solid rgba(226, 232, 240, 0.96);
+  box-shadow:
+    0 22px 60px rgba(15, 23, 42, 0.25),
+    0 0 0 0.4px rgba(255, 255, 255, 0.95) inset;
+
+  transition:
+    box-shadow 0.18s ease-out,
+    transform 0.16s ease-out,
+    border-color 0.16s ease-out;
+}
+
+.metric-card:hover,
+.dashboard-card:hover,
+.report-card:hover,
+.log-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 26px 70px rgba(15, 23, 42, 0.3),
+    0 0 0 0.6px rgba(255, 255, 255, 0.98) inset;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+
+table thead {
+  background: var(--color-bg-soft);
+  border-bottom: 2px solid var(--color-border-subtle);
+}
+
+table th {
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-text-soft);
+}
+
+table tbody tr {
+  border-bottom: 1px solid var(--color-border-subtle);
+  transition: background 0.15s ease-out;
+}
+
+table tbody tr:hover {
+  background: rgba(59, 130, 246, 0.04);
+}
+
+table td {
+  padding: 10px 12px;
+}
+
+/* ==============================
+   14) RESPONSIVE (Minimal)
 ============================== */
 
 @media (max-width: 1200px) {
@@ -1218,11 +1324,70 @@ nav.sidebar {
   .creative-grid {
     grid-template-columns: repeat(2, minmax(0,1fr));
   }
+
+  .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .performance-section,
+  .dashboard-section {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 600px) {
+  nav.sidebar {
+    width: 60px;
+  }
+
+  .sidebar-logo {
+    width: 40px;
+    height: 40px;
+  }
+
+  .sidebar-nav-button {
+    width: 50px;
+    padding: 8px 0;
+  }
+
+  .sidebar-nav-button .label {
+    display: none;
+  }
+
+  .sidebar-footer-button {
+    width: 50px;
+    font-size: 0;
+    padding: 8px;
+  }
+
+  .sidebar-status-row span:last-child {
+    display: none;
+  }
+
+  .app-shell {
+    margin-left: 60px;
+  }
+
+  #topbar {
+    left: 60px;
+    padding: 12px 16px;
+  }
+
+  .topbar-greeting-meta {
+    display: none;
+  }
+
   .creative-grid {
     grid-template-columns: 1fr;
+  }
+
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .view::before {
+    padding-left: 80px;
+    font-size: 0.9rem;
   }
 }
 
