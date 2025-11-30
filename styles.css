@@ -93,8 +93,7 @@ html,
 body {
   margin: 0;
   padding: 0;
-  /* horizontale Scroll-Leiste killen (Gold-Header-Strip) */
-  overflow-x: hidden;
+  overflow-x: hidden; /* Gold-Header Strip Fix */
 }
 
 body {
@@ -116,26 +115,15 @@ body {
   display: none !important;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
 button {
   font-family: inherit;
   border: none;
   background: none;
-  padding: 0;
   cursor: pointer;
 }
 
-img {
-  display: block;
-  max-width: 100%;
-}
-
 /* ==============================
-   3) SIDEBAR
+   3) SIDEBAR (mit neuer horizontaler Navigation)
    ============================== */
 
 nav.sidebar {
@@ -167,8 +155,8 @@ nav.sidebar {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-bottom: 16px;
-  margin-bottom: 16px;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
   border-bottom: 1px solid rgba(51, 65, 85, 0.9);
 }
 
@@ -177,25 +165,29 @@ nav.sidebar {
   height: 42px;
   border-radius: 12px;
   background: #020617 url("Logo_re_Sc.png") center center / contain no-repeat;
+  text-indent: -9999px;
+  overflow: hidden;
   box-shadow:
     0 0 0 1px rgba(148, 163, 184, 0.6),
     0 18px 40px rgba(15, 23, 42, 0.8);
-  text-indent: -9999px;
-  overflow: hidden;
 }
 
-/* Navigation */
+/* ----------------------------------------------
+   NEU: Sidebar Navigation — horizontal statt vertikal
+   ---------------------------------------------- */
+
 .sidebar-nav {
-  margin-top: 18px;
-  padding-top: 14px;
+  margin-top: 14px;
+  padding-top: 10px;
   border-top: 1px solid rgba(51, 65, 85, 0.9);
+
   flex: 1;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  /* vertikal zentriert */
-  justify-content: center;
-  overflow-y: visible;
+  flex-direction: row;        /* Horizontal */
+  flex-wrap: wrap;            /* Zeilenumbruch */
+  gap: 10px 8px;              /* row gap + column gap */
+  justify-content: center;    /* zentriert */
+  align-content: flex-start;  /* Start unter dem Logo */
 }
 
 .sidebar-nav-item {
@@ -203,20 +195,23 @@ nav.sidebar {
 }
 
 .sidebar-nav-button {
-  width: 100%;
-  padding: 9px 10px;
-  border-radius: 10px;
+  padding: 8px 10px;
+  min-width: 160px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid transparent;
-  background: transparent;
-  color: rgba(209, 213, 219, 0.9);
-  font-size: 0.84rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 9px;
+  justify-content: center;
+  gap: 8px;
+
+  color: rgba(209, 213, 219, 0.9);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+
   transition:
     background 0.16s ease,
     border-color 0.16s ease,
@@ -226,21 +221,20 @@ nav.sidebar {
 }
 
 .sidebar-nav-button .label {
-  flex: 1;
+  white-space: nowrap;
 }
 
-/* SVG ICONS IN SIDEBAR */
+/* ICONS */
+
 .sidebar-nav-button .icon-svg {
   width: 20px;
   height: 20px;
-  flex-shrink: 0;
 }
+/* ----------------------------------------------
+   SIDEBAR ICON COLORS + STATES
+   ---------------------------------------------- */
 
-.icon-svg use {
-  pointer-events: none;
-}
-
-/* globale Grundfarbe für Stroke – wird in Sidebar überschrieben */
+/* Stroke ist global gesetzt – Sidebar überschreibt */
 .icon-layer-stroke {
   fill: none;
   stroke: #374151;
@@ -249,35 +243,32 @@ nav.sidebar {
   stroke-linejoin: round;
 }
 
-/* Sidebar: Gold-Duotone */
+/* Inaktive Icons */
 .sidebar-nav-button .icon-layer-fill {
   fill: var(--sidebar-icon-inactive-fill);
   opacity: 0.85;
-  transition:
-    fill 0.16s ease,
-    opacity 0.16s ease;
+  transition: fill 0.16s ease, opacity 0.16s ease;
 }
 
 .sidebar-nav-button .icon-layer-stroke {
-  fill: none;
   stroke: var(--sidebar-icon-inactive-stroke);
   stroke-width: 1.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
   transition: stroke 0.16s ease;
 }
 
-/* Hover / Active States */
+/* ----------------------------------------------
+   HOVER STATE (Deutlich stärker hervorgehoben)
+   ---------------------------------------------- */
 .sidebar-nav-button:hover {
   background: radial-gradient(
     circle at 0% 0%,
-    rgba(51, 65, 85, 0.95),
+    rgba(51, 65, 85, 0.94),
     rgba(15, 23, 42, 0.98)
   );
   border-color: rgba(148, 163, 184, 0.9);
   box-shadow: 0 18px 45px rgba(15, 23, 42, 0.9);
-  color: #f9fafb;
   transform: translateY(-1px);
+  color: #f9fafb;
 }
 
 .sidebar-nav-button:hover .icon-layer-fill {
@@ -288,6 +279,9 @@ nav.sidebar {
   stroke: var(--sidebar-icon-hover-stroke);
 }
 
+/* ----------------------------------------------
+   ACTIVE STATE (Gold)
+   ---------------------------------------------- */
 .sidebar-nav-button.active {
   background: radial-gradient(
     circle at 0% 0%,
@@ -308,11 +302,14 @@ nav.sidebar {
   stroke: var(--sidebar-icon-active-stroke);
 }
 
-/* Sidebar Footer / Status */
+/* ----------------------------------------------
+   SIDEBAR FOOTER / STATUS-ROWS
+   ---------------------------------------------- */
 .sidebar-footer {
   padding-top: 12px;
   margin-top: 12px;
   border-top: 1px solid rgba(31, 41, 55, 0.9);
+
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -322,6 +319,7 @@ nav.sidebar {
   display: flex;
   align-items: center;
   gap: 7px;
+
   font-size: 0.78rem;
   color: rgba(156, 163, 175, 0.96);
 }
@@ -334,26 +332,33 @@ nav.sidebar {
   box-shadow: 0 0 0 2px rgba(15, 23, 42, 1);
 }
 
-/* Settings Button unten */
+/* ----------------------------------------------
+   FOOTER SETTINGS BUTTON
+   ---------------------------------------------- */
+
 .sidebar-footer-button {
   margin-top: 10px;
   width: 100%;
   border-radius: 999px;
   border: 1px solid rgba(148, 163, 184, 0.85);
   padding: 8px 10px;
+
   background: radial-gradient(
     circle at 0% 0%,
     rgba(15, 23, 42, 0.98),
     rgba(30, 64, 175, 0.9)
   );
+
   color: #e5e7eb;
   font-size: 0.78rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+
   transition:
     background 0.16s ease,
     border-color 0.16s ease,
@@ -372,9 +377,9 @@ nav.sidebar {
   transform: translateY(-1px);
 }
 
-/* ==============================
-   4) APP-SHELL & TOPBAR
-   ============================== */
+/* ----------------------------------------------
+   APP SHELL & TOPBAR – (unverändert außer kleinen Optimierungen)
+   ---------------------------------------------- */
 
 .app-shell {
   display: flex;
@@ -388,10 +393,11 @@ nav.sidebar {
   top: 0;
   left: 200px;
   right: 0;
+
   height: 92px;
   padding: 16px 32px;
-  z-index: 50;
 
+  z-index: 50;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -402,9 +408,12 @@ nav.sidebar {
     rgba(15, 23, 42, 0.98),
     rgba(15, 23, 42, 0.94)
   );
+
   border-bottom: 1px solid rgba(15, 23, 42, 0.9);
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.75);
+
   backdrop-filter: blur(26px);
+
   color: #e5e7eb;
 }
 
@@ -428,6 +437,9 @@ nav.sidebar {
 .topbar-right {
   justify-content: flex-end;
 }
+/* ----------------------------------------------
+   TOPBAR – Greeting
+   ---------------------------------------------- */
 
 .topbar-greeting {
   display: flex;
@@ -448,7 +460,9 @@ nav.sidebar {
   font-size: 0.78rem;
 }
 
-/* Selects / Inputs */
+/* ----------------------------------------------
+   TOPBAR – SELECTS
+   ---------------------------------------------- */
 
 .topbar-select-group {
   display: flex;
@@ -460,7 +474,6 @@ nav.sidebar {
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  /* höherer Kontrast auf dunklem Topbar-Hintergrund */
   color: rgba(226, 232, 240, 0.92);
   font-weight: 600;
 }
@@ -469,11 +482,14 @@ nav.sidebar {
   min-width: 220px;
   padding: 7px 30px 7px 10px;
   font-size: 0.84rem;
+
   color: var(--color-text-main);
   background-color: #f9fafb;
+
   border-radius: 6px;
   border: 1px solid var(--input-border);
   outline: none;
+
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg width='9' height='5' viewBox='0 0 9 5' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L4.5 4L8 1' stroke='%236b7280' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
@@ -491,27 +507,30 @@ nav.sidebar {
   box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.22);
 }
 
-.topbar-select option {
-  background: #ffffff;
-  color: var(--color-text-main);
-}
+/* ----------------------------------------------
+   TOPBAR — ICON BUTTONS
+   ---------------------------------------------- */
 
-/* Icon-Buttons in der Topbar */
 .icon-button {
   width: 32px;
   height: 32px;
   border-radius: 999px;
+
   border: 1px solid rgba(148, 163, 184, 0.95);
+
   background: radial-gradient(
     circle at 0% 0%,
     rgba(248, 250, 252, 0.98),
     rgba(226, 232, 240, 0.96)
   );
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   color: #4b5563;
   position: relative;
+
   transition:
     background 0.16s ease,
     box-shadow 0.16s ease,
@@ -524,10 +543,6 @@ nav.sidebar {
   height: 18px;
 }
 
-.icon-svg-top use {
-  pointer-events: none;
-}
-
 .icon-button:hover {
   border-color: var(--color-primary);
   color: #1d4ed8;
@@ -537,6 +552,7 @@ nav.sidebar {
   transform: translateY(-1px);
 }
 
+/* Notification dot */
 .notification-dot {
   position: absolute;
   top: 6px;
@@ -548,48 +564,33 @@ nav.sidebar {
   box-shadow: 0 0 0 2px #f9fafb;
 }
 
-/* Meta-Button (Topbar Fokus – rot, aggressiv) */
+/* ----------------------------------------------
+   META CONNECT BUTTON (oben rechts, rot)
+   ---------------------------------------------- */
+
 #topbar .meta-button {
   border-radius: 999px;
   border: 1px solid rgba(248, 113, 113, 0.95);
   padding: 7px 14px;
+
   background: radial-gradient(
     circle at 0% 0%,
     rgba(248, 113, 113, 0.98),
     rgba(220, 38, 38, 0.98)
   );
+
   color: #fef2f2;
   min-width: 160px;
   font-size: 0.78rem;
-  /* mehr Punch: fetter Text */
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
 
-/* Default Meta Button elsewhere */
-.meta-button {
-  border-radius: 999px;
-  border: 1px solid rgba(37, 99, 235, 0.9);
-  padding: 7px 12px;
-  background: radial-gradient(
-    circle at 0% 0%,
-    rgba(59, 130, 246, 0.96),
-    rgba(147, 197, 253, 0.95)
-  );
-  color: #f9fafb;
-  font-size: 0.8rem;
-  font-weight: 500;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
   justify-content: center;
+  gap: 6px;
+
   transition:
     box-shadow 0.16s ease,
     transform 0.06s ease,
@@ -601,50 +602,64 @@ nav.sidebar {
   box-shadow:
     0 24px 70px rgba(30, 64, 175, 0.6),
     0 0 0 0.6px rgba(255, 255, 255, 0.9) inset;
+
   transform: translateY(-1px);
 }
 
-/* ==============================
-   5) MAIN CONTENT & VIEWS
-   ============================== */
+/* ----------------------------------------------
+   MAIN CONTENT
+   ---------------------------------------------- */
 
 .main-content {
   flex: 1;
   padding: 120px 0 40px;
 }
 
-/* View Panel */
+/* ----------------------------------------------
+   VIEW PANEL (Glassmorphism + Gold Header)
+   ---------------------------------------------- */
+
 .view {
   position: relative;
   display: none;
+
   max-width: 1440px;
   margin: 54px auto 0;
   padding: 24px 26px 44px;
+
   border-radius: 26px;
+
   background: radial-gradient(
     circle at 0% 0%,
     rgba(248, 250, 252, 0.98),
     rgba(226, 232, 240, 0.94)
   );
+
   box-shadow:
     0 28px 90px rgba(15, 23, 42, 0.4),
     0 0 0 0.8px rgba(255, 255, 255, 0.9) inset;
+
   border: 1px solid rgba(148, 163, 184, 0.45);
   backdrop-filter: blur(26px);
 }
 
-/* FULL-WIDTH GOLD HEADER STRIP (Theme C) */
+/* -----------------------------
+   GOLD HEADER STRIP (THEME C)
+   ----------------------------- */
+
 .view::before {
   content: attr(data-view-title);
   position: absolute;
   top: -46px;
   left: 50%;
   transform: translateX(-50%);
+
   width: 100vw;
   height: 46px;
 
   display: flex;
   align-items: center;
+
   padding: 0 40px 0 260px;
   box-sizing: border-box;
 
@@ -662,7 +677,10 @@ nav.sidebar {
   color: #111827;
 }
 
-/* Subheader unter Gold-Leiste (Brand / Konto / Kontext) */
+/* ----------------------------------------------
+   SUBHEADER (Brand Info)
+   ---------------------------------------------- */
+
 .view-subheader {
   margin-bottom: 16px;
   padding-bottom: 10px;
@@ -684,7 +702,6 @@ nav.sidebar {
 .subheader-icon {
   width: 18px;
   height: 18px;
-  flex-shrink: 0;
 }
 
 .subheader-brand-name {
@@ -706,8 +723,10 @@ nav.sidebar {
 .subheader-divider {
   opacity: 0.8;
 }
+/* ----------------------------------------------
+   VIEW INNER HEADER
+   ---------------------------------------------- */
 
-/* Inner Header (wird für redundante H2 entschärft) */
 .view-header {
   display: flex;
   align-items: baseline;
@@ -716,7 +735,6 @@ nav.sidebar {
   margin-bottom: 18px;
 }
 
-/* H2 im Grid sind redundant zur Gold-Leiste → dezenter */
 .view-header h2 {
   font-size: 0.9rem;
   font-weight: 600;
@@ -735,6 +753,7 @@ nav.sidebar {
   border-radius: 18px;
   padding: 16px 16px 14px;
   border: 1px solid rgba(226, 232, 240, 0.96);
+
   box-shadow:
     0 22px 60px rgba(15, 23, 42, 0.25),
     0 0 0 0.4px rgba(255, 255, 255, 0.95) inset;
@@ -762,6 +781,7 @@ nav.sidebar {
 }
 
 /* KPI Grid */
+
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -797,7 +817,6 @@ nav.sidebar {
   border: 1px solid transparent;
 }
 
-/* Status Colors */
 .kpi-badge.good {
   background: var(--color-success-soft);
   border-color: rgba(22, 163, 74, 0.5);
@@ -840,6 +859,7 @@ nav.sidebar {
 }
 
 /* Mini-Tables */
+
 .table-mini {
   width: 100%;
   border-collapse: collapse;
@@ -883,11 +903,13 @@ nav.sidebar {
   border: 1px solid rgba(148, 163, 184, 0.7);
   padding: 7px 10px;
   font-size: 0.8rem;
+
   background: radial-gradient(
     circle at 0% 0%,
     rgba(248, 250, 252, 0.98),
     rgba(226, 232, 240, 0.96)
   );
+
   color: var(--color-text-main);
   outline: none;
   min-width: 160px;
@@ -897,7 +919,6 @@ nav.sidebar {
   color: var(--color-text-soft);
 }
 
-/* Creative Grid */
 .creative-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -905,7 +926,7 @@ nav.sidebar {
 }
 
 /* ==============================
-   9) LOADER, TOASTS, MODAL
+   9) LOADER, TOASTS & MODAL
    ============================== */
 
 .global-loader {
@@ -951,6 +972,7 @@ nav.sidebar {
 }
 
 /* Toasts */
+
 #toastContainer {
   position: fixed;
   right: 24px;
@@ -967,15 +989,19 @@ nav.sidebar {
   padding: 9px 13px;
   border-radius: 999px;
   font-size: 0.82rem;
+
   background: radial-gradient(
     circle at 0% 0%,
     rgba(248, 250, 252, 0.98),
     rgba(226, 232, 240, 0.96)
   );
+
   border: 1px solid rgba(148, 163, 184, 0.7);
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.34);
+
   opacity: 0;
   transform: translateY(6px);
+
   transition:
     opacity 0.18s ease,
     transform 0.18s ease;
@@ -998,14 +1024,17 @@ nav.sidebar {
   border-color: rgba(239, 68, 68, 0.85);
 }
 
-/* Modal Overlay */
+/* Modal */
+
 .modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.66);
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   z-index: 210;
   backdrop-filter: blur(12px);
 }
@@ -1014,12 +1043,15 @@ nav.sidebar {
   max-width: 420px;
   width: 100%;
   padding: 16px 16px 14px;
+
   border-radius: 16px;
+
   background: radial-gradient(
     circle at 0% 0%,
     rgba(248, 250, 252, 0.98),
     rgba(226, 232, 240, 0.96)
   );
+
   border: 1px solid rgba(148, 163, 184, 0.9);
   box-shadow: var(--shadow-lg);
 }
@@ -1043,15 +1075,18 @@ nav.sidebar {
   width: 28px;
   height: 28px;
   border-radius: 999px;
+
   border: 1px solid rgba(156, 163, 175, 0.9);
   background: radial-gradient(
     circle at 0% 0%,
     rgba(248, 250, 252, 0.98),
     rgba(226, 232, 240, 0.96)
   );
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   color: #4b5563;
   font-size: 0.9rem;
 }
@@ -1069,18 +1104,6 @@ nav.sidebar {
 /* ==============================
    10) HELPERS & ANIMATIONS
    ============================== */
-
-.skeleton-block {
-  border-radius: 10px;
-  background: linear-gradient(
-    90deg,
-    rgba(226, 232, 240, 0.8),
-    rgba(241, 245, 249, 1),
-    rgba(226, 232, 240, 0.8)
-  );
-  background-size: 200% 100%;
-  animation: skeleton 1.2s ease-in-out infinite;
-}
 
 @keyframes skeleton {
   0% {
@@ -1106,7 +1129,8 @@ nav.sidebar {
   }
 }
 
-/* Micro Interactions Ergänzung (sx-core verstärkt das noch) */
+/* Micro-Interactions */
+
 .view {
   transition: opacity 0.18s ease-out, transform 0.12s ease-out;
 }
