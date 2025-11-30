@@ -226,13 +226,13 @@ nav.sidebar {
 
 .sidebar-nav-button {
   width: 160px;
-  padding: 10px 0;
+  padding: 10px 12px;
   border-radius: 12px;
 
   display: flex;
   align-items: center;
-  justify-content: center;
-  text-align: center;
+  justify-content: flex-start;
+  text-align: left;
   gap: 9px;
 
   text-transform: uppercase;
@@ -253,7 +253,8 @@ nav.sidebar {
 }
 
 .sidebar-nav-button .label {
-  text-align: center;
+  text-align: left;
+  flex: 1;
 }
 
 /* ICONS */
@@ -386,7 +387,7 @@ nav.sidebar {
   right: 0;
   height: 92px;
   padding: 16px 32px;
-  z-index: 50;
+  z-index: 30;
 
   display: flex;
   align-items: center;
@@ -661,7 +662,7 @@ nav.sidebar {
   text-transform: uppercase;
 
   border-bottom: 1px solid rgba(146, 101, 22, 0.6);
-  z-index: -1;
+  z-index: 35;
 }
 
 .view[data-header-theme="c"]::before {
