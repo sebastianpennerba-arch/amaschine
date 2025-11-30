@@ -6,7 +6,11 @@
  */
 
 function getDemoData() {
-  return (window.SignalOneDemo && window.SignalOneDemo.DemoData) || null;
+  const data = window.SignalOneDemo?.DemoData;
+  if (!data) {
+    console.error("❌ DemoData nicht verfügbar!");
+  }
+  return data || null;
 }
 
 function getActiveBrandFromState(appState) {
