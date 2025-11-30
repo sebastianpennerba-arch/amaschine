@@ -134,20 +134,20 @@ if (window.SignalOneDemo?.brands) {
    MODULE REGISTRY & LABELS
 -----------------------------------------------------------*/
 const modules = {
-  dashboard: () => import("./packages/dashboard/index.js"),
-  creativeLibrary: () => import("./packages/creativeLibrary/index.js"),
-  campaigns: () => import("./packages/campaigns/index.js"),
-  testingLog: () => import("./packages/testingLog/index.js"),
-  sensei: () => import("./packages/sensei/index.js"),
-  onboarding: () => import("./packages/onboarding/index.js"),
-  team: () => import("./packages/team/index.js"),
-  brands: () => import("./packages/brands/index.js"),
-  reports: () => import("./packages/reports/index.js"),
+  dashboard: () => import("/packages/dashboard/index.js"),
+  creativeLibrary: () => import("/packages/creativeLibrary/index.js"),
+  campaigns: () => import("/packages/campaigns/index.js"),
+  testingLog: () => import("/packages/testingLog/index.js"),
+  sensei: () => import("/packages/sensei/index.js"),
+  onboarding: () => import("/packages/onboarding/index.js"),
+  team: () => import("/packages/team/index.js"),
+  brands: () => import("/packages/brands/index.js"),
+  reports: () => import("/packages/reports/index.js"),
   creatorInsights: () => import("./packages/creatorInsights/index.js"),
-  analytics: () => import("./packages/analytics/index.js"),
-  roast: () => import("./packages/roast/index.js"),
-  shopify: () => import("./packages/shopify/index.js"),
-  settings: () => import("./packages/settings/index.js"),
+  analytics: () => import("/packages/analytics/index.js"),
+  roast: () => import("/packages/roast/index.js"),
+  shopify: () => import("/packages/shopify/index.js"),
+  settings: () => import("/packages/settings/index.js"),
 };
 
 const moduleLabels = {
