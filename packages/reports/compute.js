@@ -1,59 +1,65 @@
-/*
- * Reports Compute
- * Erzeugt Berichte und verwaltet den Zeitplan.
- */
+/* ----------------------------------------------------------
+   REPORTS – compute.js
+   Premium Reporting Engine (Demo Logik)
+-----------------------------------------------------------*/
 
-export function scheduleReport(reports, type, frequency, channel = "email") {
-  reports.push({
-    id: Date.now(),
-    type,
-    frequency,
-    channel,
-    createdAt: new Date().toISOString(),
-  });
+import { formatCurrency, formatNumber, formatPercent } from "../utils/format.js";
+
+/* ----------------------------------------------------------
+   Tagesdaten simulieren
+-----------------------------------------------------------*/
+export function buildDailyReport(creatives) {
+  const days = 14;
+  const rows = [];
+
+  for (let i = 0; i < days; i++) {
+    const spend = Math.round(2000 + Math.random() * 8000);
+    const roas = Number((2 + Math.random() * 4).toFixed(1));
+    const ctr = Number((0.01 + Math.random() * 0.03).toFixed(3));
+    const cpm = Number((6 + Math.random() * 6).toFixed(1));
+    const purchases = Math.round(spend / (20 + Math.random() * 25));
+
+    rows.push({
+      date: new Date(Date.now() - i * 86400000).toLocaleDateString("de-DE"),
+      spend,
+      roas,
+      ctr,
+      cpm,
+      purchases,
+    });
+  }
+
+  return rows.reverse();
 }
 
-/**
- * Erzeugt einen einfachen Textbericht auf Basis der übergebenen Daten.
- * Später kann hier HTML/PDF/CSV-Export andocken.
- */
-export function generateReport(data = {}) {
-  const date = new Date();
-  const lines = [];
+/* ----------------------------------------------------------
+   Summary
+-----------------------------------------------------------*/
+export function computeReportSummary(rows) {
+  if (!rows.length)
+    return { spend: "–", roas: "–", ctr: "–", cpm: "–", purchases: "–" };
 
-  lines.push("SIGNALONE – PERFORMANCE REPORT");
-  lines.push("--------------------------------");
-  lines.push(`Datum: ${date.toLocaleDateString("de-DE")}`);
-  lines.push("");
+  let spend = 0,
+    roas = 0,
+    ctr = 0,
+    cpm = 0,
+    purchases = 0;
 
-  if (data.spend != null) {
-    lines.push(`Spend: €${(data.spend || 0).toLocaleString("de-DE")}`);
-  }
-  if (data.revenue != null) {
-    lines.push(`Revenue: €${(data.revenue || 0).toLocaleString("de-DE")}`);
-  }
-  if (data.roas != null) {
-    lines.push(`ROAS: ${(data.roas || 0).toFixed(2)}x`);
-  }
-  if (data.topCreative) {
-    lines.push(`Top Creative: ${data.topCreative}`);
-  }
+  rows.forEach((r) => {
+    spend += r.spend;
+    roas += r.roas;
+    ctr += r.ctr;
+    cpm += r.cpm;
+    purchases += r.purchases;
+  });
 
-  lines.push("");
-  lines.push("Highlights:");
-  lines.push("- UGC-Strategie liefert überdurchschnittliche Ergebnisse.");
-  lines.push("- Creative Fatigue bei älteren Static Ads beachten.");
-  lines.push("- Weitere Tests in der Hook-Bibliothek empfohlen.");
+  const count = rows.length;
 
-  lines.push("");
-  lines.push("Nächste Schritte:");
-  lines.push(
-    "- Budget auf Top-Kampagnen erhöhen und Loser pausieren (siehe Campaigns View)."
-  );
-  lines.push(
-    "- Neue Variationen der Winner-Creatives im Testing Log anlegen."
-  );
-  lines.push("- Creator Leaderboard prüfen und Top-Creator stärker einsetzen.");
-
-  return lines.join("\n");
+  return {
+    spend: formatCurrency(spend),
+    roas: formatNumber(roas / count, 1, "x"),
+    ctr: formatPercent((ctr / count) * 100, 1),
+    cpm: formatCurrency(cpm / count),
+    purchases,
+  };
 }
