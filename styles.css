@@ -1594,6 +1594,231 @@ table td {
   line-height: 1.4;
 }
 
+/* ==========================================================================
+   CREATIVE MODAL — LAYOUT
+   ========================================================================== */
+
+.creative-modal {
+  padding: 10px 4px 20px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.creative-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.creative-modal-title {
+  font-size: 1.28rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+  color: #0f172a;
+}
+
+.creative-modal-subtitle {
+  font-size: 0.85rem;
+  color: #475569;
+  margin-bottom: 8px;
+}
+
+.creative-modal-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.creative-modal-main {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 24px;
+}
+
+/* LEFT SIDE — THUMBNAIL */
+
+.creative-modal-left {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.creative-modal-thumb {
+  width: 100%;
+  height: 170px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #e2e8f0, #f1f5f9);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(148,163,184,0.25);
+}
+
+.creative-modal-thumb-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 8px 12px;
+  background: linear-gradient(
+    to top,
+    rgba(15, 23, 42, 0.45),
+    rgba(15, 23, 42, 0)
+  );
+  color: white;
+  font-size: 0.8rem;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.4);
+}
+
+/* MINI TRENDLINE CHART (SVG) */
+
+.mini-chart {
+  width: 100%;
+  height: 52px;
+  margin-bottom: 8px;
+}
+
+.mini-chart-line {
+  fill: none;
+  stroke: #3b82f6;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 1px 2px rgba(30,58,138,0.2));
+}
+
+.mini-chart-point {
+  fill: #3b82f6;
+  stroke: white;
+  stroke-width: 1.8;
+  r: 3.8;
+}
+
+/* KPI BLOCKS */
+
+.creative-modal-kpis {
+  background: #f8fafc;
+  border: 1px solid rgba(148,163,184,0.28);
+  padding: 14px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.creative-kpi-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  text-transform: uppercase;
+  display: block;
+}
+
+.creative-kpi-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* PERFORMANCE PULSE BAR */
+
+.pulse-wrapper {
+  width: 100%;
+  height: 10px;
+  background: #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.pulse-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #16a34a, #4ade80);
+  transform-origin: left center;
+  transition: transform 0.28s ease-out;
+}
+
+/* HOOK HEATMAP */
+
+.hook-heatmap {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hook-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+  color: #475569;
+}
+
+.hook-bar {
+  width: 55%;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.hook-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #06b6d4);
+  border-radius: 6px;
+  transition: width 0.4s ease-out;
+}
+
+/* RIGHT SIDE — SECTIONS */
+
+.creative-modal-right {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.creative-modal-section h4 {
+  font-size: 0.92rem;
+  margin-bottom: 6px;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.creative-modal-text {
+  font-size: 0.83rem;
+  color: #475569;
+  margin-bottom: 6px;
+  line-height: 1.45;
+}
+
+.creative-modal-list {
+  font-size: 0.82rem;
+  color: #475569;
+  margin-bottom: 10px;
+  padding-left: 18px;
+  line-height: 1.45;
+}
+
+.creative-modal-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* ==========================================================================
+   RESPONSIVE — MODAL
+   ========================================================================== */
+
+@media (max-width: 840px) {
+  .creative-modal-main {
+    grid-template-columns: 1fr;
+  }
+
+  .creative-modal-thumb {
+    height: 150px;
+  }
+}
+
 /* ==============================
    14) RESPONSIVE (Minimal)
 ============================== */
