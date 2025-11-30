@@ -152,6 +152,12 @@
   transform: translateY(0);
 }
 
+.view.is-active {
+  display: block;
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
 /* Hover Lift on Cards */
 .card,
 .metric-card,
