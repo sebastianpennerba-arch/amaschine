@@ -1,11 +1,9 @@
-/*
- * Creative Library Demo Daten – Final kompatibel
- * Macht Daten global unter window.SignalOneDemo verfügbar
- */
+/* ============================================================================
+   Creative Library – Global DemoData
+   ============================================================================ */
 
-(function () {
-
-  const BASE_CREATIVES = [
+window.SignalOneDemo = {
+  BASE_CREATIVES: [
     {
       id: "c1",
       name: "Mia_Hook_Problem_Solution_v3",
@@ -30,7 +28,7 @@
     {
       id: "c2",
       name: "Tom_Testimonial_ShortForm_v1",
-      title: "Testimonial mit Social Proof Line",
+      title: "Testimonial mit Social Proof",
       creator: "Tom",
       hook: "Testimonial",
       type: ["ugc", "video"],
@@ -51,7 +49,7 @@
     {
       id: "c3",
       name: "Lisa_BeforeAfter_Showcase_v2",
-      title: "Snappy Before/After",
+      title: "Before/After Showcase",
       creator: "Lisa",
       hook: "Before/After",
       type: ["video"],
@@ -72,7 +70,7 @@
     {
       id: "c4",
       name: "Generic_Product_Static_v12",
-      title: "Static Produkt – Direct CTA",
+      title: "Product Static v12",
       creator: "Stock",
       hook: "Direct CTA",
       type: ["static"],
@@ -95,7 +93,7 @@
       name: "Mia_Problem_Solution_v4",
       title: "Hook Variation",
       creator: "Mia",
-      hook: "Problem/Solution V2",
+      hook: "Problem/Solution",
       type: ["ugc", "video"],
       bucket: "testing",
       tags: ["testing", "ugc"],
@@ -114,7 +112,7 @@
     {
       id: "c6",
       name: "Tom_Testimonial_LongForm_v2",
-      title: "Testimonial Long Form",
+      title: "Long Testimonial v2",
       creator: "Tom",
       hook: "Testimonial",
       type: ["video"],
@@ -135,7 +133,7 @@
     {
       id: "c7",
       name: "Lisa_Static_BeforeAfter_v1",
-      title: "Static Variation Before/After",
+      title: "Static Before/After",
       creator: "Lisa",
       hook: "Before/After",
       type: ["static"],
@@ -156,7 +154,7 @@
     {
       id: "c8",
       name: "UGC_Founder_Story_v1",
-      title: "Founder Story (UGC)",
+      title: "Founder Story",
       creator: "Founder",
       hook: "Story",
       type: ["ugc", "video"],
@@ -174,21 +172,14 @@
         purchases: 61
       }
     }
-  ];
+  ],
 
-  // brand demo
-  const brands = [
+  brands: [
     {
       id: "acme",
       name: "ACME Fashion GmbH",
       roas30d: 4.8,
       spend30d: 47892
     }
-  ];
-
-  window.SignalOneDemo = {
-    BASE_CREATIVES,
-    brands
-  };
-
-})();
+  ]
+};
