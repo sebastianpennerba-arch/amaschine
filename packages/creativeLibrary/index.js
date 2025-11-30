@@ -9,11 +9,16 @@ function getDemoData() {
 }
 
 function getActiveBrandFromState(appState) {
-  const demo = getDemoData();
-  if (!demo || !demo.brands || !demo.brands.length) return null;
+  const demo = window.SignalOneDemo;
+  if (!demo || !demo.brands) return null;
 
-  const id = appState.selectedBrandId || demo.brands[0].id;
-  return demo.brands.find((b) => b.id === id) || demo.brands[0];
+  // Wenn appState einen gültigen BrandId hat → nutzen
+  if (appState?.selectedBrandId) {
+    return demo.brands.find(b => b.id === appState.selectedBrandId) || demo.brands[0];
+  }
+
+  // Fallback
+  return demo.brands[0];
 }
 
 /* FORMATTING HELPERS */
