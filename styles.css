@@ -37,7 +37,7 @@
   --color-danger-soft: rgba(225, 29, 72, 0.08);
 
   /* SURFACES */
-  --color-sidebar-bg: #020617;
+  --color--bg: #020617;
   --color-topbar-bg: rgba(15, 23, 42, 0.96);
   --color-surface: #ffffff;
   --color-surface-soft: #f8fafc;
@@ -59,13 +59,13 @@
   --input-border: #cfd2d8;
   --input-focus: #3b6af8;
 
-  /* SIDEBAR ICON COLORS (Duotone Gold) */
-  --sidebar-icon-active-fill: #c8a451;
-  --sidebar-icon-active-stroke: #9c8242;
-  --sidebar-icon-inactive-fill: #8f8057;
-  --sidebar-icon-inactive-stroke: #6e6244;
-  --sidebar-icon-hover-fill: #ddc36b;
-  --sidebar-icon-hover-stroke: #b1943f;
+  /*  ICON COLORS (Duotone Gold) */
+  ---icon-active-fill: #c8a451;
+  ---icon-active-stroke: #9c8242;
+  ---icon-inactive-fill: #8f8057;
+  ---icon-inactive-stroke: #6e6244;
+  ---icon-hover-fill: #ddc36b;
+  ---icon-hover-stroke: #b1943f;
 
   /* DERIVED */
   --surface: var(--color-surface);
@@ -123,7 +123,7 @@ button {
 }
 
 /* ==============================
-   3) SIDEBAR (mit neuer horizontaler Navigation)
+   3)  (mit neuer horizontaler Navigation)
    ============================== */
 
 nav.sidebar {
@@ -144,6 +144,8 @@ nav.sidebar {
 
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
+  align-items: center; 
   padding: 24px 18px 18px;
   z-index: 40;
   backdrop-filter: blur(26px);
@@ -152,6 +154,7 @@ nav.sidebar {
 
 /* Logo / Header */
 .sidebar-header {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -183,11 +186,15 @@ nav.sidebar {
 
   flex: 1;
   display: flex;
-  flex-direction: row;        /* Horizontal */
-  flex-wrap: wrap;            /* Zeilenumbruch */
-  gap: 10px 8px;              /* row gap + column gap */
-  justify-content: center;    /* zentriert */
-  align-content: flex-start;  /* Start unter dem Logo */
+
+  /* NEU */
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;     /* horizontal perfekt zentriert */
+  align-items: center;         /* vertikal mittig */
+  text-align: center;          /* Labels schön zentriert */
+
+  gap: 16px 12px;              /* mehr Abstand */
 }
 
 .sidebar-nav-item {
@@ -195,40 +202,80 @@ nav.sidebar {
 }
 
 .sidebar-nav-button {
-  padding: 8px 10px;
-  min-width: 160px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid transparent;
+  padding: 12px 14px;
+  min-width: 165px;
+
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+
+  background: rgba(255,255,255,0.04);
+  color: rgba(229, 231, 235, 0.95);
 
   display: flex;
+  flex-direction: column; /* ICON ÜBER LABEL */
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
 
-  color: rgba(209, 213, 219, 0.9);
-  font-size: 0.82rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  font-size: 0.78rem;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
+  font-weight: 600;
 
   transition:
-    background 0.16s ease,
-    border-color 0.16s ease,
-    box-shadow 0.16s ease,
-    transform 0.06s ease,
-    color 0.16s ease;
+    background 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.1s ease,
+    color 0.18s ease;
+}
+
+/* HOVER – viel stärker */
+.sidebar-nav-button:hover {
+  background: radial-gradient(
+    circle at 50% 0%,
+    rgba(70, 88, 110, 0.9),
+    rgba(20, 30, 45, 0.95)
+  );
+  border-color: rgba(200, 200, 230, 0.8);
+  color: #fff;
+
+  box-shadow:
+    0 20px 55px rgba(10, 15, 25, 0.95),
+    0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+
+  transform: translateY(-2px);
+}
+
+/* ACTIVE – kräftiges Gold */
+.sidebar-nav-button.active {
+  background: linear-gradient(145deg, #2748b8, #17294f);
+  border-color: rgba(160, 180, 255, 0.95);
+  color: #fff;
+
+  box-shadow:
+    0 26px 70px rgba(10, 15, 25, 1),
+    0 0 0 1px rgba(255, 255, 255, 0.28) inset;
+}
+
+.sidebar-nav-button.active .icon-layer-fill {
+  fill: var(--sidebar-icon-active-fill);
+}
+
+.sidebar-nav-button.active .icon-layer-stroke {
+  stroke: var(--sidebar-icon-active-stroke);
 }
 
 .sidebar-nav-button .label {
-  white-space: nowrap;
+  margin-top: 4px;
+  font-size: 0.75rem;
 }
 
 /* ICONS */
 
 .sidebar-nav-button .icon-svg {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
 }
 /* ----------------------------------------------
    SIDEBAR ICON COLORS + STATES
@@ -310,7 +357,9 @@ nav.sidebar {
   margin-top: 12px;
   border-top: 1px solid rgba(31, 41, 55, 0.9);
 
+  width: 100%;
   display: flex;
+  justify-content: center;
   flex-direction: column;
   gap: 6px;
 }
