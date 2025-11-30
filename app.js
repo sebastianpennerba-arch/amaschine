@@ -111,6 +111,24 @@ function useDemoMode() {
   return false;
 }
 
+// DEMO BRANDS IN DROPDOWN LADEN — OPTION C
+
+if (window.SignalOneDemo?.brands) {
+    const brandSelect = document.getElementById("brandSelect");
+    if (brandSelect) {
+        brandSelect.innerHTML = window.SignalOneDemo.brands
+            .map(b => `<option value="${b.id}">${b.name}</option>`)
+            .join("");
+
+        // DEFAULT MARKIEREN
+        const defaultBrand = window.SignalOneDemo.brands[0];
+        brandSelect.value = defaultBrand.id;
+
+        // STATE UPDATEN
+        appState.selectedBrandId = defaultBrand.id;
+    }
+}
+
 /* ----------------------------------------------------------
    MODULE REGISTRY & LABELS
 -----------------------------------------------------------*/
