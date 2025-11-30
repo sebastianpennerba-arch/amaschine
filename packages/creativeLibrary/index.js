@@ -358,6 +358,79 @@ function creativeCardHtml(c, rank) {
   });
 }
 
+function renderMiniTrend(creative) {
+  const values = [
+    creative.metrics.roas * 0.92,
+    creative.metrics.roas * 0.97,
+    creative.metrics.roas,
+    creative.metrics.roas * 1.06,
+    creative.metrics.roas * 1.18,
+  ];
+
+  const max = Math.max(...values);
+  const min = Math.min(...values);
+
+  const points = values
+    .map((v, i) => {
+      const x = (i / (values.length - 1)) * 100;
+      const y = 100 - ((v - min) / (max - min)) * 100;
+      return `${x},${y}`;
+    })
+    .join(" ");
+
+  return `
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="mini-chart">
+      <polyline points="${points}" class="mini-chart-line"></polyline>
+    </svg>
+  `;
+}
+
+function renderPulse(creative) {
+  const p = creative.metrics;
+
+  const pulse =
+    (p.roas / 8 + p.ctr * 25 + p.spend / 20000) / 3;
+
+  const safe = Math.min(Math.max(pulse, 0.1), 1);
+
+  return `
+    <div class="pulse-wrapper">
+      <div class="pulse-bar" style="transform: scaleX(${safe})"></div>
+    </div>
+  `;
+}
+
+function renderHookHeatmap(creative) {
+  const metrics = creative.metrics;
+
+  const items = [
+    { name: "Hook Strength", value: creative.score / 100 },
+    { name: "First Frame Impact", value: metrics.ctr * 2.4 },
+    { name: "Story Clarity", value: metrics.roas / 8 },
+    { name: "Visual Appeal", value: metrics.cpm < 10 ? 0.75 : 0.45 },
+  ];
+
+  return `
+    <div class="hook-heatmap">
+      ${items
+        .map(
+          (h) => `
+        <div class="hook-row">
+          <span>${h.name}</span>
+          <div class="hook-bar">
+            <div class="hook-fill" style="width:${Math.min(
+              h.value * 100,
+              100
+            )}%"></div>
+          </div>
+        </div>
+      `
+        )
+        .join("")}
+    </div>
+  `;
+}
+
 /* ----------------------------------------------------------
    MODAL
 -----------------------------------------------------------*/
@@ -366,21 +439,118 @@ function openCreativeModal(creative, action) {
   const m = window.SignalOne?.openSystemModal;
   if (!m) return alert("Modal: " + creative.name);
 
+  const viewLabel =
+    action === "variants"
+      ? "Varianten & Iterationen"
+      : action === "testslot"
+      ? "Testing Slot"
+      : "Performance Details";
+
   m(
     creative.name,
     `
       <div class="creative-modal">
-        <h3>${creative.title}</h3>
-        <p>${creative.hook} • ${creative.creator}</p>
 
-        <div class="creative-modal-kpis">
-          ROAS: ${formatNumber(creative.metrics.roas, 1, "x")}<br>
-          Spend: ${formatCurrency(creative.metrics.spend)}<br>
-          CTR: ${formatPercent(creative.metrics.ctr * 100, 1)}<br>
-          CPM: ${formatCurrency(creative.metrics.cpm)}
-        </div>
+        <header class="creative-modal-header">
+          <div>
+            <div class="view-kicker">Creative Deep Dive</div>
+            <h3 class="creative-modal-title">${creative.name}</h3>
+            <p class="creative-modal-subtitle">${creative.title}</p>
+          </div>
 
-        <p>Ansicht: <strong>${action}</strong></p>
+          <div class="creative-modal-badges">
+            <span class="badge badge-soft">Ansicht: ${viewLabel}</span>
+            <span class="badge badge-${getBucketTone(
+              creative.bucket
+            )}">${creative.bucket.toUpperCase()}</span>
+            <span class="badge badge-soft">Score ${creative.score}/100</span>
+          </div>
+        </header>
+
+        <section class="creative-modal-main">
+
+          <!-- LEFT SIDE -->
+          <div class="creative-modal-left">
+
+            <div class="creative-modal-thumb">
+              <div class="creative-modal-thumb-overlay">
+                <span class="creative-modal-thumb-label">Thumbnail (Demo)</span>
+              </div>
+            </div>
+
+            <!-- TRENDLINE -->
+            ${renderMiniTrend(creative)}
+
+            <!-- KPI BLOCKS -->
+            <div class="creative-modal-kpis">
+              <div>
+                <span class="creative-kpi-label">ROAS</span>
+                <span class="creative-kpi-value">${formatNumber(
+                  creative.metrics.roas,
+                  1,
+                  "x"
+                )}</span>
+              </div>
+
+              <div>
+                <span class="creative-kpi-label">Spend</span>
+                <span class="creative-kpi-value">${formatCurrency(
+                  creative.metrics.spend
+                )}</span>
+              </div>
+
+              <div>
+                <span class="creative-kpi-label">CTR</span>
+                <span class="creative-kpi-value">${formatPercent(
+                  creative.metrics.ctr * 100,
+                  1
+                )}</span>
+              </div>
+
+              <div>
+                <span class="creative-kpi-label">CPM</span>
+                <span class="creative-kpi-value">${formatCurrency(
+                  creative.metrics.cpm
+                )}</span>
+              </div>
+            </div>
+
+            <!-- PERFORMANCE PULSE -->
+            <h4 style="margin-top:6px;font-size:0.82rem;">Performance Pulse</h4>
+            ${renderPulse(creative)}
+
+          </div>
+
+          <!-- RIGHT SIDE -->
+          <div class="creative-modal-right">
+
+            <section class="creative-modal-section">
+              <h4>Story Breakdown</h4>
+              <p class="creative-modal-text">
+                Hook: <strong>${creative.hook}</strong><br>
+                Creator: <strong>${creative.creator}</strong><br>
+                Kampagne: <strong>${creative.campaignName}</strong><br>
+                Format: ${creative.format}<br>
+                Tage live: ${creative.daysActive}
+              </p>
+            </section>
+
+            <section class="creative-modal-section">
+              <h4>Hook Heatmap</h4>
+              ${renderHookHeatmap(creative)}
+            </section>
+
+            <section class="creative-modal-section">
+              <h4>Nächste Schritte</h4>
+              <div class="creative-modal-actions">
+                <button class="btn primary small">Skalieren</button>
+                <button class="btn ghost small">Briefing</button>
+                <button class="btn ghost small">Testing Log</button>
+              </div>
+            </section>
+
+          </div>
+        </section>
       </div>
     `
   );
