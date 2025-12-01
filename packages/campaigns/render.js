@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------
    CAMPAIGNS – render.js
-   Premium UI Version (VisionOS Titanium)
+   Premium UI (VisionOS Titanium) + Demo/Live Hybrid
 -----------------------------------------------------------*/
 
 import { buildCampaignsForBrand, computeCampaignSummary } from "./compute.js";
@@ -17,7 +17,7 @@ function campaignCardHTML(c) {
       ? "⏸"
       : "🧪";
 
-  const tone = c.health.label; // good | warning | critical
+  const tone = c.health?.label || "good"; // good | warning | critical
 
   return `
     <article class="campaign-card" data-id="${c.id}">
@@ -26,7 +26,7 @@ function campaignCardHTML(c) {
           ${statusIcon} ${c.name}
         </div>
         <div class="campaign-health-badge ${tone}">
-          ${c.health.score} / 100
+          ${c.health?.score ?? 0} / 100
         </div>
       </header>
 
@@ -56,7 +56,6 @@ function campaignCardHTML(c) {
       <footer class="campaign-card-actions">
         <button data-action="details" data-id="${c.id}">Details</button>
         <button data-action="sensei" data-id="${c.id}">Sensei</button>
-        <button data-action="logs" data-id="${c.id}">Testing Log</button>
       </footer>
     </article>
   `;
@@ -74,10 +73,21 @@ function renderGrid(container, list) {
 -----------------------------------------------------------*/
 export function render(section, appState, opts = {}) {
   const brandId = appState.selectedBrandId;
-  const DemoData = window.SignalOneDemo?.DemoData;
+  const useDemoMode = !!opts.useDemoMode;
 
-  const campaigns = buildCampaignsForBrand(brandId, DemoData);
+  const { campaigns, source } = buildCampaignsForBrand(brandId, appState, {
+    useDemoMode,
+  });
   const summary = computeCampaignSummary(campaigns);
+
+  const sourceLabel =
+    source === "live"
+      ? "Meta Live"
+      : source === "demo-fallback"
+      ? "Demo (Fallback)"
+      : useDemoMode
+      ? "Demo Modus"
+      : "Demo";
 
   section.innerHTML = `
     <div class="campaign-view-root">
@@ -86,7 +96,7 @@ export function render(section, appState, opts = {}) {
       <header class="campaign-header">
         <div>
           <div class="view-kicker">AdSensei • Campaign Engine</div>
-          <h2 class="view-headline">Kampagnen – ${brandId}</h2>
+          <h2 class="view-headline">Kampagnen – ${brandId || "–"}</h2>
           <p class="view-subline">
             Performance, Status & Optimierung – intelligent sortiert.
           </p>
@@ -98,6 +108,9 @@ export function render(section, appState, opts = {}) {
               ${summary.activeCount} Active •
               ${summary.testingCount} Testing •
               ${summary.pausedCount} Paused
+            </span>
+            <span class="view-meta-pill subtle">
+              Datenquelle: ${sourceLabel}
             </span>
           </div>
         </div>
@@ -162,10 +175,12 @@ export function render(section, appState, opts = {}) {
   );
 
   /* SEARCH EVENT */
-  searchEl.addEventListener("input", () => {
-    state.search = searchEl.value;
-    update();
-  });
+  if (searchEl) {
+    searchEl.addEventListener("input", () => {
+      state.search = searchEl.value;
+      update();
+    });
+  }
 
   /* INITIAL PAINT */
   update();
