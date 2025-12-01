@@ -89,7 +89,11 @@ const DemoData = {
   campaignsByBrand: {
     acme_fashion: [
       { id: "acme_ugc_scale", name: "UGC Scale Test", status: "ACTIVE" },
-      { id: "acme_brand_static", name: "Brand Awareness Static", status: "PAUSED" },
+      {
+        id: "acme_brand_static",
+        name: "Brand Awareness Static",
+        status: "PAUSED",
+      },
       { id: "acme_hook_battle", name: "Hook Battle Q4", status: "TESTING" },
     ],
     techgadgets_pro: [
@@ -98,10 +102,18 @@ const DemoData = {
     ],
     beautylux_cosmetics: [
       { id: "beauty_creators", name: "Creator Evergreen", status: "ACTIVE" },
-      { id: "beauty_ba", name: "Brand Awareness Beauty", status: "PAUSED" },
+      {
+        id: "beauty_ba",
+        name: "Brand Awareness Beauty",
+        status: "PAUSED",
+      },
     ],
-    fitlife_supplements: [{ id: "fit_scale", name: "Scale Stack Q4", status: "ACTIVE" }],
-    homezen_living: [{ id: "home_test", name: "Creative Testing", status: "TESTING" }],
+    fitlife_supplements: [
+      { id: "fit_scale", name: "Scale Stack Q4", status: "ACTIVE" },
+    ],
+    homezen_living: [
+      { id: "home_test", name: "Creative Testing", status: "TESTING" },
+    ],
   },
 };
 
@@ -503,7 +515,8 @@ function populateCampaignSelect() {
   DemoData.campaignsByBrand[brandId]?.forEach((c) => {
     const opt = document.createElement("option");
     opt.value = c.id;
-    const icon = c.status === "ACTIVE" ? "🟢" : c.status === "PAUSED" ? "⏸" : "🧪";
+    const icon =
+      c.status === "ACTIVE" ? "🟢" : c.status === "PAUSED" ? "⏸" : "🧪";
     opt.textContent = `${icon} ${c.name}`;
     select.appendChild(opt);
   });
@@ -788,7 +801,7 @@ async function navigateTo(key) {
 document.addEventListener("DOMContentLoaded", () => {
   console.log("🚀 SignalOne Bootstrap startet...");
   console.log("✅ DemoData verfügbar:", DemoData.brands.length, "Brands");
-  
+
   renderNav();
 
   populateBrandSelect();
@@ -824,7 +837,7 @@ document.addEventListener("DOMContentLoaded", () => {
     openSystemModal(
       "Profil",
       `<p>Aktuell angemeldet als <strong>${getEffectiveBrandOwnerName()}</strong>.</p>
-       <p style="margin-top:6px;font-size:0.85rem;color:#6b7280;">Später: echtes User- & Team-Management.</p>`
+       <p style="margin-top:6px;font-size:0.85rem;color:#6b7280;">Später: echtes User- & Team-Management.</p>`,
     );
   });
 
@@ -833,18 +846,18 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!AppState.notifications.length) {
       openSystemModal(
         "Benachrichtigungen",
-        "<p>Keine Fehler oder kritischen Warnungen vorhanden.</p>"
+        "<p>Keine Fehler oder kritischen Warnungen vorhanden.</p>",
       );
     } else {
       const items = AppState.notifications
         .map(
           (n) =>
-            `<li><strong>[${n.type.toUpperCase()}]</strong> ${n.message}</li>`
+            `<li><strong>[${n.type.toUpperCase()}]</strong> ${n.message}</li>`,
         )
         .join("");
       openSystemModal(
         "Benachrichtigungen",
-        `<p>Fehler & Warnungen:</p><ul>${items}</ul>`
+        `<p>Fehler & Warnungen:</p><ul>${items}</ul>`,
       );
     }
     clearNotifications();
@@ -870,9 +883,339 @@ document.addEventListener("DOMContentLoaded", () => {
   }, 60000);
 
   loadModule(AppState.currentModule);
-  
+
   console.log("✅ SignalOne Bootstrap abgeschlossen!");
 });
+
+/* ----------------------------------------------------------
+   TESTING LOG API (P2.4 – Test-Slot / Algorithmus A)
+-----------------------------------------------------------*/
+
+const TestingLog = (() => {
+  const entries = [];
+
+  function safeNum(v) {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function getMetric(c, key) {
+    if (!c || !c.metrics) return 0;
+    return safeNum(c.metrics[key]);
+  }
+
+  /**
+   * Winner-Entscheidung (Option A)
+   * - 1. ROAS (Delta >= 0.3)
+   * - 2. CTR (Delta >= 0.5pp = 0.005)
+   * - sonst: unentschieden (tie)
+   */
+  function computeWinner(creativeA, creativeB) {
+    if (!creativeA || !creativeB) {
+      return {
+        winner: null,
+        reason: "Mindestens ein Creative fehlt für den Vergleich.",
+        roasA: 0,
+        roasB: 0,
+        ctrA: 0,
+        ctrB: 0,
+      };
+    }
+
+    const roasA = getMetric(creativeA, "roas");
+    const roasB = getMetric(creativeB, "roas");
+    const ctrA = getMetric(creativeA, "ctr");
+    const ctrB = getMetric(creativeB, "ctr");
+
+    const roasDiff = roasA - roasB;
+    const ctrDiff = ctrA - ctrB;
+
+    let winner = null;
+    let reason = "Kein klarer Winner – Ergebnisse sind zu nah beieinander.";
+
+    if (roasDiff >= 0.3) {
+      winner = "A";
+      reason = `Creative A gewinnt klar über ROAS (${roasA.toFixed(
+        2,
+      )}x vs. ${roasB.toFixed(2)}x).`;
+    } else if (roasDiff <= -0.3) {
+      winner = "B";
+      reason = `Creative B gewinnt klar über ROAS (${roasB.toFixed(
+        2,
+      )}x vs. ${roasA.toFixed(2)}x).`;
+    } else if (ctrDiff >= 0.005) {
+      winner = "A";
+      reason = `ROAS ähnlich – Creative A gewinnt über CTR (${(ctrA * 100).toFixed(
+        2,
+      )}% vs. ${(ctrB * 100).toFixed(2)}%).`;
+    } else if (ctrDiff <= -0.005) {
+      winner = "B";
+      reason = `ROAS ähnlich – Creative B gewinnt über CTR (${(ctrB * 100).toFixed(
+        2,
+      )}% vs. ${(ctrA * 100).toFixed(2)}%).`;
+    }
+
+    return { winner, reason, roasA, roasB, ctrA, ctrB };
+  }
+
+  function snapshotCreative(c) {
+    const m = c?.metrics || {};
+    return {
+      id: c?.id || null,
+      name: c?.name || "",
+      hook: c?.hook || "",
+      creator: c?.creator || "",
+      bucket: c?.bucket || "",
+      score: c?.score ?? null,
+      metrics: {
+        roas: getMetric(c, "roas"),
+        spend: getMetric(c, "spend"),
+        ctr: getMetric(c, "ctr"),
+        cpm: getMetric(c, "cpm"),
+        cpa: getMetric(c, "cpa"),
+        purchases: getMetric(c, "purchases"),
+      },
+    };
+  }
+
+  function addEntry(creativeA, creativeB, meta = {}) {
+    const decision = computeWinner(creativeA, creativeB);
+
+    const entry = {
+      id: `test_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      createdAt: new Date().toISOString(),
+      brandId: AppState.selectedBrandId,
+      campaignId: AppState.selectedCampaignId,
+      creativeA: snapshotCreative(creativeA),
+      creativeB: snapshotCreative(creativeB),
+      decision,
+      meta,
+    };
+
+    entries.push(entry);
+
+    if (window.SignalOne?.showToast) {
+      const label =
+        decision.winner === "A"
+          ? "A gewinnt den Test."
+          : decision.winner === "B"
+            ? "B gewinnt den Test."
+            : "Kein klarer Winner.";
+      window.SignalOne.showToast(
+        `Testing Log: Eintrag erstellt. ${label}`,
+        "success",
+      );
+    }
+
+    return entry;
+  }
+
+  function openTestSlot(primaryCreative, variants = []) {
+    const base = primaryCreative;
+    if (!base) {
+      showToast("Test-Slot: Creative konnte nicht geladen werden.", "error");
+      return;
+    }
+
+    const others = Array.isArray(variants)
+      ? variants.filter((v) => v && v.id && v.id !== base.id)
+      : [];
+
+    const candidateB =
+      others.length > 0
+        ? others.slice().sort((a, b) => (b.score || 0) - (a.score || 0))[0]
+        : null;
+
+    if (!candidateB) {
+      showToast(
+        "Für diesen Test-Slot werden mindestens zwei Varianten benötigt.",
+        "warning",
+      );
+    }
+
+    const creativeA = base;
+    const creativeB = candidateB;
+
+    const bodyHtml = `
+      <div class="testslot-modal" style="display:flex;flex-direction:column;gap:16px;">
+        <p class="testslot-intro">
+          Test-Slot für <strong>${escapeHtml(
+            creativeA.name || "Creative",
+          )}</strong>.
+          Algorithmus: <strong>ROAS first, CTR als Tiebreaker</strong>.
+        </p>
+
+        <div class="testslot-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="testslot-card" data-slot="A" style="border-radius:16px;padding:12px;border:1px solid rgba(148,163,184,0.5);">
+            <h3 style="font-size:0.9rem;margin:0 0 4px;">Creative A (Basis)</h3>
+            <p style="font-size:0.8rem;margin:0 0 8px;color:#6b7280;">
+              ${escapeHtml(creativeA.name || "")}
+            </p>
+            ${renderTestSlotMetrics(creativeA)}
+          </div>
+
+          <div class="testslot-card" data-slot="B" style="border-radius:16px;padding:12px;border:1px solid rgba(148,163,184,0.5);">
+            <h3 style="font-size:0.9rem;margin:0 0 4px;">Creative B (Variante)</h3>
+            <p style="font-size:0.8rem;margin:0 0 8px;color:#6b7280;">
+              ${
+                creativeB
+                  ? escapeHtml(creativeB.name || "")
+                  : "Keine zweite Variante automatisch gefunden."
+              }
+            </p>
+            ${
+              creativeB
+                ? renderTestSlotMetrics(creativeB)
+                : '<p style="font-size:0.8rem;color:#9ca3af;">Wähle im Grid eine weitere Variante aus und starte den Test-Slot erneut.</p>'
+            }
+          </div>
+        </div>
+
+        <div class="testslot-actions" style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:4px;">
+          <button
+            type="button"
+            class="meta-button"
+            data-role="testslot-autoeval"
+            ${creativeB ? "" : "disabled"}
+          >
+            Automatisch Winner bestimmen
+          </button>
+
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button
+              type="button"
+              class="meta-button meta-button-primary"
+              data-role="testslot-save"
+              ${creativeB ? "" : "disabled"}
+            >
+              In Testing Log speichern
+            </button>
+            <button
+              type="button"
+              class="meta-button"
+              data-role="testslot-open-log"
+            >
+              Testing Log öffnen
+            </button>
+          </div>
+        </div>
+
+        <p class="testslot-note" style="font-size:0.75rem;color:#9ca3af;margin-top:4px;">
+          Hinweis: Der Test-Slot speichert nur eine kompakte Zusammenfassung im Testing Log.
+          Die vollständigen Creatives bleiben in der Creative Library.
+        </p>
+      </div>
+    `;
+
+    openSystemModal("Test-Slot: Creative A vs. B", bodyHtml);
+
+    const body = document.getElementById("modalBody");
+    if (!body) return;
+
+    const btnAuto = body.querySelector('[data-role="testslot-autoeval"]');
+    const btnSave = body.querySelector('[data-role="testslot-save"]');
+    const btnOpenLog = body.querySelector('[data-role="testslot-open-log"]');
+
+    let lastDecision = null;
+
+    if (btnAuto && creativeB) {
+      btnAuto.addEventListener("click", () => {
+        lastDecision = computeWinner(creativeA, creativeB);
+        highlightWinner(lastDecision);
+        showToast(lastDecision.reason, "info");
+      });
+    }
+
+    if (btnSave && creativeB) {
+      btnSave.addEventListener("click", () => {
+        const decision = lastDecision || computeWinner(creativeA, creativeB);
+        addEntry(creativeA, creativeB, {
+          source: "testslot",
+          autoWinner: decision.winner,
+        });
+      });
+    }
+
+    if (btnOpenLog) {
+      btnOpenLog.addEventListener("click", () => {
+        navigateTo("testingLog");
+      });
+    }
+
+    function highlightWinner(decision) {
+      const slotA = body.querySelector('[data-slot="A"]');
+      const slotB = body.querySelector('[data-slot="B"]');
+      if (!slotA || !slotB) return;
+
+      slotA.style.boxShadow = "none";
+      slotB.style.boxShadow = "none";
+      slotA.style.borderColor = "rgba(148,163,184,0.7)";
+      slotB.style.borderColor = "rgba(148,163,184,0.7)";
+
+      if (decision.winner === "A") {
+        slotA.style.boxShadow = "0 0 0 2px rgba(16,185,129,0.6)";
+        slotA.style.borderColor = "rgba(16,185,129,0.8)";
+      } else if (decision.winner === "B") {
+        slotB.style.boxShadow = "0 0 0 2px rgba(16,185,129,0.6)";
+        slotB.style.borderColor = "rgba(16,185,129,0.8)";
+      }
+    }
+  }
+
+  function renderTestSlotMetrics(c) {
+    const m = c?.metrics || {};
+    const roas = getMetric(c, "roas");
+    const spend = getMetric(c, "spend");
+    const ctr = getMetric(c, "ctr");
+    const cpm = getMetric(c, "cpm");
+    const purchases = getMetric(c, "purchases");
+
+    return `
+      <div class="creative-modal-kpis" style="margin-top:4px;">
+        <div>
+          <span class="creative-kpi-label">ROAS</span>
+          <span class="creative-kpi-value">${roas ? `${roas.toFixed(1)}x` : "–"}</span>
+        </div>
+        <div>
+          <span class="creative-kpi-label">Spend</span>
+          <span class="creative-kpi-value">${formatCurrency(spend)}</span>
+        </div>
+        <div>
+          <span class="creative-kpi-label">CTR</span>
+          <span class="creative-kpi-value">${
+            ctr ? `${(ctr * 100).toFixed(1)}%` : "–"
+          }</span>
+        </div>
+        <div>
+          <span class="creative-kpi-label">CPM</span>
+          <span class="creative-kpi-value">${formatCurrency(cpm)}</span>
+        </div>
+        <div>
+          <span class="creative-kpi-label">Purchases</span>
+          <span class="creative-kpi-value">${
+            purchases ? purchases : "–"
+          }</span>
+        </div>
+      </div>
+    `;
+  }
+
+  function escapeHtml(str) {
+    if (str == null) return "";
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  return {
+    entries,
+    addEntry,
+    computeWinner,
+    openTestSlot,
+  };
+})();
 
 /* ----------------------------------------------------------
    EXPOSED GLOBAL API
@@ -889,4 +1232,5 @@ window.SignalOne = {
     fadeIn,
     useDemoMode,
   },
+  TestingLog,
 };
