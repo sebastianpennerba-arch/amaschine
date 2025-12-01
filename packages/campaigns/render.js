@@ -1,15 +1,61 @@
 /* ----------------------------------------------------------
    CAMPAIGNS – render.js
-   Premium UI (VisionOS Titanium) + Demo/Live Hybrid
+   Premium VisionOS + Empty State + Detail Modal + Sensei Linking
 -----------------------------------------------------------*/
 
 import { buildCampaignsForBrand, computeCampaignSummary } from "./compute.js";
-import { formatCurrency, formatNumber, formatPercent } from "../utils/format.js";
+import { formatCurrency, formatPercent, formatNumber } from "../utils/format.js";
 
 /* ----------------------------------------------------------
-   COMPONENT: Kampagnen-Karte
+   EMPTY STATE
 -----------------------------------------------------------*/
-function campaignCardHTML(c) {
+function emptyStateHTML() {
+  return `
+    <div class="empty-state">
+      <div class="empty-state-glass">
+        <div class="empty-state-icon">📉</div>
+        <h3>Keine Kampagnen gefunden</h3>
+        <p>Wähle eine Brand aus oder verbinde Meta Ads, um Kampagnen zu laden.</p>
+      </div>
+    </div>
+  `;
+}
+
+/* ----------------------------------------------------------
+   DETAIL MODAL
+-----------------------------------------------------------*/
+function openCampaignDetailModal(c) {
+  window.SignalOne.openSystemModal(
+    `Kampagne: ${c.name}`,
+    `
+      <div class="modal-kpi-grid">
+        <div><label>Spend</label><span>${formatCurrency(c.metrics.spend)}</span></div>
+        <div><label>ROAS</label><span>${formatNumber(c.metrics.roas, 1, "x")}</span></div>
+        <div><label>CTR</label><span>${formatPercent(c.metrics.ctr * 100, 1)}</span></div>
+        <div><label>CPM</label><span>${formatCurrency(c.metrics.cpm)}</span></div>
+        <div><label>Purchases</label><span>${c.metrics.purchases}</span></div>
+      </div>
+
+      <div class="modal-divider"></div>
+
+      <p><strong>Health Score:</strong> ${c.health.score} / 100 (${c.health.label})</p>
+      <p><strong>Datenquelle:</strong> ${
+        c._source === "live" ? "Meta Live" : "Demo"
+      }</p>
+
+      <div class="modal-chart-placeholder">
+        <div class="bar"></div>
+        <div class="bar short"></div>
+        <div class="bar mid"></div>
+      </div>
+    `
+  );
+}
+
+/* ----------------------------------------------------------
+   CARD COMPONENT
+-----------------------------------------------------------*/
+function cardHTML(c) {
   const statusIcon =
     c.status === "ACTIVE"
       ? "🟢"
@@ -17,40 +63,31 @@ function campaignCardHTML(c) {
       ? "⏸"
       : "🧪";
 
-  const tone = c.health?.label || "good"; // good | warning | critical
-
   return `
     <article class="campaign-card" data-id="${c.id}">
-      <header class="campaign-card-header">
-        <div class="campaign-card-title">
-          ${statusIcon} ${c.name}
-        </div>
-        <div class="campaign-health-badge ${tone}">
-          ${c.health?.score ?? 0} / 100
+      <header>
+        <div class="campaign-card-title">${statusIcon} ${c.name}</div>
+        <div class="campaign-health-badge ${c.health.label}">
+          ${c.health.score}
         </div>
       </header>
 
-      <div class="campaign-card-kpis">
-        <div class="campaign-kpi">
-          <label>Spend</label>
-          <span>${formatCurrency(c.metrics.spend)}</span>
-        </div>
-        <div class="campaign-kpi">
-          <label>ROAS</label>
-          <span>${formatNumber(c.metrics.roas, 1, "x")}</span>
-        </div>
-        <div class="campaign-kpi">
-          <label>CTR</label>
-          <span>${formatPercent(c.metrics.ctr * 100, 1)}</span>
-        </div>
-        <div class="campaign-kpi">
-          <label>CPM</label>
-          <span>${formatCurrency(c.metrics.cpm)}</span>
-        </div>
-        <div class="campaign-kpi">
-          <label>Purchases</label>
-          <span>${c.metrics.purchases}</span>
-        </div>
+      <div class="campaign-kpi-row">
+        <div><label>Spend</label><span>${formatCurrency(
+          c.metrics.spend
+        )}</span></div>
+        <div><label>ROAS</label><span>${formatNumber(
+          c.metrics.roas,
+          1,
+          "x"
+        )}</span></div>
+        <div><label>CTR</label><span>${formatPercent(
+          c.metrics.ctr * 100,
+          1
+        )}</span></div>
+        <div><label>CPM</label><span>${formatCurrency(
+          c.metrics.cpm
+        )}</span></div>
       </div>
 
       <footer class="campaign-card-actions">
@@ -62,18 +99,22 @@ function campaignCardHTML(c) {
 }
 
 /* ----------------------------------------------------------
-   COMPONENT: Grid
+   RENDER-GRID
 -----------------------------------------------------------*/
 function renderGrid(container, list) {
-  container.innerHTML = list.map(campaignCardHTML).join("");
+  if (!list.length) {
+    container.innerHTML = emptyStateHTML();
+    return;
+  }
+  container.innerHTML = list.map(cardHTML).join("");
 }
 
 /* ----------------------------------------------------------
-   MAIN RENDER FUNCTION
+   MAIN RENDER
 -----------------------------------------------------------*/
 export function render(section, appState, opts = {}) {
+  const useDemoMode = opts.useDemoMode;
   const brandId = appState.selectedBrandId;
-  const useDemoMode = !!opts.useDemoMode;
 
   const { campaigns, source } = buildCampaignsForBrand(brandId, appState, {
     useDemoMode,
@@ -81,42 +122,29 @@ export function render(section, appState, opts = {}) {
   const summary = computeCampaignSummary(campaigns);
 
   const sourceLabel =
-    source === "live"
-      ? "Meta Live"
-      : source === "demo-fallback"
-      ? "Demo (Fallback)"
-      : useDemoMode
-      ? "Demo Modus"
-      : "Demo";
+    source === "live" ? "Meta Live" : useDemoMode ? "Demo Modus" : "Demo";
 
   section.innerHTML = `
     <div class="campaign-view-root">
 
-      <!-- Header -->
       <header class="campaign-header">
-        <div>
-          <div class="view-kicker">AdSensei • Campaign Engine</div>
-          <h2 class="view-headline">Kampagnen – ${brandId || "–"}</h2>
-          <p class="view-subline">
-            Performance, Status & Optimierung – intelligent sortiert.
-          </p>
-          <div class="campaign-meta-row">
-            <span class="view-meta-pill">Spend ${summary.spendTotal}</span>
-            <span class="view-meta-pill">ROAS ${summary.avgROAS}</span>
-            <span class="view-meta-pill">CTR ${summary.avgCTR}</span>
-            <span class="view-meta-pill subtle">
-              ${summary.activeCount} Active •
-              ${summary.testingCount} Testing •
-              ${summary.pausedCount} Paused
-            </span>
-            <span class="view-meta-pill subtle">
-              Datenquelle: ${sourceLabel}
-            </span>
-          </div>
+        <div class="view-kicker">AdSensei • Campaign Engine</div>
+        <h2 class="view-headline">Kampagnen – ${brandId || "–"}</h2>
+        <p class="view-subline">Performance & Insights – Demo/Live Hybrid.</p>
+
+        <div class="campaign-meta-row">
+          <span class="view-meta-pill">Spend ${summary.spendTotal}</span>
+          <span class="view-meta-pill">ROAS ${summary.avgROAS}</span>
+          <span class="view-meta-pill">CTR ${summary.avgCTR}</span>
+          <span class="view-meta-pill subtle">
+            ${summary.activeCount} Active •
+            ${summary.testingCount} Testing •
+            ${summary.pausedCount} Paused
+          </span>
+          <span class="view-meta-pill subtle">Quelle: ${sourceLabel}</span>
         </div>
       </header>
 
-      <!-- Filterbar -->
       <section class="campaign-filter-bar">
         <div class="campaign-filter-group">
           <button class="chip active" data-filter="all">Alle</button>
@@ -130,41 +158,45 @@ export function render(section, appState, opts = {}) {
         </div>
       </section>
 
-      <!-- GRID -->
       <section class="campaign-grid" data-role="grid"></section>
 
     </div>
   `;
 
-  /* ---------------------------------------
-     LOGIC
-  --------------------------------------- */
   const gridEl = section.querySelector('[data-role="grid"]');
   const searchEl = section.querySelector('[data-role="search"]');
   const filterBtns = section.querySelectorAll("[data-filter]");
 
-  let state = {
-    filter: "all",
-    search: "",
-  };
+  let state = { filter: "all", search: "" };
 
   function update() {
-    let list = campaigns.slice();
+    let list = [...campaigns];
 
-    if (state.filter !== "all") {
-      list = list.filter((c) => c.status === state.filter);
-    }
-
-    if (state.search) {
+    if (state.filter !== "all") list = list.filter((c) => c.status === state.filter);
+    if (state.search)
       list = list.filter((c) =>
         c.name.toLowerCase().includes(state.search.toLowerCase())
       );
-    }
 
     renderGrid(gridEl, list);
+
+    /* ACTION BUTTON LOGIC */
+    gridEl.querySelectorAll("button[data-action]").forEach((btn) => {
+      const id = btn.dataset.id;
+      const camp = campaigns.find((c) => c.id === id);
+
+      btn.addEventListener("click", () => {
+        if (btn.dataset.action === "details") {
+          openCampaignDetailModal(camp);
+        }
+        if (btn.dataset.action === "sensei") {
+          appState.selectedCampaignId = id;
+          window.SignalOne.navigateTo("sensei");
+        }
+      });
+    });
   }
 
-  /* FILTER EVENTS */
   filterBtns.forEach((b) =>
     b.addEventListener("click", () => {
       filterBtns.forEach((x) => x.classList.remove("active"));
@@ -174,14 +206,10 @@ export function render(section, appState, opts = {}) {
     })
   );
 
-  /* SEARCH EVENT */
-  if (searchEl) {
-    searchEl.addEventListener("input", () => {
-      state.search = searchEl.value;
-      update();
-    });
-  }
+  searchEl.addEventListener("input", () => {
+    state.search = searchEl.value;
+    update();
+  });
 
-  /* INITIAL PAINT */
   update();
 }
