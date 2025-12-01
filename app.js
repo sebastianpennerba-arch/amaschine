@@ -2,6 +2,11 @@
  * app.js – SignalOne Core Backbone
  * Navigation • View Handling • Meta Simulation • Toasts • Modal
  * + Gold-Icon Sidebar & Brand-Subheader
+ *
+ * Phase-S Erweiterung:
+ * - SenseiEngine (Demo-Intelligenz auf Basis DemoData)
+ * - Sensei View: Daily Briefing, Alerts, KPIs, Actions
+ * - Leichte Integration in Creative Library & Campaigns (DOM-Hooks)
  */
 
 /* ----------------------------------------------------------
@@ -117,10 +122,124 @@ const DemoData = {
   },
 };
 
+/**
+ * Phase-S: Sensei Demo Snapshot (basierend auf OPERATION OVERTHROW)
+ * Diese Werte werden als "Account-Summary" in Sensei genutzt.
+ * (Später ersetzt durch echte Aggregation aus Meta + DataLayer.)
+ */
+const SenseiDemo = {
+  timeRange: "Letzte 30 Tage",
+  spend: 47892,
+  roas: 4.8,
+  revenue: 229882,
+  ctr: 0.032,
+  cpm: 8.4,
+  alerts: [
+    {
+      level: "critical",
+      title: "ROAS -22% in den letzten 3 Tagen",
+      desc: "Account-weit sinkt der ROAS spürbar. Prüfe Budget- und Creative-Verteilung.",
+    },
+    {
+      level: "warning",
+      title: "Creative C-47 verliert Performance",
+      desc: "CTR & ROAS fallen unter den Account-Durchschnitt. Creative-Fatigue wahrscheinlich.",
+    },
+    {
+      level: "positive",
+      title: 'Kampagne "UGC Scale Test" übertrifft Benchmark +38%',
+      desc: "Dein Top-Performer aktuell. Skalierung möglich.",
+    },
+  ],
+  topCreatives: [
+    {
+      id: "mia_v3",
+      name: "Mia_Hook_Problem_Solution_v3",
+      roas: 6.8,
+      spend: 12000,
+      ctr: 0.041,
+      cpm: 7.2,
+      score: 94,
+      tag: "WINNER",
+      hook: "Problem/Solution",
+      creator: "Mia",
+    },
+    {
+      id: "tom_v1",
+      name: "Tom_Testimonial_ShortForm_v1",
+      roas: 5.9,
+      spend: 8400,
+      ctr: 0.038,
+      cpm: 7.8,
+      score: 90,
+      tag: "WINNER",
+      hook: "Testimonial",
+      creator: "Tom",
+    },
+    {
+      id: "lisa_v2",
+      name: "Lisa_BeforeAfter_Showcase_v2",
+      roas: 5.2,
+      spend: 6100,
+      ctr: 0.035,
+      cpm: 7.9,
+      score: 88,
+      tag: "WINNER",
+      hook: "Before/After",
+      creator: "Lisa",
+    },
+  ],
+  loserCreatives: [
+    {
+      id: "generic_static_v12",
+      name: "Generic_Product_Static_v12",
+      roas: 1.2,
+      spend: 3200,
+      ctr: 0.009,
+      cpm: 11.3,
+      score: 41,
+      tag: "LOSER",
+      hook: "Static",
+      creator: "n/a",
+    },
+  ],
+  dailyBriefing: {
+    date: "Heute",
+    priorities: [
+      {
+        label: "PRIORITÄT 1: BUDGET REALLOCATION",
+        severity: "critical",
+        summary:
+          'Reduziere "Brand Awareness Static" um 30% und erhöhe "UGC Scale Test" um 50%.',
+        impact: "+0.6x ROAS in ~7 Tagen",
+      },
+      {
+        label: "PRIORITÄT 2: CREATIVE ROTATION",
+        severity: "warning",
+        summary:
+          "Pausiere 3 unterperformende Creatives und aktiviere 3 neue Mia-Varianten.",
+        impact: "+42% Creative-Effizienz im Prospecting",
+      },
+      {
+        label: "PRIORITÄT 3: TESTING OPPORTUNITY",
+        severity: "info",
+        summary:
+          'Starte Hook-Test "Problem/Solution vs Testimonial" mit 150 € / Tag für 3 Tage.',
+        impact: "Erwarteter Uplift: +0.8x ROAS",
+      },
+    ],
+    estimatedImpact: {
+      revenuePerDay: 2100,
+      roasDelta: 0.6,
+    },
+  },
+};
+
 // SOFORT GLOBAL VERFÜGBAR MACHEN
 window.SignalOneDemo = window.SignalOneDemo || {};
 window.SignalOneDemo.DemoData = DemoData;
 window.SignalOneDemo.brands = DemoData.brands; // Für Kompatibilität
+window.SignalOneDemo.SenseiDemo = SenseiDemo;
 
 console.log("✅ DemoData geladen:", DemoData.brands.length, "Brands");
 
@@ -130,17 +249,44 @@ function useDemoMode() {
   return false;
 }
 
+/**
+ * Format-Helfer für Währungen (wird in TestingLog + Sensei genutzt)
+ */
+function formatCurrency(value, currency) {
+  const cur = currency || AppState.settings.currency || "EUR";
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "–";
+  try {
+    return new Intl.NumberFormat("de-DE", {
+      style: "currency",
+      currency: cur,
+      maximumFractionDigits: 0,
+    }).format(n);
+  } catch {
+    return `${n.toFixed(0)} ${cur}`;
+  }
+}
+
 import MetaAuth from "./packages/metaAuth/index.js";
 
 /* ----------------------------------------------------------
    MODULE REGISTRY & LABELS
 -----------------------------------------------------------*/
+/**
+ * Phase-S: Sensei wird direkt aus app.js gerendert.
+ * Alle anderen Module bleiben als /packages-Module erhalten.
+ */
+function renderSenseiRoot(section, appState, ctx) {
+  SenseiEngine.renderSenseiDashboard(section, appState, ctx);
+}
+
 const modules = {
   dashboard: () => import("/packages/dashboard/index.js"),
   creativeLibrary: () => import("/packages/creativeLibrary/index.js"),
   campaigns: () => import("/packages/campaigns/index.js"),
   testingLog: () => import("/packages/testingLog/index.js"),
-  sensei: () => import("/packages/sensei/index.js"),
+  // Phase-S Override: Sensei kommt aus app.js
+  sensei: () => Promise.resolve({ render: renderSenseiRoot }),
   onboarding: () => import("/packages/onboarding/index.js"),
   team: () => import("/packages/team/index.js"),
   brands: () => import("/packages/brands/index.js"),
@@ -700,6 +846,450 @@ function updateCampaignHealthUI() {
 }
 
 /* ----------------------------------------------------------
+   SENSEI ENGINE – PHASE-S INTELLIGENCE LAYER
+   (arbeitet mit DemoData & SenseiDemo, später DataLayer)
+-----------------------------------------------------------*/
+const SenseiEngine = (() => {
+  function getAccountSnapshot() {
+    const brand = getActiveBrand();
+    const demo = SenseiDemo;
+    const currentCampaignId = AppState.selectedCampaignId;
+    let selectedCampaignName = null;
+
+    if (brand && currentCampaignId) {
+      const list = DemoData.campaignsByBrand[brand.id] || [];
+      const c = list.find((x) => x.id === currentCampaignId);
+      selectedCampaignName = c?.name || null;
+    }
+
+    const baseRoas = demo.roas;
+    const healthScore = Math.max(
+      0,
+      Math.min(100, Math.round(baseRoas * 15 + (demo.ctr * 100) * 2)),
+    );
+
+    return {
+      timeRange: demo.timeRange,
+      spend: demo.spend,
+      roas: demo.roas,
+      revenue: demo.revenue,
+      ctr: demo.ctr,
+      cpm: demo.cpm,
+      brandName: brand?.name || "Demo Account",
+      vertical: brand?.vertical || "n/a",
+      healthScore,
+      selectedCampaignName,
+    };
+  }
+
+  function getAlerts() {
+    return SenseiDemo.alerts || [];
+  }
+
+  function getTopCreatives() {
+    return SenseiDemo.topCreatives || [];
+  }
+
+  function getLoserCreatives() {
+    return SenseiDemo.loserCreatives || [];
+  }
+
+  function getDailyBriefing() {
+    return SenseiDemo.dailyBriefing;
+  }
+
+  function classifyRoas(roas) {
+    if (roas == null) return { label: "n/a", tone: "critical" };
+    if (roas >= 5.5) return { label: "Außergewöhnlich", tone: "good" };
+    if (roas >= 3.5) return { label: "Gut", tone: "warning" };
+    if (roas >= 2.0) return { label: "Okay", tone: "warning" };
+    return { label: "Kritisch", tone: "critical" };
+  }
+
+  function mapSeverityToBadgeClass(level) {
+    switch (level) {
+      case "critical":
+        return "kpi-badge critical";
+      case "warning":
+        return "kpi-badge warning";
+      case "positive":
+        return "kpi-badge good";
+      default:
+        return "kpi-badge warning";
+    }
+  }
+
+  function formatPercent(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return "–";
+    return `${(n * 100).toFixed(1)}%`;
+  }
+
+  function renderSenseiDashboard(section, appState, ctx) {
+    const snapshot = getAccountSnapshot();
+    const alerts = getAlerts();
+    const tops = getTopCreatives();
+    const losers = getLoserCreatives();
+    const briefing = getDailyBriefing();
+    const roasClass = classifyRoas(snapshot.roas);
+
+    section.innerHTML = `
+      <div class="view-header">
+        <div>
+          <h2>Sensei Strategy Center</h2>
+          <p style="font-size:0.84rem;color:#4b5563;margin:4px 0 0;">
+            Dein AI-Strategie-Layer für Meta Ads. Fokus: ${snapshot.brandName}${
+              snapshot.selectedCampaignName
+                ? ` — Kampagne: ${snapshot.selectedCampaignName}`
+                : ""
+            }.
+          </p>
+        </div>
+        <div>
+          <span class="kpi-badge ${
+            roasClass.tone
+          }">Account Health: ${snapshot.healthScore}/100 • ${
+              roasClass.label
+            }</span>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <!-- LEFT COLUMN: KPIs + Alerts -->
+        <div class="dashboard-section">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Account KPIs (${snapshot.timeRange})</div>
+                <div class="card-subtitle">
+                  Brand: ${snapshot.brandName} • Vertical: ${snapshot.vertical}
+                </div>
+              </div>
+            </div>
+            <div class="kpi-grid">
+              <div class="kpi-item">
+                <div class="kpi-label">Spend</div>
+                <div class="kpi-value">${formatCurrency(snapshot.spend)}</div>
+                <span class="kpi-badge warning">Budget aktiv</span>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-label">ROAS</div>
+                <div class="kpi-value">${snapshot.roas.toFixed(1)}x</div>
+                <span class="kpi-badge ${roasClass.tone}">${roasClass.label}</span>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-label">Revenue</div>
+                <div class="kpi-value">${formatCurrency(snapshot.revenue)}</div>
+                <span class="kpi-badge good">Skalierbar</span>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-label">CTR</div>
+                <div class="kpi-value">${formatPercent(snapshot.ctr)}</div>
+                <span class="kpi-badge warning">Hook-Qualität</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Sensei Alerts</div>
+              <div class="card-subtitle">
+                Kritische Änderungen & Chancen in deinem Account.
+              </div>
+            </div>
+            ${
+              alerts.length === 0
+                ? `<p style="font-size:0.84rem;color:#6b7280;margin:0;">
+                     Keine aktiven Alerts. Sensei ist zufrieden. 🧠
+                   </p>`
+                : `
+              <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;">
+                ${alerts
+                  .map(
+                    (a) => `
+                  <li style="padding:8px 10px;border-radius:10px;border:1px solid rgba(148,163,184,0.45);background:#f8fafc;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+                      <span style="font-size:0.82rem;font-weight:600;">${a.title}</span>
+                      <span class="${mapSeverityToBadgeClass(
+                        a.level,
+                      )}" style="font-size:0.68rem;">
+                        ${a.level === "critical" ? "KRITISCH" : a.level === "warning" ? "WARNUNG" : "CHANCE"}
+                      </span>
+                    </div>
+                    <p style="font-size:0.8rem;color:#4b5563;margin:0;">${a.desc}</p>
+                  </li>
+                `,
+                  )
+                  .join("")}
+              </ul>
+            `
+            }
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Daily Briefing + Top/Loser -->
+        <div class="dashboard-section">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Sensei Daily Briefing</div>
+              <div class="card-subtitle">
+                3 konkrete Aktionen für heute – direkt aus deinen Daten.
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              ${
+                briefing?.priorities
+                  ?.map(
+                    (p) => `
+                <div style="border-radius:12px;padding:8px 10px;background:#f8fafc;border:1px solid rgba(148,163,184,0.35);">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                    <span style="font-size:0.8rem;font-weight:600;">${p.label}</span>
+                    <span class="${
+                      p.severity === "critical"
+                        ? "kpi-badge critical"
+                        : p.severity === "warning"
+                        ? "kpi-badge warning"
+                        : "kpi-badge good"
+                    }" style="font-size:0.68rem;">
+                      ${
+                        p.severity === "critical"
+                          ? "DRINGEND"
+                          : p.severity === "warning"
+                          ? "HEUTE"
+                          : "OPPORTUNITY"
+                      }
+                    </span>
+                  </div>
+                  <p style="font-size:0.8rem;color:#4b5563;margin:0 0 3px;">${p.summary}</p>
+                  <p style="font-size:0.75rem;color:#6b7280;margin:0;"><strong>Impact:</strong> ${
+                    p.impact
+                  }</p>
+                </div>
+              `,
+                  )
+                  .join("")
+                  || ""
+              }
+            </div>
+            ${
+              briefing
+                ? `
+              <div style="margin-top:10px;font-size:0.78rem;color:#4b5563;">
+                Geschätzter Impact heute:
+                <strong>${formatCurrency(
+                  briefing.estimatedImpact.revenuePerDay,
+                )} zusätzlicher Revenue / Tag</strong>,
+                ca. <strong>+${briefing.estimatedImpact.roasDelta.toFixed(
+                  1,
+                )}x ROAS</strong> in den nächsten Tagen.
+              </div>
+            `
+                : ""
+            }
+            <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+              <button type="button" class="meta-button" data-sensei-action="apply-plan">
+                Empfehlungen anwenden
+              </button>
+              <button type="button" class="meta-button" data-sensei-action="open-testing-log">
+                Testing Log öffnen
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Top & Loser Creatives</div>
+              <div class="card-subtitle">
+                Sensei fokussiert deine größten Hebel auf Creative-Ebene.
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:12px;">
+              <div>
+                <div style="font-size:0.78rem;color:#6b7280;margin-bottom:4px;">
+                  Top 3 Creatives (letzte 7 Tage)
+                </div>
+                <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;">
+                  ${tops
+                    .map(
+                      (c) => `
+                    <li style="border-radius:10px;padding:7px 9px;background:#f8fafc;border:1px solid rgba(148,163,184,0.3);">
+                      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+                        <span style="font-size:0.8rem;font-weight:600;">${c.name}</span>
+                        <span class="badge badge-good" style="font-size:0.7rem;">Score ${c.score}/100</span>
+                      </div>
+                      <div style="font-size:0.78rem;color:#4b5563;">
+                        ROAS <strong>${c.roas.toFixed(
+                          1,
+                        )}x</strong> • Spend ${formatCurrency(
+                          c.spend,
+                        )} • CTR ${(c.ctr * 100).toFixed(1)}%
+                      </div>
+                      <div style="font-size:0.74rem;color:#6b7280;margin-top:2px;">
+                        🎬 Hook: ${c.hook} • 👤 ${c.creator}
+                      </div>
+                    </li>
+                  `,
+                    )
+                    .join("")}
+                </ul>
+              </div>
+              <div>
+                <div style="font-size:0.78rem;color:#6b7280;margin-bottom:4px;">
+                  Loser Alert
+                </div>
+                ${
+                  losers[0]
+                    ? `
+                  <div style="border-radius:10px;padding:8px 10px;background:#fef2f2;border:1px solid rgba(220,38,38,0.6);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+                      <span style="font-size:0.8rem;font-weight:600;">${losers[0].name}</span>
+                      <span class="badge badge-critical" style="font-size:0.7rem;">LOSER</span>
+                    </div>
+                    <div style="font-size:0.78rem;color:#b91c1c;">
+                      ROAS ${losers[0].roas.toFixed(
+                        1,
+                      )}x • Spend ${formatCurrency(
+                        losers[0].spend,
+                      )} • CTR ${(losers[0].ctr * 100).toFixed(1)}%
+                    </div>
+                    <p style="font-size:0.76rem;color:#7f1d1d;margin:6px 0 0;">
+                      Sensei Empfehlung: <br />
+                      <strong> Sofort pausieren.</strong> Ersetze durch Hook-basiertes UGC
+                      (z.B. Mia). Starte 3 Varianten mit Problem/Solution-Hook.
+                    </p>
+                    <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+                      <button type="button" class="meta-button" data-sensei-action="pause-loser">
+                        Loser pausieren
+                      </button>
+                      <button type="button" class="meta-button" data-sensei-action="open-creatives">
+                        Alternativen anzeigen
+                      </button>
+                    </div>
+                  </div>
+                `
+                    : `<p style="font-size:0.8rem;color:#6b7280;margin:0;">Keine klaren Loser erkannt.</p>`
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Wire Sensei Action Buttons (nur UI-Feedback for now)
+    const actions = section.querySelectorAll("[data-sensei-action]");
+    actions.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const action = btn.getAttribute("data-sensei-action");
+        handleSenseiAction(action);
+      });
+    });
+  }
+
+  function handleSenseiAction(action) {
+    switch (action) {
+      case "apply-plan":
+        showToast(
+          "Sensei Plan angewendet (Demo). Später: Direkte Budget-Updates via Meta API.",
+          "success",
+        );
+        break;
+      case "open-testing-log":
+        navigateTo("testingLog");
+        break;
+      case "pause-loser":
+        showToast(
+          "Loser-Creative wird pausiert (Demo). Später: Automatischer Pause-Call.",
+          "warning",
+        );
+        break;
+      case "open-creatives":
+        navigateTo("creativeLibrary");
+        break;
+      default:
+        showToast("Sensei Aktion (Demo).", "info");
+    }
+  }
+
+  /**
+   * Leichte Heuristik: Creative-Score, wenn kein explizites Mapping existiert.
+   * Nutzt Namen + ROAS-Schätzung, um einen Score 0-100 zu schätzen.
+   */
+  function estimateCreativeScoreByName(name) {
+    if (!name) return 60;
+    const known = SenseiDemo.topCreatives.find((c) => c.name === name);
+    if (known) return known.score;
+
+    const lower = name.toLowerCase();
+    let base = 60;
+    if (lower.includes("mia") || lower.includes("problem")) base += 20;
+    if (lower.includes("before") || lower.includes("after")) base += 10;
+    if (lower.includes("static")) base -= 18;
+    return Math.max(30, Math.min(95, base));
+  }
+
+  function getCampaignSenseiSummaryByName(name) {
+    if (!name) {
+      return {
+        healthLabel: "Neutral",
+        healthClass: "campaign-health-badge warning",
+        summary: "Standard-Performance. Sensei sieht Potential nach oben.",
+      };
+    }
+    const lower = name.toLowerCase();
+    if (lower.includes("scale")) {
+      return {
+        healthLabel: "Top Performer",
+        healthClass: "campaign-health-badge good",
+        summary:
+          "Stabile Performance über Benchmark. Sensei empfiehlt kontrollierte Budget-Erhöhung.",
+      };
+    }
+    if (lower.includes("brand") || lower.includes("awareness")) {
+      return {
+        healthLabel: "Budget Leak Risiko",
+        healthClass: "campaign-health-badge warning",
+        summary:
+          "Brand-Kampagnen verbrennen oft Budget. Prüfe ROAS und CPM genau.",
+      };
+    }
+    if (lower.includes("retarget")) {
+      return {
+        healthLabel: "Kritisch",
+        healthClass: "campaign-health-badge critical",
+        summary:
+          "Retargeting muss stark performen. Sensei vermutet Creative- oder Audience-Fatigue.",
+      };
+    }
+    if (lower.includes("test") || lower.includes("hook")) {
+      return {
+        healthLabel: "Testing",
+        healthClass: "campaign-health-badge warning",
+        summary:
+          "Lass Tests ausreichend laufen, aber definiere klare Entscheidungsregeln.",
+      };
+    }
+    return {
+      healthLabel: "Neutral",
+      healthClass: "campaign-health-badge warning",
+      summary: "Sensei beobachtet diese Kampagne – keine akute Aktion nötig.",
+    };
+  }
+
+  return {
+    getAccountSnapshot,
+    getAlerts,
+    getTopCreatives,
+    getLoserCreatives,
+    getDailyBriefing,
+    renderSenseiDashboard,
+    estimateCreativeScoreByName,
+    getCampaignSenseiSummaryByName,
+    formatPercent,
+  };
+})();
+
+/* ----------------------------------------------------------
    LOADER / FADE / SKELETON
 -----------------------------------------------------------*/
 function showGlobalLoader() {
@@ -729,6 +1319,104 @@ function fadeIn(el) {
 /* ----------------------------------------------------------
    MODULE LOADING & NAVIGATION
 -----------------------------------------------------------*/
+
+/**
+ * Nach dem Rendern eines Moduls werden leichte Sensei-Hooks
+ * für Creative Library & Campaigns injiziert.
+ */
+function postRenderEnhance(moduleKey, section) {
+  if (!section) return;
+  if (moduleKey === "creativeLibrary") {
+    enhanceCreativeLibrarySection(section);
+  } else if (moduleKey === "campaigns") {
+    enhanceCampaignsSection(section);
+  }
+}
+
+function enhanceCreativeLibrarySection(root) {
+  const cards = root.querySelectorAll(".creative-library-item");
+  if (!cards.length) return;
+
+  cards.forEach((card) => {
+    const info = card.querySelector(".creative-info");
+    if (!info) return;
+    if (info.querySelector("[data-sensei-tag='score-badge']")) return;
+
+    const titleEl = info.querySelector(".creative-title");
+    const name = titleEl?.textContent?.trim() || "";
+    const score = SenseiEngine.estimateCreativeScoreByName(name);
+
+    const pill = document.createElement("div");
+    pill.dataset.senseiTag = "score-badge";
+    pill.style.marginTop = "6px";
+    pill.innerHTML = `
+      <span class="badge badge-soft" style="font-size:0.72rem;">
+        🧠 Sensei Score: <strong>${score}/100</strong>
+      </span>
+    `;
+    info.appendChild(pill);
+
+    // Optional: Klick öffnet Sensei View mit Fokus auf Creatives
+    card.addEventListener("dblclick", () => {
+      navigateTo("sensei");
+      showToast(
+        `Sensei fokussiert jetzt die Creative-Strategie für "${name || "Creative"}" (Demo).`,
+        "info",
+      );
+    });
+  });
+}
+
+function enhanceCampaignsSection(root) {
+  const cards = root.querySelectorAll(".campaign-card");
+  if (!cards.length) return;
+
+  cards.forEach((card) => {
+    const header =
+      card.querySelector(".campaign-card-header") || card.querySelector("header");
+    if (!header) return;
+
+    const titleEl =
+      header.querySelector(".campaign-card-title") ||
+      header.querySelector("h3") ||
+      header.querySelector("h4");
+    const name = titleEl?.textContent?.trim() || "";
+
+    let badge = card.querySelector(".campaign-health-badge");
+    const summary = card.querySelector("[data-sensei-tag='campaign-summary']");
+
+    const info = SenseiEngine.getCampaignSenseiSummaryByName(name);
+
+    if (!badge) {
+      badge = document.createElement("span");
+      badge.className = info.healthClass;
+      badge.textContent = info.healthLabel;
+      header.appendChild(badge);
+    } else {
+      badge.className = info.healthClass;
+      badge.textContent = info.healthLabel;
+    }
+
+    if (!summary) {
+      const p = document.createElement("p");
+      p.dataset.senseiTag = "campaign-summary";
+      p.style.fontSize = "0.78rem";
+      p.style.color = "#4b5563";
+      p.style.margin = "6px 0 0";
+      p.textContent = info.summary;
+      card.appendChild(p);
+    }
+
+    card.addEventListener("click", (evt) => {
+      if (evt.target.closest("button")) return;
+      showToast(
+        `Sensei analysiert Kampagne "${name || "Kampagne"}" (Demo).`,
+        "info",
+      );
+    });
+  });
+}
+
 async function loadModule(key) {
   const loader = modules[key];
   const viewId = getViewIdForModule(key);
@@ -760,6 +1448,7 @@ async function loadModule(key) {
       section.innerHTML = "";
       module.render(section, AppState, { useDemoMode: useDemoMode() });
       fadeIn(section);
+      postRenderEnhance(key, section);
     } else {
       section.textContent = `Das Modul "${key}" ist noch nicht implementiert.`;
     }
@@ -999,8 +1688,8 @@ const TestingLog = (() => {
         decision.winner === "A"
           ? "A gewinnt den Test."
           : decision.winner === "B"
-            ? "B gewinnt den Test."
-            : "Kein klarer Winner.";
+          ? "B gewinnt den Test."
+          : "Kein klarer Winner.";
       window.SignalOne.showToast(
         `Testing Log: Eintrag erstellt. ${label}`,
         "success",
@@ -1105,7 +1794,7 @@ const TestingLog = (() => {
           Die vollständigen Creatives bleiben in der Creative Library.
         </p>
       </div>
-    `;
+    ";
 
     openSystemModal("Test-Slot: Creative A vs. B", bodyHtml);
 
@@ -1233,4 +1922,6 @@ window.SignalOne = {
     useDemoMode,
   },
   TestingLog,
+  Sensei: SenseiEngine,
+  formatCurrency,
 };
