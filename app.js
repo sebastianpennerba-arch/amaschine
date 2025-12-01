@@ -124,7 +124,8 @@ const DemoData = {
     ],
     urbanmove: [
       { id: "urbanmove_top", name: "Top Funnel Awareness", status: "ACTIVE" },
-      { id: "urbanmove_test", name: "Creative Testing", status: "TESTING" }],
+      { id: "urbanmove_test", name: "Creative Testing", status: "TESTING" },
+    ],
   },
 };
 
@@ -538,7 +539,6 @@ function wireBrandAndCampaignSelects() {
 -----------------------------------------------------------*/
 function showToast(message, type = "info") {
   const container = document.getElementById("toastContainer");
-  
   if (!container) return;
 
   const toast = document.createElement("div");
@@ -550,10 +550,11 @@ function showToast(message, type = "info") {
   // Reflow, damit Animation sicher getriggert wird
   void toast.offsetWidth;
 
-  toast.classList.add("toast-visible");
+  // CSS nutzt .toast.visible – hier entsprechend angleichen
+  toast.classList.add("visible");
 
   setTimeout(() => {
-    toast.classList.remove("toast-visible");
+    toast.classList.remove("visible");
     setTimeout(() => {
       toast.remove();
     }, 200);
@@ -600,13 +601,13 @@ function updateMetaStatusUI() {
   if (!dot || !label) return;
 
   if (AppState.metaConnected) {
-    dot.style.backgroundColor = "var(--color-green)";
+    dot.style.backgroundColor = "var(--color-success)";
     label.textContent = "Meta: Verbunden";
   } else if (useDemoMode()) {
-    dot.style.backgroundColor = "var(--color-gold-soft)";
+    dot.style.backgroundColor = "var(--color-warning-soft)";
     label.textContent = "Meta: Demo-Modus";
   } else {
-    dot.style.backgroundColor = "var(--color-red)";
+    dot.style.backgroundColor = "var(--color-danger)";
     label.textContent = "Meta: Getrennt";
   }
 }
@@ -617,10 +618,10 @@ function updateSystemHealthUI() {
   if (!dot || !label) return;
 
   if (AppState.systemHealthy) {
-    dot.style.backgroundColor = "var(--color-green)";
+    dot.style.backgroundColor = "var(--color-success)";
     label.textContent = "System Health: Stable";
   } else {
-    dot.style.backgroundColor = "var(--color-yellow)";
+    dot.style.backgroundColor = "var(--color-warning)";
     label.textContent = "System Health: Hinweise aktiv";
   }
 }
@@ -639,15 +640,15 @@ function updateCampaignHealthUI() {
 
   switch (brand.campaignHealth) {
     case "good":
-      dot.style.backgroundColor = "var(--color-green)";
+      dot.style.backgroundColor = "var(--color-success)";
       label.textContent = "Campaign Health: Stark";
       break;
     case "warning":
-      dot.style.backgroundColor = "var(--color-gold-soft)";
+      dot.style.backgroundColor = "var(--color-warning-soft)";
       label.textContent = "Campaign Health: Beobachten";
       break;
     case "critical":
-      dot.style.backgroundColor = "var(--color-red)";
+      dot.style.backgroundColor = "var(--color-danger)";
       label.textContent = "Campaign Health: Kritisch";
       break;
     default:
@@ -772,7 +773,7 @@ async function navigateTo(key) {
 document.addEventListener("DOMContentLoaded", () => {
   console.log("🚀 SignalOne Bootstrap startet...");
   console.log("✅ DemoData verfügbar:", DemoData.brands.length, "Brands");
-  
+
   renderNav();
 
   populateBrandSelect();
@@ -854,7 +855,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }, 60000);
 
   loadModule(AppState.currentModule);
-  
+
   console.log("✅ SignalOne Bootstrap abgeschlossen!");
 });
 
