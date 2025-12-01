@@ -1,15 +1,15 @@
 // packages/creativeLibrary/compute.js
 // ---------------------------------------------------------
-//  P2.2 – Creative Library Compute Layer
-//  -> Zentrale Quelle für Scoring, Buckets & Tag-Counts
+//  P2.2 / P2.3 – Creative Library Compute Layer
+//  -> Zentrale Quelle für Scoring, Buckets, Tag-Counts & Variant-Key
 //  -> Rein "pure functions", kein DOM, kein DataLayer-Access
 // ---------------------------------------------------------
 
 /**
- * Normalisiert rohe Creative-Objekte (Demo + Live) in ein
- * konsistentes View-Model für die Creative Library.
+ * Baut das ViewModel für die Creative Library auf Basis roh
+ * geladener Creative-Daten (Live oder Demo).
  *
- * @param {Array<Object>} rawCreatives - Rohdaten vom DataLayer
+ * @param {Array<Object>} rawCreatives - Rohdaten vom DataLayer oder Demo-Layer
  * @param {Object} options
  * @param {string} [options.brandName]
  * @param {string} [options.rangeLabel]
@@ -55,37 +55,101 @@ export function buildCreativeLibraryViewModel(rawCreatives = [], options = {}) {
 -----------------------------------------------------------*/
 
 /**
- * Versucht, Creative-Daten aus Demo & Live in ein gemeinsames
- * Schema zu bringen.
+ * Normalisiert Creative-Daten (Demo + Live) in das interne
+ * Creative-View-Model der Library.
+ *
+ * WICHTIG: Hier wird auch der variantKey berechnet (Hybrid C):
+ *   1) Primär: technische creativeId / metaCreativeId
+ *   2) Fallback: Creator + Hook + Format
  */
 function normalizeCreative(raw = {}, index = 0) {
   const metrics = extractMetrics(raw);
+
   const bucket = getPerformanceBucket(metrics);
   const score = computeSenseiScore(metrics, bucket, raw);
-  const tags = buildTags(raw, bucket);
+
+  const name =
+    raw.name ||
+    raw.title ||
+    raw.adName ||
+    raw.assetName ||
+    "Unbenanntes Creative";
+
+  const hook =
+    raw.hook ||
+    raw.primaryText ||
+    raw.primary_text ||
+    raw.headline ||
+    raw.title ||
+    "";
+
+  const creator =
+    raw.creator ||
+    raw.creatorName ||
+    raw.creator_name ||
+    raw.pageName ||
+    raw.page_name ||
+    raw.brand ||
+    "Unknown Creator";
+
+  const formatRaw = (raw.format || raw.type || "").toString().toLowerCase();
+  const isVideo =
+    formatRaw.includes("video") ||
+    formatRaw.includes("reel") ||
+    formatRaw.includes("story");
+
+  const format = raw.format || raw.type || (isVideo ? "video" : "image");
+
+  // 1) Technischer Schlüssel (Meta Creative ID etc.)
+  const technicalKey =
+    raw.creativeId ||
+    raw.creative_id ||
+    raw.metaCreativeId ||
+    raw.assetId ||
+    raw.asset_id ||
+    null;
+
+  // 2) Fallback-Key: Creator + Hook + Format
+  const normalizedHook = hook
+    .toString()
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 80);
+
+  const creatorKey = creator.toString().toLowerCase().trim();
+  const formatKey = isVideo ? "video" : "static";
+
+  const fallbackKey = `${creatorKey || "n/a"}__${normalizedHook || "n/a"}__${formatKey}`;
+
+  const variantKey = technicalKey || fallbackKey;
+
+  const tags = buildTags(
+    {
+      ...raw,
+      format,
+      hook,
+    },
+    bucket,
+  );
 
   return {
-    id: String(raw.id || raw.creativeId || `demo-${index}`),
-    name:
-      raw.name ||
-      raw.title ||
-      raw.adName ||
-      raw.assetName ||
-      "Unbenanntes Creative",
+    id: String(raw.id || raw.creativeId || raw.creative_id || `demo-${index}`),
+
+    // Hybrid Varianten-Key für P2.3
+    variantKey,
+    variantSource: technicalKey ? "technical" : "heuristic",
+
+    name,
     thumbnailUrl: raw.thumbnailUrl || raw.thumbnail || raw.imageUrl || null,
     platform: raw.platform || "Meta",
-    format: raw.format || raw.type || "image",
+    format,
     status: raw.status || "ACTIVE",
 
     // Story / Kontext
-    hook: raw.hook || raw.primaryText || raw.headline || "",
-    creator:
-      raw.creator ||
-      raw.creatorName ||
-      raw.pageName ||
-      raw.brand ||
-      "Unknown Creator",
-    daysActive: safeNumber(raw.daysActive || raw.ageInDays || 0),
+    hook,
+    creator,
+    daysActive: safeNumber(raw.daysActive || raw.ageInDays || raw.days_active || 0),
 
     // Performance
     bucket,
@@ -95,7 +159,7 @@ function normalizeCreative(raw = {}, index = 0) {
     metrics,
 
     // Meta für Sortierung / Anzeige
-    createdAt: raw.createdAt || raw.dateStart || null,
+    createdAt: raw.createdAt || raw.dateStart || raw.date_start || null,
   };
 }
 
@@ -111,6 +175,7 @@ function extractMetrics(raw = {}) {
     safeNumber(
       m.revenue ??
         m.purchaseValue ??
+        m.purchase_value ??
         m.purchaseValueEur ??
         m.revenue_eur ??
         m.revenueUsd,
@@ -123,11 +188,11 @@ function extractMetrics(raw = {}) {
     spend,
     revenue,
     roas,
-    ctr: safePercent(m.ctr ?? m.clickThroughRate),
+    ctr: safePercent(m.ctr ?? m.clickThroughRate ?? m.click_through_rate),
     cpm: safeNumber(m.cpm ?? m.cpm_eur ?? m.costPerMille),
     impressions: safeNumber(m.impressions),
     clicks: safeNumber(m.clicks),
-    purchases: safeNumber(m.purchases ?? m.conversions),
+    purchases: safeNumber(m.purchases ?? m.conversions ?? m.purchases_7d),
     cpa:
       safeNumber(m.cpa ?? m.costPerPurchase ?? m.costPerConversion) ||
       (safeNumber(m.purchases ?? m.conversions) > 0
@@ -159,7 +224,7 @@ export function getPerformanceBucket(metrics = {}) {
 }
 
 /**
- * AdSensei Score (0–100) – simple Heuristik auf Basis von
+ * AdSensei Score (0–100) – Heuristik auf Basis von
  * ROAS, Spend, CTR & CPA. Kann später durch echten Backend-Score
  * ersetzt werden; UI bleibt stabil.
  */
@@ -205,13 +270,18 @@ function buildTags(raw, bucket) {
   if (bucket === "testing") tags.add("Testing");
   if (bucket === "loser") tags.add("Loser");
 
-  const format = (raw.format || raw.type || "").toLowerCase();
+  const format = (raw.format || raw.type || "").toString().toLowerCase();
   const isVideo =
     format.includes("video") ||
     format.includes("reel") ||
     format.includes("story");
 
-  if (isVideo || /ugc/i.test(raw.hook || "") || /ugc/i.test(raw.name || "")) {
+  if (
+    isVideo ||
+    /ugc/i.test(raw.hook || "") ||
+    /ugc/i.test(raw.name || "") ||
+    /ugc/i.test(raw.format || "")
+  ) {
     tags.add("UGC");
   } else {
     tags.add("Static");
