@@ -6,7 +6,6 @@
 // - Nutzt dein Backend (/api/meta/* & /api/sensei/*)
 // -----------------------------------------------------------------------------
 
-
 // -----------------------------------------------------------------------------
 // IMPORTS (Live + Demo Layer)
 // -----------------------------------------------------------------------------
@@ -28,6 +27,9 @@ import {
   demoCreativeInsights,
 } from "./demo/creatives.js";
 
+import { buildLiveTestingLog } from "./live/testing.js";
+import { demoTestingLog } from "./demo/testing.js";
+
 // -----------------------------------------------------------------------------
 // GENERISCHE HELFER
 // -----------------------------------------------------------------------------
@@ -46,7 +48,7 @@ async function postJSON(path, body) {
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     throw new Error(
-      `[DataLayer] POST ${path} failed: ${res.status} ${res.statusText} ${text}`
+      `[DataLayer] POST ${path} failed: ${res.status} ${res.statusText} ${text}`,
     );
   }
 
@@ -114,8 +116,6 @@ function getMetaAccessToken() {
 // -----------------------------------------------------------------------------
 // DEMO – Sensei Analyse (premium + realistisch)
 // -----------------------------------------------------------------------------
-// Erzeugt eine künstliche, aber realistische Sensei-Antwort
-// im gleichen Format wie /api/sensei/analyze.
 function buildDemoSenseiResponse() {
   const creatives = [
     {
@@ -231,7 +231,7 @@ function buildDemoSenseiResponse() {
       totalPurchases: 0,
       totalImpressions: 0,
       totalClicks: 0,
-    }
+    },
   );
 
   const avgRoas = totals.totalRevenue / Math.max(totals.totalSpend, 1);
@@ -246,7 +246,7 @@ function buildDemoSenseiResponse() {
     const spendScore = Math.min(c.metrics.spend / 30000, 1);
 
     let score = Math.round(
-      55 + roasScore * 25 + ctrScore * 12 + spendScore * 8
+      55 + roasScore * 25 + ctrScore * 12 + spendScore * 8,
     );
     if (score > 100) score = 100;
     if (score < 35) score = 35;
@@ -391,6 +391,53 @@ function buildDemoSenseiResponse() {
 }
 
 // -----------------------------------------------------------------------------
+// DEMO – Roast Analyse (1 Creative, premium+realistisch)
+// -----------------------------------------------------------------------------
+function buildDemoRoastResponse(creative) {
+  const name = creative?.name || "Dein Creative";
+  const hookLabel =
+    creative?.hook ||
+    creative?.hookLabel ||
+    "Problem/Solution UGC";
+  const type =
+    creative?.type ||
+    creative?.format ||
+    "UGC Vertical";
+
+  // einfache, aber „smarte“ Bewertung
+  const baseScore = 86;
+  const tone = "strong";
+
+  return {
+    success: true,
+    _source: "demo",
+    mode: "roast",
+    target: {
+      name,
+      hookLabel,
+      type,
+    },
+    score: baseScore,
+    verdict: "Starkes Creative mit klarer Skalierungschance",
+    tone,
+    strengths: [
+      "Klarer Problem/Solution-Auftakt – guter Scrollstop im ersten Frame.",
+      "Konsistenter Social Proof – Vertrauen wird schnell aufgebaut.",
+      "Klares Offer & Call-to-Action im letzten Drittel.",
+    ],
+    risks: [
+      "Hook-Text könnte noch aggressiver in Richtung „Outcome“ formuliert werden.",
+      "Kein expliziter Zeit-/Knappheitsanker (Scarcity) im Offer.",
+    ],
+    nextSteps: [
+      "Variante mit stärkerem „Before/After“ im ersten Hook-Frame testen.",
+      "Zweite Version mit expliziter Deadline („nur diese Woche“) produzieren.",
+      "Text-Overlay im CTA-Finale testen (z.B. „Jetzt 30 Tage testen“).",
+    ],
+  };
+}
+
+// -----------------------------------------------------------------------------
 // LIVE – Sensei Analyse via Backend-Endpoint
 //   POST /api/sensei/analyze
 // -----------------------------------------------------------------------------
@@ -408,7 +455,7 @@ async function fetchLiveSenseiAnalysis({ creatives, campaigns } = {}) {
 
   if (!payload.creatives.length) {
     throw new Error(
-      "[DataLayer] No creatives provided for live Sensei analysis."
+      "[DataLayer] No creatives provided for live Sensei analysis.",
     );
   }
 
@@ -589,16 +636,6 @@ const DataLayer = {
   // PHASE 1.3 — Sensei Analyse (Live + Demo + Hybrid)
   // ---------------------------------------------------------------------------
 
-  /**
-   * Sensei Analyse holen.
-   * opts:
-   *  - preferLive?: boolean
-   *  - modeOverride?: "live" | "demo"
-   *  - accountId?: string (optional, sonst aus AppState)
-   *  - creatives?, campaigns? (optional bei Direktaufruf)
-   *
-   * Rückgabe: Objekt im Format von /api/sensei/analyze.
-   */
   async fetchSenseiAnalysis(opts = {}) {
     const mode = this._resolveMode(opts);
 
@@ -628,7 +665,7 @@ const DataLayer = {
 
         if (!accountId) {
           throw new Error(
-            "[DataLayer] No accountId available for live Sensei analysis."
+            "[DataLayer] No accountId available for live Sensei analysis.",
           );
         }
 
@@ -646,215 +683,267 @@ const DataLayer = {
     } catch (err) {
       console.warn(
         "[DataLayer] Live Sensei failed, falling back to demo:",
-        err
+        err,
       );
       return buildDemoSenseiResponse();
     }
   },
 
-  // -------------------------------------------------------
-// PHASE 1.4 — Testing Log Integration
-// -------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // PHASE 1.4 — Testing Log Integration
+  // ---------------------------------------------------------------------------
 
-import { buildLiveTestingLog } from "./live/testing.js";
-import { demoTestingLog } from "./demo/testing.js";
+  async fetchTestingLog({ accountId, preferLive = false } = {}) {
+    const mode = this._resolveMode({ preferLive });
 
-DataLayer.fetchTestingLog = async function ({
-  accountId,
-  preferLive = false,
-} = {}) {
-  const mode = this._resolveMode({ preferLive });
-
-  // DEMO erzwingen
-  if (mode === "demo") {
-    return demoTestingLog();
-  }
-
-  try {
-    // Creatives + Insights holen
-    const [cre, campaigns] = await Promise.all([
-      this.fetchCreativesForAccount({ accountId, preferLive: true }),
-      this.fetchCampaignsForAccount({ accountId, preferLive: true }),
-    ]);
-
-    const creatives = cre.items || [];
-    const campaignList = campaigns.items || [];
-
-    // Insights pro Creative sammeln
-    const insightsMap = {};
-
-    for (const camp of campaignList) {
-      const ins = await this.fetchCampaignInsights({
-        campaignId: camp.id,
-        preferLive: true,
-      });
-
-      const rows = ins.items || [];
-
-      rows.forEach((row) => {
-        const cid = row.creative_id || row.ad_id || null;
-        if (!cid) return;
-        insightsMap[cid] = row;
-      });
+    // DEMO erzwingen
+    if (mode === "demo") {
+      return demoTestingLog();
     }
 
-    return await buildLiveTestingLog({
-      creatives,
-      insightsByCreative: insightsMap,
-    });
-  } catch (err) {
-    console.warn("[DataLayer] TestingLog → Demo fallback", err);
-    return demoTestingLog();
-  }
-};
+    try {
+      const [cre, campaigns] = await Promise.all([
+        this.fetchCreativesForAccount({ accountId, preferLive: true }),
+        this.fetchCampaignsForAccount({ accountId, preferLive: true }),
+      ]);
 
-// -------------------------------------------------------
-// PHASE 1.5 — Dashboard Summary Integration
-// -------------------------------------------------------
+      const creatives = cre.items || [];
+      const campaignList = campaigns.items || [];
 
-DataLayer.fetchDashboardSummary = async function ({
-  accountId,
-  preferLive = false
-} = {}) {
-  const mode = this._resolveMode({ preferLive });
+      const insightsMap = {};
 
-  // --- DEMO SUMMARY ---------------------------------------------------------
-  if (mode === "demo") {
-    // Hole Demo-Kampagnen & Demo-Creatives
-    const demoCamps = demoCampaignsForAccount(accountId);
-    const demoCreats = demoCreativesForAccount(accountId);
+      for (const camp of campaignList) {
+        const ins = await this.fetchCampaignInsights({
+          campaignId: camp.id,
+          preferLive: true,
+        });
 
-    return {
-      _source: "demo",
-      spend: demoCamps.reduce((s, c) => s + c.metrics.spend, 0),
-      revenue: demoCamps.reduce(
-        (s, c) => s + c.metrics.spend * c.metrics.roas,
-        0
-      ),
-      roas:
-        demoCamps.reduce((s, c) => s + c.metrics.roas, 0) /
-        Math.max(demoCamps.length, 1),
-      ctr:
-        demoCamps.reduce((s, c) => s + c.metrics.ctr, 0) /
-        Math.max(demoCamps.length, 1),
-      cpm:
-        demoCamps.reduce((s, c) => s + c.metrics.cpm, 0) /
-        Math.max(demoCamps.length, 1),
+        const rows = ins.items || [];
 
-      topCampaign: demoCamps.sort((a, b) => b.metrics.roas - a.metrics.roas)[0],
-      worstCampaign: demoCamps.sort((a, b) => a.metrics.roas - b.metrics.roas)[0],
+        rows.forEach((row) => {
+          const cid = row.creative_id || row.ad_id || null;
+          if (!cid) return;
+          insightsMap[cid] = row;
+        });
+      }
 
-      topCreative: demoCreats.sort(
-        (a, b) => b.metrics.roas - a.metrics.roas
-      )[0],
-      worstCreative: demoCreats.sort(
-        (a, b) => a.metrics.roas - b.metrics.roas
-      )[0]
-    };
-  }
+      return await buildLiveTestingLog({
+        creatives,
+        insightsByCreative: insightsMap,
+      });
+    } catch (err) {
+      console.warn("[DataLayer] TestingLog → Demo fallback", err);
+      return demoTestingLog();
+    }
+  },
 
-  // --- LIVE SUMMARY ---------------------------------------------------------
-  try {
-    const token = getMetaAccessToken();
-    if (!token) throw new Error("No Meta access token");
+  // ---------------------------------------------------------------------------
+  // PHASE 1.5 — Dashboard Summary Integration
+  // ---------------------------------------------------------------------------
 
-    const [campRes, creatRes] = await Promise.all([
-      this.fetchCampaignsForAccount({ accountId, preferLive: true }),
-      this.fetchCreativesForAccount({ accountId, preferLive: true })
-    ]);
+  async fetchDashboardSummary({ accountId, preferLive = false } = {}) {
+    const mode = this._resolveMode({ preferLive });
 
-    const camps = campRes.items || [];
-    const creats = creatRes.items || [];
+    // --- DEMO SUMMARY ---------------------------------------------------------
+    if (mode === "demo") {
+      const demoCamps = demoCampaignsForAccount(accountId);
+      const demoCreats = demoCreativesForAccount(accountId);
 
-    // Revenue aus Insights (falls vorhanden)
-    // → Wenn nicht: spend * roas approximieren
-    const spend = camps.reduce((s, c) => s + (c.metrics?.spend || 0), 0);
-    const revenue = camps.reduce(
-      (s, c) =>
-        s + ((c.metrics?.spend || 0) * (c.metrics?.roas || 0)),
-      0
-    );
+      return {
+        _source: "demo",
+        spend: demoCamps.reduce((s, c) => s + c.metrics.spend, 0),
+        revenue: demoCamps.reduce(
+          (s, c) => s + c.metrics.spend * c.metrics.roas,
+          0,
+        ),
+        roas:
+          demoCamps.reduce((s, c) => s + c.metrics.roas, 0) /
+          Math.max(demoCamps.length, 1),
+        ctr:
+          demoCamps.reduce((s, c) => s + c.metrics.ctr, 0) /
+          Math.max(demoCamps.length, 1),
+        cpm:
+          demoCamps.reduce((s, c) => s + c.metrics.cpm, 0) /
+          Math.max(demoCamps.length, 1),
 
-    const avgRoas =
-      camps.reduce((s, c) => s + (c.metrics?.roas || 0), 0) /
-      Math.max(camps.length, 1);
+        topCampaign: demoCamps.sort(
+          (a, b) => b.metrics.roas - a.metrics.roas,
+        )[0],
+        worstCampaign: demoCamps.sort(
+          (a, b) => a.metrics.roas - b.metrics.roas,
+        )[0],
 
-    const avgCtr =
-      camps.reduce((s, c) => s + (c.metrics?.ctr || 0), 0) /
-      Math.max(camps.length, 1);
+        topCreative: demoCreats.sort(
+          (a, b) => b.metrics.roas - a.metrics.roas,
+        )[0],
+        worstCreative: demoCreats.sort(
+          (a, b) => a.metrics.roas - b.metrics.roas,
+        )[0],
+      };
+    }
 
-    const avgCpm =
-      camps.reduce((s, c) => s + (c.metrics?.cpm || 0), 0) /
-      Math.max(camps.length, 1);
+    // --- LIVE SUMMARY ---------------------------------------------------------
+    try {
+      const token = getMetaAccessToken();
+      if (!token) throw new Error("No Meta access token");
 
-    const topCampaign =
-      camps.sort((a, b) => (b.metrics?.roas || 0) - (a.metrics?.roas || 0))[0] ||
-      null;
+      const [campRes, creatRes] = await Promise.all([
+        this.fetchCampaignsForAccount({ accountId, preferLive: true }),
+        this.fetchCreativesForAccount({ accountId, preferLive: true }),
+      ]);
 
-    const worstCampaign =
-      camps.sort((a, b) => (a.metrics?.roas || 0) - (b.metrics?.roas || 0))[0] ||
-      null;
+      const camps = campRes.items || [];
+      const creats = creatRes.items || [];
 
-    const topCreative =
-      creats.sort((a, b) => (b.metrics?.roas || 0) - (a.metrics?.roas || 0))[0] ||
-      null;
+      const spend = camps.reduce(
+        (s, c) => s + (c.metrics?.spend || 0),
+        0,
+      );
+      const revenue = camps.reduce(
+        (s, c) =>
+          s + (c.metrics?.spend || 0) * (c.metrics?.roas || 0),
+        0,
+      );
 
-    const worstCreative =
-      creats.sort((a, b) => (a.metrics?.roas || 0) - (b.metrics?.roas || 0))[0] ||
-      null;
+      const avgRoas =
+        camps.reduce((s, c) => s + (c.metrics?.roas || 0), 0) /
+        Math.max(camps.length, 1);
 
-    return {
-      _source: "live",
-      spend,
-      revenue,
-      roas: avgRoas,
-      ctr: avgCtr,
-      cpm: avgCpm,
-      topCampaign,
-      worstCampaign,
-      topCreative,
-      worstCreative
-    };
-  } catch (err) {
-    console.warn("[DataLayer] Dashboard fallback DEMO", err);
+      const avgCtr =
+        camps.reduce((s, c) => s + (c.metrics?.ctr || 0), 0) /
+        Math.max(camps.length, 1);
 
-    const demoCamps = demoCampaignsForAccount(accountId);
-    const demoCreats = demoCreativesForAccount(accountId);
+      const avgCpm =
+        camps.reduce((s, c) => s + (c.metrics?.cpm || 0), 0) /
+        Math.max(camps.length, 1);
 
-    return {
-      _source: "demo-fallback",
-      spend: demoCamps.reduce((s, c) => s + c.metrics.spend, 0),
-      revenue: demoCamps.reduce(
-        (s, c) => s + c.metrics.spend * c.metrics.roas,
-        0
-      ),
-      roas:
-        demoCamps.reduce((s, c) => s + c.metrics.roas, 0) /
-        Math.max(demoCamps.length, 1),
-      ctr:
-        demoCamps.reduce((s, c) => s + c.metrics.ctr, 0) /
-        Math.max(demoCamps.length, 1),
-      cpm:
-        demoCamps.reduce((s, c) => s + c.metrics.cpm, 0) /
-        Math.max(demoCamps.length, 1),
+      const topCampaign =
+        camps.sort(
+          (a, b) => (b.metrics?.roas || 0) - (a.metrics?.roas || 0),
+        )[0] || null;
 
-      topCampaign: demoCamps.sort((a, b) => b.metrics.roas - a.metrics.roas)[0],
-      worstCampaign: demoCamps.sort((a, b) => a.metrics.roas - b.metrics.roas)[0],
+      const worstCampaign =
+        camps.sort(
+          (a, b) => (a.metrics?.roas || 0) - (b.metrics?.roas || 0),
+        )[0] || null;
 
-      topCreative: demoCreats.sort(
-        (a, b) => b.metrics.roas - a.metrics.roas
-      )[0],
-      worstCreative: demoCreats.sort(
-        (a, b) => a.metrics.roas - b.metrics.roas
-      )[0]
-    };
-  }
-};
+      const topCreative =
+        creats.sort(
+          (a, b) => (b.metrics?.roas || 0) - (a.metrics?.roas || 0),
+        )[0] || null;
 
+      const worstCreative =
+        creats.sort(
+          (a, b) => (a.metrics?.roas || 0) - (b.metrics?.roas || 0),
+        )[0] || null;
 
-  // -------------------------------------------------------------------------
-  // Platzhalter für weitere Phase-1-Methoden (Testing Log, Dashboard, Roast)
-  // -------------------------------------------------------------------------
+      return {
+        _source: "live",
+        spend,
+        revenue,
+        roas: avgRoas,
+        ctr: avgCtr,
+        cpm: avgCpm,
+        topCampaign,
+        worstCampaign,
+        topCreative,
+        worstCreative,
+      };
+    } catch (err) {
+      console.warn("[DataLayer] Dashboard fallback DEMO", err);
+
+      const demoCamps = demoCampaignsForAccount(accountId);
+      const demoCreats = demoCreativesForAccount(accountId);
+
+      return {
+        _source: "demo-fallback",
+        spend: demoCamps.reduce((s, c) => s + c.metrics.spend, 0),
+        revenue: demoCamps.reduce(
+          (s, c) => s + c.metrics.spend * c.metrics.roas,
+          0,
+        ),
+        roas:
+          demoCamps.reduce((s, c) => s + c.metrics.roas, 0) /
+          Math.max(demoCamps.length, 1),
+        ctr:
+          demoCamps.reduce((s, c) => s + c.metrics.ctr, 0) /
+          Math.max(demoCamps.length, 1),
+        cpm:
+          demoCamps.reduce((s, c) => s + c.metrics.cpm, 0) /
+          Math.max(demoCamps.length, 1),
+
+        topCampaign: demoCamps.sort(
+          (a, b) => b.metrics.roas - a.metrics.roas,
+        )[0],
+        worstCampaign: demoCamps.sort(
+          (a, b) => a.metrics.roas - b.metrics.roas,
+        )[0],
+
+        topCreative: demoCreats.sort(
+          (a, b) => b.metrics.roas - a.metrics.roas,
+        )[0],
+        worstCreative: demoCreats.sort(
+          (a, b) => a.metrics.roas - b.metrics.roas,
+        )[0],
+      };
+    }
+  },
+
+  // ---------------------------------------------------------------------------
+  // PHASE 1.6 — Roast Integration (Live + Demo)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Single-Creative Roast:
+   *  - Im DEMO-Modus: synthetische, aber realistische Bewertung
+   *  - Im LIVE-Modus: nutzt /api/sensei/analyze mit einem Creative
+   *
+   * opts:
+   *  - creative: { ... }   // Pflicht für Demo, sinnvoll für Live
+   *  - campaigns?: []      // optional für Live-Kontext
+   *  - preferLive?: bool
+   *  - modeOverride?: "live" | "demo"
+   */
+  async fetchRoastAnalysis(opts = {}) {
+    const mode = this._resolveMode(opts);
+
+    if (mode === "demo") {
+      return buildDemoRoastResponse(opts.creative);
+    }
+
+    try {
+      let creatives = [];
+
+      if (Array.isArray(opts.creatives) && opts.creatives.length) {
+        creatives = opts.creatives;
+      } else if (opts.creative) {
+        creatives = [opts.creative];
+      } else {
+        throw new Error(
+          "[DataLayer] fetchRoastAnalysis requires at least one creative.",
+        );
+      }
+
+      const campaigns = Array.isArray(opts.campaigns)
+        ? opts.campaigns
+        : [];
+
+      const res = await fetchLiveSenseiAnalysis({
+        creatives,
+        campaigns,
+      });
+
+      // Markieren, dass es ein Roast-Usecase ist
+      return {
+        ...res,
+        mode: "roast",
+        _source: res._source || "live",
+      };
+    } catch (err) {
+      console.warn("[DataLayer] Roast Live failed, demo fallback:", err);
+      return buildDemoRoastResponse(opts.creative);
+    }
+  },
 };
 
 export default DataLayer;
