@@ -1141,6 +1141,266 @@ nav.sidebar {
   background: #e2e8f0;
 }
 
+/* ==========================================================================
+   9.2 CAMPAIGN ENGINE 2.0 — VISIONOS PREMIUM UI
+   ========================================================================== */
+
+/* ROOT WRAPPER */
+.campaign-view-root {
+  padding: 14px 12px 40px;
+}
+
+/* HEADER */
+.campaign-header {
+  background: var(--surface);
+  border-radius: 18px;
+  padding: 24px 26px;
+  margin-bottom: 22px;
+
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  box-shadow:
+    0 22px 60px rgba(15, 23, 42, 0.22),
+    0 0 0 1px rgba(255,255,255,0.9) inset;
+}
+
+.campaign-header .view-headline {
+  font-size: 1.34rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.campaign-meta-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+/* FILTER BAR */
+.campaign-filter-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 12px 2px 18px;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.campaign-filter-group {
+  display: flex;
+  gap: 8px;
+}
+
+.campaign-search-group input {
+  min-width: 200px;
+}
+
+/* GRID LAYOUT */
+.campaign-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 26px;
+  padding: 4px 4px 20px;
+}
+
+/* CARD */
+.campaign-card {
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 18px 18px 14px;
+  border: 1px solid rgba(148,163,184,0.26);
+
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+
+  box-shadow:
+    0 18px 55px rgba(15,23,42,0.22),
+    0 0 0 0.6px rgba(255,255,255,0.9) inset;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.25s ease,
+    border-color 0.18s ease;
+}
+
+.campaign-card:hover {
+  transform: translateY(-6px);
+  box-shadow:
+    0 26px 70px rgba(15, 23, 42, 0.28),
+    0 0 0 0.6px rgba(255, 255, 255, 0.95) inset;
+  border-color: rgba(148, 163, 184, 0.45);
+}
+
+/* CARD HEADER */
+.campaign-card-header,
+.campaign-card header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.campaign-card-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* HEALTH BADGE */
+.campaign-health-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  border: 1px solid transparent;
+  min-width: 48px;
+  text-align: center;
+}
+
+.campaign-health-badge.good {
+  background: var(--color-success-soft);
+  border-color: rgba(22,163,74,0.55);
+  color: #166534;
+}
+
+.campaign-health-badge.warning {
+  background: var(--color-warning-soft);
+  border-color: rgba(245,158,11,0.55);
+  color: #92400e;
+}
+
+.campaign-health-badge.critical {
+  background: var(--color-danger-soft);
+  border-color: rgba(220,38,38,0.55);
+  color: #b91c1c;
+}
+
+/* KPI ROW */
+.campaign-kpi-row,
+.campaign-card-kpis,
+.campaign-card .campaign-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 14px;
+}
+
+.campaign-kpi-row label {
+  display: block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-text-soft);
+  margin-bottom: 2px;
+}
+
+/* ACTION BUTTONS */
+.campaign-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.campaign-card-actions button {
+  flex: 1;
+  padding: 7px 4px;
+  background: #f8fafc;
+  border: 1px solid rgba(148,163,184,0.35);
+  border-radius: 8px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.campaign-card-actions button:hover {
+  background: #e2e8f0;
+}
+
+/* EMPTY STATE — VisionOS GLASS */
+.empty-state {
+  padding: 60px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.empty-state-glass {
+  width: 340px;
+  text-align: center;
+  padding: 32px 24px;
+  border-radius: 20px;
+
+  background: radial-gradient(
+    circle at 20% 20%,
+    rgba(255,255,255,0.96),
+    rgba(226,232,240,0.90)
+  );
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  box-shadow:
+    0 22px 80px rgba(15,23,42,0.28),
+    0 0 0 0.6px rgba(255,255,255,0.95) inset;
+  backdrop-filter: blur(24px);
+}
+
+.empty-state-icon {
+  font-size: 3.2rem;
+  margin-bottom: 12px;
+  filter: drop-shadow(0 6px 10px rgba(15,23,42,0.25));
+}
+
+.empty-state-glass h3 {
+  margin: 0 0 6px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.empty-state-glass p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+/* MODAL DETAIL VIEW — KPIs */
+.modal-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.modal-kpi-grid label {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 2px;
+  display: block;
+}
+
+/* CHART PLACEHOLDER */
+.modal-chart-placeholder {
+  margin-top: 16px;
+  height: 42px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.modal-chart-placeholder .bar {
+  flex: 1;
+  height: 100%;
+  background: linear-gradient(180deg, #93c5fd, #3b82f6);
+  border-radius: 6px;
+  opacity: 0.9;
+  animation: barRise 0.5s ease-out forwards;
+}
+
+.modal-chart-placeholder .bar.mid { height: 70%; }
+.modal-chart-placeholder .bar.short { height: 40%; }
+
+@keyframes barRise {
+  from { transform: scaleY(0.1); }
+  to   { transform: scaleY(1); }
+}
+
 /* ==============================
    10) LOADER, TOASTS, MODAL
 ============================== */
