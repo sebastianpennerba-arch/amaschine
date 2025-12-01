@@ -708,6 +708,150 @@ DataLayer.fetchTestingLog = async function ({
   }
 };
 
+// -------------------------------------------------------
+// PHASE 1.5 — Dashboard Summary Integration
+// -------------------------------------------------------
+
+DataLayer.fetchDashboardSummary = async function ({
+  accountId,
+  preferLive = false
+} = {}) {
+  const mode = this._resolveMode({ preferLive });
+
+  // --- DEMO SUMMARY ---------------------------------------------------------
+  if (mode === "demo") {
+    // Hole Demo-Kampagnen & Demo-Creatives
+    const demoCamps = demoCampaignsForAccount(accountId);
+    const demoCreats = demoCreativesForAccount(accountId);
+
+    return {
+      _source: "demo",
+      spend: demoCamps.reduce((s, c) => s + c.metrics.spend, 0),
+      revenue: demoCamps.reduce(
+        (s, c) => s + c.metrics.spend * c.metrics.roas,
+        0
+      ),
+      roas:
+        demoCamps.reduce((s, c) => s + c.metrics.roas, 0) /
+        Math.max(demoCamps.length, 1),
+      ctr:
+        demoCamps.reduce((s, c) => s + c.metrics.ctr, 0) /
+        Math.max(demoCamps.length, 1),
+      cpm:
+        demoCamps.reduce((s, c) => s + c.metrics.cpm, 0) /
+        Math.max(demoCamps.length, 1),
+
+      topCampaign: demoCamps.sort((a, b) => b.metrics.roas - a.metrics.roas)[0],
+      worstCampaign: demoCamps.sort((a, b) => a.metrics.roas - b.metrics.roas)[0],
+
+      topCreative: demoCreats.sort(
+        (a, b) => b.metrics.roas - a.metrics.roas
+      )[0],
+      worstCreative: demoCreats.sort(
+        (a, b) => a.metrics.roas - b.metrics.roas
+      )[0]
+    };
+  }
+
+  // --- LIVE SUMMARY ---------------------------------------------------------
+  try {
+    const token = getMetaAccessToken();
+    if (!token) throw new Error("No Meta access token");
+
+    const [campRes, creatRes] = await Promise.all([
+      this.fetchCampaignsForAccount({ accountId, preferLive: true }),
+      this.fetchCreativesForAccount({ accountId, preferLive: true })
+    ]);
+
+    const camps = campRes.items || [];
+    const creats = creatRes.items || [];
+
+    // Revenue aus Insights (falls vorhanden)
+    // → Wenn nicht: spend * roas approximieren
+    const spend = camps.reduce((s, c) => s + (c.metrics?.spend || 0), 0);
+    const revenue = camps.reduce(
+      (s, c) =>
+        s + ((c.metrics?.spend || 0) * (c.metrics?.roas || 0)),
+      0
+    );
+
+    const avgRoas =
+      camps.reduce((s, c) => s + (c.metrics?.roas || 0), 0) /
+      Math.max(camps.length, 1);
+
+    const avgCtr =
+      camps.reduce((s, c) => s + (c.metrics?.ctr || 0), 0) /
+      Math.max(camps.length, 1);
+
+    const avgCpm =
+      camps.reduce((s, c) => s + (c.metrics?.cpm || 0), 0) /
+      Math.max(camps.length, 1);
+
+    const topCampaign =
+      camps.sort((a, b) => (b.metrics?.roas || 0) - (a.metrics?.roas || 0))[0] ||
+      null;
+
+    const worstCampaign =
+      camps.sort((a, b) => (a.metrics?.roas || 0) - (b.metrics?.roas || 0))[0] ||
+      null;
+
+    const topCreative =
+      creats.sort((a, b) => (b.metrics?.roas || 0) - (a.metrics?.roas || 0))[0] ||
+      null;
+
+    const worstCreative =
+      creats.sort((a, b) => (a.metrics?.roas || 0) - (b.metrics?.roas || 0))[0] ||
+      null;
+
+    return {
+      _source: "live",
+      spend,
+      revenue,
+      roas: avgRoas,
+      ctr: avgCtr,
+      cpm: avgCpm,
+      topCampaign,
+      worstCampaign,
+      topCreative,
+      worstCreative
+    };
+  } catch (err) {
+    console.warn("[DataLayer] Dashboard fallback DEMO", err);
+
+    const demoCamps = demoCampaignsForAccount(accountId);
+    const demoCreats = demoCreativesForAccount(accountId);
+
+    return {
+      _source: "demo-fallback",
+      spend: demoCamps.reduce((s, c) => s + c.metrics.spend, 0),
+      revenue: demoCamps.reduce(
+        (s, c) => s + c.metrics.spend * c.metrics.roas,
+        0
+      ),
+      roas:
+        demoCamps.reduce((s, c) => s + c.metrics.roas, 0) /
+        Math.max(demoCamps.length, 1),
+      ctr:
+        demoCamps.reduce((s, c) => s + c.metrics.ctr, 0) /
+        Math.max(demoCamps.length, 1),
+      cpm:
+        demoCamps.reduce((s, c) => s + c.metrics.cpm, 0) /
+        Math.max(demoCamps.length, 1),
+
+      topCampaign: demoCamps.sort((a, b) => b.metrics.roas - a.metrics.roas)[0],
+      worstCampaign: demoCamps.sort((a, b) => a.metrics.roas - b.metrics.roas)[0],
+
+      topCreative: demoCreats.sort(
+        (a, b) => b.metrics.roas - a.metrics.roas
+      )[0],
+      worstCreative: demoCreats.sort(
+        (a, b) => a.metrics.roas - b.metrics.roas
+      )[0]
+    };
+  }
+};
+
+
   // -------------------------------------------------------------------------
   // Platzhalter für weitere Phase-1-Methoden (Testing Log, Dashboard, Roast)
   // -------------------------------------------------------------------------
