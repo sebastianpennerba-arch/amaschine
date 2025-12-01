@@ -34,14 +34,14 @@ const AppState = {
    1) MODULE REGISTRY (FIXED for Variant B)
 ========================================== */
 const modules = {
-  dashboard: () => import("/packages/dashboard/index.js"),
-  creatives: () => import("/packages/creatives/index.js"),
-  campaigns: () => import("/packages/campaigns/index.js"),
-  sensei: () => import("/packages/sensei/index.js"),
-  reports: () => import("/packages/reports/index.js"),
-  logs: () => import("/packages/logs/index.js"),
-  settings: () => import("/packages/settings/index.js"),
-  onboarding: () => import("/packages/onboarding/index.js"),
+  dashboard: () => import("./packages/dashboard/index.js"),
+  creatives: () => import("./packages/creatives/index.js"),
+  campaigns: () => import("./packages/campaigns/index.js"),
+  sensei: () => import("./packages/sensei/index.js"),
+  reports: () => import("./packages/reports/index.js"),
+  logs: () => import("./packages/logs/index.js"),
+  settings: () => import("./packages/settings/index.js"),
+  onboarding: () => import("./packages/onboarding/index.js"),
 };
 
 /* ==========================================
