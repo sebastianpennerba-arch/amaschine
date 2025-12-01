@@ -572,6 +572,67 @@ DataLayer.fetchCampaignInsights = async function ({
   }
 };
 
+// -------------------------------------------------------
+// PHASE 1.2 — Creatives Integration
+// -------------------------------------------------------
+
+import {
+  fetchLiveCreatives,
+  fetchLiveCreativeInsights
+} from "./live/creatives.js";
+import {
+  demoCreativesForAccount,
+  demoCreativeInsights
+} from "./demo/creatives.js";
+
+// Creatives holen
+DataLayer.fetchCreativesForAccount = async function ({
+  accountId,
+  preferLive = false
+} = {}) {
+  const mode = this._resolveMode({ preferLive });
+
+  if (mode === "demo") {
+    return { _source: "demo", items: demoCreativesForAccount(accountId) };
+  }
+
+  try {
+    const token = getMetaAccessToken();
+    const live = await fetchLiveCreatives({ accountId, accessToken: token });
+    return { _source: "live", items: live };
+  } catch (err) {
+    console.warn("[DataLayer] fetchCreatives fallback to demo", err);
+    return { _source: "demo-fallback", items: demoCreativesForAccount() };
+  }
+};
+
+// Creative Insights holen
+DataLayer.fetchCreativeInsights = async function ({
+  creativeId,
+  campaignId,
+  preset = "last_7d",
+  preferLive = false
+}) {
+  const mode = this._resolveMode({ preferLive });
+
+  if (mode === "demo") {
+    return { _source: "demo", items: demoCreativeInsights(creativeId) };
+  }
+
+  try {
+    const token = getMetaAccessToken();
+    const insights = await fetchLiveCreativeInsights({
+      campaignId,
+      accessToken: token,
+      preset
+    });
+    return { _source: "live", items: insights };
+  } catch (err) {
+    console.warn("[DataLayer] creative insights demo fallback", err);
+    return { _source: "demo-fallback", items: demoCreativeInsights(creativeId) };
+  }
+};
+
 
   /**
    * TODO Phase 1.x:
