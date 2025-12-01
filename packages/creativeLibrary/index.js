@@ -2,19 +2,23 @@
 // ---------------------------------------------------------
 //  P2 – Creative Library
 //  UI-Layer (Grid, Filter, Modal) + DataLayer-Anbindung
-//  -> Alle Compute-/Scoring-Funktionen liegen in compute.js
+//  -> Compute-Layer: compute.js
+//  -> Varianten-Gruppierung: group.js
 // ---------------------------------------------------------
 
 import { buildCreativeLibraryViewModel } from "./compute.js";
+import { groupCreatives } from "./group.js";
 
 // Public API: wird von app.js als Modul geladen
 export async function render(section, AppState, options = {}) {
   const useDemoMode = !!options.useDemoMode;
 
-  // 1) DataLayer & Meta-Gatekeeper ---------------------------------
   const SignalOne = window.SignalOne || {};
   const DataLayer = SignalOne.DataLayer;
 
+  if (!section) return;
+
+  // 1) DataLayer & Meta-Gatekeeper ---------------------------------
   if (!DataLayer) {
     section.innerHTML = `
       <div class="view-inner">
@@ -29,29 +33,18 @@ export async function render(section, AppState, options = {}) {
 
   const meta = (AppState && AppState.meta) || {};
   const hasLiveAccess =
-    !!meta.accessToken && !!meta.activeAccountId && meta.connected !== false;
+    !!meta.token || !!meta.accessToken || !!meta.activeAccountId;
 
   if (!useDemoMode && !hasLiveAccess) {
-    // Harte Gatekeeper-Regel: ohne Token keine Live-Daten
+    // Harte Gatekeeper-Regel: ohne Meta-Token keine Live-Daten
     section.innerHTML = `
       <div class="view-inner">
         <h2 class="view-title">Creative Library</h2>
         <p class="view-subtitle">
           Verbinde deinen Meta Account, um Live-Creatives zu sehen.
         </p>
-        <button class="meta-button" data-role="open-meta-settings">
-          Meta verbinden
-        </button>
       </div>
     `;
-
-    const btn = section.querySelector('[data-role="open-meta-settings"]');
-    if (btn && window.SignalOne?.navigateToSettings) {
-      btn.addEventListener("click", () => {
-        window.SignalOne.navigateToSettings("integrations");
-      });
-    }
-
     return;
   }
 
@@ -108,6 +101,10 @@ export async function render(section, AppState, options = {}) {
   });
 
   const { creatives, tags, stats, meta: headerMeta } = viewModel;
+
+  // Varianten-Gruppierung (Hybrid C)
+  const variantModel = groupCreatives(creatives);
+  const variantById = variantModel.byCreativeId;
 
   // 3) Empty-State, falls keine Creatives ---------------------------
   if (!creatives.length) {
@@ -209,6 +206,7 @@ export async function render(section, AppState, options = {}) {
   };
 
   function smoothSet(html) {
+    if (!gridEl) return;
     gridEl.style.opacity = 0;
     setTimeout(() => {
       gridEl.innerHTML = html;
@@ -257,8 +255,17 @@ export async function render(section, AppState, options = {}) {
     const html = list
       .map((c) => {
         const m = c.metrics || {};
+        const group = variantById.get(c.id);
+        const variantCount = group?.variantCount || 1;
+        const hasVariants = variantCount > 1;
+
         return `
           <article class="creative-library-item" data-id="${escapeHtml(c.id)}">
+            ${
+              hasVariants
+                ? `<div class="creative-variant-badge">V${variantCount}</div>`
+                : ""
+            }
             <div class="creative-thumb" style="${
               c.thumbnailUrl
                 ? `background-image:url('${encodeURI(
@@ -292,7 +299,7 @@ export async function render(section, AppState, options = {}) {
             <div class="creative-actions">
               <button data-role="details">Details</button>
               <button data-role="variants">Varianten</button>
-              <button data-role="pause">Pausieren</button>
+              <button data-role="testslot">Test-Slot</button>
             </div>
           </article>
         `;
@@ -311,38 +318,38 @@ export async function render(section, AppState, options = {}) {
       if (!creative) return;
 
       card.addEventListener("click", (ev) => {
-        // Buttons behalten eigenes Verhalten
         const role =
           ev.target && ev.target.getAttribute("data-role")
             ? ev.target.getAttribute("data-role")
             : null;
 
+        const group = variantById.get(creative.id);
+        const variants = group ? group.items : [creative];
+
         if (role === "details") {
           ev.stopPropagation();
-          openCreativeModal(creative);
+          openCreativeModal(creative, variants);
           return;
         }
 
         if (role === "variants") {
           ev.stopPropagation();
-          window.SignalOne?.showToast?.(
-            "Varianten-Ansicht ist in dieser Version noch ein Platzhalter.",
-            "info",
-          );
+          openCreativeModal(creative, variants);
           return;
         }
 
-        if (role === "pause") {
+        if (role === "testslot") {
           ev.stopPropagation();
+          // Platzhalter für P2.4 – Test-Slot / TestingLog-Anbindung
           window.SignalOne?.showToast?.(
-            "Pausieren ist aktuell nur ein Demo-Button.",
+            "Test-Slot wird mit dem Testing Log in P2.4 verknüpft.",
             "info",
           );
           return;
         }
 
         // Default: Details
-        openCreativeModal(creative);
+        openCreativeModal(creative, variants);
       });
     });
   }
@@ -401,142 +408,188 @@ export async function render(section, AppState, options = {}) {
 }
 
 /* ----------------------------------------------------------
-   Modal – nutzt bestehendes globales Modal-System
+   Modal – Varianten-Layout (V2: Liste links, Detail rechts)
 -----------------------------------------------------------*/
 
-function openCreativeModal(creative) {
-  const m = creative.metrics || {};
-
-  const html = `
-    <div class="creative-modal">
-      <div class="creative-modal-thumb" style="${
-        creative.thumbnailUrl
-          ? `background-image:url('${encodeURI(
-              creative.thumbnailUrl,
-            )}');background-size:cover;background-position:center;`
-          : ""
-      }"></div>
-
-      <div class="creative-modal-main">
-        <div class="creative-modal-left">
-          <h3 class="creative-modal-title">${escapeHtml(creative.name)}</h3>
-          <p class="creative-modal-subtitle">
-            ${formatBucketLabel(creative.bucket)} • Score ${
-    creative.score ?? "-"
-  } • ${formatRoas(m.roas)} ROAS
-          </p>
-
-          <div class="creative-modal-kpis">
-            <div>
-              <span class="creative-kpi-label">Spend</span>
-              <span class="creative-kpi-value">${formatCurrency(
-                m.spend,
-              )}</span>
-            </div>
-            <div>
-              <span class="creative-kpi-label">Revenue</span>
-              <span class="creative-kpi-value">${formatCurrency(
-                m.revenue,
-              )}</span>
-            </div>
-            <div>
-              <span class="creative-kpi-label">CTR</span>
-              <span class="creative-kpi-value">${formatPercent(
-                m.ctr,
-              )}</span>
-            </div>
-            <div>
-              <span class="creative-kpi-label">CPM</span>
-              <span class="creative-kpi-value">${formatCurrency(
-                m.cpm,
-              )}</span>
-            </div>
-            <div>
-              <span class="creative-kpi-label">CPA</span>
-              <span class="creative-kpi-value">${formatCurrency(
-                m.cpa,
-              )}</span>
-            </div>
-            <div>
-              <span class="creative-kpi-label">Purchases</span>
-              <span class="creative-kpi-value">${
-                m.purchases != null ? m.purchases : "–"
-              }</span>
-            </div>
-          </div>
-
-          <div class="hook-heatmap">
-            <div class="hook-row">
-              <span>Hook Qualität</span>
-              <div class="hook-bar">
-                <div class="hook-fill" style="width:${Math.min(
-                  creative.score || 50,
-                  100,
-                )}%"></div>
-              </div>
-            </div>
-            <div class="hook-row">
-              <span>Consistency</span>
-              <div class="hook-bar">
-                <div class="hook-fill" style="width:${Math.min(
-                  (m.roas || 0) * 10,
-                  100,
-                )}%"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="creative-modal-right">
-          <div class="creative-modal-section">
-            <h4>Story & Hook</h4>
-            <p class="creative-modal-text">
-              ${creative.hook ? escapeHtml(creative.hook) : "Kein Hook hinterlegt."}
-            </p>
-            <p class="creative-modal-text">
-              Creator: ${escapeHtml(creative.creator || "Unknown")} ${
-    creative.daysActive ? `• Läuft seit ${creative.daysActive} Tagen` : ""
+function openCreativeModal(creative, variants = []) {
+  const openModal = window.SignalOne?.openSystemModal;
+  if (!openModal) {
+    const m = creative.metrics || {};
+    alert(
+      `${creative.name}\n\nROAS: ${formatRoas(m.roas)}\nSpend: ${formatCurrency(
+        m.spend,
+      )}`,
+    );
+    return;
   }
-            </p>
-          </div>
 
-          <div class="creative-modal-section">
-            <h4>Sensei Insight (Demo)</h4>
-            <p class="creative-modal-text">
-              Dieses Creative performt aktuell ${
-                m.roas && m.roas >= 1.5
-                  ? "über"
-                  : m.roas && m.roas > 0
-                    ? "unter"
-                    : "auf"
-              } deinem Account-Durchschnitt. Nutze ähnliche Hooks & Creator,
-              um weitere Varianten zu testen.
-            </p>
-          </div>
+  const uniqVariants = dedupeById(
+    Array.isArray(variants) && variants.length ? variants : [creative],
+  );
+  const activeId = creative.id;
 
-          <div class="creative-modal-actions">
-            <button class="meta-button meta-button-primary" data-role="generate-hook">
-              Neue Hook-Ideen
-            </button>
-            <button class="meta-button" data-role="open-testing-log">
-              Testplan erstellen
-            </button>
+  const bodyHtml = `
+    <div class="creative-modal">
+      <div class="creative-modal-main" data-role="variant-layout" style="display:grid;grid-template-columns: minmax(0,220px) minmax(0,1fr);gap:16px;align-items:flex-start;">
+        
+        <!-- Variantenliste (links) -->
+        <aside class="creative-variant-list">
+          <h4 class="creative-variant-heading">Varianten</h4>
+          <div class="creative-variant-items">
+            ${uniqVariants
+              .map(
+                (v) => `
+              <button
+                class="creative-variant-pill ${
+                  v.id === activeId ? "active" : ""
+                }"
+                data-variant-id="${escapeHtml(v.id)}"
+              >
+                <div class="creative-variant-pill-title">
+                  ${escapeHtml(v.name)}
+                </div>
+                <div class="creative-variant-pill-meta">
+                  ROAS ${formatRoas(v.metrics?.roas)} • ${
+                  v.metrics?.purchases ?? "–"
+                } Purchases
+                </div>
+              </button>
+            `,
+              )
+              .join("")}
           </div>
+        </aside>
+
+        <!-- Detailansicht (rechts) -->
+        <div class="creative-variant-detail" data-role="variant-detail">
+          ${renderVariantDetailHtml(
+            uniqVariants.find((v) => v.id === activeId) || uniqVariants[0],
+          )}
         </div>
       </div>
     </div>
   `;
 
-  if (window.SignalOne?.openSystemModal) {
-    window.SignalOne.openSystemModal(html, {
-      size: "xl",
+  openModal(creative.name, bodyHtml);
+
+  // Events nachträglich an das Modal hängen
+  const bodyEl = document.getElementById("modalBody");
+  if (!bodyEl) return;
+
+  const detailEl = bodyEl.querySelector('[data-role="variant-detail"]');
+  const pills = bodyEl.querySelectorAll(".creative-variant-pill");
+
+  pills.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-variant-id");
+      const selected = uniqVariants.find((v) => v.id === id);
+      if (!selected || !detailEl) return;
+
+      pills.forEach((p) => p.classList.remove("active"));
+      btn.classList.add("active");
+
+      detailEl.innerHTML = renderVariantDetailHtml(selected);
     });
-  } else {
-    console.warn(
-      "[CreativeLibrary] openSystemModal nicht verfügbar, Fallback auf alert",
-    );
-    alert(`${creative.name}\n\nROAS: ${formatRoas(m.roas)}\nSpend: ${formatCurrency(m.spend)}`);
-  }
+  });
+}
+
+function renderVariantDetailHtml(c) {
+  const m = c.metrics || {};
+
+  return `
+    <div class="creative-modal-main-inner">
+      <div class="creative-modal-left">
+        <div class="creative-modal-thumb" style="${
+          c.thumbnailUrl
+            ? `background-image:url('${encodeURI(
+                c.thumbnailUrl,
+              )}');background-size:cover;background-position:center;`
+            : ""
+        }">
+          ${
+            !c.thumbnailUrl
+              ? `<div class="creative-modal-thumb-overlay">
+                   <span class="creative-modal-thumb-label">Kein Thumbnail vorhanden</span>
+                 </div>`
+              : ""
+          }
+        </div>
+
+        <div class="creative-modal-kpis">
+          <div>
+            <span class="creative-kpi-label">ROAS</span>
+            <span class="creative-kpi-value">${formatRoas(m.roas)}</span>
+          </div>
+          <div>
+            <span class="creative-kpi-label">Spend</span>
+            <span class="creative-kpi-value">${formatCurrency(m.spend)}</span>
+          </div>
+          <div>
+            <span class="creative-kpi-label">CTR</span>
+            <span class="creative-kpi-value">${formatPercent(m.ctr)}</span>
+          </div>
+          <div>
+            <span class="creative-kpi-label">CPM</span>
+            <span class="creative-kpi-value">${formatCurrency(m.cpm)}</span>
+          </div>
+          <div>
+            <span class="creative-kpi-label">CPA</span>
+            <span class="creative-kpi-value">${formatCurrency(m.cpa)}</span>
+          </div>
+          <div>
+            <span class="creative-kpi-label">Purchases</span>
+            <span class="creative-kpi-value">${
+              m.purchases != null ? m.purchases : "–"
+            }</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="creative-modal-right">
+        <h3 class="creative-modal-title">${escapeHtml(c.name)}</h3>
+        <p class="creative-modal-subtitle">
+          ${formatBucketLabel(c.bucket)} • Score ${c.score ?? "-"} • ${
+            c.daysActive ? `${c.daysActive} Tage live` : ""
+          }
+        </p>
+
+        <div class="creative-modal-section">
+          <h4>Story & Hook</h4>
+          <p class="creative-modal-text">
+            ${c.hook ? escapeHtml(c.hook) : "Kein Hook hinterlegt."}
+          </p>
+          <p class="creative-modal-text">
+            Creator: ${escapeHtml(c.creator || "Unknown")}
+          </p>
+        </div>
+
+        <div class="creative-modal-section">
+          <h4>Sensei Insight (Light)</h4>
+          <p class="creative-modal-text">
+            Dieses Creative performt ${
+              m.roas && m.roas >= 4
+                ? "stark über"
+                : m.roas && m.roas >= 1.5
+                  ? "über"
+                  : m.roas && m.roas > 0
+                    ? "unter"
+                    : "auf"
+            } deinem erwarteten Benchmark. Nutze ähnliche Hooks & Creator,
+            um weitere Varianten zu testen.
+          </p>
+        </div>
+
+        <div class="creative-modal-actions">
+          <button class="meta-button meta-button-primary" data-role="generate-hook">
+            Neue Hook-Ideen
+          </button>
+          <button class="meta-button" data-role="open-testing-log">
+            Testplan erstellen
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 /* ----------------------------------------------------------
@@ -547,9 +600,9 @@ function showLoader(active) {
   const el = document.getElementById("globalLoader");
   if (!el) return;
   if (active) {
-    el.classList.add("active");
+    el.classList.remove("hidden");
   } else {
-    el.classList.remove("active");
+    el.classList.add("hidden");
   }
 }
 
@@ -596,4 +649,16 @@ function escapeHtml(str) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+function dedupeById(list) {
+  const seen = new Set();
+  const out = [];
+  for (const item of list) {
+    if (!item || !item.id) continue;
+    if (seen.has(item.id)) continue;
+    seen.add(item.id);
+    out.push(item);
+  }
+  return out;
 }
