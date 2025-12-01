@@ -487,11 +487,91 @@ const DataLayer = {
     }
   },
 
-  // -------------------------------------------------------------------------
-  // Platzhalter für weitere Phase-1-Methoden (Campaigns, Creatives, etc.)
-  // Diese werden in den nächsten Schritten implementiert und nutzen
-  // dieselbe Mode-/Fallback-Logik.
-  // -------------------------------------------------------------------------
+// -------------------------------------------------------
+// PHASE 1.1 — Campaigns Integration
+// -------------------------------------------------------
+
+import {
+  fetchLiveCampaigns,
+  fetchLiveCampaignInsights
+} from "./live/campaigns.js";
+import {
+  demoCampaignsForAccount,
+  demoInsightsForCampaign
+} from "./demo/campaigns.js";
+
+// Kampagnenliste
+DataLayer.fetchCampaignsForAccount = async function ({
+  accountId,
+  preferLive = false
+} = {}) {
+  const mode = this._resolveMode({ preferLive });
+
+  // DEMO
+  if (mode === "demo") {
+    return {
+      _source: "demo",
+      items: demoCampaignsForAccount(accountId)
+    };
+  }
+
+  // LIVE versuchen
+  try {
+    const token = getMetaAccessToken();
+    const live = await fetchLiveCampaigns({
+      accountId,
+      accessToken: token
+    });
+
+    return {
+      _source: "live",
+      items: live
+    };
+  } catch (err) {
+    console.warn("[DataLayer] fetchCampaigns fallback demo", err);
+    return {
+      _source: "demo-fallback",
+      items: demoCampaignsForAccount(accountId)
+    };
+  }
+};
+
+// Kampagnen-Insights
+DataLayer.fetchCampaignInsights = async function ({
+  campaignId,
+  preset = "last_7d",
+  preferLive = false
+}) {
+  const mode = this._resolveMode({ preferLive });
+
+  if (mode === "demo") {
+    return {
+      _source: "demo",
+      items: demoInsightsForCampaign(campaignId)
+    };
+  }
+
+  try {
+    const token = getMetaAccessToken();
+    const live = await fetchLiveCampaignInsights({
+      campaignId,
+      accessToken: token,
+      preset
+    });
+
+    return {
+      _source: "live",
+      items: live
+    };
+  } catch (err) {
+    console.warn("[DataLayer] insights fallback demo", err);
+    return {
+      _source: "demo-fallback",
+      items: demoInsightsForCampaign(campaignId)
+    };
+  }
+};
+
 
   /**
    * TODO Phase 1.x:
