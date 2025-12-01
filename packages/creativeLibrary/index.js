@@ -4,6 +4,7 @@
 //  UI-Layer (Grid, Filter, Modal) + DataLayer-Anbindung
 //  -> Compute-Layer: compute.js
 //  -> Varianten-Gruppierung: group.js
+//  -> Test-Slot: SignalOne.TestingLog.openTestSlot
 // ---------------------------------------------------------
 
 import { buildCreativeLibraryViewModel } from "./compute.js";
@@ -340,11 +341,15 @@ export async function render(section, AppState, options = {}) {
 
         if (role === "testslot") {
           ev.stopPropagation();
-          // Platzhalter für P2.4 – Test-Slot / TestingLog-Anbindung
-          window.SignalOne?.showToast?.(
-            "Test-Slot wird mit dem Testing Log in P2.4 verknüpft.",
-            "info",
-          );
+          const api = window.SignalOne?.TestingLog;
+          if (api && typeof api.openTestSlot === "function") {
+            api.openTestSlot(creative, variants);
+          } else {
+            window.SignalOne?.showToast?.(
+              "Testing Log API ist noch nicht initialisiert.",
+              "warning",
+            );
+          }
           return;
         }
 
@@ -472,7 +477,6 @@ function openCreativeModal(creative, variants = []) {
 
   openModal(creative.name, bodyHtml);
 
-  // Events nachträglich an das Modal hängen
   const bodyEl = document.getElementById("modalBody");
   if (!bodyEl) return;
 
