@@ -1,19 +1,38 @@
 // packages/data/index.js
 // -----------------------------------------------------------------------------
 // 🌐 SignalOne DataLayer
-// - EIN zentraler Einstiegspunkt für alle datengetriebenen Views
+// - Zentraler Einstiegspunkt für alle datengetriebenen Views
 // - Unterstützt Demo + Live + Auto-Hybrid (Option C)
-// - Respektiert AppState.settings.demoMode + optionale Override-Settings
-// - Bietet aktuell:
-//     • fetchSenseiAnalysis({ preferLive? })
-//   (weitere Endpunkte für Campaigns, Creatives etc. folgen in Phase 1.x)
+// - Nutzt dein Backend (/api/meta/* & /api/sensei/*)
+// -----------------------------------------------------------------------------
+
+
+// -----------------------------------------------------------------------------
+// IMPORTS (Live + Demo Layer)
+// -----------------------------------------------------------------------------
+import {
+  fetchLiveCampaigns,
+  fetchLiveCampaignInsights,
+} from "./live/campaigns.js";
+import {
+  demoCampaignsForAccount,
+  demoInsightsForCampaign,
+} from "./demo/campaigns.js";
+
+import {
+  fetchLiveCreatives,
+  fetchLiveCreativeInsights,
+} from "./live/creatives.js";
+import {
+  demoCreativesForAccount,
+  demoCreativeInsights,
+} from "./demo/creatives.js";
+
+// -----------------------------------------------------------------------------
+// GENERISCHE HELFER
 // -----------------------------------------------------------------------------
 
 const API_BASE = "/api";
-
-// -----------------------------------------------------------------------------
-// Kleine Helpers
-// -----------------------------------------------------------------------------
 
 async function postJSON(path, body) {
   const res = await fetch(`${API_BASE}${path}`, {
@@ -49,41 +68,34 @@ function getAppState() {
 }
 
 /**
- * Modusauflösung:
+ * Demo/Live/Auto-Auflösung:
  * - AppState.settings.demoMode → immer DEMO
  * - AppState.settings.dataMode → 'auto' | 'live' | 'demo'
- * - opts.modeOverride → kann für einzelne Calls genutzt werden
- * - preferLive (z.B. aus View) beeinflusst Auto-Modus
+ * - opts.modeOverride → per Call überschreibbar
+ * - preferLive beeinflusst Auto-Verhalten
  */
 function resolveDataMode({ preferLive = false, modeOverride } = {}) {
   const state = getAppState();
   const settings = state.settings || {};
 
-  // 1) DemoMode gewinnt immer – wichtig für dein Demo-Setup
-  if (settings.demoMode === true) {
-    return "demo";
-  }
+  // 1) DemoMode dominiert – wichtig für Produkt-Demos
+  if (settings.demoMode === true) return "demo";
 
-  // 2) Expliziter Override (z.B. aus Settings-UI)
+  // 2) Expliziter Override pro Call
   if (modeOverride === "live" || modeOverride === "demo") {
     return modeOverride;
   }
 
-  // 3) AppState dataMode (falls vorhanden)
+  // 3) Globale Einstellung
   const configured =
     settings.dataMode === "live" || settings.dataMode === "demo"
       ? settings.dataMode
       : "auto";
 
-  if (configured === "live" || configured === "demo") {
-    return configured;
-  }
+  if (configured === "live" || configured === "demo") return configured;
 
-  // 4) Auto-Modus: preferLive beeinflusst nur die Entscheidung,
-  //    bei Fehlen von Meta-Verbindung bleiben wir bei DEMO.
-  if (preferLive) {
-    return "live";
-  }
+  // 4) Auto-Modus: bei preferLive versuchen wir Live, sonst Demo
+  if (preferLive) return "live";
 
   return "demo";
 }
@@ -96,22 +108,15 @@ function getMetaAccessToken() {
     state.metaAccessToken ||
     (state.meta && state.meta.token) ||
     null;
-
   return token || null;
 }
 
 // -----------------------------------------------------------------------------
 // DEMO – Sensei Analyse (premium + realistisch)
 // -----------------------------------------------------------------------------
-
-/**
- * Erzeugt eine künstliche, aber realistische Sensei-Antwort
- * im gleichen Format wie /api/sensei/analyze.
- *
- * Ziel: Premium-Demo für Präsentationen, ohne echte Meta-Daten.
- */
+// Erzeugt eine künstliche, aber realistische Sensei-Antwort
+// im gleichen Format wie /api/sensei/analyze.
 function buildDemoSenseiResponse() {
-  // 6 Demo-Creatives mit "premium + realistischen" Zahlen
   const creatives = [
     {
       id: "cre_ugc_scale",
@@ -211,7 +216,6 @@ function buildDemoSenseiResponse() {
     },
   ];
 
-  // Aggregate (vereinfachte Ableitung)
   const totals = creatives.reduce(
     (acc, c) => {
       acc.totalSpend += c.metrics.spend;
@@ -236,17 +240,14 @@ function buildDemoSenseiResponse() {
   const avgCpm =
     (totals.totalSpend / Math.max(totals.totalImpressions, 1)) * 1000;
 
-  // Grobe Scores (kein komplexes Modell – das macht auf dem Backend dein Sensei Engine)
   const scoring = creatives.map((c) => {
-    // base: roas & ctr
     const roasScore = Math.min(c.metrics.roas / 6, 1);
-    const ctrScore = Math.min(c.metrics.ctr / 4, 1); // 4% CTR = 100
+    const ctrScore = Math.min(c.metrics.ctr / 4, 1);
     const spendScore = Math.min(c.metrics.spend / 30000, 1);
 
     let score = Math.round(
       55 + roasScore * 25 + ctrScore * 12 + spendScore * 8
-    ); // 55–100 in etwa
-
+    );
     if (score > 100) score = 100;
     if (score < 35) score = 35;
 
@@ -337,8 +338,8 @@ function buildDemoSenseiResponse() {
     summary: {
       totalCampaigns: 3,
       avgRoas: avgRoas * 0.95,
-      avgCtr: avgCtr,
-      avgCpm: avgCpm,
+      avgCtr,
+      avgCpm,
       totalSpend: totals.totalSpend,
       totalRevenue: totals.totalRevenue,
     },
@@ -391,32 +392,24 @@ function buildDemoSenseiResponse() {
 
 // -----------------------------------------------------------------------------
 // LIVE – Sensei Analyse via Backend-Endpoint
+//   POST /api/sensei/analyze
 // -----------------------------------------------------------------------------
 
 async function fetchLiveSenseiAnalysis({ creatives, campaigns } = {}) {
   const token = getMetaAccessToken();
-  const state = getAppState();
-
-  // Wenn kein Meta-Token vorhanden, macht Live hier keinen Sinn → Fehler,
-  // wird aber im DataLayer automatisch auf Demo zurückfallen.
   if (!token) {
     throw new Error("[DataLayer] No Meta access token for live Sensei.");
   }
 
-  // In der finalen Ausbaustufe sollen hier echte Creatives / Kampagnen
-  // aus Meta verwendet werden. Für Phase 1 nutzen wir ggf. bereits
-  // vorhandene Daten aus dem AppState, falls sie existieren.
   const payload = {
-    creatives:
-      creatives ||
-      state.meta?.creatives ||
-      state.meta?.ads ||
-      [], // TODO: in Phase 1.x sauber anbinden
-    campaigns: campaigns || state.meta?.campaigns || [],
+    creatives: Array.isArray(creatives) ? creatives : [],
+    campaigns: Array.isArray(campaigns) ? campaigns : [],
   };
 
-  if (!Array.isArray(payload.creatives) || !payload.creatives.length) {
-    throw new Error("[DataLayer] No creatives available for live Sensei.");
+  if (!payload.creatives.length) {
+    throw new Error(
+      "[DataLayer] No creatives provided for live Sensei analysis."
+    );
   }
 
   const res = await postJSON("/sensei/analyze", payload);
@@ -446,37 +439,209 @@ const DataLayer = {
   },
 
   /**
-   * Universeller Modus-Resolver, der sowohl internen Mode
-   * als auch AppState + preferLive berücksichtigt.
+   * Modus-Resolver, der internen Mode, AppState & preferLive kombiniert
    */
   _resolveMode(opts = {}) {
-    // interne Mode-Override (manuelles Setter)
     if (this.mode === "live" || this.mode === "demo") {
       return this.mode;
     }
     return resolveDataMode(opts);
   },
 
+  // ---------------------------------------------------------------------------
+  // PHASE 1.1 — Campaigns Integration
+  // ---------------------------------------------------------------------------
+
+  async fetchCampaignsForAccount({ accountId, preferLive = false } = {}) {
+    const mode = this._resolveMode({ preferLive });
+
+    if (mode === "demo") {
+      return {
+        _source: "demo",
+        items: demoCampaignsForAccount(accountId),
+      };
+    }
+
+    try {
+      const token = getMetaAccessToken();
+      const live = await fetchLiveCampaigns({
+        accountId,
+        accessToken: token,
+      });
+
+      return {
+        _source: "live",
+        items: live,
+      };
+    } catch (err) {
+      console.warn("[DataLayer] fetchCampaigns fallback demo", err);
+      return {
+        _source: "demo-fallback",
+        items: demoCampaignsForAccount(accountId),
+      };
+    }
+  },
+
+  async fetchCampaignInsights({
+    campaignId,
+    preset = "last_7d",
+    preferLive = false,
+  } = {}) {
+    const mode = this._resolveMode({ preferLive });
+
+    if (mode === "demo") {
+      return {
+        _source: "demo",
+        items: demoInsightsForCampaign(campaignId),
+      };
+    }
+
+    try {
+      const token = getMetaAccessToken();
+      const live = await fetchLiveCampaignInsights({
+        campaignId,
+        accessToken: token,
+        preset,
+      });
+
+      return {
+        _source: "live",
+        items: live,
+      };
+    } catch (err) {
+      console.warn("[DataLayer] insights fallback demo", err);
+      return {
+        _source: "demo-fallback",
+        items: demoInsightsForCampaign(campaignId),
+      };
+    }
+  },
+
+  // ---------------------------------------------------------------------------
+  // PHASE 1.2 — Creatives Integration
+  // ---------------------------------------------------------------------------
+
+  async fetchCreativesForAccount({ accountId, preferLive = false } = {}) {
+    const mode = this._resolveMode({ preferLive });
+
+    if (mode === "demo") {
+      return {
+        _source: "demo",
+        items: demoCreativesForAccount(accountId),
+      };
+    }
+
+    try {
+      const token = getMetaAccessToken();
+      const live = await fetchLiveCreatives({
+        accountId,
+        accessToken: token,
+      });
+      return {
+        _source: "live",
+        items: live,
+      };
+    } catch (err) {
+      console.warn("[DataLayer] fetchCreatives fallback to demo", err);
+      return {
+        _source: "demo-fallback",
+        items: demoCreativesForAccount(accountId),
+      };
+    }
+  },
+
+  async fetchCreativeInsights({
+    creativeId,
+    campaignId,
+    preset = "last_7d",
+    preferLive = false,
+  } = {}) {
+    const mode = this._resolveMode({ preferLive });
+
+    if (mode === "demo") {
+      return {
+        _source: "demo",
+        items: demoCreativeInsights(creativeId),
+      };
+    }
+
+    try {
+      const token = getMetaAccessToken();
+      const insights = await fetchLiveCreativeInsights({
+        campaignId,
+        accessToken: token,
+        preset,
+      });
+      return {
+        _source: "live",
+        items: insights,
+      };
+    } catch (err) {
+      console.warn("[DataLayer] creative insights demo fallback", err);
+      return {
+        _source: "demo-fallback",
+        items: demoCreativeInsights(creativeId),
+      };
+    }
+  },
+
+  // ---------------------------------------------------------------------------
+  // PHASE 1.3 — Sensei Analyse (Live + Demo + Hybrid)
+  // ---------------------------------------------------------------------------
+
   /**
    * Sensei Analyse holen.
    * opts:
    *  - preferLive?: boolean
    *  - modeOverride?: "live" | "demo"
-   *  - creatives?, campaigns? (optional für Live)
+   *  - accountId?: string (optional, sonst aus AppState)
+   *  - creatives?, campaigns? (optional bei Direktaufruf)
    *
-   * Rückgabe: Objekt im gleichen Format wie /api/sensei/analyze.
+   * Rückgabe: Objekt im Format von /api/sensei/analyze.
    */
   async fetchSenseiAnalysis(opts = {}) {
     const mode = this._resolveMode(opts);
 
-    // DEMO erzwingen
+    // Demomodus erzwingen
     if (mode === "demo") {
       return buildDemoSenseiResponse();
     }
 
-    // LIVE bevorzugen, Demo fallback
     try {
-      const live = await fetchLiveSenseiAnalysis(opts);
+      let { creatives, campaigns } = opts;
+
+      // Wenn nichts übergeben → wir befüllen selbst aus DataLayer
+      if (
+        !Array.isArray(creatives) ||
+        !creatives.length ||
+        !Array.isArray(campaigns) ||
+        !campaigns.length
+      ) {
+        const state = getAppState();
+        const accountId =
+          opts.accountId ||
+          state.meta?.selectedAdAccountId ||
+          state.meta?.adAccountId ||
+          state.selectedAdAccountId ||
+          state.selectedAccountId ||
+          null;
+
+        if (!accountId) {
+          throw new Error(
+            "[DataLayer] No accountId available for live Sensei analysis."
+          );
+        }
+
+        const [campResult, creatResult] = await Promise.all([
+          this.fetchCampaignsForAccount({ accountId, preferLive: true }),
+          this.fetchCreativesForAccount({ accountId, preferLive: true }),
+        ]);
+
+        campaigns = campResult.items || [];
+        creatives = creatResult.items || [];
+      }
+
+      const live = await fetchLiveSenseiAnalysis({ creatives, campaigns });
       return live;
     } catch (err) {
       console.warn(
@@ -487,161 +652,9 @@ const DataLayer = {
     }
   },
 
-// -------------------------------------------------------
-// PHASE 1.1 — Campaigns Integration
-// -------------------------------------------------------
-
-import {
-  fetchLiveCampaigns,
-  fetchLiveCampaignInsights
-} from "./live/campaigns.js";
-import {
-  demoCampaignsForAccount,
-  demoInsightsForCampaign
-} from "./demo/campaigns.js";
-
-// Kampagnenliste
-DataLayer.fetchCampaignsForAccount = async function ({
-  accountId,
-  preferLive = false
-} = {}) {
-  const mode = this._resolveMode({ preferLive });
-
-  // DEMO
-  if (mode === "demo") {
-    return {
-      _source: "demo",
-      items: demoCampaignsForAccount(accountId)
-    };
-  }
-
-  // LIVE versuchen
-  try {
-    const token = getMetaAccessToken();
-    const live = await fetchLiveCampaigns({
-      accountId,
-      accessToken: token
-    });
-
-    return {
-      _source: "live",
-      items: live
-    };
-  } catch (err) {
-    console.warn("[DataLayer] fetchCampaigns fallback demo", err);
-    return {
-      _source: "demo-fallback",
-      items: demoCampaignsForAccount(accountId)
-    };
-  }
-};
-
-// Kampagnen-Insights
-DataLayer.fetchCampaignInsights = async function ({
-  campaignId,
-  preset = "last_7d",
-  preferLive = false
-}) {
-  const mode = this._resolveMode({ preferLive });
-
-  if (mode === "demo") {
-    return {
-      _source: "demo",
-      items: demoInsightsForCampaign(campaignId)
-    };
-  }
-
-  try {
-    const token = getMetaAccessToken();
-    const live = await fetchLiveCampaignInsights({
-      campaignId,
-      accessToken: token,
-      preset
-    });
-
-    return {
-      _source: "live",
-      items: live
-    };
-  } catch (err) {
-    console.warn("[DataLayer] insights fallback demo", err);
-    return {
-      _source: "demo-fallback",
-      items: demoInsightsForCampaign(campaignId)
-    };
-  }
-};
-
-// -------------------------------------------------------
-// PHASE 1.2 — Creatives Integration
-// -------------------------------------------------------
-
-import {
-  fetchLiveCreatives,
-  fetchLiveCreativeInsights
-} from "./live/creatives.js";
-import {
-  demoCreativesForAccount,
-  demoCreativeInsights
-} from "./demo/creatives.js";
-
-// Creatives holen
-DataLayer.fetchCreativesForAccount = async function ({
-  accountId,
-  preferLive = false
-} = {}) {
-  const mode = this._resolveMode({ preferLive });
-
-  if (mode === "demo") {
-    return { _source: "demo", items: demoCreativesForAccount(accountId) };
-  }
-
-  try {
-    const token = getMetaAccessToken();
-    const live = await fetchLiveCreatives({ accountId, accessToken: token });
-    return { _source: "live", items: live };
-  } catch (err) {
-    console.warn("[DataLayer] fetchCreatives fallback to demo", err);
-    return { _source: "demo-fallback", items: demoCreativesForAccount() };
-  }
-};
-
-// Creative Insights holen
-DataLayer.fetchCreativeInsights = async function ({
-  creativeId,
-  campaignId,
-  preset = "last_7d",
-  preferLive = false
-}) {
-  const mode = this._resolveMode({ preferLive });
-
-  if (mode === "demo") {
-    return { _source: "demo", items: demoCreativeInsights(creativeId) };
-  }
-
-  try {
-    const token = getMetaAccessToken();
-    const insights = await fetchLiveCreativeInsights({
-      campaignId,
-      accessToken: token,
-      preset
-    });
-    return { _source: "live", items: insights };
-  } catch (err) {
-    console.warn("[DataLayer] creative insights demo fallback", err);
-    return { _source: "demo-fallback", items: demoCreativeInsights(creativeId) };
-  }
-};
-
-
-  /**
-   * TODO Phase 1.x:
-   *  - fetchCampaignsForAccount({ accountId, preferLive })
-   *  - fetchCampaignInsights({ campaignId, preset, preferLive })
-   *  - fetchAdsForAccount({ accountId, preferLive })
-   *  - fetchTestingLog(...)
-   *  - fetchDashboardSummary(...)
-   */
+  // -------------------------------------------------------------------------
+  // Platzhalter für weitere Phase-1-Methoden (Testing Log, Dashboard, Roast)
+  // -------------------------------------------------------------------------
 };
 
 export default DataLayer;
