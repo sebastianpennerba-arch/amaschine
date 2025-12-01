@@ -652,6 +652,62 @@ const DataLayer = {
     }
   },
 
+  // -------------------------------------------------------
+// PHASE 1.4 — Testing Log Integration
+// -------------------------------------------------------
+
+import { buildLiveTestingLog } from "./live/testing.js";
+import { demoTestingLog } from "./demo/testing.js";
+
+DataLayer.fetchTestingLog = async function ({
+  accountId,
+  preferLive = false,
+} = {}) {
+  const mode = this._resolveMode({ preferLive });
+
+  // DEMO erzwingen
+  if (mode === "demo") {
+    return demoTestingLog();
+  }
+
+  try {
+    // Creatives + Insights holen
+    const [cre, campaigns] = await Promise.all([
+      this.fetchCreativesForAccount({ accountId, preferLive: true }),
+      this.fetchCampaignsForAccount({ accountId, preferLive: true }),
+    ]);
+
+    const creatives = cre.items || [];
+    const campaignList = campaigns.items || [];
+
+    // Insights pro Creative sammeln
+    const insightsMap = {};
+
+    for (const camp of campaignList) {
+      const ins = await this.fetchCampaignInsights({
+        campaignId: camp.id,
+        preferLive: true,
+      });
+
+      const rows = ins.items || [];
+
+      rows.forEach((row) => {
+        const cid = row.creative_id || row.ad_id || null;
+        if (!cid) return;
+        insightsMap[cid] = row;
+      });
+    }
+
+    return await buildLiveTestingLog({
+      creatives,
+      insightsByCreative: insightsMap,
+    });
+  } catch (err) {
+    console.warn("[DataLayer] TestingLog → Demo fallback", err);
+    return demoTestingLog();
+  }
+};
+
   // -------------------------------------------------------------------------
   // Platzhalter für weitere Phase-1-Methoden (Testing Log, Dashboard, Roast)
   // -------------------------------------------------------------------------
