@@ -1,8 +1,8 @@
 /*
  * packages/dashboard/render.js
- * 💎 ULTIMATE ELITE DASHBOARD - Teil 1/3
+ * 💎 ULTIMATE ELITE DASHBOARD
  * Design-Level: Bloomberg Terminal × Tesla Cybertruck × Diablo IV
- * 
+ *
  * Philosophie: Jedes Pixel erzählt eine Geschichte.
  * Jede Animation hat einen Grund. Jede Farbe trägt Bedeutung.
  */
@@ -32,19 +32,8 @@ function formatNumber(value, fractionDigits = 0, suffix = "") {
   );
 }
 
-function formatPercent(value, fractionDigits = 1) {
-  if (value == null || Number.isNaN(value)) return "—";
-  return (
-    value.toLocaleString("de-DE", {
-      minimumFractionDigits: fractionDigits,
-      maximumFractionDigits: fractionDigits,
-    }) + " %"
-  );
-}
-
 /* =========================
    HERO KPIs - ULTIMATE MONEY ENGINE
-   Bloomberg Terminal × Porsche Design
    ========================= */
 
 function renderHeroKpis(heroKpis) {
@@ -86,7 +75,7 @@ function renderHeroKpis(heroKpis) {
         pointer-events:none;
       "></div>
 
-      <!-- Animated Gradient Orbs - Physics-Based Movement -->
+      <!-- Animated Gradient Orbs -->
       <div style="
         position:absolute;
         top:-60%;
@@ -226,45 +215,66 @@ function renderHeroKpis(heroKpis) {
                 ? "▼"
                 : "●";
 
-            // Premium Status-Based Design System
             let statusConfig;
             if (kpi.status === "good") {
               statusConfig = {
-                gradient: "linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(5,150,105,0.06) 50%, rgba(4,120,87,0.03) 100%)",
-                borderGlow: "0 0 24px rgba(16,185,129,0.2), 0 0 12px rgba(16,185,129,0.15)",
+                gradient:
+                  "linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(5,150,105,0.06) 50%, rgba(4,120,87,0.03) 100%)",
+                borderGlow:
+                  "0 0 24px rgba(16,185,129,0.2), 0 0 12px rgba(16,185,129,0.15)",
                 dotGlow: "rgba(16,185,129,1)",
-                dotShadow: "0 0 16px rgba(16,185,129,0.8), 0 0 8px rgba(16,185,129,0.6), 0 0 4px rgba(16,185,129,0.4)",
+                dotShadow:
+                  "0 0 16px rgba(16,185,129,0.8), 0 0 8px rgba(16,185,129,0.6), 0 0 4px rgba(16,185,129,0.4)",
                 shimmerColor: "rgba(16,185,129,0.15)",
-                valueGradient: "linear-gradient(135deg, #065f46 0%, #047857 50%, #059669 100%)",
+                valueGradient:
+                  "linear-gradient(135deg, #065f46 0%, #047857 50%, #059669 100%)",
               };
             } else if (kpi.status === "critical") {
               statusConfig = {
-                gradient: "linear-gradient(135deg, rgba(239,68,68,0.12) 0%, rgba(220,38,38,0.06) 50%, rgba(185,28,28,0.03) 100%)",
-                borderGlow: "0 0 28px rgba(239,68,68,0.25), 0 0 14px rgba(239,68,68,0.18)",
+                gradient:
+                  "linear-gradient(135deg, rgba(239,68,68,0.12) 0%, rgba(220,38,38,0.06) 50%, rgba(185,28,28,0.03) 100%)",
+                borderGlow:
+                  "0 0 28px rgba(239,68,68,0.25), 0 0 14px rgba(239,68,68,0.18)",
                 dotGlow: "rgba(239,68,68,1)",
-                dotShadow: "0 0 20px rgba(239,68,68,0.9), 0 0 10px rgba(239,68,68,0.7), 0 0 5px rgba(239,68,68,0.5)",
+                dotShadow:
+                  "0 0 20px rgba(239,68,68,0.9), 0 0 10px rgba(239,68,68,0.7), 0 0 5px rgba(239,68,68,0.5)",
                 shimmerColor: "rgba(239,68,68,0.15)",
-                valueGradient: "linear-gradient(135deg, #991b1b 0%, #b91c1c 50%, #dc2626 100%)",
+                valueGradient:
+                  "linear-gradient(135deg, #991b1b 0%, #b91c1c 50%, #dc2626 100%)",
               };
             } else if (kpi.status === "warning") {
               statusConfig = {
-                gradient: "linear-gradient(135deg, rgba(245,158,11,0.12) 0%, rgba(217,119,6,0.06) 50%, rgba(180,83,9,0.03) 100%)",
-                borderGlow: "0 0 26px rgba(245,158,11,0.22), 0 0 13px rgba(245,158,11,0.16)",
+                gradient:
+                  "linear-gradient(135deg, rgba(245,158,11,0.12) 0%, rgba(217,119,6,0.06) 50%, rgba(180,83,9,0.03) 100%)",
+                borderGlow:
+                  "0 0 26px rgba(245,158,11,0.22), 0 0 13px rgba(245,158,11,0.16)",
                 dotGlow: "rgba(245,158,11,1)",
-                dotShadow: "0 0 18px rgba(245,158,11,0.85), 0 0 9px rgba(245,158,11,0.65), 0 0 4px rgba(245,158,11,0.45)",
+                dotShadow:
+                  "0 0 18px rgba(245,158,11,0.85), 0 0 9px rgba(245,158,11,0.65), 0 0 4px rgba(245,158,11,0.45)",
                 shimmerColor: "rgba(245,158,11,0.15)",
-                valueGradient: "linear-gradient(135deg, #92400e 0%, #b45309 50%, #d97706 100%)",
+                valueGradient:
+                  "linear-gradient(135deg, #92400e 0%, #b45309 50%, #d97706 100%)",
               };
             } else {
               statusConfig = {
-                gradient: "linear-gradient(135deg, rgba(100,116,139,0.08) 0%, rgba(71,85,105,0.04) 50%, rgba(51,65,85,0.02) 100%)",
+                gradient:
+                  "linear-gradient(135deg, rgba(100,116,139,0.08) 0%, rgba(71,85,105,0.04) 50%, rgba(51,65,85,0.02) 100%)",
                 borderGlow: "0 0 0 transparent",
                 dotGlow: "rgba(100,116,139,1)",
-                dotShadow: "0 0 12px rgba(100,116,139,0.5), 0 0 6px rgba(100,116,139,0.3)",
+                dotShadow:
+                  "0 0 12px rgba(100,116,139,0.5), 0 0 6px rgba(100,116,139,0.3)",
                 shimmerColor: "rgba(100,116,139,0.1)",
-                valueGradient: "linear-gradient(135deg, #475569 0%, #64748b 50%, #94a3b8 100%)",
+                valueGradient:
+                  "linear-gradient(135deg, #475569 0%, #64748b 50%, #94a3b8 100%)",
               };
             }
+
+            const valueDisplay =
+              kpi.unit === "currency"
+                ? formatCurrency(kpi.value)
+                : kpi.unit === "multiplier"
+                ? formatNumber(kpi.value, 1, "x")
+                : formatNumber(kpi.value, 0, "");
 
             return `
               <div
@@ -309,7 +319,7 @@ function renderHeroKpis(heroKpis) {
                   pointer-events:none;
                 "></div>
 
-                <!-- Status Indicator Dot - Diablo IV Style -->
+                <!-- Status Indicator Dot -->
                 <div style="
                   position:absolute;
                   top:18px;
@@ -369,7 +379,7 @@ function renderHeroKpis(heroKpis) {
                       animation-delay:${idx * 0.25}s;
                     "
                   >
-                    ${value}
+                    ${valueDisplay}
                   </div>
 
                   <!-- Trend Badge -->
@@ -436,7 +446,6 @@ function renderHeroKpis(heroKpis) {
     </div>
 
     <style>
-      /* Physics-Based Animations */
       @keyframes orb-float-1 {
         0%, 100% { 
           transform: translate(0, 0) rotate(0deg) scale(1);
@@ -500,9 +509,9 @@ function renderHeroKpis(heroKpis) {
     </style>
   `;
 }
+
 /* =========================
    ALERT-STRIP ULTIMATE
-   Tesla Cybertruck UI × SpaceX Mission Control
    ========================= */
 
 function renderAlertsStrip(alerts) {
@@ -669,7 +678,9 @@ function renderAlertsStrip(alerts) {
             letter-spacing:0.08em;
             font-weight:600;
           ">
-            ${alerts.items.length} ${alerts.items.length === 1 ? 'Signal' : 'Signale'} detektiert
+            ${alerts.items.length} ${
+    alerts.items.length === 1 ? "Signal" : "Signale"
+  } detektiert
           </span>
         </div>
       </div>
@@ -808,40 +819,53 @@ function renderAlertsStrip(alerts) {
 }
 
 /* =========================
-   PERFORMANCE CHART ULTIMATE
-   Bloomberg Terminal × Apple Vision Pro
+   PERFORMANCE-CHART
    ========================= */
 
 function renderPerformance(performance) {
   if (!performance || !performance.items || !performance.items.length) return "";
 
-  const maxRoas = performance.items.reduce((m, d) => (d.roas > m ? d.roas : m), 0);
-  const minRoas = performance.items.reduce((m, d) => (d.roas < m ? d.roas : m), maxRoas);
-  const avgRoas = performance.items.reduce((sum, d) => sum + d.roas, 0) / performance.items.length;
+  const maxRoas = performance.items.reduce(
+    (m, d) => (d.roas > m ? d.roas : m),
+    0
+  );
+  const minRoas = performance.items.reduce(
+    (m, d) => (d.roas < m ? d.roas : m),
+    maxRoas
+  );
+  const avgRoas =
+    performance.items.reduce((sum, d) => sum + d.roas, 0) /
+    performance.items.length;
 
   const rows = performance.items
     .map((d, idx) => {
       const width = maxRoas ? Math.max(8, Math.round((d.roas / maxRoas) * 100)) : 50;
-      const normalizedValue = (d.roas - minRoas) / (maxRoas - minRoas);
-      
-      // Advanced Color Gradient based on performance
+
       let barGradient, barGlow, performanceLevel;
       if (d.roas >= avgRoas * 1.1) {
         performanceLevel = "excellent";
-        barGradient = "linear-gradient(90deg, #10b981 0%, #059669 50%, #047857 100%)";
-        barGlow = "0 0 28px rgba(16,185,129,0.5), 0 4px 12px rgba(16,185,129,0.35) inset";
+        barGradient =
+          "linear-gradient(90deg, #10b981 0%, #059669 50%, #047857 100%)";
+        barGlow =
+          "0 0 28px rgba(16,185,129,0.5), 0 4px 12px rgba(16,185,129,0.35) inset";
       } else if (d.roas >= avgRoas * 0.95) {
         performanceLevel = "good";
-        barGradient = "linear-gradient(90deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)";
-        barGlow = "0 0 24px rgba(59,130,246,0.45), 0 4px 12px rgba(59,130,246,0.3) inset";
+        barGradient =
+          "linear-gradient(90deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)";
+        barGlow =
+          "0 0 24px rgba(59,130,246,0.45), 0 4px 12px rgba(59,130,246,0.3) inset";
       } else if (d.roas >= avgRoas * 0.8) {
         performanceLevel = "medium";
-        barGradient = "linear-gradient(90deg, #f59e0b 0%, #d97706 50%, #b45309 100%)";
-        barGlow = "0 0 20px rgba(245,158,11,0.4), 0 4px 12px rgba(245,158,11,0.25) inset";
+        barGradient =
+          "linear-gradient(90deg, #f59e0b 0%, #d97706 50%, #b45309 100%)";
+        barGlow =
+          "0 0 20px rgba(245,158,11,0.4), 0 4px 12px rgba(245,158,11,0.25) inset";
       } else {
         performanceLevel = "low";
-        barGradient = "linear-gradient(90deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%)";
-        barGlow = "0 0 22px rgba(239,68,68,0.42), 0 4px 12px rgba(239,68,68,0.28) inset";
+        barGradient =
+          "linear-gradient(90deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%)";
+        barGlow =
+          "0 0 22px rgba(239,68,68,0.42), 0 4px 12px rgba(239,68,68,0.28) inset";
       }
 
       return `
@@ -884,7 +908,7 @@ function renderPerformance(performance) {
 
           <!-- Chart Bar Container -->
           <div style="flex:1; position:relative;">
-            <!-- Background Track with Grid -->
+            <!-- Background Track -->
             <div
               style="
                 height:18px;
@@ -914,7 +938,9 @@ function renderPerformance(performance) {
                   background:${barGradient};
                   box-shadow:${barGlow};
                   animation: 
-                    bar-fill-ultimate 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) ${idx * 0.1}s backwards,
+                    bar-fill-ultimate 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) ${
+                      idx * 0.1
+                    }s backwards,
                     bar-pulse-${performanceLevel} 3s ease-in-out infinite;
                   animation-delay: ${idx * 0.1}s, ${idx * 0.1 + 0.8}s;
                   position:relative;
@@ -1001,7 +1027,6 @@ function renderPerformance(performance) {
       overflow:hidden;
       position:relative;
     ">
-      <!-- Subtle Grid Background -->
       <div style="
         position:absolute;
         top:0;
@@ -1057,11 +1082,19 @@ function renderPerformance(performance) {
         ">
           <div>
             <span style="color:#64748b;">Ø ROAS:</span>
-            <span style="color:#0f172a; font-weight:800; margin-left:4px;">${formatNumber(avgRoas, 1, "x")}</span>
+            <span style="color:#0f172a; font-weight:800; margin-left:4px;">${formatNumber(
+              avgRoas,
+              1,
+              "x"
+            )}</span>
           </div>
           <div>
             <span style="color:#64748b;">Peak:</span>
-            <span style="color:#059669; font-weight:800; margin-left:4px;">${formatNumber(maxRoas, 1, "x")}</span>
+            <span style="color:#059669; font-weight:800; margin-left:4px;">${formatNumber(
+              maxRoas,
+              1,
+              "x"
+            )}</span>
           </div>
         </div>
       </div>
@@ -1075,7 +1108,6 @@ function renderPerformance(performance) {
         ${rows}
       </div>
 
-      <!-- Summary Stats -->
       <div style="
         display:flex;
         justify-content:space-between;
@@ -1108,86 +1140,88 @@ function renderPerformance(performance) {
             margin-left:6px;
             font-variant-numeric:tabular-nums;
           ">
-            ${Math.round(performance.summary.conversions7d).toLocaleString("de-DE")}
+            ${Math.round(performance.summary.conversions7d).toLocaleString(
+              "de-DE"
+            )}
           </span>
         </span>
       </div>
+
+      <style>
+        @keyframes bar-fill-ultimate {
+          0% {
+            width: 0;
+            opacity: 0;
+            transform: scaleX(0);
+          }
+          100% {
+            opacity: 1;
+            transform: scaleX(1);
+          }
+        }
+
+        @keyframes liquid-flow {
+          0% { 
+            left: -100%; 
+          }
+          100% { 
+            left: 150%;
+          }
+        }
+
+        @keyframes bar-pulse-excellent {
+          0%, 100% {
+            filter: brightness(1) saturate(1);
+          }
+          50% {
+            filter: brightness(1.15) saturate(1.2);
+          }
+        }
+
+        @keyframes bar-pulse-good {
+          0%, 100% {
+            filter: brightness(1) saturate(1);
+          }
+          50% {
+            filter: brightness(1.1) saturate(1.1);
+          }
+        }
+
+        @keyframes bar-pulse-medium {
+          0%, 100% {
+            filter: brightness(1) saturate(1);
+          }
+          50% {
+            filter: brightness(1.05) saturate(1.05);
+          }
+        }
+
+        @keyframes bar-pulse-low {
+          0%, 100% {
+            filter: brightness(1) saturate(1);
+          }
+          50% {
+            filter: brightness(0.95) saturate(0.95);
+          }
+        }
+
+        @keyframes particle-glow {
+          0%, 100% {
+            opacity: 1;
+            transform: translateY(-50%) scale(1);
+          }
+          50% {
+            opacity: 0.6;
+            transform: translateY(-50%) scale(1.3);
+          }
+        }
+      </style>
     </div>
-
-    <style>
-      @keyframes bar-fill-ultimate {
-        0% {
-          width: 0;
-          opacity: 0;
-          transform: scaleX(0);
-        }
-        100% {
-          opacity: 1;
-          transform: scaleX(1);
-        }
-      }
-
-      @keyframes liquid-flow {
-        0% { 
-          left: -100%; 
-        }
-        100% { 
-          left: 150%;
-        }
-      }
-
-      @keyframes bar-pulse-excellent {
-        0%, 100% {
-          filter: brightness(1) saturate(1);
-        }
-        50% {
-          filter: brightness(1.15) saturate(1.2);
-        }
-      }
-
-      @keyframes bar-pulse-good {
-        0%, 100% {
-          filter: brightness(1) saturate(1);
-        }
-        50% {
-          filter: brightness(1.1) saturate(1.1);
-        }
-      }
-
-      @keyframes bar-pulse-medium {
-        0%, 100% {
-          filter: brightness(1) saturate(1);
-        }
-        50% {
-          filter: brightness(1.05) saturate(1.05);
-        }
-      }
-
-      @keyframes bar-pulse-low {
-        0%, 100% {
-          filter: brightness(1) saturate(1);
-        }
-        50% {
-          filter: brightness(0.95) saturate(0.95);
-        }
-      }
-
-      @keyframes particle-glow {
-        0%, 100% {
-          opacity: 1;
-          transform: translateY(-50%) scale(1);
-        }
-        50% {
-          opacity: 0.6;
-          transform: translateY(-50%) scale(1.3);
-        }
-      }
-    </style>
   `;
 }
+
 /* =========================
-   SENSEI BOX ULTIMATE
-   Aurora Borealis × AI Neural Network × Holographic UI
+   SENSEI BOX
    ========================= */
 
 function renderSenseiBox(sensei, brandName) {
@@ -1216,7 +1250,7 @@ function renderSenseiBox(sensei, brandName) {
         overflow:hidden;
       "
     >
-      <!-- Aurora Borealis Background -->
+      <!-- Aurora Background -->
       <div style="
         position:absolute;
         top:-60%;
@@ -1254,7 +1288,7 @@ function renderSenseiBox(sensei, brandName) {
         pointer-events:none;
       "></div>
 
-      <!-- Neural Network Grid -->
+      <!-- Neural Grid -->
       <div style="
         position:absolute;
         top:0;
@@ -1268,7 +1302,7 @@ function renderSenseiBox(sensei, brandName) {
         pointer-events:none;
       "></div>
 
-      <!-- Holographic Scan Lines -->
+      <!-- Scan Lines -->
       <div style="
         position:absolute;
         top:0;
@@ -1289,7 +1323,6 @@ function renderSenseiBox(sensei, brandName) {
 
       <!-- Header -->
       <div style="
-        border:none;
         padding-bottom:20px;
         position:relative;
         z-index:1;
@@ -1314,7 +1347,7 @@ function renderSenseiBox(sensei, brandName) {
         </h3>
         
         <div style="display:flex; align-items:center; gap:8px;">
-          <!-- AI Processing Indicator -->
+          <!-- AI Indicator -->
           <div style="
             display:flex;
             gap:4px;
@@ -1420,7 +1453,6 @@ function renderSenseiBox(sensei, brandName) {
             this.style.boxShadow='0 12px 32px rgba(99,102,241,0.4), 0 4px 12px rgba(99,102,241,0.3), 0 0 0 1px rgba(255,255,255,0.3) inset';
           "
         >
-          <!-- Button Shimmer -->
           <div style="
             position:absolute;
             top:0;
@@ -1436,67 +1468,345 @@ function renderSenseiBox(sensei, brandName) {
           </span>
         </button>
       </div>
+
+      <style>
+        @keyframes aurora-wave-1 {
+          0%, 100% {
+            transform: translate(0, 0) rotate(0deg) scale(1);
+          }
+          33% {
+            transform: translate(30px, -50px) rotate(5deg) scale(1.1);
+          }
+          66% {
+            transform: translate(-25px, -30px) rotate(-5deg) scale(0.95);
+          }
+        }
+
+        @keyframes aurora-wave-2 {
+          0%, 100% {
+            transform: translate(0, 0) rotate(0deg) scale(1);
+          }
+          40% {
+            transform: translate(-35px, 40px) rotate(-8deg) scale(1.08);
+          }
+          80% {
+            transform: translate(30px, 50px) rotate(8deg) scale(0.92);
+          }
+        }
+
+        @keyframes aurora-wave-3 {
+          0%, 100% {
+            transform: translate(0, 0) rotate(0deg) scale(1);
+          }
+          50% {
+            transform: translate(20px, -40px) rotate(10deg) scale(1.05);
+          }
+        }
+
+        @keyframes scanline-drift {
+          0% { transform: translateY(0); }
+          100% { transform: translateY(6px); }
+        }
+
+        @keyframes ai-pulse {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+          50% {
+            transform: scale(1.5);
+            opacity: 0.5;
+          }
+        }
+
+        @keyframes button-shimmer {
+          0% { 
+            left: -100%; 
+          }
+          100% { 
+            left: 200%;
+          }
+        }
+      </style>
     </div>
+  `;
+}
 
-    <style>
-      @keyframes aurora-wave-1 {
-        0%, 100% {
-          transform: translate(0, 0) rotate(0deg) scale(1);
-        }
-        33% {
-          transform: translate(30px, -50px) rotate(5deg) scale(1.1);
-        }
-        66% {
-          transform: translate(-25px, -30px) rotate(-5deg) scale(0.95);
-        }
-      }
+/* =========================
+   ALERTS CARD (DETAIL)
+   ========================= */
 
-      @keyframes aurora-wave-2 {
-        0%, 100% {
-          transform: translate(0, 0) rotate(0deg) scale(1);
-        }
-        40% {
-          transform: translate(-35px, 40px) rotate(-8deg) scale(1.08);
-        }
-        80% {
-          transform: translate(30px, 50px) rotate(8deg) scale(0.92);
-        }
-      }
+function renderAlertsCard(alerts) {
+  if (!alerts || !alerts.items || !alerts.items.length) {
+    return `
+      <div class="card dashboard-card" style="
+        border-radius:20px;
+        padding:20px 22px;
+        background:linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%);
+        border:1px solid rgba(148,163,184,0.25);
+        box-shadow:0 10px 28px rgba(15,23,42,0.08), 0 0 0 1px rgba(255,255,255,0.9) inset;
+      ">
+        <h3 style="font-size:1.05rem;font-weight:800;color:#0f172a;margin-bottom:6px;">System Signale</h3>
+        <p style="font-size:0.86rem;color:#6b7280;">Aktuell sind keine Warnsignale aktiv. Dein Account läuft stabil.</p>
+      </div>
+    `;
+  }
 
-      @keyframes aurora-wave-3 {
-        0%, 100% {
-          transform: translate(0, 0) rotate(0deg) scale(1);
-        }
-        50% {
-          transform: translate(20px, -40px) rotate(10deg) scale(1.05);
-        }
-      }
+  const itemsHtml = alerts.items
+    .map((a) => {
+      let badgeColor;
+      if (a.severity === "critical") badgeColor = "#ef4444";
+      else if (a.severity === "warning") badgeColor = "#f59e0b";
+      else badgeColor = "#22c55e";
 
-      @keyframes scanline-drift {
-        0% { transform: translateY(0); }
-        100% { transform: translateY(6px); }
-      }
+      return `
+        <li style="
+          padding:10px 0;
+          border-bottom:1px dashed rgba(148,163,184,0.45);
+          display:flex;
+          gap:10px;
+          align-items:flex-start;
+        ">
+          <span style="
+            margin-top:4px;
+            display:inline-block;
+            width:8px;
+            height:8px;
+            border-radius:999px;
+            background:${badgeColor};
+            box-shadow:0 0 8px ${badgeColor}55;
+          "></span>
+          <div>
+            <div style="font-size:0.84rem;font-weight:700;color:#0f172a;margin-bottom:2px;">
+              ${a.label}
+            </div>
+            <div style="font-size:0.8rem;color:#6b7280;line-height:1.5;">
+              ${a.message}
+            </div>
+          </div>
+        </li>
+      `;
+    })
+    .join("");
 
-      @keyframes ai-pulse {
-        0%, 100% {
-          transform: scale(1);
-          opacity: 1;
-        }
-        50% {
-          transform: scale(1.5);
-          opacity: 0.5;
-        }
-      }
+  return `
+    <div class="card dashboard-card" style="
+      border-radius:20px;
+      padding:20px 22px;
+      background:linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%);
+      border:1px solid rgba(148,163,184,0.25);
+      box-shadow:0 10px 28px rgba(15,23,42,0.08), 0 0 0 1px rgba(255,255,255,0.9) inset;
+      position:relative;
+      overflow:hidden;
+    ">
+      <div style="
+        position:absolute;
+        inset:0;
+        background:radial-gradient(circle at 0% 0%, rgba(248,250,252,0.7) 0%, transparent 55%);
+        pointer-events:none;
+      "></div>
 
-      @keyframes button-shimmer {
-        0% { 
-          left: -100%; 
-        }
-        100% { 
-          left: 200%;
-        }
-      }
-    </style>
+      <div style="position:relative;z-index:1;">
+        <h3 style="
+          font-size:1.05rem;
+          font-weight:800;
+          color:#0f172a;
+          margin-bottom:6px;
+        ">🚦 Account Signals</h3>
+        <p style="
+          font-size:0.84rem;
+          color:#6b7280;
+          margin-bottom:10px;
+        ">
+          Zusammenfassung der wichtigsten Hinweise für diesen Brand.
+        </p>
+        <ul style="list-style:none;margin:0;padding:0;">
+          ${itemsHtml}
+        </ul>
+      </div>
+    </div>
+  `;
+}
+
+/* =========================
+   TOP CREATIVES
+   ========================= */
+
+function renderTopCreatives(topCreatives) {
+  if (!topCreatives || !topCreatives.length) return `
+    <div class="card dashboard-card" style="
+      border-radius:20px;
+      padding:20px 22px;
+      background:linear-gradient(135deg,#f9fafb 0%,#e5e7eb 100%);
+      border:1px solid rgba(148,163,184,0.25);
+      box-shadow:0 10px 28px rgba(15,23,42,0.08),0 0 0 1px rgba(255,255,255,0.9) inset;
+    ">
+      <h3 style="font-size:1.05rem;font-weight:800;color:#0f172a;margin-bottom:6px;">Top Creatives</h3>
+      <p style="font-size:0.84rem;color:#6b7280;">Noch keine Demo-Creative-Daten definiert.</p>
+    </div>
+  `;
+
+  const rows = topCreatives
+    .map((c, idx) => {
+      const badge =
+        idx === 0 ? "Winner" : idx === 1 ? "Strong" : idx === 2 ? "Scale" : "Test";
+
+      return `
+        <tr
+          style="transition:background 0.18s ease, transform 0.18s ease;"
+          onmouseover="this.style.background='rgba(241,245,249,0.9)';this.style.transform='translateY(-1px)';"
+          onmouseout="this.style.background='transparent';this.style.transform='translateY(0)';"
+        >
+          <td style="padding:8px 0;font-size:0.78rem;color:#9ca3af;">${idx + 1}</td>
+          <td style="padding:8px 4px;font-size:0.84rem;font-weight:600;color:#0f172a;">
+            ${c.name}
+            <div style="font-size:0.75rem;color:#6b7280;margin-top:2px;">${c.type}</div>
+          </td>
+          <td style="padding:8px 4px;font-size:0.84rem;font-variant-numeric:tabular-nums;text-align:right;">
+            ${formatNumber(c.roas, 1, "x")}
+          </td>
+          <td style="padding:8px 4px;font-size:0.84rem;font-variant-numeric:tabular-nums;text-align:right;">
+            ${formatCurrency(c.spend)}
+          </td>
+          <td style="padding:8px 0;font-size:0.78rem;text-align:right;">
+            <span style="
+              display:inline-flex;
+              align-items:center;
+              padding:3px 8px;
+              border-radius:999px;
+              background:rgba(37,99,235,0.06);
+              color:#1d4ed8;
+              border:1px solid rgba(59,130,246,0.35);
+              font-weight:700;
+              letter-spacing:0.02em;
+            ">${badge}</span>
+          </td>
+        </tr>
+      `;
+    })
+    .join("");
+
+  return `
+    <div class="card dashboard-card" style="
+      border-radius:20px;
+      padding:20px 22px;
+      background:linear-gradient(135deg,#f9fafb 0%,#e5e7eb 100%);
+      border:1px solid rgba(148,163,184,0.25);
+      box-shadow:0 10px 28px rgba(15,23,42,0.08),0 0 0 1px rgba(255,255,255,0.9) inset;
+      position:relative;
+      overflow:hidden;
+    ">
+      <div style="
+        position:absolute;
+        inset:0;
+        background:radial-gradient(circle at 100% 0%,rgba(219,234,254,0.9) 0%,transparent 55%);
+        pointer-events:none;
+      "></div>
+
+      <div style="position:relative;z-index:1;">
+        <h3 style="font-size:1.05rem;font-weight:800;color:#0f172a;margin-bottom:6px;">🏆 Top Creatives</h3>
+        <p style="font-size:0.84rem;color:#6b7280;margin-bottom:10px;">
+          Deine stärksten Ads nach ROAS & Spend – perfekte Kandidaten für Skalierung & Varianten.
+        </p>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr style="font-size:0.75rem;color:#9ca3af;text-align:left;">
+                <th style="padding-bottom:6px;">#</th>
+                <th style="padding-bottom:6px;">Creative</th>
+                <th style="padding-bottom:6px;text-align:right;">ROAS</th>
+                <th style="padding-bottom:6px;text-align:right;">Spend</th>
+                <th style="padding-bottom:6px;text-align:right;">Tag</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* =========================
+   BUDGET STATUS
+   ========================= */
+
+function renderBudgetStatus(budgetStatus) {
+  if (!budgetStatus || !budgetStatus.length) return "";
+
+  const rows = budgetStatus
+    .map((row) => {
+      let barColor;
+      if (row.status === "critical") barColor = "#ef4444";
+      else if (row.status === "warning") barColor = "#f59e0b";
+      else barColor = "#22c55e";
+
+      const pct = Math.round(row.ratio * 100);
+
+      return `
+        <div style="margin-bottom:10px;">
+          <div style="
+            display:flex;
+            justify-content:space-between;
+            font-size:0.8rem;
+            margin-bottom:4px;
+            color:#475569;
+          ">
+            <span style="font-weight:600;">${row.name}</span>
+            <span style="font-variant-numeric:tabular-nums;">
+              ${formatCurrency(row.spend)} / ${formatCurrency(row.monthlyBudget)}
+            </span>
+          </div>
+          <div style="
+            height:12px;
+            border-radius:999px;
+            background:rgba(226,232,240,0.9);
+            overflow:hidden;
+            position:relative;
+          ">
+            <div style="
+              width:${Math.min(pct, 120)}%;
+              height:100%;
+              background:linear-gradient(90deg, ${barColor} 0%, ${barColor}cc 60%, ${barColor}99 100%);
+              box-shadow:0 0 16px ${barColor}66;
+            "></div>
+            <div style="
+              position:absolute;
+              inset:0;
+              background:linear-gradient(180deg,rgba(255,255,255,0.7) 0%,transparent 100%);
+            "></div>
+          </div>
+          <div style="
+            display:flex;
+            justify-content:space-between;
+            font-size:0.7rem;
+            color:#6b7280;
+            margin-top:3px;
+          ">
+            <span>${pct}% des Monatsbudgets</span>
+            <span>${row.status === "critical" ? "Über Budget" : row.status === "warning" ? "Nahe Limit" : "Im Rahmen"}</span>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+
+  return `
+    <div class="card dashboard-card" style="
+      border-radius:20px;
+      padding:20px 22px;
+      background:linear-gradient(135deg,#f9fafb 0%,#e5e7eb 100%);
+      border:1px solid rgba(148,163,184,0.25);
+      box-shadow:0 10px 28px rgba(15,23,42,0.08),0 0 0 1px rgba(255,255,255,0.9) inset;
+    ">
+      <h3 style="font-size:1.05rem;font-weight:800;color:#0f172a;margin-bottom:6px;">💰 Budget-Status (Monat)</h3>
+      <p style="font-size:0.84rem;color:#6b7280;margin-bottom:12px;">
+        Überblick, wie stark deine Brands ihr geplantes Monatsbudget bereits ausschöpfen.
+      </p>
+      ${rows}
+    </div>
   `;
 }
 
@@ -1584,7 +1894,6 @@ export function renderDashboard(section, appState, demoModeActive) {
     ${senseiHtml}
   `;
 
-  // Sensei CTA → Navigation
   const senseiBtn = section.querySelector("#senseiCtaButton");
   if (
     senseiBtn &&
