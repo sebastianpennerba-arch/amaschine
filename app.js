@@ -119,13 +119,6 @@ function useDemoMode() {
 }
 
 import MetaAuth from "./packages/metaAuth/index.js";
-/**
- * DataLayer global bereitstellen, damit sowohl neue (ES-Module)
- * als auch ältere Module (window.SignalOne.DataLayer) funktionieren.
- * Wenn das Modul fehlt, schlägt der Import im Browser fehl – hier
- * gehen wir davon aus, dass /packages/data/index.js existiert. :contentReference[oaicite:1]{index=1}
- */
-import * as DataLayer from "./packages/data/index.js";
 
 /* ----------------------------------------------------------
    MODULE REGISTRY & LABELS
@@ -209,6 +202,57 @@ const moduleIconIds = {
   onboarding: "icon-onboarding",
   settings: "icon-settings",
 };
+
+/* ----------------------------------------------------------
+   MODULE FALLBACK COPY (für MVP-Sicherheit)
+-----------------------------------------------------------*/
+
+const moduleFallbackCopy = {
+  dashboard: {
+    kicker: "SignalOne • Mission Control",
+    title: "Dashboard wird geladen",
+    body:
+      "Das Dashboard-Modul konnte nicht geladen werden. Im Live-System zeigt dieser Bereich deine Performance-Signale, KPIs und Alerts.",
+  },
+  creativeLibrary: {
+    kicker: "Creative Library",
+    title: "Creative Library Demo",
+    body:
+      "Die Creative Library ist noch nicht vollständig initialisiert. Normalerweise siehst du hier alle Creatives inkl. Scores, Varianten und Test-Slots.",
+  },
+  campaigns: {
+    kicker: "Campaign Engine",
+    title: "Kampagnen-Übersicht",
+    body:
+      "Die Kampagnen-Engine konnte nicht geladen werden. In der finalen Version erscheinen hier alle Kampagnen mit Health-Badges und Insights.",
+  },
+  testingLog: {
+    kicker: "Testing Log",
+    title: "Testing Log",
+    body:
+      "Der Testing Log sammelt alle A/B-Tests aus der Creative Library. Aktuell ist das Modul noch nicht vollständig verbunden.",
+  },
+  sensei: {
+    kicker: "AdSensei • AI Suite",
+    title: "Sensei Analyse",
+    body:
+      "Sensei analysiert deine Creatives, Hooks und Offers. Sobald das Modul verbunden ist, erscheinen hier AI-Empfehlungen.",
+  },
+  roast: {
+    kicker: "Roast by Sensei",
+    title: "Creative Roast",
+    body:
+      "Im Roast-Modul kannst du einzelne Creatives hochladen und ein AI-basiertes Review erhalten.",
+  },
+};
+
+/* Small helper to avoid breaking markup when we show Fehlertext */
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
 
 /* ----------------------------------------------------------
    SVG ICON HELPERS
@@ -449,7 +493,7 @@ function renderNav() {
 }
 
 /* ----------------------------------------------------------
-   META DEMO CONNECT
+   META DEMO CONNECT / LIVE CONNECT
 -----------------------------------------------------------*/
 function toggleMetaConnection() {
   AppState.metaConnected = !AppState.metaConnected;
@@ -470,6 +514,55 @@ function toggleMetaConnection() {
   updateViewSubheaders();
 
   loadModule(AppState.currentModule);
+}
+
+async function handleMetaConnectClick() {
+  // Standard: Demo-Mode → nur UI-Toggle. Live folgt in P5.
+  const isDemoMode = AppState.settings.demoMode === true;
+
+  if (isDemoMode) {
+    toggleMetaConnection();
+    return;
+  }
+
+  try {
+    showGlobalLoader();
+
+    if (AppState.metaConnected) {
+      // Live-Verbindung trennen
+      if (MetaAuth && typeof MetaAuth.disconnect === "function") {
+        await MetaAuth.disconnect();
+      }
+      AppState.metaConnected = false;
+      AppState.meta.token = null;
+      AppState.meta.user = null;
+      showToast("Meta Live-Verbindung getrennt.", "warning");
+    } else {
+      // Live verbinden
+      if (MetaAuth && typeof MetaAuth.connectWithPopup === "function") {
+        const result = await MetaAuth.connectWithPopup();
+        AppState.metaConnected = true;
+        if (result?.token) AppState.meta.token = result.token;
+        if (result?.user) AppState.meta.user = result.user;
+      } else {
+        AppState.metaConnected = true;
+      }
+      showToast("Meta Live-Verbindung hergestellt.", "success");
+    }
+  } catch (err) {
+    console.error("[SignalOne] Meta Connect Fehler:", err);
+    showToast("Meta-Verbindung fehlgeschlagen. Bitte erneut versuchen.", "error");
+    pushNotification("error", "Meta-Verbindung fehlgeschlagen", {
+      error: String(err),
+    });
+  } finally {
+    hideGlobalLoader();
+    updateMetaStatusUI();
+    updateCampaignHealthUI();
+    updateTopbarGreeting();
+    updateViewSubheaders();
+    loadModule(AppState.currentModule);
+  }
 }
 
 /* ----------------------------------------------------------
@@ -721,6 +814,37 @@ function fadeIn(el) {
 }
 
 /* ----------------------------------------------------------
+   MODULE FALLBACK RENDERER (für nicht implementierte / fehlerhafte Module)
+-----------------------------------------------------------*/
+function renderModuleFallback(section, key, error) {
+  if (!section) return;
+  const label = getLabelForModule(key);
+  const copy = moduleFallbackCopy[key] || {
+    kicker: "SignalOne Modul",
+    title: label,
+    body:
+      "Dieses Modul ist noch nicht vollständig implementiert. Die Datenstruktur und der SPA-Router sind bereits vorbereitet.",
+  };
+
+  const errorHtml = error
+    ? `<p class="view-empty-error">Technisches Detail: <code>${escapeHtml(
+        String(error)
+      )}</code></p>`
+    : "";
+
+  section.innerHTML = `
+    <div class="view-header">
+      <h2>${copy.kicker}</h2>
+    </div>
+    <div class="card view-empty">
+      <h3>${copy.title}</h3>
+      <p>${copy.body}</p>
+      ${errorHtml}
+    </div>
+  `;
+}
+
+/* ----------------------------------------------------------
    MODULE LOADING & NAVIGATION
 -----------------------------------------------------------*/
 async function loadModule(key) {
@@ -730,6 +854,7 @@ async function loadModule(key) {
 
   if (!loader || !section) {
     console.warn("[SignalOne] Modul nicht gefunden:", key, viewId);
+    renderModuleFallback(section, key, "Missing module loader");
     return;
   }
 
@@ -738,8 +863,12 @@ async function loadModule(key) {
     !AppState.metaConnected &&
     !useDemoMode()
   ) {
-    section.innerHTML =
-      "<p>Dieses Modul benötigt eine Meta-Verbindung oder den Demo-Modus.</p>";
+    section.innerHTML = `
+      <div class="card view-empty">
+        <h3>Meta-Verbindung benötigt</h3>
+        <p>Dieses Modul benötigt eine Meta-Verbindung oder den Demo-Modus. Bitte oben im Topbar verbinden.</p>
+      </div>
+    `;
     showToast("Bitte Meta verbinden oder Demo-Modus aktivieren.", "warning");
     updateCampaignHealthUI();
     return;
@@ -752,15 +881,17 @@ async function loadModule(key) {
     const module = await loader();
     if (module?.render) {
       section.innerHTML = "";
-      module.render(section, AppState, { useDemoMode: useDemoMode() });
+      // render kann async sein – wir warten bewusst
+      await module.render(section, AppState, { useDemoMode: useDemoMode() });
       fadeIn(section);
     } else {
-      section.textContent = `Das Modul "${key}" ist noch nicht implementiert.`;
+      console.warn("[SignalOne] Modul ohne render()-Methode:", key);
+      renderModuleFallback(section, key, "render() nicht vorhanden");
     }
     AppState.systemHealthy = true;
   } catch (err) {
     console.error("[SignalOne] Fehler beim Laden", key, err);
-    section.textContent = `Fehler beim Laden des Moduls "${key}".`;
+    renderModuleFallback(section, key, err);
     showToast(`Fehler beim Laden von ${getLabelForModule(key)}`, "error");
     pushNotification("error", `Modulfehler: ${getLabelForModule(key)}`, {
       module: key,
@@ -805,39 +936,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const initialViewId = getViewIdForModule(AppState.currentModule);
   setActiveView(initialViewId);
 
-  const metaBtn = document.getElementById("metaConnectButton");
-  metaBtn?.addEventListener("click", async () => {
-    /**
-     * Strategie:
-     * 1. Versuchen, den echten MetaAuth-Flow zu nutzen.
-     * 2. Wenn er scheitert (Popup-Blocker, kein Backend, Fehler),
-     *    automatisch in eine stabile Demo-Verbindung toggeln. :contentReference[oaicite:2]{index=2}
-     */
-    try {
-      const result = await MetaAuth.connectWithPopup?.();
-
-      // Falls MetaAuth ein Ergebnis-Objekt liefert, in den AppState spiegeln.
-      if (result && result.token) {
-        AppState.metaConnected = true;
-        AppState.meta.token = result.token;
-        if (result.user) {
-          AppState.meta.user = result.user;
-        }
-        showToast("Meta Live-Verbindung hergestellt.", "success");
-      }
-    } catch (err) {
-      console.warn(
-        "[SignalOne] MetaAuth Popup-Fehler, falle zurück auf Demo-Verbindung.",
-        err
-      );
-      toggleMetaConnection();
-    } finally {
-      updateMetaStatusUI();
-      updateTopbarGreeting();
-      updateViewSubheaders();
-      loadModule(AppState.currentModule);
-    }
-  });
+  document
+    .getElementById("metaConnectButton")
+    ?.addEventListener("click", () => {
+      handleMetaConnectClick();
+    });
 
   updateMetaStatusUI();
   updateSystemHealthUI();
@@ -924,7 +1027,4 @@ window.SignalOne = {
     fadeIn,
     useDemoMode,
   },
-  // DataLayer global verfügbar machen (hybride Nutzung: ES Imports + window)
-  DataLayer,
-  DemoData,
 };
