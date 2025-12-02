@@ -3,19 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SignalOne – Performance Dashboard</title>
-
-    <!-- Core CSS -->
+    <title>SignalOne – Dashboard</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
 
   <body>
-
-    <!-- ============================================================
-         SVG ICON LIBRARY (HIDDEN)
-         ============================================================ -->
+    <!-- ===============================================
+         SVG ICON LIBRARY (INLINE, INVISIBLE)
+         =============================================== -->
     <svg width="0" height="0" style="position:absolute;visibility:hidden">
-      <!-- Dashboard -->
+      <!-- SIDEBAR ICONS -->
       <symbol id="icon-dashboard" viewBox="0 0 24 24">
         <rect class="icon-layer-fill" x="3" y="3" width="8" height="8" rx="2" />
         <rect class="icon-layer-stroke" x="3" y="3" width="8" height="8" rx="2" />
@@ -26,7 +23,6 @@
         <path class="icon-layer-stroke" d="M12 8l3-3" />
       </symbol>
 
-      <!-- Creative Library -->
       <symbol id="icon-library" viewBox="0 0 24 24">
         <rect class="icon-layer-fill" x="4" y="4" width="16" height="16" rx="2" />
         <rect class="icon-layer-stroke" x="4" y="4" width="16" height="16" rx="2" />
@@ -36,7 +32,6 @@
         <circle class="icon-layer-stroke" cx="16.5" cy="15.5" r="0.8" />
       </symbol>
 
-      <!-- Campaigns -->
       <symbol id="icon-campaigns" viewBox="0 0 24 24">
         <path class="icon-layer-fill" d="M5 4h8l2 3-2 3H5z" />
         <path class="icon-layer-stroke" d="M5 4h8l2 3-2 3H5z" />
@@ -44,88 +39,154 @@
         <path class="icon-layer-stroke" d="M14 12h5l-2 3 2 3h-5" />
       </symbol>
 
-      <!-- Sensei -->
       <symbol id="icon-sensei" viewBox="0 0 24 24">
-        <path class="icon-layer-fill"
-          d="M9 4a3 3 0 0 0-3 3v2.2A3 3 0 0 0 5 12a3 3 0 0 0 1 2.2V16a3 3 0 0 0 3 3"
-        />
-        <path class="icon-layer-fill"
-          d="M15 4a3 3 0 0 1 3 3v2.2A3 3 0 0 1 19 12a3 3 0 0 1-1 2.2V16a3 3 0 0 1-3 3"
-        />
-        <path class="icon-layer-stroke"
-          d="M9 4a3 3 0 0 0-3 3v2.2A3 3 0 0 0 5 12a3 3 0 0 0 1 2.2V16a3 3 0 0 0 3 3h1"
-        />
-        <path class="icon-layer-stroke"
-          d="M15 4a3 3 0 0 1 3 3v2.2A3 3 0 0 1 19 12a3 3 0 0 1-1 2.2V16a3 3 0 0 1-3 3h-1"
-        />
+        <path class="icon-layer-fill" d="M9 4a3 3 0 0 0-3 3v2.2A3 3 0 0 0 5 12a3 3 0 0 0 1 2.2V16a3 3 0 0 0 3 3" />
+        <path class="icon-layer-fill" d="M15 4a3 3 0 0 1 3 3v2.2A3 3 0 0 1 19 12a3 3 0 0 1-1 2.2V16a3 3 0 0 1-3 3" />
+        <path class="icon-layer-stroke" d="M9 4a3 3 0 0 0-3 3v2.2A3 3 0 0 0 5 12a3 3 0 0 0 1 2.2V16a3 3 0 0 0 3 3h1" />
+        <path class="icon-layer-stroke" d="M15 4a3 3 0 0 1 3 3v2.2A3 3 0 0 1 19 12a3 3 0 0 1-1 2.2V16a3 3 0 0 1-3 3h-1" />
+        <path class="icon-layer-stroke" d="M10 9h1.5M12.5 11H14M10 13h1.5" />
       </symbol>
 
-      <!-- Testing Log -->
       <symbol id="icon-testing" viewBox="0 0 24 24">
-        <path class="icon-layer-stroke"
-          d="M9 3h6M10 3v5.5L6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l-4-10.5V3"
-        />
+        <path class="icon-layer-stroke" d="M9 3h6M10 3v5.5L6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l-4-10.5V3" />
         <path class="icon-layer-fill" d="M9 11h6l2 5H7z" />
+        <circle class="icon-layer-stroke" cx="11" cy="13" r="0.7" />
+        <circle class="icon-layer-stroke" cx="13" cy="15" r="0.7" />
       </symbol>
 
-      <!-- Roast -->
+      <symbol id="icon-reports" viewBox="0 0 24 24">
+        <rect class="icon-layer-fill" x="5" y="3" width="14" height="18" rx="2" />
+        <rect class="icon-layer-stroke" x="5" y="3" width="14" height="18" rx="2" />
+        <path class="icon-layer-stroke" d="M9 8h6M9 11h4" />
+        <path class="icon-layer-stroke" d="M9 16l2 2 4-5" />
+      </symbol>
+
+      <symbol id="icon-creators" viewBox="0 0 24 24">
+        <circle class="icon-layer-fill" cx="9" cy="8" r="3" />
+        <circle class="icon-layer-stroke" cx="9" cy="8" r="3" />
+        <path class="icon-layer-stroke" d="M4 21v-1.5C4 17.5 6 16 9 16s5 1.5 5 3.5V21" />
+        <path class="icon-layer-stroke" d="M17.5 9.2l.7 1.4 1.5.2-1.1 1.1.3 1.5-1.4-.7-1.4.7.3-1.5-1.1-1.1 1.5-.2z" />
+      </symbol>
+
+      <symbol id="icon-analytics" viewBox="0 0 24 24">
+        <rect class="icon-layer-fill" x="4" y="12" width="4" height="8" rx="1" />
+        <rect class="icon-layer-stroke" x="4" y="12" width="4" height="8" rx="1" />
+        <rect class="icon-layer-fill" x="10" y="9" width="4" height="11" rx="1" />
+        <rect class="icon-layer-stroke" x="10" y="9" width="4" height="11" rx="1" />
+        <rect class="icon-layer-fill" x="16" y="6" width="4" height="14" rx="1" />
+        <rect class="icon-layer-stroke" x="16" y="6" width="4" height="14" rx="1" />
+        <path class="icon-layer-stroke" d="M4 10l4-3 4 2 4-4 4 3" />
+      </symbol>
+
+      <symbol id="icon-team" viewBox="0 0 24 24">
+        <circle class="icon-layer-fill" cx="8" cy="8" r="3" />
+        <circle class="icon-layer-stroke" cx="8" cy="8" r="3" />
+        <circle class="icon-layer-fill" cx="16" cy="8" r="3" />
+        <circle class="icon-layer-stroke" cx="16" cy="8" r="3" />
+        <path class="icon-layer-stroke" d="M3 21v-1.5C3 17.5 5 16 8 16s5 1.5 5 3.5V21" />
+        <path class="icon-layer-stroke" d="M11 21v-1.5c0-2 2-3.5 5-3.5s5 1.5 5 3.5V21" />
+      </symbol>
+
+      <symbol id="icon-brands" viewBox="0 0 24 24">
+        <circle class="icon-layer-fill" cx="12" cy="12" r="9" />
+        <circle class="icon-layer-stroke" cx="12" cy="12" r="9" />
+        <path class="icon-layer-stroke" d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
+      </symbol>
+
+      <symbol id="icon-shopify" viewBox="0 0 24 24">
+        <path class="icon-layer-fill" d="M6 7a2 2 0 0 1 2-2h8l2 3v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z" />
+        <path class="icon-layer-stroke" d="M6 7a2 2 0 0 1 2-2h8l2 3v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z" />
+        <path class="icon-layer-stroke" d="M10 9h2.5a2 2 0 1 1-2 2.2" />
+      </symbol>
+
       <symbol id="icon-roast" viewBox="0 0 24 24">
-        <path class="icon-layer-fill"
-          d="M12 3c3 3 4 5.5 4 8a4 4 0 0 1-8 0c0-2.5 1-5 4-8z"
-        />
-        <path class="icon-layer-stroke"
-          d="M12 3c3 3 4 5.5 4 8a4 4 0 0 1-8 0c0-2.5 1-5 4-8z"
-        />
+        <path class="icon-layer-fill" d="M12 3c3 3 4 5.5 4 8a4 4 0 0 1-8 0c0-2.5 1-5 4-8z" />
+        <path class="icon-layer-stroke" d="M12 3c3 3 4 5.5 4 8a4 4 0 0 1-8 0c0-2.5 1-5 4-8z" />
+        <path class="icon-layer-stroke" d="M12 22a4 4 0 0 1-4-4c0-1.6.9-3 2.2-3.6" />
+      </symbol>
+
+      <symbol id="icon-onboarding" viewBox="0 0 24 24">
+        <path class="icon-layer-fill" d="M12 2c4 1 7 4.5 7 9.5 0 1.5-.3 3-1 4.5L12 22l-6-6.9c-.7-1.5-1-3-1-4.5C5 6.5 8 3 12 2z" />
+        <path class="icon-layer-stroke" d="M12 2c4 1 7 4.5 7 9.5 0 1.5-.3 3-1 4.5L12 22l-6-6.9c-.7-1.5-1-3-1-4.5C5 6.5 8 3 12 2z" />
+        <circle class="icon-layer-stroke" cx="12" cy="9" r="2" />
+      </symbol>
+
+      <symbol id="icon-settings" viewBox="0 0 24 24">
+        <circle class="icon-layer-fill" cx="12" cy="12" r="3" />
+        <circle class="icon-layer-stroke" cx="12" cy="12" r="3" />
+        <path class="icon-layer-stroke" d="M4 13h2l1 2.5-1.5 1.5 2.1 2.1 1.5-1.5L11 20h2l1-2.4 1.5 1.5 2.1-2.1-1.5-1.5L20 13v-2l-2.4-1 1.5-1.5-2.1-2.1-1.5 1.5L13 4h-2l-1 2.5-1.5-1.5-2.1 2.1 1.5 1.5L4 11z" />
+      </symbol>
+
+      <symbol id="icon-workspace" viewBox="0 0 24 24">
+        <rect class="icon-layer-fill" x="4" y="5" width="16" height="14" rx="3" />
+        <rect class="icon-layer-stroke" x="4" y="5" width="16" height="14" rx="3" />
+        <circle class="icon-layer-stroke" cx="9" cy="11" r="2.3" />
+        <path class="icon-layer-stroke" d="M7.2 16.5c.5-1.3 1.4-2 2.8-2s2.3.7 2.8 2" />
+        <path class="icon-layer-stroke" d="M15 9h3" />
+        <path class="icon-layer-stroke" d="M15 12h2.5" />
+      </symbol>
+
+      <symbol id="icon-info" viewBox="0 0 24 24">
+        <circle class="icon-layer-stroke" cx="12" cy="12" r="9" />
+        <line class="icon-layer-stroke" x1="12" y1="8" x2="12" y2="12.5" />
+        <circle class="icon-layer-stroke" cx="12" cy="6" r="0.6" />
+      </symbol>
+
+      <symbol id="icon-bell" viewBox="0 0 24 24">
+        <path class="icon-layer-stroke" d="M15 17h-6a4 4 0 0 1-4-4v-1a7 7 0 0 1 14 0v1a4 4 0 0 1-4 4Z" />
+        <path class="icon-layer-stroke" d="M10 21a2 2 0 0 0 4 0" />
+      </symbol>
+
+      <symbol id="icon-user" viewBox="0 0 24 24">
+        <circle class="icon-layer-stroke" cx="12" cy="8" r="4" />
+        <path class="icon-layer-stroke" d="M4 21c0-4 4-7 8-7s8 3 8 7" />
+      </symbol>
+
+      <symbol id="icon-power" viewBox="0 0 24 24">
+        <line class="icon-layer-stroke" x1="12" y1="3" x2="12" y2="11" />
+        <path class="icon-layer-stroke" d="M7.5 5.75a7 7 0 1 0 9 0" />
       </symbol>
     </svg>
 
-    <!-- ============================================================
+    <!-- ===============================================
          SIDEBAR
-         ============================================================ -->
+         =============================================== -->
     <nav class="sidebar">
-
       <div class="sidebar-header">
-        <div class="sidebar-logo">SignalOne.cloud</div>
+        <div class="sidebar-logo">SignalOne</div>
       </div>
 
       <ul class="sidebar-nav" id="navbar"></ul>
 
-      <div class="sidebar-status">
+      <div class="sidebar-footer">
         <div class="sidebar-status-row">
-          <span id="sidebarSystemDot" class="sidebar-dot"></span>
+          <span id="sidebarSystemDot" class="status-dot"></span>
           <span id="sidebarSystemLabel">System Health: OK</span>
         </div>
-
         <div class="sidebar-status-row">
-          <span id="sidebarCampaignDot" class="sidebar-dot"></span>
-          <span id="sidebarCampaignLabel">Campaign Health: Stark</span>
+          <span id="sidebarCampaignDot" class="status-dot"></span>
+          <span id="sidebarCampaignLabel">Campaign Health: n/a</span>
         </div>
-
         <div class="sidebar-status-row">
-          <span id="sidebarMetaDot" class="sidebar-dot danger"></span>
+          <span id="sidebarMetaDot" class="status-dot"></span>
           <span id="sidebarMetaLabel">Meta Ads: Getrennt</span>
         </div>
-      </div>
 
-      <div class="sidebar-footer">
-        <button id="settingsButton" class="sidebar-settings-button">
+        <button id="settingsButton" class="sidebar-footer-button" type="button" data-tooltip="Einstellungen">
           SETTINGS
         </button>
       </div>
-
     </nav>
 
-    <!-- ============================================================
+    <!-- ===============================================
          APP-SHELL + TOPBAR
-         ============================================================ -->
+         =============================================== -->
     <div class="app-shell">
-
       <header id="topbar">
-
         <div class="topbar-left">
           <div class="topbar-greeting">
-            <div id="topbarGreeting">Guten Tag!</div>
-            <div class="topbar-datetime">
+            <div id="topbarGreeting">Guten Tag, Nutzer!</div>
+            <div class="topbar-greeting-meta">
               <span id="topbarDate">Datum: —</span>
               <span id="topbarTime">Zeit: —</span>
             </div>
@@ -133,205 +194,87 @@
         </div>
 
         <div class="topbar-center">
-
           <div class="topbar-select-group">
-            <span class="topbar-select-label">BRAND</span>
-            <div class="topbar-select-wrapper">
-              <select id="brandSelect" class="topbar-select enhanced-select">
-                <option>Werbekonto auswählen</option>
-              </select>
-            </div>
+            <label>Brand</label>
+            <select id="brandSelect" class="topbar-select">
+              <option>Werbekonto auswählen</option>
+            </select>
           </div>
 
           <div class="topbar-select-group">
-            <span class="topbar-select-label">KAMPAGNE</span>
-            <div class="topbar-select-wrapper">
-              <select id="campaignSelect" class="topbar-select enhanced-select">
-                <option>Kampagne auswählen</option>
-              </select>
-            </div>
+            <label>Kampagne</label>
+            <select id="campaignSelect" class="topbar-select">
+              <option>Kampagne auswählen</option>
+            </select>
           </div>
-
         </div>
 
         <div class="topbar-right">
-          <button id="metaConnectButton" class="meta-button" type="button">
-            <span class="label">META VERBINDEN</span>
+          <button id="metaConnectButton" class="meta-button" type="button" data-tooltip="Meta verbinden / trennen">
+            META VERBINDEN
           </button>
 
-          <button id="infoButton" class="icon-button">
-            <svg class="icon-svg-top"><use href="#icon-info"></use></svg>
+          <button id="notificationsButton" class="icon-button" type="button" data-tooltip="System-Info">
+            <span style="font-size: 1.1rem; font-weight: 700; color: #4b5563;">i</span>
+            <span id="notificationsDot" class="notification-dot hidden"></span>
           </button>
 
-          <button id="profileButton" class="icon-button">
+          <button id="profileButton" class="icon-button" type="button" data-tooltip="Profil & Konto">
             <svg class="icon-svg-top"><use href="#icon-user"></use></svg>
           </button>
 
-          <button id="logoutButton" class="icon-button">
+          <button id="logoutButton" class="icon-button" type="button" data-tooltip="Demo-Logout / Reset">
             <svg class="icon-svg-top"><use href="#icon-power"></use></svg>
           </button>
         </div>
-
       </header>
 
-      <!-- ============================================================
-           GOLD BANNER + VIEW WRAPPER
-           ============================================================ -->
-
-      <!-- GOLDEN SECTION BANNER -->
-      <div id="viewHeaderBar" class="view-header-bar"></div>
-
-      <!-- VIEW CONTENT WRAPPER -->
-      <div id="viewContainer" class="view-container"></div>
-      <!-- ============================================================
-           TEMPLATE-VIEWS (Nur als Quelle, nicht sichtbar)
-           ============================================================ -->
-
-      <main class="main-content" style="display:none">
-
-        <!-- DASHBOARD VIEW -->
-        <section id="dashboardView" class="view" data-view-title="Dashboard">
-          <!-- Wird durch app.js gerendert -->
-        </section>
-
-        <!-- CREATIVE LIBRARY -->
-        <section id="creativeLibraryView" class="view" data-view-title="Creative Library">
-          <!-- Placeholder -->
-          <h1>Creative Library</h1>
-          <p>DataLayer ist noch nicht initialisiert. Bitte Backend prüfen.</p>
-        </section>
-
-        <!-- CAMPAIGNS -->
-        <section id="campaignsView" class="view" data-view-title="Kampagnen">
-          <!-- Wird dynamisch via app.js + DemoData geladen -->
-        </section>
-
-        <!-- SENSEI (AI) -->
-        <section id="senseiView" class="view" data-view-title="Sensei / AI">
-          <!-- Sensei Recommendations Template -->
-        </section>
-
-        <!-- TESTING LOG -->
-        <section id="testingLogView" class="view" data-view-title="Testing Log">
-          <h1>Testing Log</h1>
-          <p>TestingLog API nicht initialisiert.</p>
-        </section>
-
-        <!-- REPORTS / EXPORT -->
-        <section id="reportsView" class="view" data-view-title="Reports & Export">
-          <h1>Reports & Export</h1>
-        </section>
-
-        <!-- CREATOR INSIGHTS -->
-        <section id="creatorInsightsView" class="view" data-view-title="Creator Insights">
-          <h1>Creator Insights</h1>
-          <p>Demoversion – Backend wird benötigt.</p>
-        </section>
-
-        <!-- ANALYTICS -->
-        <section id="analyticsView" class="view" data-view-title="Analytics">
-          <h1>Analytics</h1>
-          <p>Daten-API muss noch angebunden werden.</p>
-        </section>
-
-        <!-- TEAM -->
-        <section id="teamView" class="view" data-view-title="Team">
-          <h1>Team</h1>
-        </section>
-
-        <!-- BRANDS -->
-        <section id="brandsView" class="view" data-view-title="Brands">
-          <h1>Brands</h1>
-        </section>
-
-        <!-- SHOPIFY -->
-        <section id="shopifyView" class="view" data-view-title="Shopify">
-          <h1>Shopify</h1>
-        </section>
-
-        <!-- ROAST -->
-        <section id="roastView" class="view" data-view-title="Roast">
-
-          <h1>Meta Ads Roast by Sensei</h1>
-          <p>Lade ein Creative hoch (Dummy), und Sensei gibt dir ehrliches Feedback – wie ein Senior Media Buyer.</p>
-
-          <div class="roast-upload-box">
-            <span class="roast-upload-icon">🔥</span>
-            <p class="roast-upload-text">Creative hochladen</p>
-            <input id="roastFileInput" class="file-input" type="file" accept="video/*,image/*" />
-          </div>
-
-          <button id="roastStartBtn" class="primary-button">Roast starten</button>
-
-          <div id="roastResult"></div>
-        </section>
-
-        <!-- ONBOARDING -->
-        <section id="onboardingView" class="view" data-view-title="Onboarding">
-
-          <h1>Willkommen bei SignalOne</h1>
-          <p>Deine AI-gestützte Performance-Plattform. Lass uns dich in unter 30 Sekunden einrichten.</p>
-
-          <button id="onboardingNextBtn" class="primary-button">
-            Weiter
-          </button>
-
-        </section>
-
-        <!-- SETTINGS -->
-        <section id="settingsView" class="view" data-view-title="Einstellungen">
-          <h1>Settings</h1>
-        </section>
-
+      <!-- ===============================================
+           MAIN CONTENT VIEWS
+           =============================================== -->
+      <main class="main-content">
+        <section id="dashboardView" class="view" data-view-title="Dashboard" data-header-theme="c"></section>
+        <section id="creativeLibraryView" class="view" data-view-title="Creative Library" data-header-theme="c"></section>
+        <section id="campaignsView" class="view" data-view-title="Kampagnen" data-header-theme="c"></section>
+        <section id="senseiView" class="view" data-view-title="Sensei / AI" data-header-theme="c"></section>
+        <section id="testingLogView" class="view" data-view-title="Testing Log" data-header-theme="c"></section>
+        <section id="reportsView" class="view" data-view-title="Reports & Export" data-header-theme="c"></section>
+        <section id="creatorInsightsView" class="view" data-view-title="Creator Insights" data-header-theme="c"></section>
+        <section id="analyticsView" class="view" data-view-title="Analytics" data-header-theme="c"></section>
+        <section id="teamView" class="view" data-view-title="Team" data-header-theme="c"></section>
+        <section id="brandsView" class="view" data-view-title="Brands" data-header-theme="c"></section>
+        <section id="shopifyView" class="view" data-view-title="Shopify" data-header-theme="c"></section>
+        <section id="roastView" class="view" data-view-title="Roast" data-header-theme="c"></section>
+        <section id="onboardingView" class="view" data-view-title="Onboarding" data-header-theme="c"></section>
+        <section id="settingsView" class="view" data-view-title="Settings" data-header-theme="c"></section>
       </main>
-      <!-- ============================================================
-           GLOBAL LOADER
-           ============================================================ -->
-      <div id="globalLoader" class="hidden" aria-hidden="true">
-        <div class="loader-spinner"></div>
+    </div>
+
+    <!-- ===============================================
+         GLOBAL LOADER, TOASTS & MODAL
+         =============================================== -->
+    <div id="globalLoader" class="global-loader hidden">
+      <div class="global-loader-inner">
+        <div class="loader-dot"></div>
+        <div class="loader-dot"></div>
+        <div class="loader-dot"></div>
+        <span>SignalOne lädt dein Modul ...</span>
       </div>
+    </div>
 
-      <!-- ============================================================
-           TOAST CONTAINER
-           ============================================================ -->
-      <div id="toastContainer" aria-live="polite"></div>
+    <div id="toastContainer"></div>
 
-      <!-- ============================================================
-           MODAL OVERLAY
-           ============================================================ -->
-      <div id="modalOverlay" class="hidden" aria-hidden="true">
-        <div class="modal-box">
-
-          <div class="modal-header">
-            <h2 id="modalTitle">System Dialog</h2>
-          </div>
-
-          <div id="modalBody" class="modal-body"></div>
-
-          <button id="modalCloseButton" class="modal-close" type="button">
-            Schließen
-          </button>
-
+    <div id="modalOverlay" class="modal-overlay hidden">
+      <div class="modal">
+        <div class="modal-header">
+          <h2 id="modalTitle">System Dialog</h2>
+          <button id="modalCloseButton" class="modal-close">×</button>
         </div>
+        <div id="modalBody" class="modal-body"></div>
       </div>
+    </div>
 
-    </div> <!-- Ende .app-shell -->
-
-    <!-- ============================================================
-         SCRIPTS
-         ============================================================ -->
-
-    <!-- Meta OAuth Demo Initializer -->
-    <script type="module">
-      import MetaAuth from "/packages/metaAuth/index.js";
-      MetaAuth.init();
-    </script>
-
-    <!-- DemoData Engine (Campaigns, Sensei, Roast etc.) -->
-    <script src="/packages/campaigns/demo.js"></script>
-
-    <!-- Main App -->
+    <!-- SCRIPT -->
     <script type="module" src="app.js"></script>
-
   </body>
 </html>
