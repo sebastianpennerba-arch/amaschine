@@ -217,38 +217,42 @@
     <!-- ===============================================
          SIDEBAR
          =============================================== -->
-<nav class="sidebar">
-  <div class="sidebar-header">
-    <div class="sidebar-logo">SignalOne</div>
-  </div>
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">SignalOne</div>
+      </div>
 
-  <ul class="sidebar-nav" id="navbar"></ul>
+      <ul class="sidebar-nav" id="navbar"></ul>
 
-  <div class="sidebar-footer">
-    <div class="sidebar-status-row">
-      <span id="sidebarSystemDot" class="status-dot"></span>
-      <span id="sidebarSystemLabel">System Health: OK</span>
-    </div>
-    <div class="sidebar-status-row">
-      <span id="sidebarCampaignDot" class="status-dot"></span>
-      <span id="sidebarCampaignLabel">Campaign Health: n/a</span>
-    </div>
-    <div class="sidebar-status-row">
-      <span id="sidebarMetaDot" class="status-dot"></span>
-      <span id="sidebarMetaLabel">Meta Ads: Getrennt</span>
-    </div>
+      <!-- Status-Bereich (System, Campaign, Meta) -->
+      <div class="sidebar-status">
+        <div class="sidebar-status-row">
+          <span id="sidebarSystemDot" class="sidebar-dot"></span>
+          <span id="sidebarSystemLabel">System Health: OK</span>
+        </div>
+        <div class="sidebar-status-row">
+          <span id="sidebarCampaignDot" class="sidebar-dot"></span>
+          <span id="sidebarCampaignLabel">Campaign Health: n/a</span>
+        </div>
+        <div class="sidebar-status-row">
+          <span id="sidebarMetaDot" class="sidebar-dot"></span>
+          <span id="sidebarMetaLabel">Meta Ads: Getrennt</span>
+        </div>
+      </div>
 
-    <button
-      id="settingsButton"
-      class="sidebar-footer-button"
-      type="button"
-      data-tooltip="Einstellungen"
-      aria-label="Einstellungen"
-    >
-      SETTINGS
-    </button>
-  </div>
-</nav>
+      <!-- Footer: Settings Button -->
+      <div class="sidebar-footer">
+        <button
+          id="settingsButton"
+          class="sidebar-settings-button"
+          type="button"
+          data-tooltip="Einstellungen"
+          aria-label="Einstellungen"
+        >
+          SETTINGS
+        </button>
+      </div>
+    </nav>
 
     <!-- ===============================================
          APP-SHELL + TOPBAR
@@ -258,7 +262,7 @@
         <div class="topbar-left">
           <div class="topbar-greeting">
             <div id="topbarGreeting">Guten Tag, Nutzer!</div>
-            <div class="topbar-greeting-meta">
+            <div class="topbar-datetime">
               <span id="topbarDate">Datum: –</span>
               <span id="topbarTime">Zeit: –</span>
             </div>
@@ -267,17 +271,21 @@
 
         <div class="topbar-center">
           <div class="topbar-select-group">
-            <label>Brand</label>
-            <select id="brandSelect" class="topbar-select">
-              <option>Werbekonto auswählen</option>
-            </select>
+            <span class="topbar-select-label">Brand</span>
+            <div class="topbar-select-wrapper">
+              <select id="brandSelect" class="topbar-select">
+                <option>Werbekonto auswählen</option>
+              </select>
+            </div>
           </div>
 
           <div class="topbar-select-group">
-            <label>Kampagne</label>
-            <select id="campaignSelect" class="topbar-select">
-              <option>Kampagne auswählen</option>
-            </select>
+            <span class="topbar-select-label">Kampagne</span>
+            <div class="topbar-select-wrapper">
+              <select id="campaignSelect" class="topbar-select">
+                <option>Kampagne auswählen</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -289,7 +297,7 @@
             data-tooltip="Meta verbinden / trennen"
             aria-label="Meta verbinden oder trennen"
           >
-            META VERBINDEN
+            <span class="label">Meta verbinden</span>
           </button>
 
           <button
@@ -299,8 +307,8 @@
             data-tooltip="System-Info"
             aria-label="System-Info"
           >
-             <span style="font-size: 1.1rem; font-weight: 700; color: #4b5563;">i</span>
-                <span id="notificationsDot" class="notification-dot hidden"></span>
+            <span style="font-size: 1.1rem; font-weight: 700; color: #e5e7eb;">i</span>
+            <span id="notificationsDot" class="notification-dot hidden"></span>
           </button>
 
           <button
@@ -436,34 +444,29 @@
     <!-- ===============================================
          GLOBAL LOADER, TOASTS & MODAL
          =============================================== -->
-    <div id="globalLoader" class="global-loader hidden" aria-hidden="true">
-      <div class="global-loader-inner">
-        <div class="loader-dot"></div>
-        <div class="loader-dot"></div>
-        <div class="loader-dot"></div>
-        <span>SignalOne lädt dein Modul ...</span>
-      </div>
+    <div id="globalLoader" class="hidden" aria-hidden="true">
+      <div class="loader-spinner"></div>
     </div>
 
     <div id="toastContainer" aria-live="polite"></div>
 
-    <div id="modalOverlay" class="modal-overlay hidden" aria-hidden="true">
-      <div class="modal">
+    <div id="modalOverlay" class="hidden" aria-hidden="true">
+      <div class="modal-box">
         <div class="modal-header">
           <h2 id="modalTitle">System Dialog</h2>
-          <button id="modalCloseButton" class="modal-close">×</button>
         </div>
         <div id="modalBody" class="modal-body"></div>
+        <button id="modalCloseButton" class="modal-close" type="button">Schließen</button>
       </div>
     </div>
 
     <!-- SCRIPT -->
-<script type="module">
-  import MetaAuth from "/packages/metaAuth/index.js";
-  MetaAuth.init();
-</script>
+    <script type="module">
+      import MetaAuth from "/packages/metaAuth/index.js";
+      MetaAuth.init();
+    </script>
 
-<script src="/packages/campaigns/demo.js"></script>
-<script type="module" src="app.js"></script>
-    </body>
+    <script src="/packages/campaigns/demo.js"></script>
+    <script type="module" src="app.js"></script>
+  </body>
 </html>
