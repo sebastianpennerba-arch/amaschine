@@ -119,6 +119,13 @@ function useDemoMode() {
 }
 
 import MetaAuth from "./packages/metaAuth/index.js";
+/**
+ * DataLayer global bereitstellen, damit sowohl neue (ES-Module)
+ * als auch ältere Module (window.SignalOne.DataLayer) funktionieren.
+ * Wenn das Modul fehlt, schlägt der Import im Browser fehl – hier
+ * gehen wir davon aus, dass /packages/data/index.js existiert. :contentReference[oaicite:1]{index=1}
+ */
+import * as DataLayer from "./packages/data/index.js";
 
 /* ----------------------------------------------------------
    MODULE REGISTRY & LABELS
@@ -788,7 +795,7 @@ async function navigateTo(key) {
 document.addEventListener("DOMContentLoaded", () => {
   console.log("🚀 SignalOne Bootstrap startet...");
   console.log("✅ DemoData verfügbar:", DemoData.brands.length, "Brands");
-  
+
   renderNav();
 
   populateBrandSelect();
@@ -798,11 +805,39 @@ document.addEventListener("DOMContentLoaded", () => {
   const initialViewId = getViewIdForModule(AppState.currentModule);
   setActiveView(initialViewId);
 
-  document
-    .getElementById("metaConnectButton")
-    ?.addEventListener("click", () => {
-      MetaAuth.connectWithPopup();
-    });
+  const metaBtn = document.getElementById("metaConnectButton");
+  metaBtn?.addEventListener("click", async () => {
+    /**
+     * Strategie:
+     * 1. Versuchen, den echten MetaAuth-Flow zu nutzen.
+     * 2. Wenn er scheitert (Popup-Blocker, kein Backend, Fehler),
+     *    automatisch in eine stabile Demo-Verbindung toggeln. :contentReference[oaicite:2]{index=2}
+     */
+    try {
+      const result = await MetaAuth.connectWithPopup?.();
+
+      // Falls MetaAuth ein Ergebnis-Objekt liefert, in den AppState spiegeln.
+      if (result && result.token) {
+        AppState.metaConnected = true;
+        AppState.meta.token = result.token;
+        if (result.user) {
+          AppState.meta.user = result.user;
+        }
+        showToast("Meta Live-Verbindung hergestellt.", "success");
+      }
+    } catch (err) {
+      console.warn(
+        "[SignalOne] MetaAuth Popup-Fehler, falle zurück auf Demo-Verbindung.",
+        err
+      );
+      toggleMetaConnection();
+    } finally {
+      updateMetaStatusUI();
+      updateTopbarGreeting();
+      updateViewSubheaders();
+      loadModule(AppState.currentModule);
+    }
+  });
 
   updateMetaStatusUI();
   updateSystemHealthUI();
@@ -870,7 +905,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }, 60000);
 
   loadModule(AppState.currentModule);
-  
+
   console.log("✅ SignalOne Bootstrap abgeschlossen!");
 });
 
@@ -889,4 +924,7 @@ window.SignalOne = {
     fadeIn,
     useDemoMode,
   },
+  // DataLayer global verfügbar machen (hybride Nutzung: ES Imports + window)
+  DataLayer,
+  DemoData,
 };
