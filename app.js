@@ -1,6 +1,7 @@
 /*
- * app.js – SignalOne Core Backbone (FIXED)
+ * app.js – SignalOne Core Backbone
  * Navigation • View Handling • Meta Simulation • Toasts • Modal
+ * + Gold-Icon Sidebar & Brand-Subheader
  */
 
 /* ----------------------------------------------------------
@@ -35,7 +36,7 @@ const AppState = {
 };
 
 /* ----------------------------------------------------------
-   DEMO-DATA (GLOBAL VERFÜGBAR)
+   DEMO-DATA (DIREKT HIER DEFINIEREN!)
 -----------------------------------------------------------*/
 const DemoData = {
   brands: [
@@ -99,46 +100,44 @@ const DemoData = {
       { id: "beauty_creators", name: "Creator Evergreen", status: "ACTIVE" },
       { id: "beauty_ba", name: "Brand Awareness Beauty", status: "PAUSED" },
     ],
-    fitlife_supplements: [
-      { id: "fit_scale", name: "Scale Stack Q4", status: "ACTIVE" }
-    ],
-    homezen_living: [
-      { id: "home_test", name: "Creative Testing", status: "TESTING" }
-    ],
+    fitlife_supplements: [{ id: "fit_scale", name: "Scale Stack Q4", status: "ACTIVE" }],
+    homezen_living: [{ id: "home_test", name: "Creative Testing", status: "TESTING" }],
   },
 };
 
 // SOFORT GLOBAL VERFÜGBAR MACHEN
-window.SignalOneDemo = {
-  DemoData: DemoData,
-  brands: DemoData.brands,
-  campaignsByBrand: DemoData.campaignsByBrand
-};
+window.SignalOneDemo = window.SignalOneDemo || {};
+window.SignalOneDemo.DemoData = DemoData;
+window.SignalOneDemo.brands = DemoData.brands; // Für Kompatibilität
 
 console.log("✅ DemoData geladen:", DemoData.brands.length, "Brands");
 
 function useDemoMode() {
-  return AppState.settings.demoMode || !AppState.metaConnected;
+  if (AppState.settings.demoMode) return true;
+  if (!AppState.metaConnected) return true;
+  return false;
 }
+
+import MetaAuth from "./packages/metaAuth/index.js";
 
 /* ----------------------------------------------------------
    MODULE REGISTRY & LABELS
 -----------------------------------------------------------*/
 const modules = {
-  dashboard: () => import("./packages/dashboard/index.js"),
-  creativeLibrary: () => import("./packages/creativeLibrary/index.js"),
-  campaigns: () => import("./packages/campaigns/index.js"),
-  testingLog: () => import("./packages/testingLog/index.js"),
-  sensei: () => import("./packages/sensei/index.js"),
-  onboarding: () => import("./packages/onboarding/index.js"),
-  team: () => import("./packages/team/index.js"),
-  brands: () => import("./packages/brands/index.js"),
-  reports: () => import("./packages/reports/index.js"),
-  creatorInsights: () => import("./packages/creatorInsights/index.js"),
-  analytics: () => import("./packages/analytics/index.js"),
-  roast: () => import("./packages/roast/index.js"),
-  shopify: () => import("./packages/shopify/index.js"),
-  settings: () => import("./packages/settings/index.js"),
+  dashboard: () => import("/packages/dashboard/index.js"),
+  creativeLibrary: () => import("/packages/creativeLibrary/index.js"),
+  campaigns: () => import("/packages/campaigns/index.js"),
+  testingLog: () => import("/packages/testingLog/index.js"),
+  sensei: () => import("/packages/sensei/index.js"),
+  onboarding: () => import("/packages/onboarding/index.js"),
+  team: () => import("/packages/team/index.js"),
+  brands: () => import("/packages/brands/index.js"),
+  reports: () => import("/packages/reports/index.js"),
+  creatorInsights: () => import("/packages/creatorInsights/index.js"),
+  analytics: () => import("/packages/analytics/index.js"),
+  roast: () => import("/packages/roast/index.js"),
+  shopify: () => import("/packages/shopify/index.js"),
+  settings: () => import("/packages/settings/index.js"),
 };
 
 const moduleLabels = {
@@ -186,6 +185,7 @@ const modulesRequiringMeta = [
   "reports",
 ];
 
+/* ICON IDs MAPPING (SIDEBAR) */
 const moduleIconIds = {
   dashboard: "icon-dashboard",
   creativeLibrary: "icon-library",
@@ -224,6 +224,10 @@ function createSvgIconFromSymbol(symbolId, extraClass = "") {
         svg.appendChild(node.cloneNode(true));
       }
     });
+  } else {
+    const use = document.createElementNS(svgNS, "use");
+    use.setAttributeNS("http://www.w3.org/1999/xlink", "href", `#${symbolId}`);
+    svg.appendChild(use);
   }
 
   return svg;
@@ -244,10 +248,10 @@ function setActiveView(viewId) {
   const views = document.querySelectorAll(".view");
   views.forEach((v) => {
     if (v.id === viewId) {
-      v.classList.add("is-active");
+      v.classList.add("active");
       v.style.display = "block";
     } else {
-      v.classList.remove("is-active");
+      v.classList.remove("active");
       v.style.display = "none";
     }
   });
@@ -364,6 +368,20 @@ function updateSidebarActiveIcon(activeKey) {
 
   buttons.forEach((btn) => {
     const module = btn.dataset.module;
+    const svg = btn.querySelector(".icon-svg");
+    const fillLayerId = moduleIconIds[module];
+    const symbol = document.getElementById(fillLayerId);
+
+    const use = svg?.querySelector("use");
+    if (!use || !symbol) {
+      if (module === activeKey) {
+        btn.classList.add("active");
+      } else {
+        btn.classList.remove("active");
+      }
+      return;
+    }
+
     if (module === activeKey) {
       btn.classList.add("active");
     } else {
@@ -413,6 +431,7 @@ function renderNav() {
     labelSpan.textContent = getLabelForModule(key);
 
     btn.appendChild(labelSpan);
+
     btn.addEventListener("click", () => navigateTo(key));
 
     li.appendChild(btn);
@@ -581,26 +600,41 @@ function closeSystemModal() {
    SYSTEM HEALTH & META STATUS
 -----------------------------------------------------------*/
 function updateMetaStatusUI() {
+  const badge = document.getElementById("metaStatusBadge");
+  const badgeLabel = document.getElementById("metaStatusLabel");
   const button = document.getElementById("metaConnectButton");
   const sidebarDot = document.getElementById("sidebarMetaDot");
   const sidebarLabel = document.getElementById("sidebarMetaLabel");
 
   const isConnected = AppState.metaConnected;
 
-  if (button) {
-    button.textContent = isConnected ? "Meta trennen" : "Meta verbinden";
-  }
+  if (isConnected) {
+    if (badgeLabel) {
+      badgeLabel.textContent = useDemoMode()
+        ? "Meta: Verbunden (Demo)"
+        : "Meta: Verbunden (Live)";
+    }
+    if (badge) {
+      badge.classList.add("connected");
+      badge.classList.remove("badge-offline");
+    }
+    if (button) button.textContent = "Meta trennen";
 
-  if (sidebarDot) {
-    sidebarDot.style.backgroundColor = isConnected 
-      ? "var(--color-success)" 
-      : "var(--color-danger)";
-  }
-  
-  if (sidebarLabel) {
-    sidebarLabel.textContent = isConnected
-      ? (useDemoMode() ? "Meta Ads: Demo verbunden" : "Meta Ads: Live verbunden")
-      : "Meta Ads: Getrennt";
+    if (sidebarDot) sidebarDot.style.backgroundColor = "var(--color-success)";
+    if (sidebarLabel)
+      sidebarLabel.textContent = useDemoMode()
+        ? "Meta Ads: Demo verbunden"
+        : "Meta Ads: Live verbunden";
+  } else {
+    if (badgeLabel) badgeLabel.textContent = "Meta: Nicht verbunden";
+    if (badge) {
+      badge.classList.remove("connected");
+      badge.classList.add("badge-offline");
+    }
+    if (button) button.textContent = "Meta verbinden";
+
+    if (sidebarDot) sidebarDot.style.backgroundColor = "var(--color-danger)";
+    if (sidebarLabel) sidebarLabel.textContent = "Meta Ads: Getrennt";
   }
 }
 
@@ -666,9 +700,9 @@ function hideGlobalLoader() {
 function applySectionSkeleton(section) {
   if (!section) return;
   section.innerHTML = `
-    <div style="height: 20px; width: 40%; margin-bottom: 16px; background: #e5e7eb; border-radius: 4px;"></div>
-    <div style="height: 120px; margin-bottom: 14px; background: #e5e7eb; border-radius: 8px;"></div>
-    <div style="height: 200px; background: #e5e7eb; border-radius: 8px;"></div>
+    <div class="skeleton-block" style="height: 20px; width: 40%; margin-bottom: 16px;"></div>
+    <div class="skeleton-block" style="height: 120px; margin-bottom: 14px;"></div>
+    <div class="skeleton-block" style="height: 200px;"></div>
   `;
 }
 
@@ -711,10 +745,7 @@ async function loadModule(key) {
     const module = await loader();
     if (module?.render) {
       section.innerHTML = "";
-      module.render(section, AppState, { 
-        useDemoMode: useDemoMode(),
-        demoData: DemoData
-      });
+      module.render(section, AppState, { useDemoMode: useDemoMode() });
       fadeIn(section);
     } else {
       section.textContent = `Das Modul "${key}" ist noch nicht implementiert.`;
@@ -722,15 +753,7 @@ async function loadModule(key) {
     AppState.systemHealthy = true;
   } catch (err) {
     console.error("[SignalOne] Fehler beim Laden", key, err);
-    section.innerHTML = `
-      <div style="padding: 24px; background: #fee; border: 1px solid #fcc; border-radius: 8px;">
-        <h3 style="color: #c00; margin: 0 0 8px;">Fehler beim Laden des Moduls "${key}"</h3>
-        <p style="margin: 0; color: #666;">${err.message}</p>
-        <p style="margin: 8px 0 0; font-size: 0.85em; color: #999;">
-          Stelle sicher, dass das Modul unter <code>./packages/${key}/index.js</code> existiert.
-        </p>
-      </div>
-    `;
+    section.textContent = `Fehler beim Laden des Moduls "${key}".`;
     showToast(`Fehler beim Laden von ${getLabelForModule(key)}`, "error");
     pushNotification("error", `Modulfehler: ${getLabelForModule(key)}`, {
       module: key,
@@ -775,8 +798,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const initialViewId = getViewIdForModule(AppState.currentModule);
   setActiveView(initialViewId);
 
-  // Meta Connect Button
-  document.getElementById("metaConnectButton")?.addEventListener("click", toggleMetaConnection);
+  document
+    .getElementById("metaConnectButton")
+    ?.addEventListener("click", () => {
+      MetaAuth.connectWithPopup();
+    });
 
   updateMetaStatusUI();
   updateSystemHealthUI();
@@ -857,7 +883,6 @@ window.SignalOne = {
   showToast,
   openSystemModal,
   closeSystemModal,
-  DemoData,
   UI: {
     showGlobalLoader,
     hideGlobalLoader,
