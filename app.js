@@ -108,7 +108,7 @@ const DemoData = {
 // SOFORT GLOBAL VERFÜGBAR MACHEN
 window.SignalOneDemo = window.SignalOneDemo || {};
 window.SignalOneDemo.DemoData = DemoData;
-window.SignalOneDemo.brands = DemoData.brands; // Für Kompatibilität
+window.SignalOneDemo.brands = DemoData.brands;
 
 console.log("✅ DemoData geladen:", DemoData.brands.length, "Brands");
 
@@ -184,7 +184,6 @@ const modulesRequiringMeta = [
   "analytics",
   "reports",
 ];
-
 /* ICON IDs MAPPING (SIDEBAR) */
 const moduleIconIds = {
   dashboard: "icon-dashboard",
@@ -202,57 +201,6 @@ const moduleIconIds = {
   onboarding: "icon-onboarding",
   settings: "icon-settings",
 };
-
-/* ----------------------------------------------------------
-   MODULE FALLBACK COPY (für MVP-Sicherheit)
------------------------------------------------------------*/
-
-const moduleFallbackCopy = {
-  dashboard: {
-    kicker: "SignalOne • Mission Control",
-    title: "Dashboard wird geladen",
-    body:
-      "Das Dashboard-Modul konnte nicht geladen werden. Im Live-System zeigt dieser Bereich deine Performance-Signale, KPIs und Alerts.",
-  },
-  creativeLibrary: {
-    kicker: "Creative Library",
-    title: "Creative Library Demo",
-    body:
-      "Die Creative Library ist noch nicht vollständig initialisiert. Normalerweise siehst du hier alle Creatives inkl. Scores, Varianten und Test-Slots.",
-  },
-  campaigns: {
-    kicker: "Campaign Engine",
-    title: "Kampagnen-Übersicht",
-    body:
-      "Die Kampagnen-Engine konnte nicht geladen werden. In der finalen Version erscheinen hier alle Kampagnen mit Health-Badges und Insights.",
-  },
-  testingLog: {
-    kicker: "Testing Log",
-    title: "Testing Log",
-    body:
-      "Der Testing Log sammelt alle A/B-Tests aus der Creative Library. Aktuell ist das Modul noch nicht vollständig verbunden.",
-  },
-  sensei: {
-    kicker: "AdSensei • AI Suite",
-    title: "Sensei Analyse",
-    body:
-      "Sensei analysiert deine Creatives, Hooks und Offers. Sobald das Modul verbunden ist, erscheinen hier AI-Empfehlungen.",
-  },
-  roast: {
-    kicker: "Roast by Sensei",
-    title: "Creative Roast",
-    body:
-      "Im Roast-Modul kannst du einzelne Creatives hochladen und ein AI-basiertes Review erhalten.",
-  },
-};
-
-/* Small helper to avoid breaking markup when we show Fehlertext */
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
 
 /* ----------------------------------------------------------
    SVG ICON HELPERS
@@ -280,7 +228,6 @@ function createSvgIconFromSymbol(symbolId, extraClass = "") {
     use.setAttributeNS("http://www.w3.org/1999/xlink", "href", `#${symbolId}`);
     svg.appendChild(use);
   }
-
   return svg;
 }
 
@@ -299,10 +246,10 @@ function setActiveView(viewId) {
   const views = document.querySelectorAll(".view");
   views.forEach((v) => {
     if (v.id === viewId) {
-      v.classList.add("active");
+      v.classList.add("active", "is-active");
       v.style.display = "block";
     } else {
-      v.classList.remove("active");
+      v.classList.remove("active", "is-active");
       v.style.display = "none";
     }
   });
@@ -364,8 +311,7 @@ function getActiveBrandContext() {
 
   const campaigns = DemoData.campaignsByBrand[brand.id] || [];
   const count = campaigns.length;
-  const campaignText =
-    count === 1 ? "1 Kampagne sichtbar" : `${count} Kampagnen sichtbar`;
+  const campaignText = count === 1 ? "1 Kampagne sichtbar" : `${count} Kampagnen sichtbar`;
 
   return {
     name: brand.ownerName || brand.name || "Unbekanntes Werbekonto",
@@ -383,6 +329,7 @@ function updateViewSubheaders() {
 
   views.forEach((section) => {
     if (!section) return;
+
     let header = section.querySelector(".view-subheader");
     if (!header) {
       header = document.createElement("div");
@@ -420,24 +367,19 @@ function updateSidebarActiveIcon(activeKey) {
   buttons.forEach((btn) => {
     const module = btn.dataset.module;
     const svg = btn.querySelector(".icon-svg");
-    const fillLayerId = moduleIconIds[module];
-    const symbol = document.getElementById(fillLayerId);
+    const symbolId = moduleIconIds[module];
+    const symbol = symbolId ? document.getElementById(symbolId) : null;
 
     const use = svg?.querySelector("use");
+
     if (!use || !symbol) {
-      if (module === activeKey) {
-        btn.classList.add("active");
-      } else {
-        btn.classList.remove("active");
-      }
+      if (module === activeKey) btn.classList.add("active");
+      else btn.classList.remove("active");
       return;
     }
 
-    if (module === activeKey) {
-      btn.classList.add("active");
-    } else {
-      btn.classList.remove("active");
-    }
+    if (module === activeKey) btn.classList.add("active");
+    else btn.classList.remove("active");
   });
 }
 
@@ -450,14 +392,7 @@ function renderNav() {
   navbar.innerHTML = "";
 
   const license = AppState.licenseLevel;
-  const restrictedForFree = [
-    "reports",
-    "team",
-    "brands",
-    "creatorInsights",
-    "analytics",
-    "shopify",
-  ];
+  const restrictedForFree = ["reports", "team", "brands", "creatorInsights", "analytics", "shopify"];
 
   Object.keys(modules).forEach((key) => {
     if (key === "settings") return;
@@ -493,7 +428,7 @@ function renderNav() {
 }
 
 /* ----------------------------------------------------------
-   META DEMO CONNECT / LIVE CONNECT
+   META DEMO CONNECT (Fallback für MetaAuth)
 -----------------------------------------------------------*/
 function toggleMetaConnection() {
   AppState.metaConnected = !AppState.metaConnected;
@@ -515,56 +450,6 @@ function toggleMetaConnection() {
 
   loadModule(AppState.currentModule);
 }
-
-async function handleMetaConnectClick() {
-  // Standard: Demo-Mode → nur UI-Toggle. Live folgt in P5.
-  const isDemoMode = AppState.settings.demoMode === true;
-
-  if (isDemoMode) {
-    toggleMetaConnection();
-    return;
-  }
-
-  try {
-    showGlobalLoader();
-
-    if (AppState.metaConnected) {
-      // Live-Verbindung trennen
-      if (MetaAuth && typeof MetaAuth.disconnect === "function") {
-        await MetaAuth.disconnect();
-      }
-      AppState.metaConnected = false;
-      AppState.meta.token = null;
-      AppState.meta.user = null;
-      showToast("Meta Live-Verbindung getrennt.", "warning");
-    } else {
-      // Live verbinden
-      if (MetaAuth && typeof MetaAuth.connectWithPopup === "function") {
-        const result = await MetaAuth.connectWithPopup();
-        AppState.metaConnected = true;
-        if (result?.token) AppState.meta.token = result.token;
-        if (result?.user) AppState.meta.user = result.user;
-      } else {
-        AppState.metaConnected = true;
-      }
-      showToast("Meta Live-Verbindung hergestellt.", "success");
-    }
-  } catch (err) {
-    console.error("[SignalOne] Meta Connect Fehler:", err);
-    showToast("Meta-Verbindung fehlgeschlagen. Bitte erneut versuchen.", "error");
-    pushNotification("error", "Meta-Verbindung fehlgeschlagen", {
-      error: String(err),
-    });
-  } finally {
-    hideGlobalLoader();
-    updateMetaStatusUI();
-    updateCampaignHealthUI();
-    updateTopbarGreeting();
-    updateViewSubheaders();
-    loadModule(AppState.currentModule);
-  }
-}
-
 /* ----------------------------------------------------------
    BRAND & CAMPAIGN SELECT
 -----------------------------------------------------------*/
@@ -619,25 +504,28 @@ function wireBrandAndCampaignSelects() {
     brandSelect.addEventListener("change", () => {
       AppState.selectedBrandId = brandSelect.value || null;
       AppState.selectedCampaignId = null;
+
       populateCampaignSelect();
       updateCampaignHealthUI();
       updateTopbarGreeting();
       updateViewSubheaders();
-      loadModule(AppState.currentModule);
+
+      // ENTSCHEIDEND: kompletten View neu laden
+      navigateTo(AppState.currentModule);
     });
   }
 
   if (campaignSelect) {
     campaignSelect.addEventListener("change", () => {
       AppState.selectedCampaignId = campaignSelect.value || null;
-      loadModule(AppState.currentModule);
       updateViewSubheaders();
+      navigateTo(AppState.currentModule);
     });
   }
 }
 
 /* ----------------------------------------------------------
-   TOASTS
+   TOASTS & NOTIFICATIONS
 -----------------------------------------------------------*/
 function showToast(message, type = "info") {
   const container = document.getElementById("toastContainer");
@@ -741,7 +629,6 @@ function updateMetaStatusUI() {
 function updateSystemHealthUI() {
   const dot = document.getElementById("sidebarSystemDot");
   const label = document.getElementById("sidebarSystemLabel");
-
   if (!dot || !label) return;
 
   if (AppState.systemHealthy) {
@@ -756,7 +643,6 @@ function updateSystemHealthUI() {
 function updateCampaignHealthUI() {
   const dot = document.getElementById("sidebarCampaignDot");
   const label = document.getElementById("sidebarCampaignLabel");
-
   if (!dot || !label) return;
 
   const brand = getActiveBrand();
@@ -814,38 +700,7 @@ function fadeIn(el) {
 }
 
 /* ----------------------------------------------------------
-   MODULE FALLBACK RENDERER (für nicht implementierte / fehlerhafte Module)
------------------------------------------------------------*/
-function renderModuleFallback(section, key, error) {
-  if (!section) return;
-  const label = getLabelForModule(key);
-  const copy = moduleFallbackCopy[key] || {
-    kicker: "SignalOne Modul",
-    title: label,
-    body:
-      "Dieses Modul ist noch nicht vollständig implementiert. Die Datenstruktur und der SPA-Router sind bereits vorbereitet.",
-  };
-
-  const errorHtml = error
-    ? `<p class="view-empty-error">Technisches Detail: <code>${escapeHtml(
-        String(error)
-      )}</code></p>`
-    : "";
-
-  section.innerHTML = `
-    <div class="view-header">
-      <h2>${copy.kicker}</h2>
-    </div>
-    <div class="card view-empty">
-      <h3>${copy.title}</h3>
-      <p>${copy.body}</p>
-      ${errorHtml}
-    </div>
-  `;
-}
-
-/* ----------------------------------------------------------
-   MODULE LOADING & NAVIGATION
+   MODULE LOADING
 -----------------------------------------------------------*/
 async function loadModule(key) {
   const loader = modules[key];
@@ -854,7 +709,6 @@ async function loadModule(key) {
 
   if (!loader || !section) {
     console.warn("[SignalOne] Modul nicht gefunden:", key, viewId);
-    renderModuleFallback(section, key, "Missing module loader");
     return;
   }
 
@@ -863,14 +717,8 @@ async function loadModule(key) {
     !AppState.metaConnected &&
     !useDemoMode()
   ) {
-    section.innerHTML = `
-      <div class="card view-empty">
-        <h3>Meta-Verbindung benötigt</h3>
-        <p>Dieses Modul benötigt eine Meta-Verbindung oder den Demo-Modus. Bitte oben im Topbar verbinden.</p>
-      </div>
-    `;
+    section.innerHTML = "<p>Dieses Modul benötigt Meta oder Demo-Modus.</p>";
     showToast("Bitte Meta verbinden oder Demo-Modus aktivieren.", "warning");
-    updateCampaignHealthUI();
     return;
   }
 
@@ -881,18 +729,16 @@ async function loadModule(key) {
     const module = await loader();
     if (module?.render) {
       section.innerHTML = "";
-      // render kann async sein – wir warten bewusst
-      await module.render(section, AppState, { useDemoMode: useDemoMode() });
+      module.render(section, AppState, { useDemoMode: useDemoMode() });
       fadeIn(section);
     } else {
-      console.warn("[SignalOne] Modul ohne render()-Methode:", key);
-      renderModuleFallback(section, key, "render() nicht vorhanden");
+      section.textContent = `Das Modul "${key}" ist noch nicht implementiert.`;
     }
     AppState.systemHealthy = true;
   } catch (err) {
     console.error("[SignalOne] Fehler beim Laden", key, err);
-    renderModuleFallback(section, key, err);
-    showToast(`Fehler beim Laden von ${getLabelForModule(key)}`, "error");
+    section.textContent = `Fehler beim Laden des Moduls "${key}".`;
+    showToast(`Fehler bei ${getLabelForModule(key)}`, "error");
     pushNotification("error", `Modulfehler: ${getLabelForModule(key)}`, {
       module: key,
       error: String(err),
@@ -905,6 +751,9 @@ async function loadModule(key) {
   }
 }
 
+/* ----------------------------------------------------------
+   NAVIGATION
+-----------------------------------------------------------*/
 async function navigateTo(key) {
   if (!modules[key]) return;
 
@@ -912,10 +761,10 @@ async function navigateTo(key) {
 
   const viewId = getViewIdForModule(key);
   setActiveView(viewId);
+
   renderNav();
   updateSidebarActiveIcon(key);
   updateTopbarGreeting();
-  updateViewSubheaders();
 
   await loadModule(key);
 }
@@ -924,8 +773,7 @@ async function navigateTo(key) {
    BOOTSTRAP
 -----------------------------------------------------------*/
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("🚀 SignalOne Bootstrap startet...");
-  console.log("✅ DemoData verfügbar:", DemoData.brands.length, "Brands");
+  console.log("🚀 Bootstrap startet…");
 
   renderNav();
 
@@ -936,60 +784,50 @@ document.addEventListener("DOMContentLoaded", () => {
   const initialViewId = getViewIdForModule(AppState.currentModule);
   setActiveView(initialViewId);
 
-  document
-    .getElementById("metaConnectButton")
-    ?.addEventListener("click", () => {
-      handleMetaConnectClick();
-    });
+  const metaBtn = document.getElementById("metaConnectButton");
+  metaBtn?.addEventListener("click", async () => {
+    try {
+      await MetaAuth.connectWithPopup();
+    } catch (err) {
+      console.error("MetaAuth Fehler → Fallback Demo:", err);
+      toggleMetaConnection();
+    }
+  });
 
   updateMetaStatusUI();
   updateSystemHealthUI();
   updateCampaignHealthUI();
   updateViewSubheaders();
 
-  const settingsBtn = document.getElementById("settingsButton");
-  settingsBtn?.addEventListener("click", () => navigateTo("settings"));
+  document.getElementById("settingsButton")?.addEventListener("click", () =>
+    navigateTo("settings")
+  );
 
-  const modalCloseBtn = document.getElementById("modalCloseButton");
-  const modalOverlay = document.getElementById("modalOverlay");
-  modalCloseBtn?.addEventListener("click", closeSystemModal);
-  modalOverlay?.addEventListener("click", (evt) => {
-    if (evt.target === modalOverlay) closeSystemModal();
+  document.getElementById("modalCloseButton")?.addEventListener("click", closeSystemModal);
+  document.getElementById("modalOverlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "modalOverlay") closeSystemModal();
   });
 
-  const profileBtn = document.getElementById("profileButton");
-  profileBtn?.addEventListener("click", () => {
+  document.getElementById("profileButton")?.addEventListener("click", () => {
     openSystemModal(
       "Profil",
-      `<p>Aktuell angemeldet als <strong>${getEffectiveBrandOwnerName()}</strong>.</p>
-       <p style="margin-top:6px;font-size:0.85rem;color:#6b7280;">Später: echtes User- & Team-Management.</p>`
+      `<p>Angemeldet als: <strong>${getEffectiveBrandOwnerName()}</strong></p>`
     );
   });
 
-  const notificationsBtn = document.getElementById("notificationsButton");
-  notificationsBtn?.addEventListener("click", () => {
+  document.getElementById("notificationsButton")?.addEventListener("click", () => {
     if (!AppState.notifications.length) {
-      openSystemModal(
-        "Benachrichtigungen",
-        "<p>Keine Fehler oder kritischen Warnungen vorhanden.</p>"
-      );
+      openSystemModal("Benachrichtigungen", "<p>Keine Fehler vorhanden.</p>");
     } else {
       const items = AppState.notifications
-        .map(
-          (n) =>
-            `<li><strong>[${n.type.toUpperCase()}]</strong> ${n.message}</li>`
-        )
+        .map((n) => `<li><strong>[${n.type}]</strong> ${n.message}</li>`)
         .join("");
-      openSystemModal(
-        "Benachrichtigungen",
-        `<p>Fehler & Warnungen:</p><ul>${items}</ul>`
-      );
+      openSystemModal("Benachrichtigungen", `<ul>${items}</ul>`);
     }
     clearNotifications();
   });
 
-  const logoutBtn = document.getElementById("logoutButton");
-  logoutBtn?.addEventListener("click", () => {
+  document.getElementById("logoutButton")?.addEventListener("click", () => {
     AppState.metaConnected = false;
     AppState.meta.token = null;
     AppState.meta.user = null;
@@ -997,7 +835,7 @@ document.addEventListener("DOMContentLoaded", () => {
     updateCampaignHealthUI();
     updateTopbarGreeting();
     updateViewSubheaders();
-    showToast("Session zurückgesetzt (Demo-Logout).", "success");
+    showToast("Session zurückgesetzt.", "success");
   });
 
   updateTopbarDateTime();
@@ -1009,7 +847,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   loadModule(AppState.currentModule);
 
-  console.log("✅ SignalOne Bootstrap abgeschlossen!");
+  console.log("✅ Bootstrap abgeschlossen!");
 });
 
 /* ----------------------------------------------------------
@@ -1027,4 +865,5 @@ window.SignalOne = {
     fadeIn,
     useDemoMode,
   },
+  MetaAuth,
 };
