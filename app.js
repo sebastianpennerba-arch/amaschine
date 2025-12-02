@@ -1,7 +1,6 @@
 /*
- * app.js – SignalOne Core Backbone
+ * app.js – SignalOne Core Backbone (INTEGRATION FIXED)
  * Navigation • View Handling • Meta Simulation • Toasts • Modal
- * + Gold-Icon Sidebar & Brand-Subheader
  */
 
 /* ----------------------------------------------------------
@@ -36,7 +35,7 @@ const AppState = {
 };
 
 /* ----------------------------------------------------------
-   DEMO-DATA (DIREKT HIER DEFINIEREN!)
+   DEMO-DATA (GLOBAL VERFÜGBAR)
 -----------------------------------------------------------*/
 const DemoData = {
   brands: [
@@ -67,77 +66,52 @@ const DemoData = {
       roas30d: 5.9,
       campaignHealth: "good",
     },
-    {
-      id: "fitlife_supplements",
-      name: "FitLife Supplements",
-      ownerName: "FitLife Labs",
-      vertical: "Fitness / Nutrition",
-      spend30d: 32101,
-      roas30d: 4.1,
-      campaignHealth: "warning",
-    },
-    {
-      id: "homezen_living",
-      name: "HomeZen Living",
-      ownerName: "HomeZen Living GmbH",
-      vertical: "Home / Living / Deko",
-      spend30d: 19883,
-      roas30d: 3.6,
-      campaignHealth: "critical",
-    },
   ],
   campaignsByBrand: {
     acme_fashion: [
       { id: "acme_ugc_scale", name: "UGC Scale Test", status: "ACTIVE" },
       { id: "acme_brand_static", name: "Brand Awareness Static", status: "PAUSED" },
-      { id: "acme_hook_battle", name: "Hook Battle Q4", status: "TESTING" },
     ],
     techgadgets_pro: [
       { id: "tech_launch", name: "Launch Funnel EU", status: "ACTIVE" },
-      { id: "tech_retarg", name: "Retargeting Core", status: "ACTIVE" },
     ],
     beautylux_cosmetics: [
       { id: "beauty_creators", name: "Creator Evergreen", status: "ACTIVE" },
-      { id: "beauty_ba", name: "Brand Awareness Beauty", status: "PAUSED" },
     ],
-    fitlife_supplements: [{ id: "fit_scale", name: "Scale Stack Q4", status: "ACTIVE" }],
-    homezen_living: [{ id: "home_test", name: "Creative Testing", status: "TESTING" }],
   },
 };
 
-// SOFORT GLOBAL VERFÜGBAR MACHEN
-window.SignalOneDemo = window.SignalOneDemo || {};
-window.SignalOneDemo.DemoData = DemoData;
-window.SignalOneDemo.brands = DemoData.brands; // Für Kompatibilität
+// GLOBAL VERFÜGBAR MACHEN
+window.SignalOneDemo = {
+  DemoData: DemoData,
+  brands: DemoData.brands,
+  campaignsByBrand: DemoData.campaignsByBrand
+};
 
 console.log("✅ DemoData geladen:", DemoData.brands.length, "Brands");
 
 function useDemoMode() {
-  if (AppState.settings.demoMode) return true;
-  if (!AppState.metaConnected) return true;
-  return false;
+  return AppState.settings.demoMode || !AppState.metaConnected;
 }
-
-import MetaAuth from "./packages/metaAuth/index.js";
 
 /* ----------------------------------------------------------
    MODULE REGISTRY & LABELS
 -----------------------------------------------------------*/
 const modules = {
-  dashboard: () => import("/packages/dashboard/index.js"),
-  creativeLibrary: () => import("/packages/creativeLibrary/index.js"),
-  campaigns: () => import("/packages/campaigns/index.js"),
-  testingLog: () => import("/packages/testingLog/index.js"),
-  sensei: () => import("/packages/sensei/index.js"),
-  onboarding: () => import("/packages/onboarding/index.js"),
-  team: () => import("/packages/team/index.js"),
-  brands: () => import("/packages/brands/index.js"),
-  reports: () => import("/packages/reports/index.js"),
-  creatorInsights: () => import("/packages/creatorInsights/index.js"),
-  analytics: () => import("/packages/analytics/index.js"),
-  roast: () => import("/packages/roast/index.js"),
-  shopify: () => import("/packages/shopify/index.js"),
-  settings: () => import("/packages/settings/index.js"),
+  dashboard: () => import("./packages/dashboard/index.js"),
+  creativeLibrary: () => import("./packages/creativeLibrary/index.js"),
+  campaigns: () => import("./packages/campaigns/index.js"),
+  testingLog: () => import("./packages/testingLog/index.js"),
+  sensei: () => import("./packages/sensei/index.js"),
+  onboarding: () => import("./packages/onboarding/index.js"),
+  team: () => import("./packages/team/index.js"),
+  brands: () => import("./packages/brands/index.js"),
+  reports: () => import("./packages/reports/index.js"),
+  creatorInsights: () => import("./packages/creatorInsights/index.js"),
+  analytics: () => import("./packages/analytics/index.js"),
+  roast: () => import("./packages/roast/index.js"),
+  shopify: () => import("./packages/shopify/index.js"),
+  settings: () => import("./packages/settings/index.js"),
 };
 
 const moduleLabels = {
@@ -185,7 +159,6 @@ const modulesRequiringMeta = [
   "reports",
 ];
 
-/* ICON IDs MAPPING (SIDEBAR) */
 const moduleIconIds = {
   dashboard: "icon-dashboard",
   creativeLibrary: "icon-library",
@@ -210,12 +183,7 @@ function createSvgIconFromSymbol(symbolId, extraClass = "") {
   const svgNS = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(svgNS, "svg");
   svg.setAttribute("viewBox", "0 0 24 24");
-
-  if (extraClass) {
-    svg.classList.add(extraClass);
-  } else {
-    svg.classList.add("icon-svg");
-  }
+  svg.classList.add(extraClass || "icon-svg");
 
   const symbol = document.getElementById(symbolId);
   if (symbol) {
@@ -224,10 +192,6 @@ function createSvgIconFromSymbol(symbolId, extraClass = "") {
         svg.appendChild(node.cloneNode(true));
       }
     });
-  } else {
-    const use = document.createElementNS(svgNS, "use");
-    use.setAttributeNS("http://www.w3.org/1999/xlink", "href", `#${symbolId}`);
-    svg.appendChild(use);
   }
 
   return svg;
@@ -248,10 +212,10 @@ function setActiveView(viewId) {
   const views = document.querySelectorAll(".view");
   views.forEach((v) => {
     if (v.id === viewId) {
-      v.classList.add("active");
+      v.classList.add("is-active");
       v.style.display = "block";
     } else {
-      v.classList.remove("active");
+      v.classList.remove("is-active");
       v.style.display = "none";
     }
   });
@@ -268,14 +232,13 @@ function getGreetingPrefix() {
 function getActiveBrand() {
   const id = AppState.selectedBrandId || DemoData.brands[0]?.id;
   if (!id) return null;
-  return DemoData.brands.find((b) => b.id === id) || DemoData.brands[0] || null;
+  return DemoData.brands.find((b) => b.id === id) || DemoData.brands[0];
 }
 
 function getEffectiveBrandOwnerName() {
   if (AppState.meta?.user?.name) return AppState.meta.user.name;
   const brand = getActiveBrand();
-  if (brand?.ownerName) return brand.ownerName;
-  return "SignalOne Nutzer";
+  return brand?.ownerName || "SignalOne Nutzer";
 }
 
 function updateTopbarGreeting() {
@@ -290,11 +253,7 @@ function updateTopbarDateTime() {
   const now = new Date();
 
   if (dateEl) {
-    dateEl.textContent = `Datum: ${now.toLocaleDateString("de-DE", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    })}`;
+    dateEl.textContent = `Datum: ${now.toLocaleDateString("de-DE")}`;
   }
   if (timeEl) {
     timeEl.textContent = `Zeit: ${now.toLocaleTimeString("de-DE", {
@@ -325,18 +284,15 @@ function getActiveBrandContext() {
 
 function updateViewSubheaders() {
   const views = document.querySelectorAll(".view");
-  if (!views.length) return;
-
   const ctx = getActiveBrandContext();
   if (!ctx) return;
 
   views.forEach((section) => {
-    if (!section) return;
     let header = section.querySelector(".view-subheader");
     if (!header) {
       header = document.createElement("div");
       header.className = "view-subheader";
-      section.insertBefore(header, section.firstChild || null);
+      section.insertBefore(header, section.firstChild);
     }
 
     header.innerHTML = `
@@ -365,24 +321,8 @@ function updateViewSubheaders() {
 -----------------------------------------------------------*/
 function updateSidebarActiveIcon(activeKey) {
   const buttons = document.querySelectorAll(".sidebar-nav-button");
-
   buttons.forEach((btn) => {
-    const module = btn.dataset.module;
-    const svg = btn.querySelector(".icon-svg");
-    const fillLayerId = moduleIconIds[module];
-    const symbol = document.getElementById(fillLayerId);
-
-    const use = svg?.querySelector("use");
-    if (!use || !symbol) {
-      if (module === activeKey) {
-        btn.classList.add("active");
-      } else {
-        btn.classList.remove("active");
-      }
-      return;
-    }
-
-    if (module === activeKey) {
+    if (btn.dataset.module === activeKey) {
       btn.classList.add("active");
     } else {
       btn.classList.remove("active");
@@ -399,14 +339,7 @@ function renderNav() {
   navbar.innerHTML = "";
 
   const license = AppState.licenseLevel;
-  const restrictedForFree = [
-    "reports",
-    "team",
-    "brands",
-    "creatorInsights",
-    "analytics",
-    "shopify",
-  ];
+  const restrictedForFree = ["reports", "team", "brands", "creatorInsights", "analytics", "shopify"];
 
   Object.keys(modules).forEach((key) => {
     if (key === "settings") return;
@@ -429,7 +362,6 @@ function renderNav() {
     const labelSpan = document.createElement("span");
     labelSpan.className = "label";
     labelSpan.textContent = getLabelForModule(key);
-
     btn.appendChild(labelSpan);
 
     btn.addEventListener("click", () => navigateTo(key));
@@ -461,7 +393,6 @@ function toggleMetaConnection() {
   updateCampaignHealthUI();
   updateTopbarGreeting();
   updateViewSubheaders();
-
   loadModule(AppState.currentModule);
 }
 
@@ -531,7 +462,6 @@ function wireBrandAndCampaignSelects() {
     campaignSelect.addEventListener("change", () => {
       AppState.selectedCampaignId = campaignSelect.value || null;
       loadModule(AppState.currentModule);
-      updateViewSubheaders();
     });
   }
 }
@@ -563,13 +493,7 @@ function showToast(message, type = "info") {
 function pushNotification(type, message, meta = {}) {
   if (!["error", "warning"].includes(type)) return;
 
-  AppState.notifications.push({
-    id: Date.now(),
-    type,
-    message,
-    meta,
-  });
-
+  AppState.notifications.push({ id: Date.now(), type, message, meta });
   document.getElementById("notificationsDot")?.classList.remove("hidden");
 }
 
@@ -600,41 +524,26 @@ function closeSystemModal() {
    SYSTEM HEALTH & META STATUS
 -----------------------------------------------------------*/
 function updateMetaStatusUI() {
-  const badge = document.getElementById("metaStatusBadge");
-  const badgeLabel = document.getElementById("metaStatusLabel");
   const button = document.getElementById("metaConnectButton");
   const sidebarDot = document.getElementById("sidebarMetaDot");
   const sidebarLabel = document.getElementById("sidebarMetaLabel");
 
   const isConnected = AppState.metaConnected;
 
-  if (isConnected) {
-    if (badgeLabel) {
-      badgeLabel.textContent = useDemoMode()
-        ? "Meta: Verbunden (Demo)"
-        : "Meta: Verbunden (Live)";
-    }
-    if (badge) {
-      badge.classList.add("connected");
-      badge.classList.remove("badge-offline");
-    }
-    if (button) button.textContent = "Meta trennen";
+  if (button) {
+    button.textContent = isConnected ? "Meta trennen" : "Meta verbinden";
+  }
 
-    if (sidebarDot) sidebarDot.style.backgroundColor = "var(--color-success)";
-    if (sidebarLabel)
-      sidebarLabel.textContent = useDemoMode()
-        ? "Meta Ads: Demo verbunden"
-        : "Meta Ads: Live verbunden";
-  } else {
-    if (badgeLabel) badgeLabel.textContent = "Meta: Nicht verbunden";
-    if (badge) {
-      badge.classList.remove("connected");
-      badge.classList.add("badge-offline");
-    }
-    if (button) button.textContent = "Meta verbinden";
-
-    if (sidebarDot) sidebarDot.style.backgroundColor = "var(--color-danger)";
-    if (sidebarLabel) sidebarLabel.textContent = "Meta Ads: Getrennt";
+  if (sidebarDot) {
+    sidebarDot.style.backgroundColor = isConnected 
+      ? "var(--color-success)" 
+      : "var(--color-danger)";
+  }
+  
+  if (sidebarLabel) {
+    sidebarLabel.textContent = isConnected
+      ? (useDemoMode() ? "Meta Ads: Demo verbunden" : "Meta Ads: Live verbunden")
+      : "Meta Ads: Getrennt";
   }
 }
 
@@ -700,9 +609,9 @@ function hideGlobalLoader() {
 function applySectionSkeleton(section) {
   if (!section) return;
   section.innerHTML = `
-    <div class="skeleton-block" style="height: 20px; width: 40%; margin-bottom: 16px;"></div>
-    <div class="skeleton-block" style="height: 120px; margin-bottom: 14px;"></div>
-    <div class="skeleton-block" style="height: 200px;"></div>
+    <div style="height: 20px; width: 40%; margin-bottom: 16px; background: #e5e7eb; border-radius: 4px; animation: pulse 1.5s ease-in-out infinite;"></div>
+    <div style="height: 120px; margin-bottom: 14px; background: #e5e7eb; border-radius: 8px; animation: pulse 1.5s ease-in-out infinite;"></div>
+    <div style="height: 200px; background: #e5e7eb; border-radius: 8px; animation: pulse 1.5s ease-in-out infinite;"></div>
   `;
 }
 
@@ -726,15 +635,9 @@ async function loadModule(key) {
     return;
   }
 
-  if (
-    modulesRequiringMeta.includes(key) &&
-    !AppState.metaConnected &&
-    !useDemoMode()
-  ) {
-    section.innerHTML =
-      "<p>Dieses Modul benötigt eine Meta-Verbindung oder den Demo-Modus.</p>";
+  if (modulesRequiringMeta.includes(key) && !AppState.metaConnected && !useDemoMode()) {
+    section.innerHTML = "<p>Dieses Modul benötigt eine Meta-Verbindung oder den Demo-Modus.</p>";
     showToast("Bitte Meta verbinden oder Demo-Modus aktivieren.", "warning");
-    updateCampaignHealthUI();
     return;
   }
 
@@ -745,15 +648,36 @@ async function loadModule(key) {
     const module = await loader();
     if (module?.render) {
       section.innerHTML = "";
-      module.render(section, AppState, { useDemoMode: useDemoMode() });
+      module.render(section, AppState, { 
+        useDemoMode: useDemoMode(),
+        demoData: DemoData
+      });
       fadeIn(section);
     } else {
-      section.textContent = `Das Modul "${key}" ist noch nicht implementiert.`;
+      section.innerHTML = `
+        <div style="padding: 40px; text-align: center;">
+          <h2>Modul "${key}" wird geladen...</h2>
+          <p style="margin-top: 12px; color: #6b7280;">
+            Das Modul existiert unter <code>./packages/${key}/index.js</code>
+          </p>
+          <p style="margin-top: 8px; font-size: 0.9em; color: #9ca3af;">
+            Stelle sicher, dass die Datei eine <code>render()</code>-Funktion exportiert.
+          </p>
+        </div>
+      `;
     }
     AppState.systemHealthy = true;
   } catch (err) {
     console.error("[SignalOne] Fehler beim Laden", key, err);
-    section.textContent = `Fehler beim Laden des Moduls "${key}".`;
+    section.innerHTML = `
+      <div style="padding: 24px; background: #fee; border: 1px solid #fcc; border-radius: 8px;">
+        <h3 style="color: #c00; margin: 0 0 8px;">Fehler beim Laden des Moduls "${key}"</h3>
+        <p style="margin: 0; color: #666;">${err.message}</p>
+        <p style="margin: 8px 0 0; font-size: 0.85em; color: #999;">
+          Prüfe die Konsole für Details. Modul-Pfad: <code>./packages/${key}/index.js</code>
+        </p>
+      </div>
+    `;
     showToast(`Fehler beim Laden von ${getLabelForModule(key)}`, "error");
     pushNotification("error", `Modulfehler: ${getLabelForModule(key)}`, {
       module: key,
@@ -771,8 +695,8 @@ async function navigateTo(key) {
   if (!modules[key]) return;
 
   AppState.currentModule = key;
-
   const viewId = getViewIdForModule(key);
+  
   setActiveView(viewId);
   renderNav();
   updateSidebarActiveIcon(key);
@@ -790,7 +714,6 @@ document.addEventListener("DOMContentLoaded", () => {
   console.log("✅ DemoData verfügbar:", DemoData.brands.length, "Brands");
   
   renderNav();
-
   populateBrandSelect();
   populateCampaignSelect();
   wireBrandAndCampaignSelects();
@@ -798,11 +721,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const initialViewId = getViewIdForModule(AppState.currentModule);
   setActiveView(initialViewId);
 
-  document
-    .getElementById("metaConnectButton")
-    ?.addEventListener("click", () => {
-      MetaAuth.connectWithPopup();
-    });
+  document.getElementById("metaConnectButton")?.addEventListener("click", toggleMetaConnection);
 
   updateMetaStatusUI();
   updateSystemHealthUI();
@@ -837,10 +756,7 @@ document.addEventListener("DOMContentLoaded", () => {
       );
     } else {
       const items = AppState.notifications
-        .map(
-          (n) =>
-            `<li><strong>[${n.type.toUpperCase()}]</strong> ${n.message}</li>`
-        )
+        .map((n) => `<li><strong>[${n.type.toUpperCase()}]</strong> ${n.message}</li>`)
         .join("");
       openSystemModal(
         "Benachrichtigungen",
@@ -883,6 +799,7 @@ window.SignalOne = {
   showToast,
   openSystemModal,
   closeSystemModal,
+  DemoData,
   UI: {
     showGlobalLoader,
     hideGlobalLoader,
