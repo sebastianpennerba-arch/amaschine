@@ -1,11 +1,12 @@
 /* ============================================================
-   SignalOne.app.js – Rebuild 2025
-   High-Performance Vanilla SPA Engine
+   SignalOne.app.js – SPA Backbone 2025
+   High-Performance Vanilla JS (ohne Frameworks)
    ============================================================ */
 
 /* ------------------------------------------------------------
    1) GLOBAL APP STATE
 ------------------------------------------------------------ */
+
 export const AppState = {
   currentModule: "dashboard",
 
@@ -13,15 +14,28 @@ export const AppState = {
   meta: {
     token: null,
     user: null,
+    ads: null,
+    campaigns: null,
+    accounts: null,
+    insights: null,
   },
 
   selectedBrandId: null,
   selectedCampaignId: null,
 
   settings: {
+    theme: "dark",
+    currency: "EUR",
     demoMode: true,
+    cacheTtl: 5 * 60 * 1000,
+    defaultRange: "last_30_days",
   },
 
+  onboardingStep: 1,
+  tutorialMode: false,
+
+  teamMembers: [],
+  licenseLevel: "BETA",
   notifications: [],
   systemHealthy: true,
 };
@@ -29,13 +43,15 @@ export const AppState = {
 /* ------------------------------------------------------------
    2) DOM HELPERS
 ------------------------------------------------------------ */
+
 export const $ = (id) => document.getElementById(id);
 export const qs = (sel) => document.querySelector(sel);
 export const qsa = (sel) => document.querySelectorAll(sel);
 
 /* ------------------------------------------------------------
-   3) VIEW REGISTRY (mapping module -> template section)
+   3) VIEW REGISTRY (moduleKey -> section#id)
 ------------------------------------------------------------ */
+
 export const ViewMap = {
   dashboard: "dashboardView",
   creativeLibrary: "creativeLibraryView",
@@ -45,6 +61,7 @@ export const ViewMap = {
   reports: "reportsView",
   creatorInsights: "creatorInsightsView",
   analytics: "analyticsView",
+
   team: "teamView",
   brands: "brandsView",
   shopify: "shopifyView",
@@ -53,14 +70,14 @@ export const ViewMap = {
   settings: "settingsView",
 };
 
-/* Human-friendly labels for header bar */
+/* Menschlich lesbare Labels für Sidebar / Context */
 export const ModuleLabels = {
   dashboard: "Dashboard",
   creativeLibrary: "Creative Library",
-  campaigns: "Kampagnen",
-  sensei: "Sensei / AI",
+  campaigns: "Campaigns",
+  sensei: "Sensei",
   testingLog: "Testing Log",
-  reports: "Reports & Export",
+  reports: "Reports",
   creatorInsights: "Creator Insights",
   analytics: "Analytics",
   team: "Team",
@@ -73,8 +90,9 @@ export const ModuleLabels = {
 
 /* ------------------------------------------------------------
    4) DYNAMIC MODULE LOADER
-   (Each module exposes render(container, AppState, api))
+   (Jedes Modul exportiert: render(section, AppState, api))
 ------------------------------------------------------------ */
+
 export const ModuleLoader = {
   dashboard: () => import("/packages/dashboard/index.js"),
   creativeLibrary: () => import("/packages/creativeLibrary/index.js"),
@@ -95,6 +113,7 @@ export const ModuleLoader = {
 /* ------------------------------------------------------------
    5) MODULES THAT REQUIRE META CONNECTION
 ------------------------------------------------------------ */
+
 export const RequiresMeta = [
   "dashboard",
   "creativeLibrary",
@@ -107,54 +126,64 @@ export const RequiresMeta = [
 ];
 
 /* ------------------------------------------------------------
-   6) DEMO DATA FALLBACK (if backend unavailable)
+   6) DEMO DATA FALLBACK (wenn DataLayer / backend fehlt)
 ------------------------------------------------------------ */
-export const DemoData = window.SignalOneDemo?.DemoData || {
-  brands: [
-    { id: "brand1", name: "ACME Fashion", ownerName: "ACME GmbH", vertical: "Fashion", campaignHealth: "good" },
-  ],
-  campaignsByBrand: {
-    brand1: [
-      { id: "c1", name: "ACME UGC", status: "ACTIVE" },
-      { id: "c2", name: "Hook Battle", status: "TESTING" },
+
+export const DemoData =
+  window.SignalOneDemo?.DemoData || {
+    brands: [
+      {
+        id: "brand1",
+        name: "ACME Fashion",
+        ownerName: "ACME GmbH",
+        vertical: "Fashion",
+        campaignHealth: "good",
+      },
     ],
-  },
-};
+    campaignsByBrand: {
+      brand1: [
+        { id: "c1", name: "ACME UGC Scale Test", status: "ACTIVE" },
+        { id: "c2", name: "Hook Battle Q4", status: "TESTING" },
+      ],
+    },
+  };
 
 /* ------------------------------------------------------------
-   7) HELPER: CHECK IF WE USE DEMO MODE
+   7) DEMO MODE HELPER
 ------------------------------------------------------------ */
+
 export function useDemoMode() {
   if (AppState.settings.demoMode) return true;
   if (!AppState.metaConnected) return true;
   return false;
 }
+
 /* ============================================================
-   8) META CONNECT (DEMO + API READY)
+   8) META CONNECT (Demo + Live-API)
    ============================================================ */
 
 export async function toggleMetaConnection() {
-  // DEMO MODE → nur lokaler Toggle
+  // DEMO: nur lokaler Toggle
   if (useDemoMode()) {
     AppState.metaConnected = !AppState.metaConnected;
 
     if (AppState.metaConnected) {
       AppState.meta.token = "demo-token";
-      AppState.meta.user = { name: "Demo Nutzer" };
+      AppState.meta.user = { name: "Demo User" };
       showToast("Meta Demo verbunden.", "success");
     } else {
       AppState.meta.token = null;
       AppState.meta.user = null;
-      showToast("Meta Verbindung getrennt.", "warning");
+      showToast("Meta Demo getrennt.", "warning");
     }
 
     updateMetaStatusUI();
-    updateGreeting();
-    updateSidebarCampaignHealth();
+    updateTopbarGreeting();
+    updateCampaignHealthUI();
     return;
   }
 
-  // LIVE MODE (API CALL) – falls Backend aktiv
+  // LIVE MODE → gegen Backend (/meta/connect)
   try {
     const res = await fetch("/meta/connect", { method: "POST" });
     const data = await res.json();
@@ -173,42 +202,211 @@ export async function toggleMetaConnection() {
   }
 
   updateMetaStatusUI();
-  updateGreeting();
-  updateSidebarCampaignHealth();
+  updateTopbarGreeting();
+  updateCampaignHealthUI();
 }
 
 /* ============================================================
-   9) META STATUS UI (Sidebar + Topbar)
+   9) GLOBAL LOADER & SKELETON
    ============================================================ */
 
-export function updateMetaStatusUI() {
+function showGlobalLoader() {
+  const loader = $("globalLoader");
+  if (loader) loader.classList.add("visible");
+}
+
+function hideGlobalLoader() {
+  const loader = $("globalLoader");
+  if (loader) loader.classList.remove("visible");
+}
+
+function applySkeleton(section) {
+  if (!section) return;
+  section.innerHTML = `
+    <div class="skeleton-block" style="height: 180px; margin-bottom: 18px;"></div>
+    <div class="skeleton-block" style="height: 260px; margin-bottom: 18px;"></div>
+    <div class="skeleton-block" style="height: 220px;"></div>
+  `;
+}
+
+/* ============================================================
+   10) TOAST & MODAL SYSTEM
+   ============================================================ */
+
+let toastTimeoutHandle = null;
+
+export function showToast(message, type = "info") {
+  const container = $("toastContainer");
+  if (!container) return;
+
+  container.textContent = message;
+  container.className = "";
+  container.classList.add("toast", `toast-${type}`, "visible");
+
+  if (toastTimeoutHandle) clearTimeout(toastTimeoutHandle);
+  toastTimeoutHandle = setTimeout(() => {
+    container.classList.remove("visible");
+  }, 3500);
+}
+
+export function openSystemModal(title, bodyHtml) {
+  const overlay = $("modalOverlay");
+  const titleEl = $("modalTitle");
+  const bodyEl = $("modalBody");
+
+  if (!overlay || !titleEl || !bodyEl) return;
+
+  titleEl.textContent = title;
+  bodyEl.innerHTML = bodyHtml;
+  overlay.classList.add("visible");
+}
+
+export function closeSystemModal() {
+  const overlay = $("modalOverlay");
+  if (overlay) overlay.classList.remove("visible");
+}
+
+/* ============================================================
+   11) TOPBAR & SIDEBAR STATUS
+   ============================================================ */
+
+function getEffectiveBrand() {
+  const brandId =
+    AppState.selectedBrandId || DemoData.brands?.[0]?.id || null;
+  return DemoData.brands?.find((b) => b.id === brandId) || null;
+}
+
+function getEffectiveBrandOwnerName() {
+  const brand = getEffectiveBrand();
+  return brand?.ownerName || brand?.name || "SignalOne User";
+}
+
+function updateTopbarGreeting() {
+  const now = new Date();
+  const hour = now.getHours();
+  let greeting = "Hallo";
+
+  if (hour < 11) greeting = "Guten Morgen";
+  else if (hour < 18) greeting = "Guten Tag";
+  else greeting = "Guten Abend";
+
+  const brandOwner = getEffectiveBrandOwnerName();
+  const el = $("topbarGreeting");
+  if (el) el.textContent = `${greeting}, ${brandOwner}`;
+}
+
+function updateTopbarDateTime() {
+  const now = new Date();
+  const dateEl = $("topbarDate");
+  const timeEl = $("topbarTime");
+  if (!dateEl || !timeEl) return;
+
+  dateEl.textContent = now.toLocaleDateString("de-DE", {
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+
+  timeEl.textContent = now.toLocaleTimeString("de-DE", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function updateMetaStatusUI() {
   const dot = $("sidebarMetaDot");
   const label = $("sidebarMetaLabel");
+  const button = $("metaConnectButton");
 
-  if (!dot || !label) return;
+  const connected = AppState.metaConnected;
+  const demo = useDemoMode();
 
-  if (AppState.metaConnected) {
-    dot.style.background = "var(--color-success)";
-    label.textContent = useDemoMode()
-      ? "Meta Ads: Demo verbunden"
-      : "Meta Ads: Live verbunden";
-  } else {
-    dot.style.background = "var(--color-danger)";
-    label.textContent = "Meta Ads: Getrennt";
+  if (dot) {
+    dot.classList.toggle("status-ok", connected);
+    dot.classList.toggle("status-bad", !connected);
   }
 
-  // Topbar Button
-  const btn = $("metaConnectButton");
-  if (btn) btn.textContent = AppState.metaConnected ? "META TRENNEN" : "META VERBINDEN";
+  if (label) {
+    if (!connected) label.textContent = "Meta: nicht verbunden";
+    else label.textContent = demo ? "Meta: Demo verbunden" : "Meta: Live verbunden";
+  }
+
+  if (button) {
+    if (!connected) {
+      button.textContent = "Mit Meta verbinden";
+      button.classList.remove("meta-connected");
+    } else {
+      button.textContent = demo ? "Meta Demo trennen" : "Meta trennen";
+      button.classList.add("meta-connected");
+    }
+  }
+}
+
+function updateSystemHealthUI() {
+  const dot = $("sidebarSystemDot");
+  const label = $("sidebarSystemLabel");
+  if (!dot || !label) return;
+
+  const healthy = AppState.systemHealthy;
+  dot.classList.toggle("status-ok", healthy);
+  dot.classList.toggle("status-bad", !healthy);
+
+  label.textContent = healthy ? "System: OK" : "System: Issues";
+}
+
+function updateCampaignHealthUI() {
+  const dot = $("sidebarCampaignDot");
+  const label = $("sidebarCampaignLabel");
+  if (!dot || !label) return;
+
+  const brand = getEffectiveBrand();
+  const health = brand?.campaignHealth || "unknown";
+
+  dot.classList.remove("status-ok", "status-warn", "status-bad");
+
+  if (health === "good") {
+    dot.classList.add("status-ok");
+    label.textContent = "Campaigns: gesund";
+  } else if (health === "warning") {
+    dot.classList.add("status-warn");
+    label.textContent = "Campaigns: prüfen";
+  } else if (health === "critical") {
+    dot.classList.add("status-bad");
+    label.textContent = "Campaigns: kritisch";
+  } else {
+    label.textContent = "Campaigns: n/a";
+  }
 }
 
 /* ============================================================
-   10) SIDEBAR RENDERER
+   12) VIEW HANDLING (SECTIONS DIREKT, KEIN viewContainer!)
    ============================================================ */
 
-export function renderSidebar() {
-  const nav = $("navbar");
-  nav.innerHTML = "";
+function setActiveView(viewId) {
+  const sections = qsa(".view");
+  sections.forEach((section) => {
+    if (section.id === viewId) {
+      section.classList.add("active");
+    } else {
+      section.classList.remove("active");
+    }
+  });
+}
+
+/* Sidebar-Buttons aktiv setzen */
+function setActiveNav(moduleKey) {
+  const items = qsa(".sidebar-nav-button");
+  items.forEach((btn) => {
+    const key = btn.getAttribute("data-module");
+    btn.classList.toggle("active", key === moduleKey);
+  });
+}
+
+/* Navigation im Sidebar rendern (#navbar laut Doku) */
+function renderNav() {
+  const navbar = $("navbar");
+  if (!navbar) return;
 
   const order = [
     "dashboard",
@@ -223,662 +421,293 @@ export function renderSidebar() {
     "brands",
     "shopify",
     "roast",
+    "onboarding",
     "settings",
   ];
 
-  order.forEach((moduleKey) => {
+  navbar.innerHTML = "";
+
+  order.forEach((key) => {
+    if (!ViewMap[key]) return;
+
     const li = document.createElement("li");
     li.className = "sidebar-nav-item";
-    li.dataset.module = moduleKey;
 
-    li.innerHTML = `
-      <button class="sidebar-nav-button">
-        <svg class="icon-svg">
-          <use href="#icon-${moduleKey}"></use>
-        </svg>
-        <span class="label">${ModuleLabels[moduleKey] || moduleKey}</span>
-      </button>
+    const btn = document.createElement("button");
+    btn.className = "sidebar-nav-button";
+    btn.setAttribute("data-module", key);
+    btn.type = "button";
+
+    // Icon via <use xlink:href="#icon-..."> aus index.html
+    const iconWrapper = document.createElement("span");
+    iconWrapper.className = "icon-wrapper";
+    iconWrapper.innerHTML = `
+      <svg class="icon-svg" aria-hidden="true">
+        <use href="#icon-${key}" />
+      </svg>
     `;
 
-    li.addEventListener("click", () => navigateTo(moduleKey));
+    const labelSpan = document.createElement("span");
+    labelSpan.className = "label";
+    labelSpan.textContent = ModuleLabels[key] || key;
 
-    nav.appendChild(li);
+    btn.appendChild(iconWrapper);
+    btn.appendChild(labelSpan);
+
+    btn.addEventListener("click", () => {
+      navigateTo(key);
+    });
+
+    li.appendChild(btn);
+    navbar.appendChild(li);
   });
-
-  updateSidebarActive(AppState.currentModule);
-}
-
-export function updateSidebarActive(activeKey) {
-  qsa(".sidebar-nav-item").forEach((li) => {
-    li.classList.toggle("is-active", li.dataset.module === activeKey);
-  });
 }
 
 /* ============================================================
-   11) GOLD BANNER (HeaderBar)
+   13) MODULE LOAD + NAVIGATION
    ============================================================ */
 
-export function updateHeaderBar(moduleKey) {
-  const header = $("viewHeaderBar");
-  if (!header) return;
+async function loadModule(moduleKey) {
+  const viewId = ViewMap[moduleKey];
+  const section = viewId ? $(viewId) : null;
 
-  header.textContent = ModuleLabels[moduleKey] || "SignalOne";
-}
-
-/* ============================================================
-   12) BRAND SUBHEADER (unter Goldbanner)
-   ============================================================ */
-
-export function updateBrandSubheader(container) {
-  if (!container) return;
-
-  const brand = getActiveBrand();
-  if (!brand) return;
-
-  const campaigns = DemoData.campaignsByBrand[brand.id] || [];
-  const campaignText =
-    campaigns.length === 1
-      ? "1 Kampagne sichtbar"
-      : `${campaigns.length} Kampagnen sichtbar`;
-
-  let block = container.querySelector(".view-subheader");
-  if (!block) {
-    block = document.createElement("div");
-    block.className = "view-subheader";
-    container.prepend(block);
+  if (!section) {
+    console.warn("[SignalOne] View section nicht gefunden für", moduleKey);
+    return;
   }
 
-  block.innerHTML = `
-    <div class="subheader-line-1">
-      <span class="subheader-brand-name">${brand.ownerName || brand.name}</span>
-      <span class="subheader-role">— Aktives Werbekonto</span>
-    </div>
-    <div class="subheader-line-2">
-      <span class="subheader-campaigns">${campaignText}</span>
-      <span class="subheader-divider">•</span>
-      <span class="subheader-industry">Industry: ${brand.vertical}</span>
-    </div>
-  `;
-}
-
-/* ============================================================
-   13) GREETING + DATETIME
-   ============================================================ */
-
-export function updateGreeting() {
-  const el = $("topbarGreeting");
-  if (!el) return;
-
-  const name =
-    AppState.meta?.user?.name ||
-    DemoData.brands.find((b) => b.id === AppState.selectedBrandId)?.ownerName ||
-    "Nutzer";
-
-  const hour = new Date().getHours();
-  let prefix = "Hallo";
-  if (hour < 11) prefix = "Guten Morgen";
-  else if (hour < 18) prefix = "Guten Tag";
-  else prefix = "Guten Abend";
-
-  el.textContent = `${prefix}, ${name}!`;
-}
-
-export function updateDateTime() {
-  const d = $("topbarDate");
-  const t = $("topbarTime");
-  const now = new Date();
-
-  if (d) {
-    d.textContent = "Datum: " + now.toLocaleDateString("de-DE");
+  // Meta-Gatekeeper: Views, die Live/Demo-Daten brauchen
+  if (RequiresMeta.includes(moduleKey) && !AppState.metaConnected && !useDemoMode()) {
+    section.innerHTML = `
+      <div class="so-card" style="max-width: 520px;">
+        <h2 class="so-card-title">Meta Verbindung benötigt</h2>
+        <p class="so-card-subtitle">
+          Diese View benötigt Daten aus deinem Meta Ads Account.
+        </p>
+        <p style="font-size:0.9rem; color:var(--color-text-muted); margin-bottom:14px;">
+          Verbinde zuerst dein Meta-Konto oder aktiviere den Demo-Modus, um Beispiel-Daten
+          zu sehen.
+        </p>
+        <button class="meta-button" id="metaConnectInline">
+          Mit Meta verbinden
+        </button>
+      </div>
+    `;
+    const inlineBtn = $("metaConnectInline");
+    if (inlineBtn) {
+      inlineBtn.addEventListener("click", () => {
+        $("metaConnectButton")?.click();
+      });
+    }
+    return;
   }
-  if (t) {
-    t.textContent =
-      "Zeit: " +
-      now.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+
+  showGlobalLoader();
+  applySkeleton(section);
+
+  try {
+    const loaderFn = ModuleLoader[moduleKey];
+    if (!loaderFn) {
+      throw new Error(`Kein ModuleLoader für "${moduleKey}" definiert.`);
+    }
+
+    const module = await loaderFn();
+    if (typeof module.render !== "function") {
+      throw new Error(`Modul "${moduleKey}" exportiert keine render(section, AppState, api) Funktion.`);
+    }
+
+    // Section vorher leeren, damit Modul eigenes Layout rendern kann
+    section.innerHTML = "";
+
+    await module.render(section, AppState, {
+      useDemoMode: useDemoMode(),
+      showToast,
+      openSystemModal,
+      closeSystemModal,
+    });
+  } catch (err) {
+    console.error("Fehler beim Laden des Moduls", moduleKey, err);
+    section.innerHTML = `
+      <div class="so-card">
+        <h2 class="so-card-title">Fehler beim Laden der View</h2>
+        <p class="so-card-subtitle">
+          Modul <code>${moduleKey}</code> konnte nicht geladen werden.
+        </p>
+        <p style="font-size:0.9rem; color:var(--color-text-muted);">
+          Bitte überprüfe, ob <code>/packages/${moduleKey}/index.js</code> existiert
+          und eine <code>render(...)</code>-Funktion exportiert.
+        </p>
+      </div>
+    `;
+    showToast(`Fehler beim Laden von "${ModuleLabels[moduleKey] || moduleKey}".`, "error");
+  } finally {
+    hideGlobalLoader();
   }
 }
 
-setInterval(updateDateTime, 60000);
-
-/* ============================================================
-   14) ACTIVE-BRAND HELPERS
-   ============================================================ */
-
-export function getActiveBrand() {
-  const id = AppState.selectedBrandId;
-  if (!id) return DemoData.brands[0];
-  return DemoData.brands.find((b) => b.id === id) || DemoData.brands[0];
-}
-
-/* Sidebar Campaign Health Dot */
-export function updateSidebarCampaignHealth() {
-  const brand = getActiveBrand();
-  const dot = $("sidebarCampaignDot");
-  const label = $("sidebarCampaignLabel");
-
-  if (!brand || !dot || !label) return;
-
-  switch (brand.campaignHealth) {
-    case "good":
-      dot.style.background = "var(--color-success)";
-      label.textContent = "Campaign Health: Stark";
-      break;
-    case "warning":
-      dot.style.background = "var(--color-warning)";
-      label.textContent = "Campaign Health: Beobachten";
-      break;
-    case "critical":
-      dot.style.background = "var(--color-danger)";
-      label.textContent = "Campaign Health: Kritisch";
-      break;
-    default:
-      dot.style.background = "var(--color-text-soft)";
-      label.textContent = "Campaign Health: n/a";
+export async function navigateTo(moduleKey) {
+  if (!ViewMap[moduleKey]) {
+    console.warn("[SignalOne] Unbekanntes Modul:", moduleKey);
+    return;
   }
+
+  AppState.currentModule = moduleKey;
+
+  const viewId = ViewMap[moduleKey];
+  setActiveView(viewId);
+  setActiveNav(moduleKey);
+
+  // Optional: Context-Text in einer Subheader-Komponente oder so
+  // (CSS kann z. B. data-view-title auf dem Section nutzen)
+
+  await loadModule(moduleKey);
 }
+
 /* ============================================================
-   15) BRAND & CAMPAIGN SELECT – CORE LOGIC
+   14) BRAND & CAMPAIGN SELECT INITIALISIEREN
    ============================================================ */
 
-export function populateBrandSelect() {
+function populateBrandSelect() {
   const select = $("brandSelect");
   if (!select) return;
 
-  select.innerHTML = `<option value="">Werbekonto auswählen</option>`;
+  select.innerHTML = "";
 
-  DemoData.brands.forEach((brand) => {
+  const brands = DemoData.brands || [];
+  brands.forEach((brand) => {
     const opt = document.createElement("option");
     opt.value = brand.id;
-    opt.textContent = `${brand.name} (${brand.vertical})`;
+    opt.textContent = brand.name;
     select.appendChild(opt);
   });
 
-  // Auto-select first brand if none chosen
-  if (!AppState.selectedBrandId && DemoData.brands.length > 0) {
-    AppState.selectedBrandId = DemoData.brands[0].id;
-  }
-
-  select.value = AppState.selectedBrandId || "";
+  const firstId = brands[0]?.id || null;
+  AppState.selectedBrandId = firstId;
+  if (firstId) select.value = firstId;
 }
 
-export function populateCampaignSelect() {
+function populateCampaignSelect() {
   const select = $("campaignSelect");
   if (!select) return;
 
-  select.innerHTML = `<option value="">Kampagne auswählen</option>`;
-
   const brandId = AppState.selectedBrandId;
-  if (!brandId) return;
+  const campaigns = DemoData.campaignsByBrand?.[brandId] || [];
 
-  const campaigns = DemoData.campaignsByBrand[brandId] || [];
+  select.innerHTML = "";
 
   campaigns.forEach((c) => {
     const opt = document.createElement("option");
     opt.value = c.id;
-
-    const symbol =
-      c.status === "ACTIVE" ? "🟢" : c.status === "PAUSED" ? "⏸" : "🧪";
-
-    opt.textContent = `${symbol} ${c.name}`;
+    opt.textContent = c.name;
     select.appendChild(opt);
   });
 
-  // Restore last selected
+  AppState.selectedCampaignId = campaigns[0]?.id || null;
   if (AppState.selectedCampaignId) {
     select.value = AppState.selectedCampaignId;
   }
 }
 
 /* ============================================================
-   16) SELECT EVENT WIRING
-   ============================================================ */
-
-export function wireSelects() {
-  const brandSelect = $("brandSelect");
-  const campSelect = $("campaignSelect");
-
-  if (brandSelect) {
-    brandSelect.addEventListener("change", () => {
-      AppState.selectedBrandId = brandSelect.value || null;
-
-      // Reset Campaign
-      AppState.selectedCampaignId = null;
-      populateCampaignSelect();
-
-      updateSidebarCampaignHealth();
-      updateGreeting();
-
-      // Re-render current view
-      navigateTo(AppState.currentModule);
-    });
-  }
-
-  if (campSelect) {
-    campSelect.addEventListener("change", () => {
-      AppState.selectedCampaignId = campSelect.value || null;
-
-      // Re-render current view
-      navigateTo(AppState.currentModule);
-    });
-  }
-}
-
-/* ============================================================
-   17) SUBHEADER + HEALTH UPDATES ON SELECT CHANGE
-   ============================================================ */
-
-export function triggerBrandContextUpdates(container) {
-  updateSidebarCampaignHealth();
-  updateGreeting();
-  updateBrandSubheader(container);
-}
-/* ============================================================
-   18) VIEW RENDERER – TEMPLATE SYSTEM
-   ============================================================ */
-
-/**
- * Kopiert den HTML-Inhalt eines <section id="XxxView"> Templates
- * in den zentralen #viewContainer.
- */
-export function renderTemplate(viewId) {
-  const template = $(viewId);
-  const container = $("viewContainer");
-
-  if (!container) return;
-  if (!template) {
-    container.innerHTML = `<p>Template "${viewId}" nicht gefunden.</p>`;
-    return;
-  }
-
-  // Template HTML in Container setzen
-  container.innerHTML = template.innerHTML;
-}
-
-/* ============================================================
-   19) MODULE LOADING (DYNAMIC)
-   ============================================================ */
-
-async function loadModule(moduleKey) {
-  const container = $("viewContainer");
-  const viewId = ViewMap[moduleKey];
-
-  if (!container) return;
-
-  // Check Meta Requirement
-  if (RequiresMeta.includes(moduleKey) && !useDemoMode()) {
-    if (!AppState.metaConnected) {
-      container.innerHTML = `
-        <div class="module-locked">
-          <p>Dieses Modul benötigt eine Meta Ads Verbindung.</p>
-          <button class="primary-button" onclick="window.SignalOne.toggleMetaConnection()">
-            Meta verbinden
-          </button>
-        </div>`;
-      return;
-    }
-  }
-
-  // Show Skeleton Loader
-  applySkeleton(container);
-
-  try {
-    const loader = ModuleLoader[moduleKey];
-    if (!loader) {
-      // Fallback: purely template-based
-      renderTemplate(viewId);
-      return;
-    }
-
-    const module = await loader();
-
-    if (module && typeof module.render === "function") {
-      container.innerHTML = "";
-      await module.render(container, AppState, {
-        demo: useDemoMode(),
-        navigateTo,
-        showToast,
-        openSystemModal,
-      });
-    } else {
-      // fallback to template
-      renderTemplate(viewId);
-    }
-  } catch (err) {
-    console.error("[SignalOne] Fehler im Modul:", moduleKey, err);
-    showToast(`Fehler in ${ModuleLabels[moduleKey]}`, "error");
-
-    container.innerHTML = `
-      <div class="module-error">
-        <h3>Fehler im Modul "${ModuleLabels[moduleKey]}"</h3>
-        <p>${err}</p>
-      </div>
-    `;
-
-    AppState.systemHealthy = false;
-    updateSystemHealthUI();
-  }
-
-  // Always update subheader after any load
-  updateBrandSubheader(container);
-}
-
-/* ============================================================
-   20) NAVIGATION ENGINE
-   ============================================================ */
-
-export async function navigateTo(moduleKey) {
-  if (!ViewMap[moduleKey]) {
-    console.warn("Unbekanntes Modul:", moduleKey);
-    return;
-  }
-
-  AppState.currentModule = moduleKey;
-
-  // Update UI States
-  updateHeaderBar(moduleKey);
-  updateSidebarActive(moduleKey);
-  updateGreeting();
-
-  // Actual Load
-  await loadModule(moduleKey);
-}
-
-/* ============================================================
-   21) SKELETON LOADER
-   ============================================================ */
-
-export function applySkeleton(container) {
-  if (!container) return;
-
-  container.innerHTML = `
-    <div class="skeleton-block" style="height:24px;width:40%;margin-bottom:18px;"></div>
-    <div class="skeleton-block" style="height:120px;margin-bottom:14px;"></div>
-    <div class="skeleton-block" style="height:200px;"></div>
-  `;
-}
-
-/* ============================================================
-   22) SYSTEM HEALTH
-   ============================================================ */
-
-export function updateSystemHealthUI() {
-  const dot = $("sidebarSystemDot");
-  const label = $("sidebarSystemLabel");
-
-  if (!dot || !label) return;
-
-  if (AppState.systemHealthy) {
-    dot.style.background = "var(--color-success)";
-    label.textContent = "System Health: OK";
-  } else {
-    dot.style.background = "var(--color-warning)";
-    label.textContent = "System Health: Fehler erkannt";
-  }
-}
-/* ============================================================
-   23) GLOBAL LOADER
-   ============================================================ */
-
-export function showGlobalLoader() {
-  const el = $("globalLoader");
-  if (!el) return;
-  el.classList.remove("hidden");
-}
-
-export function hideGlobalLoader() {
-  const el = $("globalLoader");
-  if (!el) return;
-  el.classList.add("hidden");
-}
-
-/* ============================================================
-   24) TOAST SYSTEM
-   ============================================================ */
-
-export function showToast(message, type = "info") {
-  const container = $("toastContainer");
-  if (!container) return;
-
-  const toast = document.createElement("div");
-  toast.className = "toast";
-
-  if (type === "success") toast.classList.add("toast-success");
-  if (type === "warning") toast.classList.add("toast-warning");
-  if (type === "error") toast.classList.add("toast-error");
-
-  toast.textContent = message;
-  container.appendChild(toast);
-
-  // Eintritt
-  requestAnimationFrame(() => {
-    toast.classList.add("visible");
-  });
-
-  // Exit
-  setTimeout(() => {
-    toast.classList.remove("visible");
-    setTimeout(() => toast.remove(), 240);
-  }, 2800);
-}
-
-/* ============================================================
-   25) MODAL SYSTEM
-   ============================================================ */
-
-export function openSystemModal(title, bodyHtml) {
-  const overlay = $("modalOverlay");
-  const titleEl = $("modalTitle");
-  const bodyEl = $("modalBody");
-
-  if (!overlay || !titleEl || !bodyEl) return;
-
-  titleEl.textContent = title || "";
-  bodyEl.innerHTML = bodyHtml || "";
-
-  overlay.classList.remove("hidden");
-}
-
-export function closeSystemModal() {
-  const overlay = $("modalOverlay");
-  if (!overlay) return;
-  overlay.classList.add("hidden");
-}
-
-/* Modal close wiring helper */
-export function wireModalClose() {
-  const overlay = $("modalOverlay");
-  const closeBtn = $("modalCloseButton");
-
-  if (closeBtn) {
-    closeBtn.addEventListener("click", () => {
-      closeSystemModal();
-    });
-  }
-
-  if (overlay) {
-    overlay.addEventListener("click", (evt) => {
-      if (evt.target === overlay) {
-        closeSystemModal();
-      }
-    });
-  }
-}
-/* ============================================================
-   26) BOOTSTRAP – THE STARTUP SEQUENCE
-   ============================================================ */
-
-export function bootstrapSignalOne() {
-  console.log("🚀 SignalOne Bootstrapping…");
-
-  /* -------------------------------
-     1) SIDEBAR BUILD
-     ------------------------------- */
-  renderSidebar();
-
-  /* -------------------------------
-     2) SELECT SETUP (Brand/Campaign)
-     ------------------------------- */
-  populateBrandSelect();
-  populateCampaignSelect();
-  wireSelects();
-
-  /* -------------------------------
-     3) TOPBAR BUTTONS
-     ------------------------------- */
-
-  // META CONNECT
-  const metaBtn = $("metaConnectButton");
-  if (metaBtn) {
-    metaBtn.addEventListener("click", () => {
-      toggleMetaConnection();
-      navigateTo(AppState.currentModule);
-    });
-  }
-
-  // INFO BUTTON
-  const infoBtn = $("infoButton");
-  if (infoBtn) {
-    infoBtn.addEventListener("click", () => {
-      openSystemModal(
-        "System-Informationen",
-        `
-        <p><strong>Mode:</strong> ${useDemoMode() ? "Demo" : "Live"}</p>
-        <p><strong>Meta:</strong> ${
-          AppState.metaConnected ? "Verbunden" : "Getrennt"
-        }</p>
-        <hr>
-        <p>SignalOne.cloud UI Framework Version 2025</p>
-        `
-      );
-    });
-  }
-
-  // PROFILE BUTTON
-  const profileBtn = $("profileButton");
-  if (profileBtn) {
-    profileBtn.addEventListener("click", () => {
-      openSystemModal(
-        "Profil",
-        `<p>Aktiver Nutzer:</p><p><strong>${
-          AppState.meta?.user?.name ||
-          DemoData.brands.find((b) => b.id === AppState.selectedBrandId)
-            ?.ownerName ||
-          "Nutzer"
-        }</strong></p>`
-      );
-    });
-  }
-
-  // LOGOUT BUTTON
-  const logoutBtn = $("logoutButton");
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      AppState.metaConnected = false;
-      AppState.meta.user = null;
-      AppState.meta.token = null;
-
-      updateMetaStatusUI();
-      updateGreeting();
-      updateSidebarCampaignHealth();
-
-      showToast("Demo-Logout ausgeführt.", "success");
-
-      navigateTo("dashboard");
-    });
-  }
-
-  /* -------------------------------
-     4) MODAL CLOSE EVENTS
-     ------------------------------- */
-  wireModalClose();
-
-  /* -------------------------------
-     5) TOPBAR GREETING + TIME
-     ------------------------------- */
-  updateGreeting();
-  updateDateTime();
-  setInterval(updateDateTime, 60000);
-
-  /* -------------------------------
-     6) STATUS DOTS
-     ------------------------------- */
-  updateMetaStatusUI();
-  updateSystemHealthUI();
-  updateSidebarCampaignHealth();
-
-  /* -------------------------------
-     7) LOAD INITIAL MODULE
-     ------------------------------- */
-  navigateTo(AppState.currentModule);
-
-  console.log("✅ SignalOne Bootstrap abgeschlossen.");
-}
-
-/* ============================================================
-   27) AUTO-BOOT ON DOM READY
+   15) BOOTSTRAP (DOMContentLoaded)
    ============================================================ */
 
 document.addEventListener("DOMContentLoaded", () => {
-  bootstrapSignalOne();
+  console.log("🚀 SignalOne Bootstrapping…");
+
+  // Sidebar Navigation
+  renderNav();
+
+  // Brand & Campaign Select
+  populateBrandSelect();
+  populateCampaignSelect();
+
+  $("brandSelect")?.addEventListener("change", (evt) => {
+    AppState.selectedBrandId = evt.target.value || null;
+    populateCampaignSelect();
+    updateTopbarGreeting();
+    updateCampaignHealthUI();
+  });
+
+  $("campaignSelect")?.addEventListener("change", (evt) => {
+    AppState.selectedCampaignId = evt.target.value || null;
+  });
+
+  // Meta Connect Button
+  $("metaConnectButton")?.addEventListener("click", () => {
+    toggleMetaConnection();
+  });
+
+  // Info / Profile / Logout / Modal
+  $("notificationsButton")?.addEventListener("click", () => {
+    openSystemModal(
+      "Benachrichtigungen",
+      "<p>In der Beta zeigen wir hier noch keine echten Logs an.</p>"
+    );
+  });
+
+  $("profileButton")?.addEventListener("click", () => {
+    openSystemModal(
+      "Profil",
+      `<p>Aktuell angemeldet als <strong>${getEffectiveBrandOwnerName()}</strong>.</p>`
+    );
+  });
+
+  $("settingsButton")?.addEventListener("click", () => {
+    navigateTo("settings");
+  });
+
+  $("logoutButton")?.addEventListener("click", () => {
+    AppState.metaConnected = false;
+    AppState.meta.token = null;
+    AppState.meta.user = null;
+    updateMetaStatusUI();
+    updateCampaignHealthUI();
+    updateTopbarGreeting();
+    showToast("Session zurückgesetzt (Demo-Logout).", "success");
+    navigateTo("dashboard");
+  });
+
+  $("modalCloseButton")?.addEventListener("click", closeSystemModal);
+  $("modalOverlay")?.addEventListener("click", (evt) => {
+    if (evt.target === $("modalOverlay")) closeSystemModal();
+  });
+
+  // Zeit / Datum
+  updateTopbarDateTime();
+  updateTopbarGreeting();
+  setInterval(() => {
+    updateTopbarDateTime();
+    updateTopbarGreeting();
+  }, 60_000);
+
+  // Status-Anzeigen
+  updateMetaStatusUI();
+  updateSystemHealthUI();
+  updateCampaignHealthUI();
+
+  // Initiale View
+  const initialViewId = ViewMap[AppState.currentModule];
+  if (initialViewId) {
+    setActiveView(initialViewId);
+    setActiveNav(AppState.currentModule);
+  }
+
+  // Erstes Modul laden (Dashboard)
+  navigateTo(AppState.currentModule);
+
+  console.log("✅ SignalOne Bootstrap abgeschlossen.");
 });
+
 /* ============================================================
-   28) GLOBAL SIGNALONE API (für Module & Debug)
+   16) GLOBAL DEBUG API (optional)
    ============================================================ */
 
 window.SignalOne = {
   AppState,
-
-  // Navigation
   navigateTo,
-
-  // Meta
-  toggleMetaConnection,
-
-  // Rendering
-  renderTemplate,
-  updateHeaderBar,
-  updateBrandSubheader,
-
-  // Status & UI
   showToast,
   openSystemModal,
   closeSystemModal,
-
-  // Loader
-  showGlobalLoader,
-  hideGlobalLoader,
-
-  // Select
-  populateBrandSelect,
-  populateCampaignSelect,
-
-  // Subheader
-  updateSidebarCampaignHealth,
-  updateSystemHealthUI,
-  updateMetaStatusUI,
-
-  // Greeting
-  updateGreeting,
-  updateDateTime,
-
-  // Re-render current view
-  rerender: () => navigateTo(AppState.currentModule),
+  useDemoMode,
 };
-
-/* ============================================================
-   29) DEBUG QUALITY OF LIFE HELPERS
-   ============================================================ */
-
-window.SignalOne.debug = {
-  state: () => JSON.parse(JSON.stringify(AppState)),
-  brands: () => DemoData.brands,
-  campaigns: () =>
-    DemoData.campaignsByBrand[AppState.selectedBrandId] || [],
-  logState: () => console.log("APPSTATE:", AppState),
-};
-
-/* ============================================================
-   END OF FILE
-   ============================================================ */
-
-console.log("🔥 SignalOne.app.js Rebuild geladen (7/7)");
