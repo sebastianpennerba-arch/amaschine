@@ -2,7 +2,7 @@
 // Block 4 – Settings Center (Theme, Currency, Cache, Defaults, Developer Mode + DEMO MODE)
 
 export function render(root, AppState) {
-  const s = AppState.settings;
+  const s = AppState.settings || {};
 
   root.innerHTML = `
     <div class="view-header">
@@ -15,7 +15,6 @@ export function render(root, AppState) {
     <div class="reports-layout">
       <div class="reports-main">
 
-        <!-- Darstellung -->
         <div class="report-card">
           <div class="sensei-card-header">
             <div>
@@ -52,7 +51,6 @@ export function render(root, AppState) {
           </div>
         </div>
 
-        <!-- System -->
         <div class="report-card" style="margin-top:20px;">
           <div class="sensei-card-header">
             <div>
@@ -65,7 +63,7 @@ export function render(root, AppState) {
             <label class="meta-label">Cache TTL (Sekunden)</label>
             <input id="setCacheTtl" type="number" min="30" max="3600"
                    class="meta-input"
-                   value="${s.cacheTtl}">
+                   value="${s.cacheTtl ?? 300}">
           </div>
 
           <div style="margin-top:12px;">
@@ -75,7 +73,7 @@ export function render(root, AppState) {
             </label>
           </div>
 
-          <!-- ⭐ DEMO MODE (Live override) -->
+          <!-- ⭐ DEMO MODE -->
           <div style="margin-top:12px;">
             <label style="font-size:0.95rem;">
               <input type="checkbox" id="setDemoMode" ${s.demoMode ? "checked" : ""}/>
@@ -116,8 +114,6 @@ export function render(root, AppState) {
     </div>
   `;
 
-  // SAVE LOGIK --------------------------------------------------------
-
   const saveBtn = root.querySelector("#settingsSaveBtn");
   saveBtn.addEventListener("click", () => {
     AppState.settings.theme = document.querySelector("#setTheme").value;
@@ -129,12 +125,11 @@ export function render(root, AppState) {
     AppState.settings.devMode =
       document.querySelector("#setDevMode").checked;
 
-    // ⭐ NEU: DEMO MODE Schalter
+    // ⭐ NEU: DEMO MODE
     AppState.settings.demoMode =
       document.querySelector("#setDemoMode").checked;
 
     window.SignalOne.showToast("Einstellungen gespeichert.", "success");
-
     window.SignalOne.navigateTo("settings");
   });
 }
