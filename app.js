@@ -1,3 +1,5 @@
+import DataLayer from "./packages/data/index.js";
+
 /* ----------------------------------------------------------
    SignalOne.cloud – Frontend Core (MVP Backbone)
    - View Handling
@@ -6,8 +8,6 @@
    - Module Loader (Packages)
    - TestingLog API (P2.5 Demo-Anbindung)
 -----------------------------------------------------------*/
-
-import DataLayer from "./packages/data/index.js";
 
 /* ----------------------------------------------------------
    META AUTH MOCK (P5 – Demo)
@@ -60,10 +60,14 @@ const MetaAuthMock = (() => {
   }
 
   function connectWithPopup() {
+    // Reine Demo-Simulation
     setTimeout(() => {
       state.connected = true;
       state.accessToken = "demo_access_token_123";
-      state.user = { id: "1234567890", name: "SignalOne Demo User" };
+      state.user = {
+        id: "1234567890",
+        name: "SignalOne Demo User",
+      };
       saveToStorage();
       syncToAppState();
       showToast("Meta Ads (Demo) erfolgreich verbunden.", "success");
@@ -102,9 +106,10 @@ const AppState = {
   systemHealthy: true,
   notifications: [],
   settings: {
-    demoMode: true,
-    dataMode: "auto",
-    theme: "titanium",
+    // Hybrid-Modus: DataLayer liest diese Werte
+    demoMode: true, // Demo erzwingen (überschreibt Live)
+    dataMode: "auto", // "auto" | "live" | "demo"
+    theme: "titanium", // "light" | "titanium"
     currency: "EUR",
     defaultRange: "last_30_days",
     cacheTtl: 300,
@@ -163,7 +168,6 @@ const DemoData = {
       campaignHealth: "critical",
     },
   ],
-
   campaignsByBrand: {
     acme_fashion: [
       { id: "acme_ugc_scale", name: "UGC Scale Test", status: "ACTIVE" },
@@ -193,8 +197,14 @@ window.SignalOneDemo.brands = DemoData.brands;
 
 console.log("✅ DemoData geladen:", DemoData.brands.length, "Brands");
 
+function useDemoMode() {
+  if (AppState.settings.demoMode) return true;
+  if (!AppState.metaConnected) return true;
+  return false;
+}
+
 /* ----------------------------------------------------------
-   MODULE REGISTRY
+   MODULE REGISTRY & LABELS
 -----------------------------------------------------------*/
 const modules = {
   dashboard: () => import("./packages/dashboard/index.js"),
@@ -247,17 +257,25 @@ const viewIdMap = {
   settings: "settingsView",
 };
 
-/* ----------------------------------------------------------
-   FIXED ICON IDS (DEIN KRITISCHER BUG)
------------------------------------------------------------*/
+const modulesRequiringMeta = [
+  "dashboard",
+  "creativeLibrary",
+  "campaigns",
+  "testingLog",
+  "sensei",
+  "creatorInsights",
+  "analytics",
+  "reports",
+];
+
 const moduleIconIds = {
   dashboard: "icon-dashboard",
-  creativeLibrary: "icon-library",      // FIX
+  creativeLibrary: "icon-library",
   campaigns: "icon-campaigns",
   testingLog: "icon-testing",
-  sensei: "icon-sensei",                // FIX
+  sensei: "icon-sensei",
   reports: "icon-reports",
-  creatorInsights: "icon-creators",     // FIX
+  creatorInsights: "icon-creators",
   analytics: "icon-analytics",
   team: "icon-team",
   brands: "icon-brands",
@@ -266,6 +284,7 @@ const moduleIconIds = {
   onboarding: "icon-onboarding",
   settings: "icon-settings",
 };
+
 /* ----------------------------------------------------------
    VIEW HELPERS
 -----------------------------------------------------------*/
@@ -280,7 +299,7 @@ function getLabelForModule(key) {
 function createSvgIconFromSymbol(symbolId, className = "") {
   const svgNS = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(svgNS, "svg");
-  svg.setAttribute("class", className);
+  svg.setAttribute("class", className || "icon-svg");
   const use = document.createElementNS(svgNS, "use");
   use.setAttributeNS("http://www.w3.org/1999/xlink", "href", `#${symbolId}`);
   svg.appendChild(use);
@@ -313,7 +332,7 @@ function getEffectiveBrandOwnerName() {
 }
 
 /* ----------------------------------------------------------
-   TOPBAR DATE/TIME
+   TOPBAR / TIME / GREETING
 -----------------------------------------------------------*/
 function updateTopbarDateTime() {
   const dateEl = document.getElementById("topbarDate");
@@ -327,7 +346,6 @@ function updateTopbarDateTime() {
       day: "2-digit",
     })}`;
   }
-
   if (timeEl) {
     timeEl.textContent = `Zeit: ${now.toLocaleTimeString("de-DE", {
       hour: "2-digit",
@@ -410,7 +428,7 @@ function updateViewSubheaders() {
 }
 
 /* ----------------------------------------------------------
-   SIDEBAR ICON ACTIVE STATE
+   SIDEBAR ICON STATE
 -----------------------------------------------------------*/
 function updateSidebarActiveIcon(activeKey) {
   const buttons = document.querySelectorAll(".sidebar-nav-button");
@@ -542,7 +560,7 @@ function updateCampaignHealthUI() {
 }
 
 /* ----------------------------------------------------------
-   GLOBAL LOADER / SKELETON
+   LOADER / SKELETON
 -----------------------------------------------------------*/
 function showGlobalLoader() {
   document.getElementById("globalLoader")?.classList.remove("hidden");
@@ -569,7 +587,7 @@ function fadeIn(el) {
 }
 
 /* ----------------------------------------------------------
-   TOASTS
+   TOAST
 -----------------------------------------------------------*/
 function showToast(message, type = "info") {
   const container = document.getElementById("toastContainer");
@@ -626,7 +644,7 @@ function clearNotifications() {
 }
 
 /* ----------------------------------------------------------
-   META DEMO CONNECT BUTTON
+   META DEMO CONNECT
 -----------------------------------------------------------*/
 function toggleMetaConnection() {
   if (AppState.metaConnected) {
@@ -712,7 +730,7 @@ function wireBrandAndCampaignSelects() {
 }
 
 /* ----------------------------------------------------------
-   MODULE LOADING
+   MODULE LOADING & NAVIGATION
 -----------------------------------------------------------*/
 async function loadModule(key) {
   const loader = modules[key];
@@ -721,6 +739,18 @@ async function loadModule(key) {
 
   if (!loader || !section) {
     console.warn("[SignalOne] Modul nicht gefunden:", key, viewId);
+    return;
+  }
+
+  if (
+    modulesRequiringMeta.includes(key) &&
+    !AppState.metaConnected &&
+    !useDemoMode()
+  ) {
+    section.innerHTML =
+      "<p>Dieses Modul benötigt eine Meta-Verbindung oder den Demo-Modus.</p>";
+    showToast("Bitte Meta verbinden oder Demo-Modus aktivieren.", "warning");
+    updateCampaignHealthUI();
     return;
   }
 
@@ -756,9 +786,6 @@ async function loadModule(key) {
   }
 }
 
-/* ----------------------------------------------------------
-   NAVIGATION SWITCHER
------------------------------------------------------------*/
 async function navigateTo(key) {
   if (!modules[key]) return;
 
@@ -775,7 +802,7 @@ async function navigateTo(key) {
 }
 
 /* ----------------------------------------------------------
-   TESTING LOG API
+   TESTING LOG – GLOBAL API
 -----------------------------------------------------------*/
 const TESTING_LOG_STORAGE_KEY = "signalone_testing_log_v1";
 
@@ -794,7 +821,9 @@ function loadStoredTestingEntries() {
 function saveTestingEntries(entries) {
   try {
     localStorage.setItem(TESTING_LOG_STORAGE_KEY, JSON.stringify(entries));
-  } catch {}
+  } catch {
+    // ignore
+  }
 }
 
 function createDefaultTestingEntries() {
