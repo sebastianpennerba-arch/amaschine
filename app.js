@@ -1,4 +1,3 @@
-import DataLayer from "./packages/data/index.js";
 /* ----------------------------------------------------------
    SignalOne.cloud – Frontend Core (MVP Backbone)
    - View Handling
@@ -7,6 +6,8 @@ import DataLayer from "./packages/data/index.js";
    - Module Loader (Packages)
    - TestingLog API (P2.5 Demo-Anbindung)
 -----------------------------------------------------------*/
+
+import DataLayer from "./packages/data/index.js";
 
 /* ----------------------------------------------------------
    META AUTH MOCK (P5 – Demo)
@@ -59,14 +60,10 @@ const MetaAuthMock = (() => {
   }
 
   function connectWithPopup() {
-    // Reine Demo-Simulation
     setTimeout(() => {
       state.connected = true;
       state.accessToken = "demo_access_token_123";
-      state.user = {
-        id: "1234567890",
-        name: "SignalOne Demo User",
-      };
+      state.user = { id: "1234567890", name: "SignalOne Demo User" };
       saveToStorage();
       syncToAppState();
       showToast("Meta Ads (Demo) erfolgreich verbunden.", "success");
@@ -105,10 +102,9 @@ const AppState = {
   systemHealthy: true,
   notifications: [],
   settings: {
-    // Hybrid-Modus: DataLayer liest diese Werte
-    demoMode: true,            // Demo erzwingen (überschreibt Live)
-    dataMode: "auto",          // "auto" | "live" | "demo"
-    theme: "titanium",         // "light" | "titanium"
+    demoMode: true,
+    dataMode: "auto",
+    theme: "titanium",
     currency: "EUR",
     defaultRange: "last_30_days",
     cacheTtl: 300,
@@ -167,6 +163,7 @@ const DemoData = {
       campaignHealth: "critical",
     },
   ],
+
   campaignsByBrand: {
     acme_fashion: [
       { id: "acme_ugc_scale", name: "UGC Scale Test", status: "ACTIVE" },
@@ -196,14 +193,8 @@ window.SignalOneDemo.brands = DemoData.brands;
 
 console.log("✅ DemoData geladen:", DemoData.brands.length, "Brands");
 
-function useDemoMode() {
-  if (AppState.settings.demoMode) return true;
-  if (!AppState.metaConnected) return true;
-  return false;
-}
-
 /* ----------------------------------------------------------
-   MODULE REGISTRY & LABELS
+   MODULE REGISTRY
 -----------------------------------------------------------*/
 const modules = {
   dashboard: () => import("./packages/dashboard/index.js"),
@@ -256,25 +247,17 @@ const viewIdMap = {
   settings: "settingsView",
 };
 
-const modulesRequiringMeta = [
-  "dashboard",
-  "creativeLibrary",
-  "campaigns",
-  "testingLog",
-  "sensei",
-  "creatorInsights",
-  "analytics",
-  "reports",
-];
-
+/* ----------------------------------------------------------
+   FIXED ICON IDS (DEIN KRITISCHER BUG)
+-----------------------------------------------------------*/
 const moduleIconIds = {
   dashboard: "icon-dashboard",
-  creativeLibrary: "icon-creatives",
+  creativeLibrary: "icon-library",      // FIX
   campaigns: "icon-campaigns",
   testingLog: "icon-testing",
-  sensei: "icon-brain",
+  sensei: "icon-sensei",                // FIX
   reports: "icon-reports",
-  creatorInsights: "icon-creator",
+  creatorInsights: "icon-creators",     // FIX
   analytics: "icon-analytics",
   team: "icon-team",
   brands: "icon-brands",
@@ -283,7 +266,6 @@ const moduleIconIds = {
   onboarding: "icon-onboarding",
   settings: "icon-settings",
 };
-
 /* ----------------------------------------------------------
    VIEW HELPERS
 -----------------------------------------------------------*/
@@ -331,7 +313,7 @@ function getEffectiveBrandOwnerName() {
 }
 
 /* ----------------------------------------------------------
-   TOPBAR / TIME / GREETING
+   TOPBAR DATE/TIME
 -----------------------------------------------------------*/
 function updateTopbarDateTime() {
   const dateEl = document.getElementById("topbarDate");
@@ -345,6 +327,7 @@ function updateTopbarDateTime() {
       day: "2-digit",
     })}`;
   }
+
   if (timeEl) {
     timeEl.textContent = `Zeit: ${now.toLocaleTimeString("de-DE", {
       hour: "2-digit",
@@ -427,7 +410,7 @@ function updateViewSubheaders() {
 }
 
 /* ----------------------------------------------------------
-   SIDEBAR ICON STATE
+   SIDEBAR ICON ACTIVE STATE
 -----------------------------------------------------------*/
 function updateSidebarActiveIcon(activeKey) {
   const buttons = document.querySelectorAll(".sidebar-nav-button");
@@ -559,7 +542,7 @@ function updateCampaignHealthUI() {
 }
 
 /* ----------------------------------------------------------
-   LOADER / SKELETON
+   GLOBAL LOADER / SKELETON
 -----------------------------------------------------------*/
 function showGlobalLoader() {
   document.getElementById("globalLoader")?.classList.remove("hidden");
@@ -586,7 +569,7 @@ function fadeIn(el) {
 }
 
 /* ----------------------------------------------------------
-   TOAST
+   TOASTS
 -----------------------------------------------------------*/
 function showToast(message, type = "info") {
   const container = document.getElementById("toastContainer");
@@ -643,7 +626,7 @@ function clearNotifications() {
 }
 
 /* ----------------------------------------------------------
-   META DEMO CONNECT
+   META DEMO CONNECT BUTTON
 -----------------------------------------------------------*/
 function toggleMetaConnection() {
   if (AppState.metaConnected) {
@@ -729,7 +712,7 @@ function wireBrandAndCampaignSelects() {
 }
 
 /* ----------------------------------------------------------
-   MODULE LOADING & NAVIGATION
+   MODULE LOADING
 -----------------------------------------------------------*/
 async function loadModule(key) {
   const loader = modules[key];
@@ -738,18 +721,6 @@ async function loadModule(key) {
 
   if (!loader || !section) {
     console.warn("[SignalOne] Modul nicht gefunden:", key, viewId);
-    return;
-  }
-
-  if (
-    modulesRequiringMeta.includes(key) &&
-    !AppState.metaConnected &&
-    !useDemoMode()
-  ) {
-    section.innerHTML =
-      "<p>Dieses Modul benötigt eine Meta-Verbindung oder den Demo-Modus.</p>";
-    showToast("Bitte Meta verbinden oder Demo-Modus aktivieren.", "warning");
-    updateCampaignHealthUI();
     return;
   }
 
@@ -785,6 +756,9 @@ async function loadModule(key) {
   }
 }
 
+/* ----------------------------------------------------------
+   NAVIGATION SWITCHER
+-----------------------------------------------------------*/
 async function navigateTo(key) {
   if (!modules[key]) return;
 
@@ -801,7 +775,7 @@ async function navigateTo(key) {
 }
 
 /* ----------------------------------------------------------
-   TESTING LOG – GLOBAL API
+   TESTING LOG API
 -----------------------------------------------------------*/
 const TESTING_LOG_STORAGE_KEY = "signalone_testing_log_v1";
 
@@ -820,9 +794,7 @@ function loadStoredTestingEntries() {
 function saveTestingEntries(entries) {
   try {
     localStorage.setItem(TESTING_LOG_STORAGE_KEY, JSON.stringify(entries));
-  } catch {
-    // ignore
-  }
+  } catch {}
 }
 
 function createDefaultTestingEntries() {
@@ -1059,7 +1031,7 @@ window.SignalOne = {
   openSystemModal,
   closeSystemModal,
   TestingLog: TestingLogAPI,
-  DataLayer, // ⭐ WICHTIG: DataLayer hier angebunden!
+  DataLayer,
   UI: {
     showGlobalLoader,
     hideGlobalLoader,
