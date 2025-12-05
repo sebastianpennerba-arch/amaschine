@@ -4,13 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SignalOne – Dashboard</title>
+
+    <!-- CORE STYLES -->
     <link rel="stylesheet" href="styles.css" />
     <link rel="stylesheet" href="sx-core.css" />
   </head>
 
   <body>
-    <!-- SVG ICON LIBRARY -->
+    <!-- =====================================================
+         INLINE SVG ICON LIBRARY
+         ===================================================== -->
     <svg width="0" height="0" style="position:absolute;visibility:hidden">
+      <!-- Dashboard -->
       <symbol id="icon-dashboard" viewBox="0 0 24 24">
         <rect class="icon-layer-fill" x="3" y="3" width="8" height="8" rx="2" />
         <rect class="icon-layer-stroke" x="3" y="3" width="8" height="8" rx="2" />
@@ -21,6 +26,7 @@
         <path class="icon-layer-stroke" d="M12 8l3-3" />
       </symbol>
 
+      <!-- Creative Library -->
       <symbol id="icon-library" viewBox="0 0 24 24">
         <rect class="icon-layer-fill" x="4" y="4" width="16" height="16" rx="2" />
         <rect class="icon-layer-stroke" x="4" y="4" width="16" height="16" rx="2" />
@@ -30,6 +36,7 @@
         <circle class="icon-layer-stroke" cx="16.5" cy="15.5" r="0.8" />
       </symbol>
 
+      <!-- Campaigns -->
       <symbol id="icon-campaigns" viewBox="0 0 24 24">
         <path class="icon-layer-fill" d="M5 4h8l2 3-2 3H5z" />
         <path class="icon-layer-stroke" d="M5 4h8l2 3-2 3H5z" />
@@ -37,104 +44,149 @@
         <path class="icon-layer-stroke" d="M14 12h5l-2 3 2 3h-5" />
       </symbol>
 
+      <!-- Sensei / AI -->
       <symbol id="icon-sensei" viewBox="0 0 24 24">
-        <path class="icon-layer-fill" d="M9 4a3 3 0 0 0-3 3v2.2A3 3 0 0 0 5 12a3 3 0 0 0 1 2.2V16a3 3 0 0 0 3 3" />
-        <path class="icon-layer-fill" d="M15 4a3 3 0 0 1 3 3v2.2A3 3 0 0 1 19 12a3 3 0 0 1-1 2.2V16a3 3 0 0 1-3 3" />
-        <path class="icon-layer-stroke" d="M9 4a3 3 0 0 0-3 3v2.2A3 3 0 0 0 5 12a3 3 0 0 0 1 2.2V16a3 3 0 0 0 3 3h1" />
-        <path class="icon-layer-stroke" d="M15 4a3 3 0 0 1 3 3v2.2A3 3 0 0 1 19 12a3 3 0 0 1-1 2.2V16a3 3 0 0 1-3 3h-1" />
-        <path class="icon-layer-stroke" d="M10 9h1.5M12.5 11H14M10 13h1.5" />
+        <circle class="icon-layer-fill" cx="12" cy="12" r="7" />
+        <circle class="icon-layer-stroke" cx="12" cy="12" r="7" />
+        <circle class="icon-layer-stroke" cx="12" cy="12" r="3" />
+        <path class="icon-layer-stroke" d="M12 5v2" />
+        <path class="icon-layer-stroke" d="M12 17v2" />
+        <path class="icon-layer-stroke" d="M5 12h2" />
+        <path class="icon-layer-stroke" d="M17 12h2" />
       </symbol>
 
+      <!-- Testing Log -->
       <symbol id="icon-testing" viewBox="0 0 24 24">
-        <path class="icon-layer-stroke" d="M9 3h6M10 3v5.5L6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l-4-10.5V3" />
-        <path class="icon-layer-fill" d="M9 11h6l2 5H7z" />
-        <circle class="icon-layer-stroke" cx="11" cy="13" r="0.7" />
-        <circle class="icon-layer-stroke" cx="13" cy="15" r="0.7" />
+        <rect class="icon-layer-fill" x="4" y="4" width="16" height="16" rx="2" />
+        <rect class="icon-layer-stroke" x="4" y="4" width="16" height="16" rx="2" />
+        <path class="icon-layer-stroke" d="M8 9h8" />
+        <path class="icon-layer-stroke" d="M8 13h4" />
+        <path class="icon-layer-stroke" d="M8 17h2" />
+        <path class="icon-layer-stroke" d="M14 13l2 2 3-4" />
       </symbol>
 
+      <!-- Reports -->
       <symbol id="icon-reports" viewBox="0 0 24 24">
         <rect class="icon-layer-fill" x="5" y="3" width="14" height="18" rx="2" />
         <rect class="icon-layer-stroke" x="5" y="3" width="14" height="18" rx="2" />
-        <path class="icon-layer-stroke" d="M9 8h6M9 11h4" />
-        <path class="icon-layer-stroke" d="M9 16l2 2 4-5" />
+        <path class="icon-layer-stroke" d="M9 8h6" />
+        <path class="icon-layer-stroke" d="M9 12h6" />
+        <path class="icon-layer-stroke" d="M9 16h3" />
       </symbol>
 
+      <!-- Creator Insights -->
       <symbol id="icon-creators" viewBox="0 0 24 24">
-        <circle class="icon-layer-fill" cx="9" cy="8" r="3" />
-        <circle class="icon-layer-stroke" cx="9" cy="8" r="3" />
-        <path class="icon-layer-stroke" d="M4 21v-1.5C4 17.5 6 16 9 16s5 1.5 5 3.5V21" />
-        <path class="icon-layer-stroke" d="M17.5 9.2l.7 1.4 1.5.2-1.1 1.1.3 1.5-1.4-.7-1.4.7.3-1.5-1.1-1.1 1.5-.2z" />
+        <circle class="icon-layer-fill" cx="9" cy="9" r="3" />
+        <circle class="icon-layer-stroke" cx="9" cy="9" r="3" />
+        <path class="icon-layer-stroke" d="M4 20c0-3 2-5 5-5" />
+        <circle class="icon-layer-stroke" cx="17" cy="9" r="2.5" />
+        <path class="icon-layer-stroke" d="M14 20c0-2.5 1.5-4.2 3-4.7" />
       </symbol>
 
+      <!-- Analytics -->
       <symbol id="icon-analytics" viewBox="0 0 24 24">
-        <rect class="icon-layer-fill" x="4" y="12" width="4" height="8" rx="1" />
-        <rect class="icon-layer-stroke" x="4" y="12" width="4" height="8" rx="1" />
-        <rect class="icon-layer-fill" x="10" y="9" width="4" height="11" rx="1" />
-        <rect class="icon-layer-stroke" x="10" y="9" width="4" height="11" rx="1" />
-        <rect class="icon-layer-fill" x="16" y="6" width="4" height="14" rx="1" />
-        <rect class="icon-layer-stroke" x="16" y="6" width="4" height="14" rx="1" />
-        <path class="icon-layer-stroke" d="M4 10l4-3 4 2 4-4 4 3" />
+        <rect class="icon-layer-fill" x="3" y="4" width="18" height="16" rx="2" />
+        <rect class="icon-layer-stroke" x="3" y="4" width="18" height="16" rx="2" />
+        <path class="icon-layer-stroke" d="M7 15l3-4 3 2 4-6" />
+        <circle class="icon-layer-stroke" cx="7" cy="15" r="0.8" />
+        <circle class="icon-layer-stroke" cx="10" cy="11" r="0.8" />
+        <circle class="icon-layer-stroke" cx="13" cy="13" r="0.8" />
+        <circle class="icon-layer-stroke" cx="17" cy="7" r="0.8" />
       </symbol>
 
+      <!-- Team -->
       <symbol id="icon-team" viewBox="0 0 24 24">
-        <circle class="icon-layer-fill" cx="8" cy="8" r="3" />
-        <circle class="icon-layer-stroke" cx="8" cy="8" r="3" />
-        <circle class="icon-layer-fill" cx="16" cy="8" r="3" />
-        <circle class="icon-layer-stroke" cx="16" cy="8" r="3" />
-        <path class="icon-layer-stroke" d="M3 21v-1.5C3 17.5 5 16 8 16s5 1.5 5 3.5V21" />
-        <path class="icon-layer-stroke" d="M11 21v-1.5c0-2 2-3.5 5-3.5s5 1.5 5 3.5V21" />
+        <circle class="icon-layer-fill" cx="9" cy="9" r="2.5" />
+        <circle class="icon-layer-stroke" cx="9" cy="9" r="2.5" />
+        <circle class="icon-layer-stroke" cx="16" cy="9.5" r="2" />
+        <path class="icon-layer-stroke" d="M4 18c0-3 2-5 5-5s5 2 5 5" />
+        <path class="icon-layer-stroke" d="M14 18c.3-1.7 1.2-2.8 2.6-3.3" />
       </symbol>
 
+      <!-- Brands -->
       <symbol id="icon-brands" viewBox="0 0 24 24">
-        <circle class="icon-layer-fill" cx="12" cy="12" r="9" />
-        <circle class="icon-layer-stroke" cx="12" cy="12" r="9" />
-        <path class="icon-layer-stroke" d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
+        <rect class="icon-layer-fill" x="4" y="5" width="16" height="14" rx="2" />
+        <rect class="icon-layer-stroke" x="4" y="5" width="16" height="14" rx="2" />
+        <path class="icon-layer-stroke" d="M9 5v14" />
+        <path class="icon-layer-stroke" d="M4 11h5" />
+        <path class="icon-layer-stroke" d="M13 9h4" />
+        <path class="icon-layer-stroke" d="M13 13h3" />
       </symbol>
 
+      <!-- Shopify -->
       <symbol id="icon-shopify" viewBox="0 0 24 24">
-        <path class="icon-layer-fill" d="M6 7a2 2 0 0 1 2-2h8l2 3v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z" />
-        <path class="icon-layer-stroke" d="M6 7a2 2 0 0 1 2-2h8l2 3v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z" />
-        <path class="icon-layer-stroke" d="M10 9h2.5a2 2 0 1 1-2 2.2" />
+        <path
+          class="icon-layer-fill"
+          d="M6 5.5L12 3l6 2.5v13L12 21l-6-2.5z"
+        />
+        <path
+          class="icon-layer-stroke"
+          d="M6 5.5L12 3l6 2.5v13L12 21l-6-2.5z"
+        />
+        <path class="icon-layer-stroke" d="M12 7v10" />
+        <path class="icon-layer-stroke" d="M9 9.5c.7-.7 1.5-1 3-1s2.3.3 3 1" />
       </symbol>
 
+      <!-- Roast -->
       <symbol id="icon-roast" viewBox="0 0 24 24">
-        <path class="icon-layer-fill" d="M12 3c3 3 4 5.5 4 8a4 4 0 0 1-8 0c0-2.5 1-5 4-8z" />
-        <path class="icon-layer-stroke" d="M12 3c3 3 4 5.5 4 8a4 4 0 0 1-8 0c0-2.5 1-5 4-8z" />
-        <path class="icon-layer-stroke" d="M12 22a4 4 0 0 1-4-4c0-1.6.9-3 2.2-3.6" />
+        <path
+          class="icon-layer-fill"
+          d="M7 14c0-3 2.5-5 5-7 2.5 2 5 4 5 7 0 2.2-1.8 4-4 4H11c-2.2 0-4-1.8-4-4z"
+        />
+        <path
+          class="icon-layer-stroke"
+          d="M7 14c0-3 2.5-5 5-7 2.5 2 5 4 5 7 0 2.2-1.8 4-4 4H11c-2.2 0-4-1.8-4-4z"
+        />
+        <path class="icon-layer-stroke" d="M10 11.5c.3-.3.7-.5 1.1-.5" />
+        <path class="icon-layer-stroke" d="M13 11.5c.4 0 .8.2 1.1.5" />
       </symbol>
 
+      <!-- Onboarding -->
       <symbol id="icon-onboarding" viewBox="0 0 24 24">
-        <path class="icon-layer-fill" d="M12 2c4 1 7 4.5 7 9.5 0 1.5-.3 3-1 4.5L12 22l-6-6.9c-.7-1.5-1-3-1-4.5C5 6.5 8 3 12 2z" />
-        <path class="icon-layer-stroke" d="M12 2c4 1 7 4.5 7 9.5 0 1.5-.3 3-1 4.5L12 22l-6-6.9c-.7-1.5-1-3-1-4.5C5 6.5 8 3 12 2z" />
-        <circle class="icon-layer-stroke" cx="12" cy="9" r="2" />
+        <rect class="icon-layer-fill" x="4" y="5" width="16" height="14" rx="2" />
+        <rect class="icon-layer-stroke" x="4" y="5" width="16" height="14" rx="2" />
+        <path class="icon-layer-stroke" d="M8 12h5" />
+        <path class="icon-layer-stroke" d="M13 9l3 3-3 3" />
       </symbol>
 
+      <!-- Settings -->
       <symbol id="icon-settings" viewBox="0 0 24 24">
-        <circle class="icon-layer-fill" cx="12" cy="12" r="3" />
-        <circle class="icon-layer-stroke" cx="12" cy="12" r="3" />
-        <path class="icon-layer-stroke" d="M4 13h2l1 2.5-1.5 1.5 2.1 2.1 1.5-1.5L11 20h2l1-2.4 1.5 1.5 2.1-2.1-1.5-1.5L20 13v-2l-2.4-1 1.5-1.5-2.1-2.1-1.5 1.5L13 4h-2l-1 2.5-1.5-1.5-2.1 2.1 1.5 1.5L4 11z" />
+        <circle class="icon-layer-fill" cx="12" cy="12" r="2.4" />
+        <circle class="icon-layer-stroke" cx="12" cy="12" r="2.4" />
+        <path
+          class="icon-layer-stroke"
+          d="M5 13.5l1.1.3a1 1 0 0 1 .7.7l.3 1.1 1.4 1.4 1.1-.3a1 1 0 0 1 .8.1l1 .6 1-.6a1 1 0 0 1 .8-.1l1.1.3 1.4-1.4-.3-1.1a1 1 0 0 1 .7-.7l1.1-.3v-2.1l-1.1-.3a1 1 0 0 1-.7-.7l-.3-1.1-1.4-1.4-1.1.3a1 1 0 0 1-.8-.1l-1-.6-1 .6a1 1 0 0 1-.8.1l-1.1-.3-1.4 1.4.3 1.1a1 1 0 0 1-.7.7L5 11.4z"
+        />
       </symbol>
 
+      <!-- Workspace / App Logo -->
       <symbol id="icon-workspace" viewBox="0 0 24 24">
-        <rect class="icon-layer-fill" x="4" y="5" width="16" height="14" rx="3" />
-        <rect class="icon-layer-stroke" x="4" y="5" width="16" height="14" rx="3" />
-        <circle class="icon-layer-stroke" cx="9" cy="11" r="2.3" />
-        <path class="icon-layer-stroke" d="M7.2 16.5c.5-1.3 1.4-2 2.8-2s2.3.7 2.8 2" />
-        <path class="icon-layer-stroke" d="M15 9h3M15 12h2.5" />
+        <rect class="icon-layer-fill" x="3" y="5" width="18" height="14" rx="3" />
+        <rect class="icon-layer-stroke" x="3" y="5" width="18" height="14" rx="3" />
+        <circle class="icon-layer-stroke" cx="9" cy="12" r="2.2" />
+        <circle class="icon-layer-stroke" cx="15" cy="12" r="2.2" />
       </symbol>
 
+      <!-- User -->
       <symbol id="icon-user" viewBox="0 0 24 24">
-        <circle class="icon-layer-stroke" cx="12" cy="8" r="4" />
-        <path class="icon-layer-stroke" d="M4 21c0-4 4-7 8-7s8 3 8 7" />
+        <circle class="icon-layer-fill" cx="12" cy="9" r="3" />
+        <circle class="icon-layer-stroke" cx="12" cy="9" r="3" />
+        <path class="icon-layer-stroke" d="M6 19c.6-2.5 2.7-4 6-4s5.4 1.5 6 4" />
       </symbol>
 
+      <!-- Power -->
       <symbol id="icon-power" viewBox="0 0 24 24">
-        <line class="icon-layer-stroke" x1="12" y1="3" x2="12" y2="11" />
-        <path class="icon-layer-stroke" d="M7.5 5.75a7 7 0 1 0 9 0" />
+        <line class="icon-layer-stroke" x1="12" y1="4" x2="12" y2="11" />
+        <path
+          class="icon-layer-stroke"
+          d="M8 6.5A6 6 0 1 0 16 6.5"
+        />
       </symbol>
     </svg>
 
-    <!-- SIDEBAR -->
+    <!-- =====================================================
+         SIDEBAR
+         ===================================================== -->
     <nav class="sidebar">
       <div class="sidebar-header">
         <div class="sidebar-logo">SignalOne</div>
@@ -158,8 +210,13 @@
           </div>
         </div>
 
-        <button id="settingsButton" class="sidebar-settings-button" type="button">
-          <svg class="icon-svg" viewBox="0 0 24 24">
+        <button
+          id="settingsButton"
+          class="sidebar-settings-button"
+          type="button"
+          data-tooltip="Einstellungen"
+        >
+          <svg class="icon-svg">
             <use href="#icon-settings"></use>
           </svg>
           <span>SETTINGS</span>
@@ -167,9 +224,12 @@
       </div>
     </nav>
 
-    <!-- APP-SHELL + TOPBAR -->
+    <!-- =====================================================
+         APP-SHELL & TOPBAR
+         ===================================================== -->
     <div class="app-shell">
       <header id="topbar">
+        <!-- LEFT: Greeting -->
         <div class="topbar-left">
           <div class="topbar-greeting">
             <div id="topbarGreeting">Guten Tag, Nutzer!</div>
@@ -181,122 +241,206 @@
           </div>
         </div>
 
+        <!-- CENTER: Brand & Campaign -->
         <div class="topbar-center">
           <div class="topbar-select-group">
             <label class="topbar-select-label">Brand</label>
-            <div class="topbar-selects">
-              <div class="topbar-select-wrapper">
-                <select id="brandSelect" class="topbar-select">
-                  <option>Werbekonto auswählen</option>
-                </select>
-              </div>
+            <div class="topbar-select-wrapper">
+              <select id="brandSelect" class="topbar-select">
+                <option>Werbekonto auswählen</option>
+              </select>
             </div>
           </div>
 
           <div class="topbar-select-group">
             <label class="topbar-select-label">Kampagne</label>
-            <div class="topbar-selects">
-              <div class="topbar-select-wrapper">
-                <select id="campaignSelect" class="topbar-select">
-                  <option>Kampagne auswählen</option>
-                </select>
-              </div>
+            <div class="topbar-select-wrapper">
+              <select id="campaignSelect" class="topbar-select">
+                <option>Kampagne auswählen</option>
+              </select>
             </div>
           </div>
         </div>
 
+        <!-- RIGHT: Meta / Notifications / Profile -->
         <div class="topbar-right">
-          <button id="metaConnectButton" class="meta-button" type="button">
+          <button
+            id="metaConnectButton"
+            class="meta-button"
+            type="button"
+            data-tooltip="Meta verbinden / trennen"
+          >
+            <svg class="icon-svg">
+              <use href="#icon-power"></use>
+            </svg>
             <span class="label">META VERBINDEN</span>
           </button>
 
-          <button id="notificationsButton" class="icon-button" type="button">
-            <span style="font-size: 1.1rem; font-weight: 700;">i</span>
-            <span id="notificationsDot" class="hidden" style="position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:#22c55e;"></span>
+          <button
+            id="notificationsButton"
+            class="icon-button"
+            type="button"
+            data-tooltip="System-Info"
+          >
+            <span style="font-size: 1.1rem; font-weight: 700; color: #4b5563;">i</span>
+            <span id="notificationsDot" class="notification-dot hidden"></span>
           </button>
 
-          <button id="profileButton" class="icon-button" type="button">
-            <svg class="icon-svg-top"><use href="#icon-user"></use></svg>
+          <button
+            id="profileButton"
+            class="icon-button"
+            type="button"
+            data-tooltip="Profil & Konto"
+          >
+            <svg class="icon-svg-top">
+              <use href="#icon-user"></use>
+            </svg>
           </button>
 
-          <button id="logoutButton" class="icon-button" type="button">
-            <svg class="icon-svg-top"><use href="#icon-power"></use></svg>
+          <button
+            id="logoutButton"
+            class="icon-button"
+            type="button"
+            data-tooltip="Demo-Logout / Reset"
+          >
+            <svg class="icon-svg-top">
+              <use href="#icon-power"></use>
+            </svg>
           </button>
         </div>
       </header>
 
-      <!-- MAIN CONTENT VIEWS -->
+      <!-- =====================================================
+           MAIN CONTENT – ALL VIEWS
+           ===================================================== -->
       <main class="main-content">
-        <section id="dashboardView" class="view">
-          <h2>Dashboard wird geladen...</h2>
-        </section>
-        <section id="creativeLibraryView" class="view">
-          <h2>Creative Library wird geladen...</h2>
-        </section>
-        <section id="campaignsView" class="view">
-          <h2>Kampagnen werden geladen...</h2>
-        </section>
-        <section id="senseiView" class="view">
-          <h2>Sensei wird geladen...</h2>
-        </section>
-        <section id="testingLogView" class="view">
-          <h2>Testing Log wird geladen...</h2>
-        </section>
-        <section id="reportsView" class="view">
-          <h2>Reports werden geladen...</h2>
-        </section>
-        <section id="creatorInsightsView" class="view">
-          <h2>Creator Insights werden geladen...</h2>
-        </section>
-        <section id="analyticsView" class="view">
-          <h2>Analytics werden geladen...</h2>
-        </section>
-        <section id="teamView" class="view">
-          <h2>Team wird geladen...</h2>
-        </section>
-        <section id="brandsView" class="view">
-          <h2>Brands werden geladen...</h2>
-        </section>
-        <section id="shopifyView" class="view">
-          <h2>Shopify wird geladen...</h2>
-        </section>
-        <section id="roastView" class="view">
-          <h2>Roast wird geladen...</h2>
-        </section>
-        <section id="onboardingView" class="view">
-          <h2>Onboarding wird geladen...</h2>
-        </section>
-        <section id="settingsView" class="view">
-          <h2>Settings werden geladen...</h2>
-        </section>
+        <section
+          id="dashboardView"
+          class="view"
+          data-view-title="Dashboard"
+          data-header-theme="c"
+        ></section>
+
+        <section
+          id="creativeLibraryView"
+          class="view"
+          data-view-title="Creative Library"
+          data-header-theme="c"
+        ></section>
+
+        <section
+          id="campaignsView"
+          class="view"
+          data-view-title="Kampagnen"
+          data-header-theme="c"
+        ></section>
+
+        <section
+          id="senseiView"
+          class="view"
+          data-view-title="Sensei / AI"
+          data-header-theme="c"
+        ></section>
+
+        <section
+          id="testingLogView"
+          class="view"
+          data-view-title="Testing Log"
+          data-header-theme="c"
+        ></section>
+
+        <section
+          id="reportsView"
+          class="view"
+          data-view-title="Reports & Export"
+          data-header-theme="c"
+        ></section>
+
+        <section
+          id="creatorInsightsView"
+          class="view"
+          data-view-title="Creator Insights"
+          data-header-theme="c"
+        ></section>
+
+        <section
+          id="analyticsView"
+          class="view"
+          data-view-title="Analytics"
+          data-header-theme="c"
+        ></section>
+
+        <section
+          id="teamView"
+          class="view"
+          data-view-title="Team"
+          data-header-theme="c"
+        ></section>
+
+        <section
+          id="brandsView"
+          class="view"
+          data-view-title="Brands"
+          data-header-theme="c"
+        ></section>
+
+        <section
+          id="shopifyView"
+          class="view"
+          data-view-title="Shopify"
+          data-header-theme="c"
+        ></section>
+
+        <section
+          id="roastView"
+          class="view"
+          data-view-title="Roast"
+          data-header-theme="c"
+        ></section>
+
+        <section
+          id="onboardingView"
+          class="view"
+          data-view-title="Onboarding"
+          data-header-theme="c"
+        ></section>
+
+        <section
+          id="settingsView"
+          class="view"
+          data-view-title="Settings"
+          data-header-theme="c"
+        ></section>
       </main>
     </div>
 
-    <!-- GLOBAL LOADER, TOASTS & MODAL -->
+    <!-- =====================================================
+         GLOBAL LOADER, TOASTS & MODAL
+         ===================================================== -->
     <div id="globalLoader" class="hidden">
       <div class="global-loader-inner">
-        <div style="display:flex;gap:4px;margin-bottom:10px;">
-          <div class="loader-dot"></div>
-          <div class="loader-dot"></div>
-          <div class="loader-dot"></div>
-        </div>
+        <div class="loader-dot"></div>
+        <div class="loader-dot"></div>
+        <div class="loader-dot"></div>
         <span>SignalOne lädt dein Modul ...</span>
       </div>
     </div>
 
     <div id="toastContainer"></div>
 
-    <div id="modalOverlay" class="modal-overlay hidden">
+    <div id="modalOverlay" class="hidden">
       <div class="modal-box">
         <div class="modal-header">
           <h2 id="modalTitle">System Dialog</h2>
-          <button id="modalCloseButton" class="modal-close">×</button>
         </div>
         <div id="modalBody" class="modal-body"></div>
+        <button id="modalCloseButton" class="modal-close" type="button">
+          Schließen
+        </button>
       </div>
     </div>
 
-    <!-- SCRIPT -->
+    <!-- CORE SCRIPT (ES MODULE SPA BACKBONE) -->
     <script type="module" src="app.js"></script>
   </body>
 </html>
