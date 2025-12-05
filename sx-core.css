@@ -143,11 +143,8 @@
    3) MICRO INTERACTIONS – Fade / Lift / Press
    ========================================================= */
 
-/* View transitions – override */
 .view {
-  transition:
-    opacity 0.18s ease-out,
-    transform 0.12s ease-out;
+  transition: opacity 0.18s ease-out, transform 0.12s ease-out;
 }
 
 .view.active {
@@ -199,17 +196,11 @@ button:active,
 .sidebar-nav-button:active,
 .meta-button:active,
 .icon-button:active {
-  transform: translateY(0) scale(0.985);
+  transform: translateY(0px) scale(0.985);
   box-shadow: none;
 }
 
-/* Soft hover for tables */
+/* Soft Hover on Tables */
 table tbody tr {
   transition: background 0.15s ease-out;
 }
-
-table tbody tr:hover {
-  background: rgba(59, 130, 246, 0.04);
-}
-
-/* END OF FILE */
