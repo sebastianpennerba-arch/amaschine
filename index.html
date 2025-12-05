@@ -163,7 +163,6 @@
          =============================================== -->
     <nav class="sidebar">
       <div class="sidebar-header">
-        <!-- Hinweis: Logo-Bild muss im Projektordner existieren -->
         <div class="sidebar-logo">SignalOne</div>
       </div>
 
@@ -214,15 +213,15 @@
 
         <div class="topbar-center">
           <div class="topbar-select-group">
-            <label>Brand</label>
-            <select id="brandSelect" class="topbar-select">
+            <label for="brandSelect">Brand</label>
+            <select id="brandSelect" class="topbar-select" name="brand">
               <option>Werbekonto auswählen</option>
             </select>
           </div>
 
           <div class="topbar-select-group">
-            <label>Kampagne</label>
-            <select id="campaignSelect" class="topbar-select">
+            <label for="campaignSelect">Kampagne</label>
+            <select id="campaignSelect" class="topbar-select" name="campaign">
               <option>Kampagne auswählen</option>
             </select>
           </div>
@@ -246,8 +245,8 @@
             data-tooltip="System-Info"
             aria-label="System-Info"
           >
-             <span style="font-size: 1.1rem; font-weight: 700; color: #4b5563;">i</span>
-                <span id="notificationsDot" class="notification-dot hidden"></span>
+            <span style="font-size: 1.1rem; font-weight: 700; color: #4b5563;">i</span>
+            <span id="notificationsDot" class="notification-dot hidden"></span>
           </button>
 
           <button
@@ -278,7 +277,6 @@
 
       <!-- ===============================================
            MAIN CONTENT VIEWS
-           (Dynamisch geladen via app.js)
            =============================================== -->
       <main class="main-content">
         <section id="dashboardView" class="view" data-view-title="Dashboard" data-header-theme="c"></section>
