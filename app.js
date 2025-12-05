@@ -1,10 +1,11 @@
+import DataLayer from "./packages/data/index.js";
 /* ----------------------------------------------------------
    SignalOne.cloud – Frontend Core (MVP Backbone)
    - View Handling
    - MetaAuth Mock (P5 Demo)
    - Toast / Modal / Status
    - Module Loader (Packages)
-   - TestingLog API (NEU: P2.5 Demo-Anbindung)
+   - TestingLog API (P2.5 Demo-Anbindung)
 -----------------------------------------------------------*/
 
 /* ----------------------------------------------------------
@@ -104,7 +105,14 @@ const AppState = {
   systemHealthy: true,
   notifications: [],
   settings: {
-    demoMode: true,
+    // Hybrid-Modus: DataLayer liest diese Werte
+    demoMode: true,            // Demo erzwingen (überschreibt Live)
+    dataMode: "auto",          // "auto" | "live" | "demo"
+    theme: "titanium",         // "light" | "titanium"
+    currency: "EUR",
+    defaultRange: "last_30_days",
+    cacheTtl: 300,
+    devMode: false,
   },
 };
 
@@ -182,7 +190,6 @@ const DemoData = {
   },
 };
 
-// Global verfügbar machen
 window.SignalOneDemo = window.SignalOneDemo || {};
 window.SignalOneDemo.DemoData = DemoData;
 window.SignalOneDemo.brands = DemoData.brands;
@@ -198,7 +205,6 @@ function useDemoMode() {
 /* ----------------------------------------------------------
    MODULE REGISTRY & LABELS
 -----------------------------------------------------------*/
-// Dynamische Imports für Packages. Wenn Package fehlt, wird Fehler gefangen.
 const modules = {
   dashboard: () => import("./packages/dashboard/index.js"),
   creativeLibrary: () => import("./packages/creativeLibrary/index.js"),
@@ -261,7 +267,6 @@ const modulesRequiringMeta = [
   "reports",
 ];
 
-/* Icons per Modul (SVG <symbol> IDs) */
 const moduleIconIds = {
   dashboard: "icon-dashboard",
   creativeLibrary: "icon-creatives",
@@ -366,7 +371,7 @@ function updateTopbarGreeting() {
 }
 
 /* ----------------------------------------------------------
-   SUBHEADER (AKTIVES WERBEKONTO)
+   SUBHEADER
 -----------------------------------------------------------*/
 function getActiveBrandContext() {
   const brand = getActiveBrand();
@@ -422,7 +427,7 @@ function updateViewSubheaders() {
 }
 
 /* ----------------------------------------------------------
-   SIDEBAR ICON STATE LOGIC
+   SIDEBAR ICON STATE
 -----------------------------------------------------------*/
 function updateSidebarActiveIcon(activeKey) {
   const buttons = document.querySelectorAll(".sidebar-nav-button");
@@ -438,7 +443,7 @@ function updateSidebarActiveIcon(activeKey) {
 }
 
 /* ----------------------------------------------------------
-   NAVIGATION RENDER
+   NAVIGATION
 -----------------------------------------------------------*/
 function renderNav() {
   const navbar = document.getElementById("navbar");
@@ -488,7 +493,7 @@ function renderNav() {
 }
 
 /* ----------------------------------------------------------
-   META STATUS / SYSTEM STATUS
+   STATUS DOTS
 -----------------------------------------------------------*/
 function updateMetaStatusUI() {
   const dot = document.getElementById("sidebarMetaDot");
@@ -554,7 +559,7 @@ function updateCampaignHealthUI() {
 }
 
 /* ----------------------------------------------------------
-   LOADER / FADE / SKELETON
+   LOADER / SKELETON
 -----------------------------------------------------------*/
 function showGlobalLoader() {
   document.getElementById("globalLoader")?.classList.remove("hidden");
@@ -581,7 +586,7 @@ function fadeIn(el) {
 }
 
 /* ----------------------------------------------------------
-   TOAST SYSTEM
+   TOAST
 -----------------------------------------------------------*/
 function showToast(message, type = "info") {
   const container = document.getElementById("toastContainer");
@@ -606,7 +611,7 @@ function showToast(message, type = "info") {
 }
 
 /* ----------------------------------------------------------
-   MODAL SYSTEM
+   MODAL
 -----------------------------------------------------------*/
 function openSystemModal(title, bodyHtml) {
   const overlay = document.getElementById("modalOverlay");
@@ -772,7 +777,7 @@ async function loadModule(key) {
         )}</strong> existiert in dieser Demo-Umgebung noch nicht als Datei.</p>
       </div>
     `;
-    AppState.systemHealthy = true; // fehlende Files sind im Mock ok
+    AppState.systemHealthy = true;
   } finally {
     hideGlobalLoader();
     updateSystemHealthUI();
@@ -796,8 +801,7 @@ async function navigateTo(key) {
 }
 
 /* ----------------------------------------------------------
-   TESTING LOG – GLOBAL API (P2.5 Demo)
-   → Wird von packages/testingLog/index.js genutzt
+   TESTING LOG – GLOBAL API
 -----------------------------------------------------------*/
 const TESTING_LOG_STORAGE_KEY = "signalone_testing_log_v1";
 
@@ -891,7 +895,8 @@ function createTestingLogAPI() {
   }
 
   function add(entry) {
-    const id = entry.id || `test_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    const id =
+      entry.id || `test_${Date.now()}_${Math.random().toString(16).slice(2)}`;
     const normalized = {
       id,
       createdAt: entry.createdAt || new Date().toISOString(),
@@ -965,39 +970,29 @@ const TestingLogAPI = createTestingLogAPI();
 document.addEventListener("DOMContentLoaded", () => {
   console.log("🚀 SignalOne Bootstrap startet...");
 
-  // 1. MetaAuth Init (Mock)
   MetaAuthMock.init();
-
-  // 2. Navigation rendern
   renderNav();
-
-  // 3. Dropdowns befüllen
   populateBrandSelect();
   populateCampaignSelect();
   wireBrandAndCampaignSelects();
 
-  // 4. Initiale View setzen
   const initialViewId = getViewIdForModule(AppState.currentModule);
   setActiveView(initialViewId);
 
-  // 5. Button Wiring
   document
     .getElementById("metaConnectButton")
     ?.addEventListener("click", () => {
       toggleMetaConnection();
     });
 
-  // 6. UI Updates
   updateMetaStatusUI();
   updateSystemHealthUI();
   updateCampaignHealthUI();
   updateViewSubheaders();
 
-  // Settings
   const settingsBtn = document.getElementById("settingsButton");
   settingsBtn?.addEventListener("click", () => navigateTo("settings"));
 
-  // Modal Close
   const modalCloseBtn = document.getElementById("modalCloseButton");
   const modalOverlay = document.getElementById("modalOverlay");
   modalCloseBtn?.addEventListener("click", closeSystemModal);
@@ -1005,7 +1000,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (evt.target === modalOverlay) closeSystemModal();
   });
 
-  // Profil
   const profileBtn = document.getElementById("profileButton");
   profileBtn?.addEventListener("click", () => {
     openSystemModal(
@@ -1015,7 +1009,6 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   });
 
-  // Notifications
   const notificationsBtn = document.getElementById("notificationsButton");
   notificationsBtn?.addEventListener("click", () => {
     if (!AppState.notifications.length) {
@@ -1038,14 +1031,12 @@ document.addEventListener("DOMContentLoaded", () => {
     clearNotifications();
   });
 
-  // Logout
   const logoutBtn = document.getElementById("logoutButton");
   logoutBtn?.addEventListener("click", () => {
     MetaAuthMock.disconnect();
     showToast("Session zurückgesetzt.", "success");
   });
 
-  // Clock Interval
   updateTopbarDateTime();
   updateTopbarGreeting();
   setInterval(() => {
@@ -1053,7 +1044,6 @@ document.addEventListener("DOMContentLoaded", () => {
     updateTopbarGreeting();
   }, 60000);
 
-  // 7. Modul laden
   loadModule(AppState.currentModule);
 
   console.log("✅ SignalOne Bootstrap abgeschlossen!");
@@ -1069,6 +1059,7 @@ window.SignalOne = {
   openSystemModal,
   closeSystemModal,
   TestingLog: TestingLogAPI,
+  DataLayer, // ⭐ WICHTIG: DataLayer hier angebunden!
   UI: {
     showGlobalLoader,
     hideGlobalLoader,
