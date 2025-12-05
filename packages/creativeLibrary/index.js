@@ -58,34 +58,21 @@ export async function render(section, AppState, options = {}) {
 
   showLoader(true);
 
-  let rawCreatives = [];
+  // ⭐ FIX: DataLayer returns { _source, items: [...] }
+  let result;
   try {
-    rawCreatives = await DataLayer.fetchCreativesForAccount({
+    result = await DataLayer.fetchCreativesForAccount({
       accountId,
       preferLive: !useDemoMode,
     });
   } catch (err) {
     console.error("[CreativeLibrary] fetchCreativesForAccount failed", err);
-    SignalOne.showToast?.(
-      "Creative-Daten konnten nicht geladen werden. Demo-Daten werden verwendet.",
-      "error",
-    );
-
-    try {
-      rawCreatives = await DataLayer.fetchCreativesForAccount({
-        accountId,
-        preferLive: false,
-      });
-    } catch (fallbackErr) {
-      console.error(
-        "[CreativeLibrary] Demo-Fallback für Creatives fehlgeschlagen",
-        fallbackErr,
-      );
-      rawCreatives = [];
-    }
+    result = { _source: "error", items: [] };
   } finally {
     showLoader(false);
   }
+
+  const rawCreatives = Array.isArray(result.items) ? result.items : [];
 
   const rangeLabel =
     AppState?.dateRange?.label || AppState?.dateRange?.preset || "Letzte 30 Tage";
@@ -103,11 +90,11 @@ export async function render(section, AppState, options = {}) {
 
   const { creatives, tags, stats, meta: headerMeta } = viewModel;
 
-  // Varianten-Gruppierung (Hybrid C)
+  // Varianten-Gruppierung
   const variantModel = groupCreatives(creatives);
   const variantById = variantModel.byCreativeId;
 
-  // 3) Empty-State, falls keine Creatives ---------------------------
+  // 3) Empty-State
   if (!creatives.length) {
     section.innerHTML = `
       <div class="view-inner">
@@ -123,16 +110,14 @@ export async function render(section, AppState, options = {}) {
     return;
   }
 
-  // 4) Haupt-Template (Header + Filter + Grid-Container) -----------
+  // 4) Haupt-Template -------------------------------------------------
   section.innerHTML = `
     <div class="view-inner">
       <header class="view-header">
         <div>
           <h2 class="view-title">Creative Library</h2>
           <p class="view-subtitle">
-            ${escapeHtml(
-              headerMeta.brandName,
-            )} • ${escapeHtml(headerMeta.modeLabel)}
+            ${escapeHtml(headerMeta.brandName)} • ${escapeHtml(headerMeta.modeLabel)}
           </p>
         </div>
 
@@ -191,7 +176,8 @@ export async function render(section, AppState, options = {}) {
     </div>
   `;
 
-  // 5) Grid + Filter-Logik ------------------------------------------
+  // 5) Grid + Filter-Logik -------------------------------------------
+
   const gridEl = section.querySelector('[data-role="grid"]');
   const searchInput = section.querySelector('[data-role="search"]');
   const sortSelect = section.querySelector('[data-role="sort"]');
@@ -262,16 +248,10 @@ export async function render(section, AppState, options = {}) {
 
         return `
           <article class="creative-library-item" data-id="${escapeHtml(c.id)}">
-            ${
-              hasVariants
-                ? `<div class="creative-variant-badge">V${variantCount}</div>`
-                : ""
-            }
+            ${hasVariants ? `<div class="creative-variant-badge">V${variantCount}</div>` : ""}
             <div class="creative-thumb" style="${
               c.thumbnailUrl
-                ? `background-image:url('${encodeURI(
-                    c.thumbnailUrl,
-                  )}');background-size:cover;background-position:center;`
+                ? `background-image:url('${encodeURI(c.thumbnailUrl)}');background-size:cover;background-position:center;`
                 : ""
             }"></div>
             <div class="creative-info">
@@ -282,9 +262,7 @@ export async function render(section, AppState, options = {}) {
                 ⭐ ${formatBucketLabel(c.bucket)} • Score: ${c.score ?? "-"}
               </div>
               <div class="creative-kpi">
-                ROAS: ${formatRoas(m.roas)} · Spend: ${formatCurrency(
-                  m.spend,
-                )}
+                ROAS: ${formatRoas(m.roas)} · Spend: ${formatCurrency(m.spend)}
               </div>
               <div class="creative-kpi">
                 CTR: ${formatPercent(m.ctr)} · CPM: ${formatCurrency(m.cpm)}
@@ -347,7 +325,7 @@ export async function render(section, AppState, options = {}) {
           } else {
             window.SignalOne?.showToast?.(
               "Testing Log API ist noch nicht initialisiert.",
-              "warning",
+              "warning"
             );
           }
           return;
@@ -359,7 +337,8 @@ export async function render(section, AppState, options = {}) {
     });
   }
 
-  // Filter-Events
+  // Filter Events ---------------------------------------------------
+
   if (searchInput) {
     searchInput.addEventListener("input", (e) => {
       state.search = e.target.value || "";
@@ -381,9 +360,7 @@ export async function render(section, AppState, options = {}) {
       const tag = btn.getAttribute("data-tag");
       if (!tag) return;
 
-      tagContainer
-        .querySelectorAll(".tag-pill")
-        .forEach((el) => el.classList.remove("active"));
+      tagContainer.querySelectorAll(".tag-pill").forEach((el) => el.classList.remove("active"));
       btn.classList.add("active");
 
       state.tag = tag;
@@ -398,9 +375,7 @@ export async function render(section, AppState, options = {}) {
       const bucket = chip.getAttribute("data-bucket");
       if (!bucket) return;
 
-      bucketChips
-        .querySelectorAll(".chip")
-        .forEach((el) => el.classList.remove("active"));
+      bucketChips.querySelectorAll(".chip").forEach((el) => el.classList.remove("active"));
       chip.classList.add("active");
 
       state.bucket = bucket;
@@ -408,12 +383,12 @@ export async function render(section, AppState, options = {}) {
     });
   }
 
-  // Initiales Rendering
+  // Initial render
   renderGrid();
 }
 
 /* ----------------------------------------------------------
-   Modal – Varianten-Layout (V2: Liste links, Detail rechts)
+   Modal – Varianten-Layout (V2)
 -----------------------------------------------------------*/
 
 function openCreativeModal(creative, variants = []) {
@@ -422,20 +397,21 @@ function openCreativeModal(creative, variants = []) {
     const m = creative.metrics || {};
     alert(
       `${creative.name}\n\nROAS: ${formatRoas(m.roas)}\nSpend: ${formatCurrency(
-        m.spend,
-      )}`,
+        m.spend
+      )}`
     );
     return;
   }
 
   const uniqVariants = dedupeById(
-    Array.isArray(variants) && variants.length ? variants : [creative],
+    Array.isArray(variants) && variants.length ? variants : [creative]
   );
   const activeId = creative.id;
 
   const bodyHtml = `
     <div class="creative-modal">
-      <div class="creative-modal-main" data-role="variant-layout" style="display:grid;grid-template-columns: minmax(0,220px) minmax(0,1fr);gap:16px;align-items:flex-start;">
+      <div class="creative-modal-main" data-role="variant-layout" 
+           style="display:grid;grid-template-columns: minmax(0,220px) minmax(0,1fr);gap:16px;align-items:flex-start;">
         
         <!-- Variantenliste (links) -->
         <aside class="creative-variant-list">
@@ -459,7 +435,7 @@ function openCreativeModal(creative, variants = []) {
                 } Purchases
                 </div>
               </button>
-            `,
+            `
               )
               .join("")}
           </div>
@@ -468,7 +444,7 @@ function openCreativeModal(creative, variants = []) {
         <!-- Detailansicht (rechts) -->
         <div class="creative-variant-detail" data-role="variant-detail">
           ${renderVariantDetailHtml(
-            uniqVariants.find((v) => v.id === activeId) || uniqVariants[0],
+            uniqVariants.find((v) => v.id === activeId) || uniqVariants[0]
           )}
         </div>
       </div>
@@ -506,7 +482,7 @@ function renderVariantDetailHtml(c) {
         <div class="creative-modal-thumb" style="${
           c.thumbnailUrl
             ? `background-image:url('${encodeURI(
-                c.thumbnailUrl,
+                c.thumbnailUrl
               )}');background-size:cover;background-position:center;`
             : ""
         }">
