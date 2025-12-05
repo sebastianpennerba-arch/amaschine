@@ -37,7 +37,6 @@ export async function render(section, AppState, options = {}) {
     !!meta.token || !!meta.accessToken || !!meta.activeAccountId;
 
   if (!useDemoMode && !hasLiveAccess) {
-    // Harte Gatekeeper-Regel: ohne Meta-Token keine Live-Daten
     section.innerHTML = `
       <div class="view-inner">
         <h2 class="view-title">Creative Library</h2>
@@ -58,21 +57,24 @@ export async function render(section, AppState, options = {}) {
 
   showLoader(true);
 
-  // ⭐ FIX: DataLayer returns { _source, items: [...] }
-  let result;
+  let dlResult;
   try {
-    result = await DataLayer.fetchCreativesForAccount({
+    dlResult = await DataLayer.fetchCreativesForAccount({
       accountId,
       preferLive: !useDemoMode,
     });
   } catch (err) {
     console.error("[CreativeLibrary] fetchCreativesForAccount failed", err);
-    result = { _source: "error", items: [] };
+    dlResult = { _source: "error", items: [] };
   } finally {
     showLoader(false);
   }
 
-  const rawCreatives = Array.isArray(result.items) ? result.items : [];
+  const rawCreatives = Array.isArray(dlResult.items)
+    ? dlResult.items
+    : Array.isArray(dlResult)
+      ? dlResult
+      : [];
 
   const rangeLabel =
     AppState?.dateRange?.label || AppState?.dateRange?.preset || "Letzte 30 Tage";
@@ -90,11 +92,10 @@ export async function render(section, AppState, options = {}) {
 
   const { creatives, tags, stats, meta: headerMeta } = viewModel;
 
-  // Varianten-Gruppierung
   const variantModel = groupCreatives(creatives);
   const variantById = variantModel.byCreativeId;
 
-  // 3) Empty-State
+  // 3) Empty-State ---------------------------------------------------
   if (!creatives.length) {
     section.innerHTML = `
       <div class="view-inner">
@@ -176,8 +177,6 @@ export async function render(section, AppState, options = {}) {
     </div>
   `;
 
-  // 5) Grid + Filter-Logik -------------------------------------------
-
   const gridEl = section.querySelector('[data-role="grid"]');
   const searchInput = section.querySelector('[data-role="search"]');
   const sortSelect = section.querySelector('[data-role="sort"]');
@@ -248,10 +247,16 @@ export async function render(section, AppState, options = {}) {
 
         return `
           <article class="creative-library-item" data-id="${escapeHtml(c.id)}">
-            ${hasVariants ? `<div class="creative-variant-badge">V${variantCount}</div>` : ""}
+            ${
+              hasVariants
+                ? `<div class="creative-variant-badge">V${variantCount}</div>`
+                : ""
+            }
             <div class="creative-thumb" style="${
               c.thumbnailUrl
-                ? `background-image:url('${encodeURI(c.thumbnailUrl)}');background-size:cover;background-position:center;`
+                ? `background-image:url('${encodeURI(
+                    c.thumbnailUrl,
+                  )}');background-size:cover;background-position:center;`
                 : ""
             }"></div>
             <div class="creative-info">
@@ -262,7 +267,9 @@ export async function render(section, AppState, options = {}) {
                 ⭐ ${formatBucketLabel(c.bucket)} • Score: ${c.score ?? "-"}
               </div>
               <div class="creative-kpi">
-                ROAS: ${formatRoas(m.roas)} · Spend: ${formatCurrency(m.spend)}
+                ROAS: ${formatRoas(m.roas)} · Spend: ${formatCurrency(
+                  m.spend,
+                )}
               </div>
               <div class="creative-kpi">
                 CTR: ${formatPercent(m.ctr)} · CPM: ${formatCurrency(m.cpm)}
@@ -325,19 +332,16 @@ export async function render(section, AppState, options = {}) {
           } else {
             window.SignalOne?.showToast?.(
               "Testing Log API ist noch nicht initialisiert.",
-              "warning"
+              "warning",
             );
           }
           return;
         }
 
-        // Default: Details
         openCreativeModal(creative, variants);
       });
     });
   }
-
-  // Filter Events ---------------------------------------------------
 
   if (searchInput) {
     searchInput.addEventListener("input", (e) => {
@@ -360,7 +364,9 @@ export async function render(section, AppState, options = {}) {
       const tag = btn.getAttribute("data-tag");
       if (!tag) return;
 
-      tagContainer.querySelectorAll(".tag-pill").forEach((el) => el.classList.remove("active"));
+      tagContainer
+        .querySelectorAll(".tag-pill")
+        .forEach((el) => el.classList.remove("active"));
       btn.classList.add("active");
 
       state.tag = tag;
@@ -375,7 +381,9 @@ export async function render(section, AppState, options = {}) {
       const bucket = chip.getAttribute("data-bucket");
       if (!bucket) return;
 
-      bucketChips.querySelectorAll(".chip").forEach((el) => el.classList.remove("active"));
+      bucketChips
+        .querySelectorAll(".chip")
+        .forEach((el) => el.classList.remove("active"));
       chip.classList.add("active");
 
       state.bucket = bucket;
@@ -383,12 +391,11 @@ export async function render(section, AppState, options = {}) {
     });
   }
 
-  // Initial render
   renderGrid();
 }
 
 /* ----------------------------------------------------------
-   Modal – Varianten-Layout (V2)
+   Modal – Varianten-Layout
 -----------------------------------------------------------*/
 
 function openCreativeModal(creative, variants = []) {
@@ -397,23 +404,21 @@ function openCreativeModal(creative, variants = []) {
     const m = creative.metrics || {};
     alert(
       `${creative.name}\n\nROAS: ${formatRoas(m.roas)}\nSpend: ${formatCurrency(
-        m.spend
-      )}`
+        m.spend,
+      )}`,
     );
     return;
   }
 
   const uniqVariants = dedupeById(
-    Array.isArray(variants) && variants.length ? variants : [creative]
+    Array.isArray(variants) && variants.length ? variants : [creative],
   );
   const activeId = creative.id;
 
   const bodyHtml = `
     <div class="creative-modal">
-      <div class="creative-modal-main" data-role="variant-layout" 
-           style="display:grid;grid-template-columns: minmax(0,220px) minmax(0,1fr);gap:16px;align-items:flex-start;">
+      <div class="creative-modal-main" data-role="variant-layout" style="display:grid;grid-template-columns: minmax(0,220px) minmax(0,1fr);gap:16px;align-items:flex-start;">
         
-        <!-- Variantenliste (links) -->
         <aside class="creative-variant-list">
           <h4 class="creative-variant-heading">Varianten</h4>
           <div class="creative-variant-items">
@@ -435,16 +440,15 @@ function openCreativeModal(creative, variants = []) {
                 } Purchases
                 </div>
               </button>
-            `
+            `,
               )
               .join("")}
           </div>
         </aside>
 
-        <!-- Detailansicht (rechts) -->
         <div class="creative-variant-detail" data-role="variant-detail">
           ${renderVariantDetailHtml(
-            uniqVariants.find((v) => v.id === activeId) || uniqVariants[0]
+            uniqVariants.find((v) => v.id === activeId) || uniqVariants[0],
           )}
         </div>
       </div>
@@ -482,7 +486,7 @@ function renderVariantDetailHtml(c) {
         <div class="creative-modal-thumb" style="${
           c.thumbnailUrl
             ? `background-image:url('${encodeURI(
-                c.thumbnailUrl
+                c.thumbnailUrl,
               )}');background-size:cover;background-position:center;`
             : ""
         }">
@@ -573,7 +577,7 @@ function renderVariantDetailHtml(c) {
 }
 
 /* ----------------------------------------------------------
-   Kleine Utils (UI-seitig)
+   Utils
 -----------------------------------------------------------*/
 
 function showLoader(active) {
