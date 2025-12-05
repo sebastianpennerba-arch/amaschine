@@ -4255,3 +4255,487 @@ nav.sidebar {
 /* ==============================
    END OF FILE ♥
    ============================== */
+/* ========================================
+   SIGNALONE CRITICAL FIXES
+   Add these to the END of your styles.css
+   ======================================== */
+
+/* FIX 1: Sidebar Icons - Correct Nesting */
+.sidebar-nav-button .icon-svg .icon-layer-fill {
+  fill: var(--sidebar-icon-inactive-fill, #8f8057);
+  stroke: none;
+  transition: fill 0.16s ease;
+}
+
+.sidebar-nav-button .icon-svg .icon-layer-stroke {
+  fill: none;
+  stroke: var(--sidebar-icon-inactive-stroke, #6e6244);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke 0.16s ease;
+}
+
+.sidebar-nav-button:hover .icon-svg .icon-layer-fill {
+  fill: var(--sidebar-icon-hover-fill, #ddc36b);
+}
+
+.sidebar-nav-button:hover .icon-svg .icon-layer-stroke {
+  stroke: var(--sidebar-icon-hover-stroke, #b1943f);
+}
+
+.sidebar-nav-button.active .icon-svg .icon-layer-fill,
+.sidebar-nav-button.is-active .icon-svg .icon-layer-fill {
+  fill: var(--sidebar-icon-active-fill, #c8a451);
+}
+
+.sidebar-nav-button.active .icon-svg .icon-layer-stroke,
+.sidebar-nav-button.is-active .icon-svg .icon-layer-stroke {
+  stroke: var(--sidebar-icon-active-stroke, #9c8242);
+}
+
+/* FIX 2: View Switching - Correct Display Logic */
+.view {
+  display: none;
+  opacity: 0;
+  transition: opacity 0.22s ease;
+}
+
+.view.active,
+.view.is-active {
+  display: block !important;
+  opacity: 1 !important;
+}
+
+/* FIX 3: Hidden Class - Strong Override */
+.hidden {
+  display: none !important;
+}
+
+/* FIX 4: Global Loader - Correct Positioning */
+#globalLoader {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(12px);
+  z-index: 200;
+}
+
+#globalLoader.hidden {
+  display: none !important;
+}
+
+.global-loader-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 32px;
+  border-radius: 999px;
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(255, 255, 255, 0.96),
+    rgba(248, 250, 252, 0.94)
+  );
+  border: 1px solid rgba(148, 163, 184, 0.55);
+  box-shadow:
+    0 22px 60px rgba(15, 23, 42, 0.22),
+    0 0 0 0.6px rgba(255, 255, 255, 0.98) inset;
+}
+
+.global-loader-inner span {
+  font-size: 0.82rem;
+  color: #64748b;
+  text-align: center;
+}
+
+.loader-dot {
+  width: 9px;
+  height: 9px;
+  margin: 0 4px;
+  border-radius: 999px;
+  background: #3b82f6;
+  animation: loaderPulse 0.9s infinite alternate;
+}
+
+.loader-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.loader-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes loaderPulse {
+  from {
+    transform: translateY(0);
+    opacity: 0.5;
+    box-shadow: 0 0 0 rgba(59, 130, 246, 0);
+  }
+  to {
+    transform: translateY(-5px);
+    opacity: 1;
+    box-shadow: 0 0 18px rgba(59, 130, 246, 0.45);
+  }
+}
+
+/* FIX 5: Modal Box (nicht .modal) */
+.modal-box {
+  max-width: 520px;
+  width: 90%;
+  border-radius: 18px;
+  background: var(--surface, #ffffff);
+  padding: 24px;
+  box-shadow:
+    0 28px 70px rgba(15, 23, 42, 0.35),
+    0 0 0 1px rgba(203, 213, 225, 0.8) inset;
+  animation: modalFade 0.22s ease;
+}
+
+@keyframes modalFade {
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.modal-header h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  margin: 0;
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(241, 245, 249, 0.8);
+  border: 1px solid rgba(203, 213, 225, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.modal-close:hover {
+  background: rgba(226, 232, 240, 1);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.25);
+}
+
+.modal-body {
+  font-size: 0.95rem;
+  color: var(--text-secondary, #6b7280);
+  line-height: 1.5;
+}
+
+/* FIX 6: Sidebar Status Area */
+.sidebar-status {
+  width: 100%;
+  padding: 12px 18px 10px;
+  border-top: 1px solid rgba(30, 64, 175, 0.3);
+  margin-bottom: 12px;
+}
+
+.sidebar-status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-bottom: 7px;
+}
+
+.sidebar-status-row:last-child {
+  margin-bottom: 0;
+}
+
+.sidebar-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: #4b5563;
+  flex-shrink: 0;
+  transition: background-color 0.3s ease;
+}
+
+/* FIX 7: Settings Button */
+.sidebar-settings-button {
+  width: 80%;
+  max-width: 160px;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 0% 0%, #111827, #020617);
+  border: 1px solid rgba(55, 65, 81, 1);
+  color: #e5e7eb;
+  font-size: 0.78rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.sidebar-settings-button .icon-svg {
+  width: 16px;
+  height: 16px;
+}
+
+.sidebar-settings-button:hover {
+  background: radial-gradient(circle at 0% 0%, #1f2937, #111827);
+  border-color: rgba(249, 250, 251, 0.5);
+  transform: translateY(-1px);
+}
+
+/* FIX 8: Topbar Select Wrapper */
+.topbar-select-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.topbar-select-wrapper::after {
+  content: "▾";
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.7rem;
+  color: #c7d2fe;
+  pointer-events: none;
+}
+
+/* FIX 9: Topbar Divider */
+.topbar-divider {
+  opacity: 0.5;
+  color: #9ca3af;
+}
+
+.topbar-greeting-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* FIX 10: Toast Container */
+#toastContainer {
+  position: fixed;
+  bottom: 26px;
+  right: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 300;
+  pointer-events: none;
+}
+
+.toast {
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: rgba(30, 41, 59, 0.95);
+  backdrop-filter: blur(8px);
+  color: white;
+  font-size: 0.88rem;
+  font-weight: 500;
+  pointer-events: auto;
+  transform: translateY(15px);
+  opacity: 0;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.5);
+}
+
+.toast.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast-success {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+}
+
+.toast-warning {
+  background: linear-gradient(135deg, #ea980c, #d97706);
+}
+
+.toast-error {
+  background: linear-gradient(135deg, #e11d48, #be123c);
+}
+
+/* FIX 11: Sidebar Nav Spacing */
+.sidebar-nav {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  flex: 1;
+}
+
+.sidebar-nav-item {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  list-style: none;
+}
+
+/* FIX 12: Sidebar Footer Layout */
+.sidebar-footer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 12px;
+}
+
+/* FIX 13: Icon Button Consistency */
+.icon-button {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* FIX 14: Meta Button Label */
+.meta-button .label {
+  display: inline;
+}
+
+/* FIX 15: View Initial Loading State */
+.view h2 {
+  font-size: 1.2rem;
+  color: var(--color-text-muted, #6b7280);
+  text-align: center;
+  padding: 60px 20px;
+  margin: 0;
+}
+
+/* FIX 16: Pulse Animation for Skeletons */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* FIX 17: Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.62);
+  backdrop-filter: blur(12px);
+  z-index: 250;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay.hidden {
+  display: none !important;
+}
+
+/* FIX 18: Sidebar Nav Button - Complete Override */
+.sidebar-nav-button {
+  width: 80%;
+  max-width: 160px;
+  padding: 9px 11px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.7);
+  background: radial-gradient(
+      circle at 0% 0%,
+      rgba(15, 23, 42, 0.96),
+      rgba(15, 23, 42, 0.98)
+    ),
+    radial-gradient(circle at 100% 0%, rgba(15, 23, 42, 0.88), #020617);
+  box-shadow:
+    0 10px 28px rgba(15, 23, 42, 0.85),
+    0 0 0 0.6px rgba(255, 255, 255, 0.08) inset;
+  color: #cbd5f5;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    transform 0.06s ease,
+    color 0.16s ease;
+}
+
+.sidebar-nav-button .label {
+  text-align: left;
+  flex: 1;
+}
+
+.sidebar-nav-button .icon-svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.sidebar-nav-button:hover {
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(30, 41, 59, 0.96),
+    rgba(15, 23, 42, 0.98)
+  );
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #f9fafb;
+  transform: translateY(-1px);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.9);
+}
+
+.sidebar-nav-button.active,
+.sidebar-nav-button.is-active {
+  background: radial-gradient(
+      circle at 0% 0%,
+      rgba(250, 250, 249, 0.95),
+      rgba(229, 231, 235, 0.95)
+    ),
+    radial-gradient(
+      circle at 100% 100%,
+      rgba(249, 250, 251, 1),
+      rgba(241, 245, 249, 1)
+    );
+  border-color: rgba(250, 204, 21, 0.9);
+  color: #111827;
+  transform: translateY(-1px);
+  box-shadow:
+    0 20px 55px rgba(15, 23, 42, 0.9),
+    0 0 0 0.9px rgba(253, 224, 71, 0.95) inset;
+}
+
+/* END OF FIXES */
