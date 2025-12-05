@@ -1,86 +1,115 @@
-/*
- * app.js – SignalOne Core Backbone
- * Navigation • View Handling • Meta Simulation • Toasts • Modal
- */
-
 /* ----------------------------------------------------------
-   MOCKED DEPENDENCIES (Damit es standalone läuft)
+   SignalOne.cloud – Frontend Core (MVP Backbone)
+   - View Handling
+   - MetaAuth Mock (P5 Demo)
+   - Toast / Modal / Status
+   - Module Loader (Packages)
+   - TestingLog API (NEU: P2.5 Demo-Anbindung)
 -----------------------------------------------------------*/
-// Wir erstellen ein lokales MetaAuth-Objekt, da der Import aus /packages/ fehlen könnte.
-const MetaAuthMock = {
-    init: () => {
-        console.log("[Mock] MetaAuth initialized.");
-        const token = localStorage.getItem("so_meta_token");
-        if (token) {
-            AppState.metaConnected = true;
-            AppState.meta.token = token;
-            AppState.meta.user = { name: "Simulierter User" };
-        }
-    },
-    connectWithPopup: () => {
-        console.log("[Mock] Connecting to Meta...");
-        AppState.metaConnected = true;
-        AppState.meta.token = "demo-token-123";
-        AppState.meta.user = { name: "Sebastian (Live Sim)" };
-        localStorage.setItem("so_meta_token", "demo-token-123");
-        
-        // UI Updates auslösen
-        updateMetaStatusUI();
-        updateCampaignHealthUI();
-        updateTopbarGreeting();
-        updateViewSubheaders();
-        loadModule(AppState.currentModule);
-        window.SignalOne.showToast("Meta Verbindung erfolgreich (Mock)", "success");
-    },
-    disconnect: () => {
-        console.log("[Mock] Disconnecting Meta...");
-        AppState.metaConnected = false;
-        AppState.meta.token = null;
-        AppState.meta.user = null;
-        localStorage.removeItem("so_meta_token");
-        
-        updateMetaStatusUI();
-        updateCampaignHealthUI();
-        updateTopbarGreeting();
-        updateViewSubheaders();
-        loadModule(AppState.currentModule);
-        window.SignalOne.showToast("Meta getrennt.", "warning");
-    }
-};
 
 /* ----------------------------------------------------------
-   GLOBAL APP STATE
+   META AUTH MOCK (P5 – Demo)
+-----------------------------------------------------------*/
+const MetaAuthMock = (() => {
+  const STORAGE_KEY = "signalone_meta_mock_v1";
+
+  let state = {
+    connected: false,
+    accessToken: null,
+    user: null,
+  };
+
+  function loadFromStorage() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      state = {
+        ...state,
+        ...parsed,
+        connected: !!parsed.connected,
+      };
+    } catch (err) {
+      console.warn("[MetaAuthMock] Konnte State nicht laden:", err);
+    }
+  }
+
+  function saveToStorage() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (err) {
+      console.warn("[MetaAuthMock] Konnte State nicht speichern:", err);
+    }
+  }
+
+  function syncToAppState() {
+    AppState.metaConnected = state.connected;
+    AppState.meta.accessToken = state.accessToken;
+    AppState.meta.user = state.user;
+    updateMetaStatusUI();
+    updateCampaignHealthUI();
+    updateTopbarGreeting();
+    updateViewSubheaders();
+  }
+
+  function init() {
+    loadFromStorage();
+    syncToAppState();
+  }
+
+  function connectWithPopup() {
+    // Reine Demo-Simulation
+    setTimeout(() => {
+      state.connected = true;
+      state.accessToken = "demo_access_token_123";
+      state.user = {
+        id: "1234567890",
+        name: "SignalOne Demo User",
+      };
+      saveToStorage();
+      syncToAppState();
+      showToast("Meta Ads (Demo) erfolgreich verbunden.", "success");
+    }, 600);
+  }
+
+  function disconnect() {
+    state.connected = false;
+    state.accessToken = null;
+    state.user = null;
+    saveToStorage();
+    syncToAppState();
+    showToast("Meta-Verbindung getrennt (Demo).", "info");
+  }
+
+  return {
+    init,
+    connectWithPopup,
+    disconnect,
+  };
+})();
+
+/* ----------------------------------------------------------
+   APP STATE
 -----------------------------------------------------------*/
 const AppState = {
   currentModule: "dashboard",
   metaConnected: false,
   meta: {
+    accessToken: null,
     user: null,
-    ads: [],
-    campaigns: [],
-    accounts: [],
-    insights: [],
-    token: null,
   },
-  settings: {
-    theme: "light",
-    currency: "EUR",
-    demoMode: true,
-    cacheTtl: 300,
-    defaultRange: "last_30_days",
-  },
-  onboardingStep: 0,
-  tutorialMode: false,
   selectedBrandId: null,
   selectedCampaignId: null,
-  teamMembers: [],
   licenseLevel: "free",
-  notifications: [],
   systemHealthy: true,
+  notifications: [],
+  settings: {
+    demoMode: true,
+  },
 };
 
 /* ----------------------------------------------------------
-   DEMO-DATA
+   DEMO DATA (Brands / Campaigns)
 -----------------------------------------------------------*/
 const DemoData = {
   brands: [
@@ -88,28 +117,28 @@ const DemoData = {
       id: "acme_fashion",
       name: "ACME Fashion",
       ownerName: "ACME Fashion GmbH",
-      vertical: "Fashion / Apparel",
-      spend30d: 47892,
-      roas30d: 4.8,
+      vertical: "D2C Fashion / Apparel",
+      spend30d: 58442,
+      roas30d: 5.9,
       campaignHealth: "good",
     },
     {
       id: "techgadgets_pro",
       name: "TechGadgets Pro",
       ownerName: "TechGadgets Pro GmbH",
-      vertical: "Electronics / Tech",
-      spend30d: 28310,
-      roas30d: 3.2,
-      campaignHealth: "warning",
+      vertical: "Consumer Electronics",
+      spend30d: 43211,
+      roas30d: 4.4,
+      campaignHealth: "good",
     },
     {
       id: "beautylux_cosmetics",
       name: "BeautyLux Cosmetics",
-      ownerName: "BeautyLux Cosmetics AG",
-      vertical: "Beauty / Skin Care",
-      spend30d: 58442,
-      roas30d: 5.9,
-      campaignHealth: "good",
+      ownerName: "BeautyLux GmbH",
+      vertical: "Cosmetics / Beauty",
+      spend30d: 29877,
+      roas30d: 3.8,
+      campaignHealth: "warning",
     },
     {
       id: "fitlife_supplements",
@@ -144,8 +173,12 @@ const DemoData = {
       { id: "beauty_creators", name: "Creator Evergreen", status: "ACTIVE" },
       { id: "beauty_ba", name: "Brand Awareness Beauty", status: "PAUSED" },
     ],
-    fitlife_supplements: [{ id: "fit_scale", name: "Scale Stack Q4", status: "ACTIVE" }],
-    homezen_living: [{ id: "home_test", name: "Creative Testing", status: "TESTING" }],
+    fitlife_supplements: [
+      { id: "fit_scale", name: "Scale Stack Q4", status: "ACTIVE" },
+    ],
+    homezen_living: [
+      { id: "home_test", name: "Creative Testing", status: "TESTING" },
+    ],
   },
 };
 
@@ -228,15 +261,15 @@ const modulesRequiringMeta = [
   "reports",
 ];
 
-/* ICON IDs MAPPING (SIDEBAR) */
+/* Icons per Modul (SVG <symbol> IDs) */
 const moduleIconIds = {
   dashboard: "icon-dashboard",
-  creativeLibrary: "icon-library",
+  creativeLibrary: "icon-creatives",
   campaigns: "icon-campaigns",
-  sensei: "icon-sensei",
   testingLog: "icon-testing",
+  sensei: "icon-brain",
   reports: "icon-reports",
-  creatorInsights: "icon-creators",
+  creatorInsights: "icon-creator",
   analytics: "icon-analytics",
   team: "icon-team",
   brands: "icon-brands",
@@ -247,89 +280,54 @@ const moduleIconIds = {
 };
 
 /* ----------------------------------------------------------
-   SVG ICON HELPERS
+   VIEW HELPERS
 -----------------------------------------------------------*/
-function createSvgIconFromSymbol(symbolId, extraClass = "") {
-  const svgNS = "http://www.w3.org/2000/svg";
-  const svg = document.createElementNS(svgNS, "svg");
-  svg.setAttribute("viewBox", "0 0 24 24");
-
-  if (extraClass) {
-    svg.classList.add(extraClass);
-  } else {
-    svg.classList.add("icon-svg");
-  }
-
-  const symbol = document.getElementById(symbolId);
-  if (symbol) {
-    Array.from(symbol.childNodes).forEach((node) => {
-      if (node.nodeType === 1) {
-        svg.appendChild(node.cloneNode(true));
-      }
-    });
-  } else {
-    // Fallback: <use> Tag
-    const use = document.createElementNS(svgNS, "use");
-    use.setAttributeNS("http://www.w3.org/1999/xlink", "href", `#${symbolId}`);
-    svg.appendChild(use);
-  }
-
-  return svg;
+function getViewIdForModule(key) {
+  return viewIdMap[key] || "dashboardView";
 }
 
-/* ----------------------------------------------------------
-   VIEW & TOPBAR HELPERS
------------------------------------------------------------*/
 function getLabelForModule(key) {
   return moduleLabels[key] || key;
 }
 
-function getViewIdForModule(key) {
-  return viewIdMap[key] || "dashboardView";
+function createSvgIconFromSymbol(symbolId, className = "") {
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("class", className);
+  const use = document.createElementNS(svgNS, "use");
+  use.setAttributeNS("http://www.w3.org/1999/xlink", "href", `#${symbolId}`);
+  svg.appendChild(use);
+  return svg;
 }
 
 function setActiveView(viewId) {
   const views = document.querySelectorAll(".view");
   views.forEach((v) => {
     if (v.id === viewId) {
-      v.classList.add("active");
-      v.classList.add("is-active"); // Explizit für CSS
-      v.style.display = "block";
+      v.classList.remove("hidden");
     } else {
-      v.classList.remove("active");
-      v.classList.remove("is-active");
-      v.style.display = "none";
+      v.classList.add("hidden");
     }
   });
 }
 
-function getGreetingPrefix() {
-  const h = new Date().getHours();
-  if (h < 5) return "Gute Nacht";
-  if (h < 11) return "Guten Morgen";
-  if (h < 18) return "Guten Tag";
-  return "Guten Abend";
-}
-
+/* ----------------------------------------------------------
+   BRAND & CAMPAIGN CONTEXT
+-----------------------------------------------------------*/
 function getActiveBrand() {
-  const id = AppState.selectedBrandId || DemoData.brands[0]?.id;
-  if (!id) return null;
-  return DemoData.brands.find((b) => b.id === id) || DemoData.brands[0] || null;
+  if (!AppState.selectedBrandId) return null;
+  return DemoData.brands.find((b) => b.id === AppState.selectedBrandId) || null;
 }
 
 function getEffectiveBrandOwnerName() {
-  if (AppState.meta?.user?.name) return AppState.meta.user.name;
   const brand = getActiveBrand();
   if (brand?.ownerName) return brand.ownerName;
-  return "SignalOne Nutzer";
+  return AppState.meta?.user?.name || "SignalOne User";
 }
 
-function updateTopbarGreeting() {
-  const el = document.getElementById("topbarGreeting");
-  if (!el) return;
-  el.textContent = `${getGreetingPrefix()}, ${getEffectiveBrandOwnerName()}!`;
-}
-
+/* ----------------------------------------------------------
+   TOPBAR / TIME / GREETING
+-----------------------------------------------------------*/
 function updateTopbarDateTime() {
   const dateEl = document.getElementById("topbarDate");
   const timeEl = document.getElementById("topbarTime");
@@ -348,6 +346,23 @@ function updateTopbarDateTime() {
       minute: "2-digit",
     })}`;
   }
+}
+
+function updateTopbarGreeting() {
+  const el = document.getElementById("topbarGreeting");
+  if (!el) return;
+
+  const hour = new Date().getHours();
+  let base = "Hello";
+  if (hour < 11) base = "Guten Morgen";
+  else if (hour < 18) base = "Guten Tag";
+  else base = "Guten Abend";
+
+  const brand = getActiveBrand();
+  const name = brand?.ownerName || brand?.name || "Operator";
+
+  const mode = useDemoMode() ? "Demo-Modus" : "Live-Daten";
+  el.textContent = `${base}, ${name} – ${mode}`;
 }
 
 /* ----------------------------------------------------------
@@ -452,20 +467,17 @@ function renderNav() {
     btn.className = "sidebar-nav-button";
     btn.dataset.module = key;
 
-    // Icon
     const symbolId = moduleIconIds[key];
     if (symbolId) {
       const iconSvg = createSvgIconFromSymbol(symbolId, "icon-svg");
       btn.appendChild(iconSvg);
     }
 
-    // Label
     const labelSpan = document.createElement("span");
     labelSpan.className = "label";
     labelSpan.textContent = getLabelForModule(key);
 
     btn.appendChild(labelSpan);
-
     btn.addEventListener("click", () => navigateTo(key));
 
     li.appendChild(btn);
@@ -476,168 +488,20 @@ function renderNav() {
 }
 
 /* ----------------------------------------------------------
-   META DEMO CONNECT
------------------------------------------------------------*/
-function toggleMetaConnection() {
-  if (AppState.metaConnected) {
-    MetaAuthMock.disconnect();
-  } else {
-    MetaAuthMock.connectWithPopup();
-  }
-}
-
-/* ----------------------------------------------------------
-   BRAND & CAMPAIGN SELECT
------------------------------------------------------------*/
-function populateBrandSelect() {
-  const select = document.getElementById("brandSelect");
-  if (!select) return;
-
-  select.innerHTML = '<option value="">Werbekonto auswählen</option>';
-
-  DemoData.brands.forEach((b) => {
-    const opt = document.createElement("option");
-    opt.value = b.id;
-    opt.textContent = `${b.name} (${b.vertical})`;
-    select.appendChild(opt);
-  });
-
-  if (!AppState.selectedBrandId && DemoData.brands[0]) {
-    AppState.selectedBrandId = DemoData.brands[0].id;
-    select.value = DemoData.brands[0].id;
-  } else {
-    select.value = AppState.selectedBrandId || "";
-  }
-
-  updateViewSubheaders();
-}
-
-function populateCampaignSelect() {
-  const select = document.getElementById("campaignSelect");
-  if (!select) return;
-
-  select.innerHTML = '<option value="">Kampagne auswählen</option>';
-
-  const brandId = AppState.selectedBrandId;
-  if (!brandId) return;
-
-  DemoData.campaignsByBrand[brandId]?.forEach((c) => {
-    const opt = document.createElement("option");
-    opt.value = c.id;
-    const icon = c.status === "ACTIVE" ? "🟢" : c.status === "PAUSED" ? "⏸" : "🧪";
-    opt.textContent = `${icon} ${c.name}`;
-    select.appendChild(opt);
-  });
-
-  if (AppState.selectedCampaignId) select.value = AppState.selectedCampaignId;
-}
-
-function wireBrandAndCampaignSelects() {
-  const brandSelect = document.getElementById("brandSelect");
-  const campaignSelect = document.getElementById("campaignSelect");
-
-  if (brandSelect) {
-    brandSelect.addEventListener("change", () => {
-      AppState.selectedBrandId = brandSelect.value || null;
-      AppState.selectedCampaignId = null;
-      populateCampaignSelect();
-      updateCampaignHealthUI();
-      updateTopbarGreeting();
-      updateViewSubheaders();
-      loadModule(AppState.currentModule);
-    });
-  }
-
-  if (campaignSelect) {
-    campaignSelect.addEventListener("change", () => {
-      AppState.selectedCampaignId = campaignSelect.value || null;
-      loadModule(AppState.currentModule);
-      updateViewSubheaders();
-    });
-  }
-}
-
-/* ----------------------------------------------------------
-   TOASTS
------------------------------------------------------------*/
-function showToast(message, type = "info") {
-  const container = document.getElementById("toastContainer");
-  if (!container) return;
-
-  const toast = document.createElement("div");
-  toast.className = "toast";
-  if (type === "success") toast.classList.add("toast-success");
-  if (type === "warning") toast.classList.add("toast-warning");
-  if (type === "error") toast.classList.add("toast-error");
-
-  toast.textContent = message;
-  container.appendChild(toast);
-
-  requestAnimationFrame(() => toast.classList.add("visible"));
-
-  setTimeout(() => {
-    toast.classList.remove("visible");
-    setTimeout(() => toast.remove(), 200);
-  }, 3000);
-}
-
-function pushNotification(type, message, meta = {}) {
-  if (!["error", "warning"].includes(type)) return;
-
-  AppState.notifications.push({
-    id: Date.now(),
-    type,
-    message,
-    meta,
-  });
-
-  document.getElementById("notificationsDot")?.classList.remove("hidden");
-}
-
-function clearNotifications() {
-  AppState.notifications = [];
-  document.getElementById("notificationsDot")?.classList.add("hidden");
-}
-
-/* ----------------------------------------------------------
-   MODAL
------------------------------------------------------------*/
-function openSystemModal(title, bodyHtml) {
-  const overlay = document.getElementById("modalOverlay");
-  const titleEl = document.getElementById("modalTitle");
-  const bodyEl = document.getElementById("modalBody");
-  if (!overlay || !titleEl || !bodyEl) return;
-
-  titleEl.textContent = title || "";
-  bodyEl.innerHTML = bodyHtml || "";
-  overlay.classList.remove("hidden");
-}
-
-function closeSystemModal() {
-  document.getElementById("modalOverlay")?.classList.add("hidden");
-}
-
-/* ----------------------------------------------------------
-   SYSTEM HEALTH & META STATUS
+   META STATUS / SYSTEM STATUS
 -----------------------------------------------------------*/
 function updateMetaStatusUI() {
-  const button = document.getElementById("metaConnectButton");
-  const sidebarDot = document.getElementById("sidebarMetaDot");
-  const sidebarLabel = document.getElementById("sidebarMetaLabel");
+  const dot = document.getElementById("sidebarMetaDot");
+  const label = document.getElementById("sidebarMetaLabel");
 
-  const isConnected = AppState.metaConnected;
+  if (!dot || !label) return;
 
-  if (isConnected) {
-    if (button) button.textContent = "Meta trennen";
-    if (sidebarDot) sidebarDot.style.backgroundColor = "var(--color-success)";
-    if (sidebarLabel)
-      sidebarLabel.textContent = useDemoMode()
-        ? "Meta Ads: Demo verbunden"
-        : "Meta Ads: Live verbunden";
+  if (AppState.metaConnected) {
+    dot.style.backgroundColor = "var(--color-success)";
+    label.textContent = "Meta Ads: Verbunden (Demo)";
   } else {
-    if (button) button.textContent = "Meta verbinden";
-    if (sidebarDot) sidebarDot.style.backgroundColor = "var(--color-danger)";
-    if (sidebarLabel) sidebarLabel.textContent = "Meta Ads: Getrennt";
+    dot.style.backgroundColor = "var(--color-text-soft)";
+    label.textContent = "Meta Ads: Getrennt";
   }
 }
 
@@ -717,6 +581,149 @@ function fadeIn(el) {
 }
 
 /* ----------------------------------------------------------
+   TOAST SYSTEM
+-----------------------------------------------------------*/
+function showToast(message, type = "info") {
+  const container = document.getElementById("toastContainer");
+  if (!container) {
+    alert(message);
+    return;
+  }
+
+  const toast = document.createElement("div");
+  toast.className = `toast toast-${type}`;
+  toast.textContent = message;
+
+  container.appendChild(toast);
+  requestAnimationFrame(() => {
+    toast.classList.add("visible");
+  });
+
+  setTimeout(() => {
+    toast.classList.remove("visible");
+    setTimeout(() => toast.remove(), 250);
+  }, 3500);
+}
+
+/* ----------------------------------------------------------
+   MODAL SYSTEM
+-----------------------------------------------------------*/
+function openSystemModal(title, bodyHtml) {
+  const overlay = document.getElementById("modalOverlay");
+  const titleEl = document.getElementById("modalTitle");
+  const bodyEl = document.getElementById("modalBody");
+
+  if (!overlay || !titleEl || !bodyEl) return;
+
+  titleEl.textContent = title || "";
+  bodyEl.innerHTML = bodyHtml || "";
+  overlay.classList.add("open");
+}
+
+function closeSystemModal() {
+  const overlay = document.getElementById("modalOverlay");
+  if (!overlay) return;
+  overlay.classList.remove("open");
+}
+
+/* ----------------------------------------------------------
+   NOTIFICATIONS
+-----------------------------------------------------------*/
+function pushNotification(type, message, meta = {}) {
+  AppState.notifications.push({ type, message, meta, ts: Date.now() });
+}
+
+function clearNotifications() {
+  AppState.notifications = [];
+}
+
+/* ----------------------------------------------------------
+   META DEMO CONNECT
+-----------------------------------------------------------*/
+function toggleMetaConnection() {
+  if (AppState.metaConnected) {
+    MetaAuthMock.disconnect();
+  } else {
+    MetaAuthMock.connectWithPopup();
+  }
+}
+
+/* ----------------------------------------------------------
+   BRAND & CAMPAIGN SELECT
+-----------------------------------------------------------*/
+function populateBrandSelect() {
+  const select = document.getElementById("brandSelect");
+  if (!select) return;
+
+  select.innerHTML = '<option value="">Werbekonto auswählen</option>';
+
+  DemoData.brands.forEach((b) => {
+    const opt = document.createElement("option");
+    opt.value = b.id;
+    opt.textContent = `${b.name} (${b.vertical})`;
+    select.appendChild(opt);
+  });
+
+  if (!AppState.selectedBrandId && DemoData.brands[0]) {
+    AppState.selectedBrandId = DemoData.brands[0].id;
+    select.value = DemoData.brands[0].id;
+  } else {
+    select.value = AppState.selectedBrandId || "";
+  }
+
+  updateViewSubheaders();
+}
+
+function populateCampaignSelect() {
+  const select = document.getElementById("campaignSelect");
+  if (!select) return;
+
+  select.innerHTML = '<option value="">Kampagne auswählen</option>';
+
+  const brandId = AppState.selectedBrandId;
+  if (!brandId) return;
+
+  const campaigns = DemoData.campaignsByBrand[brandId] || [];
+  campaigns.forEach((c) => {
+    const opt = document.createElement("option");
+    opt.value = c.id;
+    opt.textContent = `${c.name} (${c.status})`;
+    select.appendChild(opt);
+  });
+
+  if (!AppState.selectedCampaignId && campaigns[0]) {
+    AppState.selectedCampaignId = campaigns[0].id;
+    select.value = campaigns[0].id;
+  } else {
+    select.value = AppState.selectedCampaignId || "";
+  }
+}
+
+function wireBrandAndCampaignSelects() {
+  const brandSelect = document.getElementById("brandSelect");
+  const campaignSelect = document.getElementById("campaignSelect");
+
+  if (brandSelect) {
+    brandSelect.addEventListener("change", () => {
+      AppState.selectedBrandId = brandSelect.value || null;
+      AppState.selectedCampaignId = null;
+      populateCampaignSelect();
+      updateViewSubheaders();
+      updateCampaignHealthUI();
+      loadModule(AppState.currentModule);
+    });
+  }
+
+  if (campaignSelect) {
+    campaignSelect.addEventListener("change", () => {
+      AppState.selectedCampaignId = campaignSelect.value || null;
+      updateViewSubheaders();
+      loadModule(AppState.currentModule);
+    });
+  }
+}
+
+/* ----------------------------------------------------------
    MODULE LOADING & NAVIGATION
 -----------------------------------------------------------*/
 async function loadModule(key) {
@@ -725,19 +732,19 @@ async function loadModule(key) {
   const section = document.getElementById(viewId);
 
   if (!loader || !section) {
-    console.warn("[SignalOne] Moduldefinition fehlt:", key);
+    console.warn("[SignalOne] Modul nicht gefunden:", key, viewId);
     return;
   }
 
-  // Meta Check
   if (
     modulesRequiringMeta.includes(key) &&
     !AppState.metaConnected &&
     !useDemoMode()
   ) {
     section.innerHTML =
-      "<p style='padding:20px; color:#64748b;'>Dieses Modul benötigt eine Meta-Verbindung oder den Demo-Modus.</p>";
+      "<p>Dieses Modul benötigt eine Meta-Verbindung oder den Demo-Modus.</p>";
     showToast("Bitte Meta verbinden oder Demo-Modus aktivieren.", "warning");
+    updateCampaignHealthUI();
     return;
   }
 
@@ -751,26 +758,21 @@ async function loadModule(key) {
       module.render(section, AppState, { useDemoMode: useDemoMode() });
       fadeIn(section);
     } else {
-      section.innerHTML = `<div style="padding:40px; text-align:center; color:#94a3b8;">
-        <h3>🚧 Work in Progress</h3>
-        <p>Modul "${getLabelForModule(key)}" geladen, aber keine Render-Methode gefunden.</p>
-      </div>`;
+      section.textContent = `Das Modul "${key}" ist noch nicht implementiert.`;
     }
     AppState.systemHealthy = true;
   } catch (err) {
     console.error("[SignalOne] Modul Load Error:", key, err);
-    // User-Friendly Fallback statt leerer Seite
     section.innerHTML = `
       <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:300px; color:#64748b; text-align:center;">
         <div style="font-size:3rem; margin-bottom:10px;">🏗️</div>
         <h3 style="margin:0; font-size:1.2rem; color:#475569;">Modul noch nicht verfügbar</h3>
-        <p style="margin-top:8px;">Das Modul <strong>${getLabelForModule(key)}</strong> existiert in dieser Demo-Umgebung noch nicht als Datei.</p>
+        <p style="margin-top:8px;">Das Modul <strong>${getLabelForModule(
+          key
+        )}</strong> existiert in dieser Demo-Umgebung noch nicht als Datei.</p>
       </div>
     `;
-    
-    // Wir markieren das System nicht als "Unhealthy", da fehlende Files im Mock normal sind.
-    // Aber wir loggen es intern.
-    AppState.systemHealthy = true; 
+    AppState.systemHealthy = true; // fehlende Files sind im Mock ok
   } finally {
     hideGlobalLoader();
     updateSystemHealthUI();
@@ -794,11 +796,175 @@ async function navigateTo(key) {
 }
 
 /* ----------------------------------------------------------
+   TESTING LOG – GLOBAL API (P2.5 Demo)
+   → Wird von packages/testingLog/index.js genutzt
+-----------------------------------------------------------*/
+const TESTING_LOG_STORAGE_KEY = "signalone_testing_log_v1";
+
+function loadStoredTestingEntries() {
+  try {
+    const raw = localStorage.getItem(TESTING_LOG_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed;
+  } catch {
+    return [];
+  }
+}
+
+function saveTestingEntries(entries) {
+  try {
+    localStorage.setItem(TESTING_LOG_STORAGE_KEY, JSON.stringify(entries));
+  } catch {
+    // ignore
+  }
+}
+
+function createDefaultTestingEntries() {
+  const now = Date.now();
+
+  function baseMetrics(roas, spend, ctr, cpm, cpa, purchases) {
+    return { roas, spend, ctr, cpm, cpa, purchases };
+  }
+
+  return [
+    {
+      id: "demo_test_1",
+      createdAt: new Date(now - 1000 * 60 * 60 * 24 * 2).toISOString(),
+      creativeA: {
+        name: "UGC – „Mein Freund hasst es…“",
+        metrics: baseMetrics(3.6, 5400, 0.032, 8.9, 21, 94),
+      },
+      creativeB: {
+        name: "Static – -30% Offer",
+        metrics: baseMetrics(1.5, 1200, 0.018, 9.1, 42, 23),
+      },
+      decision: {
+        winner: "A",
+        reason:
+          "A liefert deutlich höheren ROAS + bessere CTR bei relevantem Spend.",
+      },
+    },
+    {
+      id: "demo_test_2",
+      createdAt: new Date(now - 1000 * 60 * 60 * 24 * 5).toISOString(),
+      creativeA: {
+        name: "Hook „Ich habe DAS ausprobiert…“",
+        metrics: baseMetrics(4.3, 2100, 0.048, 7.2, 18, 87),
+      },
+      creativeB: {
+        name: "Creator Review – 60s",
+        metrics: baseMetrics(3.9, 1900, 0.041, 7.8, 20, 71),
+      },
+      decision: {
+        winner: "A",
+        reason:
+          "A gewinnt knapp auf ROAS & CTR – Winner in Testing übernehmen.",
+      },
+    },
+    {
+      id: "demo_test_3",
+      createdAt: new Date(now - 1000 * 60 * 60 * 6).toISOString(),
+      creativeA: {
+        name: "Offer Stacking „3 für 2“",
+        metrics: baseMetrics(2.8, 3100, 0.029, 9.5, 28, 62),
+      },
+      creativeB: {
+        name: "Evergreen UGC – „Routine“",
+        metrics: baseMetrics(4.9, 4200, 0.045, 8.1, 17, 133),
+      },
+      decision: {
+        winner: "B",
+        reason:
+          "B outperformt A deutlich – Scaling Budget von A zu B verschieben.",
+      },
+    },
+  ];
+}
+
+function createTestingLogAPI() {
+  let entries = loadStoredTestingEntries();
+  if (!entries.length) {
+    entries = createDefaultTestingEntries();
+    saveTestingEntries(entries);
+  }
+
+  function add(entry) {
+    const id = entry.id || `test_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    const normalized = {
+      id,
+      createdAt: entry.createdAt || new Date().toISOString(),
+      creativeA: entry.creativeA || { name: "Creative A", metrics: {} },
+      creativeB: entry.creativeB || { name: "Creative B", metrics: {} },
+      decision: entry.decision || { winner: "A", reason: "n/a" },
+    };
+    entries = [normalized, ...entries];
+    saveTestingEntries(entries);
+  }
+
+  function clear() {
+    entries = [];
+    saveTestingEntries(entries);
+  }
+
+  function seedDemo() {
+    entries = createDefaultTestingEntries();
+    saveTestingEntries(entries);
+    showToast("Demo-Testing-Log zurückgesetzt.", "info");
+  }
+
+  function openTestSlot(creativeA, candidates = []) {
+    const name = creativeA?.name || "Creative A";
+    const open = window.SignalOne?.openSystemModal || openSystemModal;
+
+    const list =
+      candidates && candidates.length
+        ? `<ul>${candidates
+            .map(
+              (c) =>
+                `<li>${c.name || "Creative"} – ROAS ${
+                  c.metrics?.roas ?? "–"
+                }x</li>`
+            )
+            .join("")}</ul>`
+        : "<p>Keine weiteren Creatives übergeben.</p>";
+
+    open(
+      "Testing Slot (Demo)",
+      `
+      <p>In der finalen Version öffnest du hier direkt einen neuen A/B-Test-Slot.</p>
+      <p><strong>Target:</strong> ${name}</p>
+      <div style="margin-top:12px;">
+        <strong>Kandidaten:</strong><br>
+        ${list}
+      </div>
+      <p style="margin-top:12px;font-size:0.85rem;color:#64748b;">
+        Aktuell ist dies ein Demo-Overlay. Die Tabelle im Testing Log ist aber bereits an die TestingLog-API angebunden.
+      </p>
+    `
+    );
+  }
+
+  return {
+    get entries() {
+      return entries;
+    },
+    add,
+    clear,
+    seedDemo,
+    openTestSlot,
+  };
+}
+
+const TestingLogAPI = createTestingLogAPI();
+
+/* ----------------------------------------------------------
    BOOTSTRAP
 -----------------------------------------------------------*/
 document.addEventListener("DOMContentLoaded", () => {
   console.log("🚀 SignalOne Bootstrap startet...");
-  
+
   // 1. MetaAuth Init (Mock)
   MetaAuthMock.init();
 
@@ -889,7 +1055,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 7. Modul laden
   loadModule(AppState.currentModule);
-  
+
   console.log("✅ SignalOne Bootstrap abgeschlossen!");
 });
 
@@ -902,6 +1068,7 @@ window.SignalOne = {
   showToast,
   openSystemModal,
   closeSystemModal,
+  TestingLog: TestingLogAPI,
   UI: {
     showGlobalLoader,
     hideGlobalLoader,
