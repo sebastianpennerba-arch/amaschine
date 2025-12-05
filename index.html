@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SignalOne – Dashboard</title>
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="sx-core.css" />
   </head>
 
   <body>
@@ -142,21 +143,26 @@
       <ul class="sidebar-nav" id="navbar"></ul>
 
       <div class="sidebar-footer">
-        <div class="sidebar-status-row">
-          <span id="sidebarSystemDot" class="status-dot"></span>
-          <span id="sidebarSystemLabel">System Health: OK</span>
-        </div>
-        <div class="sidebar-status-row">
-          <span id="sidebarCampaignDot" class="status-dot"></span>
-          <span id="sidebarCampaignLabel">Campaign Health: n/a</span>
-        </div>
-        <div class="sidebar-status-row">
-          <span id="sidebarMetaDot" class="status-dot"></span>
-          <span id="sidebarMetaLabel">Meta Ads: Getrennt</span>
+        <div class="sidebar-status">
+          <div class="sidebar-status-row">
+            <span id="sidebarSystemDot" class="sidebar-dot"></span>
+            <span id="sidebarSystemLabel">System: OK</span>
+          </div>
+          <div class="sidebar-status-row">
+            <span id="sidebarCampaignDot" class="sidebar-dot"></span>
+            <span id="sidebarCampaignLabel">Campaign: n/a</span>
+          </div>
+          <div class="sidebar-status-row">
+            <span id="sidebarMetaDot" class="sidebar-dot"></span>
+            <span id="sidebarMetaLabel">Meta: Getrennt</span>
+          </div>
         </div>
 
-        <button id="settingsButton" class="sidebar-footer-button" type="button" data-tooltip="Einstellungen">
-          SETTINGS
+        <button id="settingsButton" class="sidebar-settings-button" type="button">
+          <svg class="icon-svg" viewBox="0 0 24 24">
+            <use href="#icon-settings"></use>
+          </svg>
+          <span>SETTINGS</span>
         </button>
       </div>
     </nav>
@@ -169,6 +175,7 @@
             <div id="topbarGreeting">Guten Tag, Nutzer!</div>
             <div class="topbar-greeting-meta">
               <span id="topbarDate">Datum: —</span>
+              <span class="topbar-divider">•</span>
               <span id="topbarTime">Zeit: —</span>
             </div>
           </div>
@@ -176,35 +183,43 @@
 
         <div class="topbar-center">
           <div class="topbar-select-group">
-            <label>Brand</label>
-            <select id="brandSelect" class="topbar-select">
-              <option>Werbekonto auswählen</option>
-            </select>
+            <label class="topbar-select-label">Brand</label>
+            <div class="topbar-selects">
+              <div class="topbar-select-wrapper">
+                <select id="brandSelect" class="topbar-select">
+                  <option>Werbekonto auswählen</option>
+                </select>
+              </div>
+            </div>
           </div>
 
           <div class="topbar-select-group">
-            <label>Kampagne</label>
-            <select id="campaignSelect" class="topbar-select">
-              <option>Kampagne auswählen</option>
-            </select>
+            <label class="topbar-select-label">Kampagne</label>
+            <div class="topbar-selects">
+              <div class="topbar-select-wrapper">
+                <select id="campaignSelect" class="topbar-select">
+                  <option>Kampagne auswählen</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
 
         <div class="topbar-right">
-          <button id="metaConnectButton" class="meta-button" type="button" data-tooltip="Meta verbinden / trennen">
-            META VERBINDEN
+          <button id="metaConnectButton" class="meta-button" type="button">
+            <span class="label">META VERBINDEN</span>
           </button>
 
-          <button id="notificationsButton" class="icon-button" type="button" data-tooltip="System-Info">
-            <span style="font-size: 1.1rem; font-weight: 700; color: #4b5563;">i</span>
-            <span id="notificationsDot" class="notification-dot hidden"></span>
+          <button id="notificationsButton" class="icon-button" type="button">
+            <span style="font-size: 1.1rem; font-weight: 700;">i</span>
+            <span id="notificationsDot" class="hidden" style="position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:#22c55e;"></span>
           </button>
 
-          <button id="profileButton" class="icon-button" type="button" data-tooltip="Profil & Konto">
+          <button id="profileButton" class="icon-button" type="button">
             <svg class="icon-svg-top"><use href="#icon-user"></use></svg>
           </button>
 
-          <button id="logoutButton" class="icon-button" type="button" data-tooltip="Demo-Logout / Reset">
+          <button id="logoutButton" class="icon-button" type="button">
             <svg class="icon-svg-top"><use href="#icon-power"></use></svg>
           </button>
         </div>
@@ -212,29 +227,59 @@
 
       <!-- MAIN CONTENT VIEWS -->
       <main class="main-content">
-        <section id="dashboardView" class="view" data-view-title="Dashboard" data-header-theme="c"></section>
-        <section id="creativeLibraryView" class="view" data-view-title="Creative Library" data-header-theme="c"></section>
-        <section id="campaignsView" class="view" data-view-title="Kampagnen" data-header-theme="c"></section>
-        <section id="senseiView" class="view" data-view-title="Sensei / AI" data-header-theme="c"></section>
-        <section id="testingLogView" class="view" data-view-title="Testing Log" data-header-theme="c"></section>
-        <section id="reportsView" class="view" data-view-title="Reports & Export" data-header-theme="c"></section>
-        <section id="creatorInsightsView" class="view" data-view-title="Creator Insights" data-header-theme="c"></section>
-        <section id="analyticsView" class="view" data-view-title="Analytics" data-header-theme="c"></section>
-        <section id="teamView" class="view" data-view-title="Team" data-header-theme="c"></section>
-        <section id="brandsView" class="view" data-view-title="Brands" data-header-theme="c"></section>
-        <section id="shopifyView" class="view" data-view-title="Shopify" data-header-theme="c"></section>
-        <section id="roastView" class="view" data-view-title="Roast" data-header-theme="c"></section>
-        <section id="onboardingView" class="view" data-view-title="Onboarding" data-header-theme="c"></section>
-        <section id="settingsView" class="view" data-view-title="Settings" data-header-theme="c"></section>
+        <section id="dashboardView" class="view">
+          <h2>Dashboard wird geladen...</h2>
+        </section>
+        <section id="creativeLibraryView" class="view">
+          <h2>Creative Library wird geladen...</h2>
+        </section>
+        <section id="campaignsView" class="view">
+          <h2>Kampagnen werden geladen...</h2>
+        </section>
+        <section id="senseiView" class="view">
+          <h2>Sensei wird geladen...</h2>
+        </section>
+        <section id="testingLogView" class="view">
+          <h2>Testing Log wird geladen...</h2>
+        </section>
+        <section id="reportsView" class="view">
+          <h2>Reports werden geladen...</h2>
+        </section>
+        <section id="creatorInsightsView" class="view">
+          <h2>Creator Insights werden geladen...</h2>
+        </section>
+        <section id="analyticsView" class="view">
+          <h2>Analytics werden geladen...</h2>
+        </section>
+        <section id="teamView" class="view">
+          <h2>Team wird geladen...</h2>
+        </section>
+        <section id="brandsView" class="view">
+          <h2>Brands werden geladen...</h2>
+        </section>
+        <section id="shopifyView" class="view">
+          <h2>Shopify wird geladen...</h2>
+        </section>
+        <section id="roastView" class="view">
+          <h2>Roast wird geladen...</h2>
+        </section>
+        <section id="onboardingView" class="view">
+          <h2>Onboarding wird geladen...</h2>
+        </section>
+        <section id="settingsView" class="view">
+          <h2>Settings werden geladen...</h2>
+        </section>
       </main>
     </div>
 
     <!-- GLOBAL LOADER, TOASTS & MODAL -->
-    <div id="globalLoader" class="global-loader hidden">
+    <div id="globalLoader" class="hidden">
       <div class="global-loader-inner">
-        <div class="loader-dot"></div>
-        <div class="loader-dot"></div>
-        <div class="loader-dot"></div>
+        <div style="display:flex;gap:4px;margin-bottom:10px;">
+          <div class="loader-dot"></div>
+          <div class="loader-dot"></div>
+          <div class="loader-dot"></div>
+        </div>
         <span>SignalOne lädt dein Modul ...</span>
       </div>
     </div>
@@ -242,7 +287,7 @@
     <div id="toastContainer"></div>
 
     <div id="modalOverlay" class="modal-overlay hidden">
-      <div class="modal">
+      <div class="modal-box">
         <div class="modal-header">
           <h2 id="modalTitle">System Dialog</h2>
           <button id="modalCloseButton" class="modal-close">×</button>
@@ -251,7 +296,7 @@
       </div>
     </div>
 
-    <!-- SCRIPT: Nur app.js laden -->
+    <!-- SCRIPT -->
     <script type="module" src="app.js"></script>
   </body>
 </html>
