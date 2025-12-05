@@ -1,5 +1,5 @@
 /*
- * app.js – SignalOne Core Backbone (INTEGRATION FIXED)
+ * app.js – SignalOne Core Backbone (COMPLETE FIXED VERSION)
  * Navigation • View Handling • Meta Simulation • Toasts • Modal
  */
 
@@ -212,10 +212,10 @@ function setActiveView(viewId) {
   const views = document.querySelectorAll(".view");
   views.forEach((v) => {
     if (v.id === viewId) {
-      v.classList.add("is-active");
+      v.classList.add("is-active", "active");
       v.style.display = "block";
     } else {
-      v.classList.remove("is-active");
+      v.classList.remove("is-active", "active");
       v.style.display = "none";
     }
   });
@@ -299,7 +299,7 @@ function updateViewSubheaders() {
       <div class="subheader-line-1">
         <span class="subheader-icon-slot"></span>
         <span class="subheader-brand-name">${ctx.name}</span>
-        <span class="subheader-role">— Aktives Werbekonto</span>
+        <span class="subheader-role">– Aktives Werbekonto</span>
       </div>
       <div class="subheader-line-2">
         <span class="subheader-campaigns">${ctx.campaignText}</span>
@@ -323,9 +323,9 @@ function updateSidebarActiveIcon(activeKey) {
   const buttons = document.querySelectorAll(".sidebar-nav-button");
   buttons.forEach((btn) => {
     if (btn.dataset.module === activeKey) {
-      btn.classList.add("active");
+      btn.classList.add("active", "is-active");
     } else {
-      btn.classList.remove("active");
+      btn.classList.remove("active", "is-active");
     }
   });
 }
@@ -531,19 +531,24 @@ function updateMetaStatusUI() {
   const isConnected = AppState.metaConnected;
 
   if (button) {
-    button.textContent = isConnected ? "Meta trennen" : "Meta verbinden";
+    const label = button.querySelector(".label");
+    if (label) {
+      label.textContent = isConnected ? "META TRENNEN" : "META VERBINDEN";
+    } else {
+      button.textContent = isConnected ? "META TRENNEN" : "META VERBINDEN";
+    }
   }
 
   if (sidebarDot) {
     sidebarDot.style.backgroundColor = isConnected 
-      ? "var(--color-success)" 
-      : "var(--color-danger)";
+      ? "#22c55e" 
+      : "#ef4444";
   }
   
   if (sidebarLabel) {
     sidebarLabel.textContent = isConnected
-      ? (useDemoMode() ? "Meta Ads: Demo verbunden" : "Meta Ads: Live verbunden")
-      : "Meta Ads: Getrennt";
+      ? (useDemoMode() ? "Meta: Demo verbunden" : "Meta: Live verbunden")
+      : "Meta: Getrennt";
   }
 }
 
@@ -554,11 +559,11 @@ function updateSystemHealthUI() {
   if (!dot || !label) return;
 
   if (AppState.systemHealthy) {
-    dot.style.backgroundColor = "var(--color-success)";
-    label.textContent = "System Health: OK";
+    dot.style.backgroundColor = "#22c55e";
+    label.textContent = "System: OK";
   } else {
-    dot.style.backgroundColor = "var(--color-warning)";
-    label.textContent = "System Health: Check Logs";
+    dot.style.backgroundColor = "#f97316";
+    label.textContent = "System: Check Logs";
   }
 }
 
@@ -571,27 +576,27 @@ function updateCampaignHealthUI() {
   const brand = getActiveBrand();
 
   if (!brand) {
-    dot.style.backgroundColor = "var(--color-text-soft)";
-    label.textContent = "Campaign Health: n/a";
+    dot.style.backgroundColor = "#6b7280";
+    label.textContent = "Campaign: n/a";
     return;
   }
 
   switch (brand.campaignHealth) {
     case "good":
-      dot.style.backgroundColor = "var(--color-success)";
-      label.textContent = "Campaign Health: Stark";
+      dot.style.backgroundColor = "#22c55e";
+      label.textContent = "Campaign: Stark";
       break;
     case "warning":
-      dot.style.backgroundColor = "var(--color-warning)";
-      label.textContent = "Campaign Health: Beobachten";
+      dot.style.backgroundColor = "#f97316";
+      label.textContent = "Campaign: Beobachten";
       break;
     case "critical":
-      dot.style.backgroundColor = "var(--color-danger)";
-      label.textContent = "Campaign Health: Kritisch";
+      dot.style.backgroundColor = "#ef4444";
+      label.textContent = "Campaign: Kritisch";
       break;
     default:
-      dot.style.backgroundColor = "var(--color-text-soft)";
-      label.textContent = "Campaign Health: n/a";
+      dot.style.backgroundColor = "#6b7280";
+      label.textContent = "Campaign: n/a";
   }
 }
 
@@ -636,7 +641,7 @@ async function loadModule(key) {
   }
 
   if (modulesRequiringMeta.includes(key) && !AppState.metaConnected && !useDemoMode()) {
-    section.innerHTML = "<p>Dieses Modul benötigt eine Meta-Verbindung oder den Demo-Modus.</p>";
+    section.innerHTML = "<p style='padding: 40px; text-align: center;'>Dieses Modul benötigt eine Meta-Verbindung oder den Demo-Modus.</p>";
     showToast("Bitte Meta verbinden oder Demo-Modus aktivieren.", "warning");
     return;
   }
@@ -648,7 +653,7 @@ async function loadModule(key) {
     const module = await loader();
     if (module?.render) {
       section.innerHTML = "";
-      module.render(section, AppState, { 
+      await module.render(section, AppState, { 
         useDemoMode: useDemoMode(),
         demoData: DemoData
       });
@@ -670,7 +675,7 @@ async function loadModule(key) {
   } catch (err) {
     console.error("[SignalOne] Fehler beim Laden", key, err);
     section.innerHTML = `
-      <div style="padding: 24px; background: #fee; border: 1px solid #fcc; border-radius: 8px;">
+      <div style="padding: 24px; background: #fee; border: 1px solid #fcc; border-radius: 8px; margin: 20px;">
         <h3 style="color: #c00; margin: 0 0 8px;">Fehler beim Laden des Moduls "${key}"</h3>
         <p style="margin: 0; color: #666;">${err.message}</p>
         <p style="margin: 8px 0 0; font-size: 0.85em; color: #999;">
