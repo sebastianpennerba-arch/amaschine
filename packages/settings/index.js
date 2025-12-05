@@ -1,5 +1,5 @@
 // packages/settings/index.js
-// Block 4 – Settings Center (Theme, Currency, Cache, Defaults, Developer Mode)
+// Block 4 – Settings Center (Theme, Currency, Cache, Defaults, Developer Mode + DEMO MODE)
 
 export function render(root, AppState) {
   const s = AppState.settings;
@@ -15,6 +15,7 @@ export function render(root, AppState) {
     <div class="reports-layout">
       <div class="reports-main">
 
+        <!-- Darstellung -->
         <div class="report-card">
           <div class="sensei-card-header">
             <div>
@@ -51,6 +52,7 @@ export function render(root, AppState) {
           </div>
         </div>
 
+        <!-- System -->
         <div class="report-card" style="margin-top:20px;">
           <div class="sensei-card-header">
             <div>
@@ -72,6 +74,18 @@ export function render(root, AppState) {
               &nbsp;Developer Mode aktivieren
             </label>
           </div>
+
+          <!-- ⭐ DEMO MODE (Live override) -->
+          <div style="margin-top:12px;">
+            <label style="font-size:0.95rem;">
+              <input type="checkbox" id="setDemoMode" ${s.demoMode ? "checked" : ""}/>
+              &nbsp;<strong>Demo Mode aktivieren (überschreibt Live)</strong>
+            </label>
+            <p style="font-size:0.75rem;color:#6b7280;margin-top:4px;">
+              Falls aktiviert, lädt SignalOne überall Demo-Daten – auch wenn ein Meta Ads Token vorhanden ist.
+            </p>
+          </div>
+
         </div>
 
       </div>
@@ -102,21 +116,25 @@ export function render(root, AppState) {
     </div>
   `;
 
-  // ------------------------------------------
-  // SAVE HANDLING
-  // ------------------------------------------
+  // SAVE LOGIK --------------------------------------------------------
 
   const saveBtn = root.querySelector("#settingsSaveBtn");
   saveBtn.addEventListener("click", () => {
     AppState.settings.theme = document.querySelector("#setTheme").value;
     AppState.settings.currency = document.querySelector("#setCurrency").value;
-    AppState.settings.defaultRange = document.querySelector("#setDefaultRange").value;
-    AppState.settings.cacheTtl = Number(document.querySelector("#setCacheTtl").value || 300);
-    AppState.settings.devMode = document.querySelector("#setDevMode").checked;
+    AppState.settings.defaultRange =
+      document.querySelector("#setDefaultRange").value;
+    AppState.settings.cacheTtl =
+      Number(document.querySelector("#setCacheTtl").value || 300);
+    AppState.settings.devMode =
+      document.querySelector("#setDevMode").checked;
+
+    // ⭐ NEU: DEMO MODE Schalter
+    AppState.settings.demoMode =
+      document.querySelector("#setDemoMode").checked;
 
     window.SignalOne.showToast("Einstellungen gespeichert.", "success");
 
-    // UI neu zeichnen falls nötig
     window.SignalOne.navigateTo("settings");
   });
 }
