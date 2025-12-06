@@ -3,12 +3,10 @@ import { DemoData } from "./demoData.js";
 
 /* ========================================
    SignalOne.cloud – Frontend Core
-   PRODUCTION READY – Dezember 2025
+   APPLE-STYLE CLEAN VERSION - VOLLSTÄNDIG
 ======================================== */
 
-/* ----------------------------------------
-   1) META AUTH MOCK
----------------------------------------- */
+/* META AUTH MOCK */
 const MetaAuthMock = (() => {
   const STORAGE_KEY = "signalone_meta_mock_v1";
   let state = { connected: false, accessToken: null, user: null };
@@ -70,36 +68,32 @@ const MetaAuthMock = (() => {
   return { init, connectWithPopup, disconnect };
 })();
 
-/* ----------------------------------------
-   2) APP STATE
----------------------------------------- */
+/* APP STATE */
 const AppState = {
   currentModule: "dashboard",
   metaConnected: false,
-  meta: {
-    accessToken: null,
-    user: null,
-    accountId: null,
-    accountName: null,
-    mode: null,
+  meta: { 
+    accessToken: null, 
+    user: null, 
+    accountId: null, 
+    accountName: null, 
+    mode: null 
   },
   selectedBrandId: null,
   selectedCampaignId: null,
   licenseLevel: "free",
   systemHealthy: true,
   notifications: [],
-  settings: {
-    demoMode: true,
-    dataMode: "auto",
-    theme: "titanium",
-    currency: "EUR",
-    defaultRange: "last_30_days",
+  settings: { 
+    demoMode: true, 
+    dataMode: "auto", 
+    theme: "titanium", 
+    currency: "EUR", 
+    defaultRange: "last_30_days" 
   },
 };
 
-/* ----------------------------------------
-   3) MODULE REGISTRY
----------------------------------------- */
+/* MODULE REGISTRY */
 const modules = {
   dashboard: () => import("./packages/dashboard/index.js"),
   creativeLibrary: () => import("./packages/creativeLibrary/index.js"),
@@ -136,36 +130,16 @@ const viewIdMap = {
   onboarding: "onboardingView",
 };
 
-/* ----------------------------------------
-   4) NAVIGATION STRUCTURE
----------------------------------------- */
-const navStructure = {
-  main: [
-    { key: "dashboard", label: "Dashboard", icon: "dashboard" },
-    { key: "creativeLibrary", label: "Creatives", icon: "library" },
-    { key: "sensei", label: "Sensei", icon: "sensei" },
-    { key: "campaigns", label: "Campaigns", icon: "campaigns" },
-    { key: "academy", label: "Academy", icon: "academy" },
-  ],
-  tools: [
-    { key: "testingLog", label: "Testing Log", icon: "testing" },
-    { key: "roast", label: "Roast", icon: "roast" },
-    { key: "reports", label: "Reports", icon: "reports" },
-    { key: "analytics", label: "Analytics", icon: "analytics" },
-    { key: "creatorInsights", label: "Creators", icon: "creators" },
-  ],
-  settings: [
-    { key: "team", label: "Team", icon: "team" },
-    { key: "brands", label: "Brands", icon: "brands" },
-    { key: "shopify", label: "Shopify", icon: "shopify" },
-    { key: "settings", label: "Settings", icon: "settings" },
-    { key: "onboarding", label: "Onboarding", icon: "onboarding" },
-  ],
-};
+/* NAVIGATION STRUCTURE - NUR HAUPTMODULE */
+const mainNavItems = [
+  { key: "dashboard", label: "Dashboard", icon: "dashboard" },
+  { key: "creativeLibrary", label: "Creatives", icon: "library" },
+  { key: "sensei", label: "Sensei", icon: "sensei" },
+  { key: "campaigns", label: "Campaigns", icon: "campaigns" },
+  { key: "academy", label: "Academy", icon: "academy" },
+];
 
-/* ----------------------------------------
-   5) HELPERS
----------------------------------------- */
+/* HELPERS */
 function useDemoMode() {
   return AppState.settings.demoMode || !AppState.metaConnected;
 }
@@ -181,10 +155,10 @@ function formatNumber(value) {
 
 function formatCurrency(value, currency = "EUR") {
   if (value == null || isNaN(value)) return "–";
-  return new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
+  return new Intl.NumberFormat("de-DE", { 
+    style: "currency", 
+    currency, 
+    maximumFractionDigits: 0 
   }).format(value);
 }
 
@@ -193,9 +167,7 @@ function formatPercent(value, decimals = 1) {
   return `${value.toFixed(decimals)} %`;
 }
 
-/* ----------------------------------------
-   6) TOAST SYSTEM
----------------------------------------- */
+/* TOAST SYSTEM */
 function ensureToastContainer() {
   let el = document.getElementById("toastContainer");
   if (!el) {
@@ -255,9 +227,7 @@ function showToast(message, type = "info", timeout = 3500) {
   }
 }
 
-/* ----------------------------------------
-   7) GLOBAL LOADER
----------------------------------------- */
+/* GLOBAL LOADER */
 function ensureGlobalLoader() {
   let overlay = document.getElementById("globalLoader");
   if (!overlay) {
@@ -296,9 +266,7 @@ function hideGlobalLoader() {
   if (loader) loader.style.display = "none";
 }
 
-/* ----------------------------------------
-   8) UI UPDATES
----------------------------------------- */
+/* UI UPDATES */
 function updateMetaUI() {
   const connected = AppState.metaConnected;
   const mode = AppState.meta.mode || "demo";
@@ -310,21 +278,14 @@ function updateMetaUI() {
     topbarBtn.classList.toggle("connected", connected);
   }
   
-  // Sidebar Button
-  const sidebarBtn = document.getElementById("sidebarMetaButton");
-  if (sidebarBtn) {
-    sidebarBtn.textContent = connected ? `✓ ${mode.toUpperCase()}` : "META VERBINDEN";
-    sidebarBtn.classList.toggle("connected", connected);
-  }
-  
-  // Status Dot
+  // Sidebar Status
   const statusDot = document.getElementById("metaStatusDot");
   const statusLabel = document.getElementById("metaStatusLabel");
   if (statusDot) {
     statusDot.classList.toggle("connected", connected);
   }
   if (statusLabel) {
-    statusLabel.textContent = connected ? `Meta: ${mode}` : "Meta: Nicht verbunden";
+    statusLabel.textContent = connected ? `Meta: ${mode}` : "Meta: –";
   }
   
   updateTopbarGreeting();
@@ -339,25 +300,31 @@ function updateTopbarGreeting() {
   if (hour < 12) greeting = "GUTEN MORGEN";
   else if (hour < 18) greeting = "GUTEN TAG";
   
-  const user = AppState.meta.user?.name || "Demo User";
+  const user = AppState.meta.user?.name || "SignalOne Demo User";
   greetEl.textContent = `${greeting}, ${user}`.toUpperCase();
 }
 
 function updateTopbarDateTime() {
   const dateEl = document.getElementById("topbarDate");
   const timeEl = document.getElementById("topbarTime");
-  
   const now = new Date();
   
   if (dateEl) {
     const days = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
     const day = days[now.getDay()];
-    const date = now.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const date = now.toLocaleDateString('de-DE', { 
+      day: '2-digit', 
+      month: '2-digit', 
+      year: 'numeric' 
+    });
     dateEl.textContent = `${day}, ${date}`;
   }
   
   if (timeEl) {
-    timeEl.textContent = now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    timeEl.textContent = now.toLocaleTimeString('de-DE', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
   }
 }
 
@@ -374,9 +341,7 @@ function updateNotificationBadge() {
   }
 }
 
-/* ----------------------------------------
-   9) NAVIGATION
----------------------------------------- */
+/* NAVIGATION */
 function navigateTo(moduleKey) {
   if (!moduleKey || AppState.currentModule === moduleKey) return;
   
@@ -385,91 +350,28 @@ function navigateTo(moduleKey) {
   const viewId = getViewIdForModule(moduleKey);
   setActiveView(viewId);
   loadModule(moduleKey);
+  
+  // Close tools dropdown if open
+  const dropdown = document.getElementById("toolsDropdown");
+  if (dropdown) dropdown.classList.add("hidden");
 }
 
-function createNavButton(item, nested = false) {
+function createNavButton(item) {
   const btn = document.createElement("button");
-  btn.className = nested ? "sidebar-nav-button sidebar-nav-button-nested" : "sidebar-nav-button";
+  btn.className = "sidebar-nav-button";
   btn.setAttribute("data-module", item.key);
   
-  const hasIcon = !!item.icon;
   btn.innerHTML = `
-    ${hasIcon ? `
-      <span class="sidebar-btn-icon">
-        <svg viewBox="0 0 24 24">
-          <use href="#icon-${item.icon}"></use>
-        </svg>
-      </span>
-    ` : ""}
+    <span class="sidebar-btn-icon">
+      <svg viewBox="0 0 24 24">
+        <use href="#icon-${item.icon}"></use>
+      </svg>
+    </span>
     <span class="sidebar-nav-label">${item.label}</span>
   `;
   
   btn.addEventListener("click", () => navigateTo(item.key));
   return btn;
-}
-
-function renderCollapsibleGroup(rootUl, labelText, items, groupKey, initiallyOpen = false) {
-  // Label
-  const labelLi = document.createElement("li");
-  labelLi.className = "sidebar-section-label";
-  labelLi.textContent = labelText;
-  labelLi.dataset.groupKey = groupKey;
-  rootUl.appendChild(labelLi);
-  
-  // Group Container
-  const groupLi = document.createElement("li");
-  groupLi.className = "sidebar-group";
-  groupLi.dataset.groupKey = groupKey;
-  
-  // Inner List
-  const innerUl = document.createElement("ul");
-  innerUl.className = "sidebar-group-list";
-  
-  items.forEach((item) => {
-    const li = document.createElement("li");
-    li.className = "sidebar-nav-item sidebar-nav-item-nested";
-    li.appendChild(createNavButton(item, true));
-    innerUl.appendChild(li);
-  });
-  
-  groupLi.appendChild(innerUl);
-  rootUl.appendChild(groupLi);
-  
-  // Set initial state
-  setTimeout(() => {
-    const fullHeight = innerUl.scrollHeight;
-    
-    if (initiallyOpen) {
-      groupLi.classList.remove("collapsed");
-      labelLi.classList.add("open");
-      groupLi.style.height = `${fullHeight}px`;
-    } else {
-      groupLi.classList.add("collapsed");
-      labelLi.classList.remove("open");
-      groupLi.style.height = "0px";
-    }
-  }, 0);
-  
-  // Toggle handler
-  labelLi.addEventListener("click", () => {
-    const isOpen = !groupLi.classList.contains("collapsed");
-    const fullHeight = innerUl.scrollHeight;
-    
-    if (isOpen) {
-      // Close
-      groupLi.style.height = `${fullHeight}px`;
-      requestAnimationFrame(() => {
-        groupLi.style.height = "0px";
-        groupLi.classList.add("collapsed");
-        labelLi.classList.remove("open");
-      });
-    } else {
-      // Open
-      groupLi.classList.remove("collapsed");
-      labelLi.classList.add("open");
-      groupLi.style.height = `${fullHeight}px`;
-    }
-  });
 }
 
 function renderNav() {
@@ -478,17 +380,12 @@ function renderNav() {
   
   root.innerHTML = "";
   
-  // Main modules
-  navStructure.main.forEach((item) => {
+  mainNavItems.forEach((item) => {
     const li = document.createElement("li");
     li.className = "sidebar-nav-item";
-    li.appendChild(createNavButton(item, false));
+    li.appendChild(createNavButton(item));
     root.appendChild(li);
   });
-  
-  // Collapsible groups
-  renderCollapsibleGroup(root, "TOOLS", navStructure.tools, "tools", false);
-  renderCollapsibleGroup(root, "SETTINGS", navStructure.settings, "settings", false);
   
   setActiveNavItem(AppState.currentModule);
 }
@@ -500,9 +397,7 @@ function setActiveNavItem(moduleKey) {
   });
 }
 
-/* ----------------------------------------
-   10) VIEW HANDLING
----------------------------------------- */
+/* VIEW HANDLING */
 function setActiveView(viewId) {
   const allViews = document.querySelectorAll(".view");
   allViews.forEach((v) => v.classList.remove("is-active"));
@@ -541,14 +436,57 @@ async function loadModule(moduleKey) {
   }
 }
 
-/* ----------------------------------------
-   11) BRAND & CAMPAIGN SELECTS
----------------------------------------- */
+/* TOOLS DROPDOWN */
+function toggleToolsDropdown() {
+  const dropdown = document.getElementById("toolsDropdown");
+  if (!dropdown) return;
+  dropdown.classList.toggle("hidden");
+}
+
+function wireToolsDropdown() {
+  const toolsBtn = document.getElementById("topbarToolsButton");
+  const dropdown = document.getElementById("toolsDropdown");
+  
+  if (toolsBtn) {
+    toolsBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleToolsDropdown();
+    });
+  }
+  
+  if (dropdown) {
+    const items = dropdown.querySelectorAll(".tools-dropdown-item");
+    items.forEach((item) => {
+      item.addEventListener("click", () => {
+        const moduleKey = item.getAttribute("data-module");
+        navigateTo(moduleKey);
+      });
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener("click", (e) => {
+      if (!dropdown.contains(e.target) && e.target !== toolsBtn) {
+        dropdown.classList.add("hidden");
+      }
+    });
+  }
+}
+
+/* META CONNECTION TOGGLE */
+function toggleMetaConnection() {
+  if (AppState.metaConnected) {
+    MetaAuthMock.disconnect();
+  } else {
+    MetaAuthMock.connectWithPopup();
+  }
+}
+
+/* BRAND & CAMPAIGN SELECTS */
 function populateBrandSelect() {
   const select = document.getElementById("topbarBrandSelect");
   if (!select) return;
   
-  const brands = DemoData?.brands || [{ id: "1", name: "ACME Fashion" }];
+  const brands = DemoData?.brands || [{ id: "1", name: "Deine Brand" }];
   select.innerHTML = "";
   
   brands.forEach((b) => {
@@ -570,7 +508,7 @@ function populateCampaignSelect() {
   const select = document.getElementById("topbarCampaignSelect");
   if (!select) return;
   
-  const campaigns = [{ id: "1", name: "UGC Scale Test" }];
+  const campaigns = [{ id: "1", name: "SignalOne Demo User" }];
   select.innerHTML = "";
   
   campaigns.forEach((c) => {
@@ -607,20 +545,7 @@ function wireBrandAndCampaignSelects() {
   }
 }
 
-/* ----------------------------------------
-   12) META CONNECTION TOGGLE
----------------------------------------- */
-function toggleMetaConnection() {
-  if (AppState.metaConnected) {
-    MetaAuthMock.disconnect();
-  } else {
-    MetaAuthMock.connectWithPopup();
-  }
-}
-
-/* ----------------------------------------
-   13) BOOTSTRAP
----------------------------------------- */
+/* BOOTSTRAP */
 document.addEventListener("DOMContentLoaded", () => {
   // Init Meta Auth
   MetaAuthMock.init();
@@ -633,20 +558,21 @@ document.addEventListener("DOMContentLoaded", () => {
   populateCampaignSelect();
   wireBrandAndCampaignSelects();
   
+  // Wire Tools Dropdown
+  wireToolsDropdown();
+  
   // Set Initial View
   const initialViewId = getViewIdForModule(AppState.currentModule);
   setActiveView(initialViewId);
   
   // Wire Buttons
   document.getElementById("topbarMetaButton")?.addEventListener("click", toggleMetaConnection);
-  document.getElementById("sidebarMetaButton")?.addEventListener("click", toggleMetaConnection);
-  
+  document.getElementById("sidebarSettingsButton")?.addEventListener("click", () => navigateTo("settings"));
   document.getElementById("notificationsButton")?.addEventListener("click", () => {
     showToast("Keine neuen Benachrichtigungen", "info");
   });
-  
-  document.getElementById("settingsButton")?.addEventListener("click", () => {
-    navigateTo("settings");
+  document.getElementById("profileButton")?.addEventListener("click", () => {
+    showToast("Profil-Einstellungen", "info");
   });
   
   // Update UI
@@ -660,12 +586,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // Load Initial Module
   loadModule(AppState.currentModule);
   
-  console.log("[SignalOne] ✓ App initialized");
+  console.log("[SignalOne] ✓ App initialized (Apple-Style Clean)");
 });
 
-/* ----------------------------------------
-   14) GLOBAL EXPORTS
----------------------------------------- */
+/* GLOBAL EXPORTS */
 window.SignalOne = {
   AppState,
   navigateTo,
