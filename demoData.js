@@ -1,201 +1,273 @@
+/**
+ * demoData.js
+ *
+ * Zentrale Demo-Daten für SignalOne:
+ * - Brands (Werbekonten)
+ * - Kampagnen pro Brand
+ * - Creatives
+ * - Funnel Health
+ * - Alerts
+ * - Creator Leaderboard
+ *
+ * Exportiert:
+ *  - demoBrands
+ *  - demoCampaignsByBrand
+ *  - demoCreatives
+ *  - demoFunnel
+ *  - demoAlerts
+ *  - demoCreators
+ *  - DemoData (aggregiert)
+ *    -> DemoData.brands, DemoData.campaignsByBrand, ...
+ *
+ * Zusätzlich:
+ *  - setzt window.SignalOneDemo.DemoData & .brands
+ *    damit compute.js im Dashboard via window.SignalOneDemo arbeiten kann.
+ */
+
 /* ------------------------------------------------------------
-   DEMO-DATEN FÜR SIGNALONE – FINALE VERSION
-   Global verfügbar über: window.SignalOneDemo.DemoData
+   BRANDS (Werbekonten)
 ------------------------------------------------------------- */
 
-/* Original-Daten aus deinem Modul */
-export const demoAccount = {
-  id: "demo_act_001",
-  name: "DEMO BRAND – UGC Performance",
-  industry: "Beauty / Skin-Care",
-  averageMonthlySpend: 42000,
-  createdAt: "2023-08-14",
-  country: "Deutschland"
+export const demoBrands = [
+  {
+    id: "acme_fashion",
+    name: "ACME Fashion",
+    ownerName: "ACME Fashion GmbH",
+    vertical: "DTC / Fashion",
+    spend30d: 51234,
+    roas30d: 4.8,
+    campaignHealth: "good",
+  },
+  {
+    id: "techgadgets_pro",
+    name: "TechGadgets Pro",
+    ownerName: "TechGadgets Pro GmbH",
+    vertical: "Electronics / Gadgets",
+    spend30d: 43211,
+    roas30d: 4.4,
+    campaignHealth: "good",
+  },
+  {
+    id: "beautylux_cosmetics",
+    name: "BeautyLux Cosmetics",
+    ownerName: "BeautyLux GmbH",
+    vertical: "Cosmetics / Beauty",
+    spend30d: 29877,
+    roas30d: 3.8,
+    campaignHealth: "warning",
+  },
+  {
+    id: "fitlife_supplements",
+    name: "FitLife Supplements",
+    ownerName: "FitLife Labs",
+    vertical: "Fitness / Nutrition",
+    spend30d: 32101,
+    roas30d: 4.1,
+    campaignHealth: "warning",
+  },
+  {
+    id: "homezen_living",
+    name: "HomeZen Living",
+    ownerName: "HomeZen Living GmbH",
+    vertical: "Home / Living / Deko",
+    spend30d: 19883,
+    roas30d: 3.6,
+    campaignHealth: "critical",
+  },
+];
+
+/* ------------------------------------------------------------
+   KAMPAGNEN PRO BRAND
+------------------------------------------------------------- */
+
+export const demoCampaignsByBrand = {
+  acme_fashion: [
+    { id: "acme_ugc_scale", name: "UGC Scale Test", status: "ACTIVE" },
+    { id: "acme_brand_static", name: "Brand Awareness Static", status: "PAUSED" },
+    { id: "acme_hook_battle", name: "Hook Battle Q4", status: "TESTING" },
+  ],
+  techgadgets_pro: [
+    { id: "tech_launch", name: "Launch Funnel EU", status: "ACTIVE" },
+    { id: "tech_retarg", name: "Retargeting Core", status: "ACTIVE" },
+  ],
+  beautylux_cosmetics: [
+    { id: "beauty_creators", name: "Creator Evergreen", status: "ACTIVE" },
+    { id: "beauty_ba", name: "Brand Awareness Beauty", status: "PAUSED" },
+  ],
+  fitlife_supplements: [
+    { id: "fit_scale", name: "Scale Stack Q4", status: "ACTIVE" },
+  ],
+  homezen_living: [
+    { id: "home_test", name: "Creative Testing", status: "TESTING" },
+  ],
 };
 
-export const demoCampaigns = [
-  {
-    id: "demo_cmp_ug1",
-    name: "UGC SCALE – Evergreen Vol. 3",
-    objective: "Conversions",
-    status: "Aktiv",
-    spend: 18420,
-    revenue: 88400,
-    roas: 4.8,
-    ctr: 3.9,
-    cpm: 8.12,
-    cpc: 0.53,
-    impressions: 2267000,
-    clicks: 41000,
-    funnel_stage: "Top Funnel",
-    creatives: ["cr_01", "cr_02", "cr_03", "cr_04", "cr_05"],
-    description: "Hauptkampagne basierend auf UGC-Creators mit starken Hooks."
-  },
-  {
-    id: "demo_cmp_ret1",
-    name: "RETARGETING – 30 Tage (DPA + Video)",
-    objective: "Conversions",
-    status: "Aktiv",
-    spend: 6200,
-    revenue: 19840,
-    roas: 3.2,
-    ctr: 2.4,
-    cpm: 11.40,
-    cpc: 0.72,
-    impressions: 540000,
-    clicks: 12900,
-    funnel_stage: "Middle Funnel",
-    creatives: ["cr_11", "cr_12"],
-    description: "Retargeting der letzten 30 Tage – performt stabil."
-  },
-  {
-    id: "demo_cmp_broad1",
-    name: "PROSPECTING – Broad 1",
-    objective: "Conversions",
-    status: "Aktiv",
-    spend: 12000,
-    revenue: 25200,
-    roas: 2.1,
-    ctr: 1.7,
-    cpm: 9.8,
-    cpc: 0.61,
-    impressions: 1220000,
-    clicks: 20300,
-    funnel_stage: "Top Funnel",
-    creatives: ["cr_21", "cr_22", "cr_23"],
-    description: "Breite Ansprache ohne Interessen – Testing neuer Hooks."
-  },
-  {
-    id: "demo_cmp_ht1",
-    name: "HOOK-TEST – Varianten Vol. 8",
-    objective: "Conversions",
-    status: "Aktiv",
-    spend: 4500,
-    revenue: 16200,
-    roas: 3.6,
-    ctr: 4.2,
-    cpm: 7.80,
-    cpc: 0.39,
-    impressions: 487000,
-    clicks: 12900,
-    funnel_stage: "Top Funnel",
-    creatives: ["cr_31", "cr_32", "cr_33", "cr_34"],
-    description: "Hook-Test mit 4 Varianten – Fokus: Scrollstop + Mikro-Hooks."
-  }
-];
+/* ------------------------------------------------------------
+   CREATIVES (vereinheitlichte Beispiel-Daten)
+------------------------------------------------------------- */
 
 export const demoCreatives = [
   {
-    id: "cr_01",
-    name: "UGC Creator – Hook: „STOP! Du musst DAS sehen…“",
-    type: "Video",
-    thumbnail: "https://via.placeholder.com/320x180?text=UGC+1",
+    id: "cr_acme_01",
+    brandId: "acme_fashion",
+    name: "UGC – „Mein Freund hasst es…“",
+    type: "UGC / Reel",
+    thumbnail: "https://via.placeholder.com/320x180?text=ACME+UGC",
     spend: 8400,
-    revenue: 55200,
-    roas: 6.57,
-    ctr: 4.1,
-    cpm: 7.82,
-    cpc: 0.48,
-    impressions: 1074000,
-    clicks: 22400,
-    hook: "Stop Scroll",
-    performance: "Winner"
+    revenue: 41200,
+    roas: 4.9,
+    ctr: 0.038,
+    cpm: 7.4,
+    cpc: 0.32,
+    impressions: 960000,
+    clicks: 36500,
+    hook: "Story / Controversial",
+    performance: "Winner",
   },
   {
-    id: "cr_02",
-    name: "UGC Creator – „Mein Freund hasst es, aber…“",
-    type: "Video",
-    thumbnail: "https://via.placeholder.com/320x180?text=UGC+2",
-    spend: 5400,
-    revenue: 19800,
-    roas: 3.66,
-    ctr: 3.2,
-    cpm: 8.90,
-    cpc: 0.61,
-    impressions: 607000,
-    clicks: 10300,
-    hook: "Story",
-    performance: "Gut"
-  },
-  {
-    id: "cr_03",
-    name: "Static – Offer -30%",
-    type: "Image",
-    thumbnail: "https://via.placeholder.com/320x180?text=-30%25",
-    spend: 1200,
-    revenue: 1800,
-    roas: 1.5,
-    ctr: 1.8,
+    id: "cr_acme_02",
+    brandId: "acme_fashion",
+    name: "Static – -30% Summer Drop",
+    type: "Static / Feed",
+    thumbnail: "https://via.placeholder.com/320x180?text=ACME+Static",
+    spend: 3100,
+    revenue: 8700,
+    roas: 2.8,
+    ctr: 0.021,
     cpm: 9.1,
-    cpc: 0.71,
-    impressions: 132000,
-    clicks: 2430,
+    cpc: 0.43,
+    impressions: 337000,
+    clicks: 7100,
     hook: "Offer",
-    performance: "Schwach"
+    performance: "Testing",
   },
   {
-    id: "cr_04",
-    name: "Hook-Test – „Ich habe DAS ausprobiert…“",
-    type: "Video",
-    thumbnail: "https://via.placeholder.com/320x180?text=HT1",
-    spend: 2100,
-    revenue: 9100,
-    roas: 4.33,
-    ctr: 4.8,
-    cpm: 7.2,
+    id: "cr_tech_01",
+    brandId: "techgadgets_pro",
+    name: "„Unboxing Day“ Creator Spot",
+    type: "Creator / Story",
+    thumbnail: "https://via.placeholder.com/320x180?text=Tech+UGC",
+    spend: 5900,
+    revenue: 28600,
+    roas: 4.85,
+    ctr: 0.034,
+    cpm: 8.2,
+    cpc: 0.29,
+    impressions: 640000,
+    clicks: 21800,
+    hook: "Unboxing",
+    performance: "Winner",
+  },
+  {
+    id: "cr_beauty_01",
+    brandId: "beautylux_cosmetics",
+    name: "„Dermatologin erklärt…“",
+    type: "Creator / Story",
+    thumbnail: "https://via.placeholder.com/320x180?text=Beauty+Dr",
+    spend: 8700,
+    revenue: 53100,
+    roas: 6.1,
+    ctr: 0.033,
+    cpm: 7.9,
+    cpc: 0.31,
+    impressions: 723000,
+    clicks: 23900,
+    hook: "Authority / Education",
+    performance: "Winner",
+  },
+  {
+    id: "cr_fit_01",
+    brandId: "fitlife_supplements",
+    name: "\"30-Day Challenge\" UGC",
+    type: "UGC / Reel",
+    thumbnail: "https://via.placeholder.com/320x180?text=FitLife+UGC",
+    spend: 9900,
+    revenue: 46500,
+    roas: 4.7,
+    ctr: 0.031,
+    cpm: 7.0,
     cpc: 0.33,
-    impressions: 292000,
-    clicks: 6300,
-    hook: "Experience",
-    performance: "Winner"
-  }
+    impressions: 702000,
+    clicks: 21700,
+    hook: "Challenge",
+    performance: "Winner",
+  },
+  {
+    id: "cr_home_01",
+    brandId: "homezen_living",
+    name: "\"Living Room Makeover\" UGC",
+    type: "UGC / Reel",
+    thumbnail: "https://via.placeholder.com/320x180?text=HomeZen+UGC",
+    spend: 6200,
+    revenue: 20900,
+    roas: 3.37,
+    ctr: 0.028,
+    cpm: 7.6,
+    cpc: 0.34,
+    impressions: 498000,
+    clicks: 13900,
+    hook: "Before/After",
+    performance: "Testing",
+  },
 ];
+
+/* ------------------------------------------------------------
+   FUNNEL HEALTH (ToF/MoF/BoF)
+------------------------------------------------------------- */
 
 export const demoFunnel = {
   tof: {
     score: 86,
     issues: ["Scrollstop stark", "CTR stabil über Benchmark"],
-    opportunities: ["Mehr Broad-Scaling möglich"]
+    opportunities: ["Mehr Broad-Scaling möglich"],
   },
   mof: {
     score: 74,
     issues: ["Video-View-Rate mittel"],
-    opportunities: ["DPA testen", "Testimonials verstärken"]
+    opportunities: ["DPA testen", "Testimonials verstärken"],
   },
   bof: {
     score: 69,
     issues: ["Checkout-Abbrüche 14%"],
-    opportunities: ["Landing Pages A/B test", "Trust Badges"]
-  }
+    opportunities: ["Landing Pages A/B testen", "Trust Badges verstärken"],
+  },
 };
+
+/* ------------------------------------------------------------
+   ALERTS
+------------------------------------------------------------- */
 
 export const demoAlerts = [
   {
     id: "al_01",
     type: "Warnung",
-    severity: "Hoch",
+    severity: "hoch",
     title: "UGC Vol.3 – Creative Fatigue erkannt",
     message:
-      "ROAS fällt seit 3 Tagen. CTR sinkt um 18%. Neues Creative testen.",
-    timestamp: "2025-01-21"
+      "ROAS fällt seit 3 Tagen. CTR sinkt um 18 %. Neues Creative testen.",
+    timestamp: "2025-01-21",
   },
   {
     id: "al_02",
     type: "Info",
-    severity: "Mittel",
+    severity: "mittel",
     title: "Retargeting – CPM gestiegen",
-    message: "CPM +22% im 30d Vergleich. Budget prüfen.",
-    timestamp: "2025-01-20"
+    message: "CPM +22 % im 30d-Vergleich. Budget prüfen.",
+    timestamp: "2025-01-20",
   },
   {
     id: "al_03",
     type: "Erfolg",
-    severity: "Niedrig",
+    severity: "niedrig",
     title: "Hook A outperformt andere Varianten",
-    message: "CTR +32%, CPC -12% → Hochskalieren empfohlen.",
-    timestamp: "2025-01-19"
-  }
+    message: "CTR +32 %, CPC -12 % → Hochskalieren empfohlen.",
+    timestamp: "2025-01-19",
+  },
 ];
+
+/* ------------------------------------------------------------
+   CREATOR LEADERBOARD
+------------------------------------------------------------- */
 
 export const demoCreators = [
   {
@@ -204,7 +276,7 @@ export const demoCreators = [
     avg_roas: 5.9,
     avg_ctr: 4.2,
     total_spend: 11800,
-    profile_picture: "https://via.placeholder.com/80?text=M"
+    profile_picture: "https://via.placeholder.com/80?text=M",
   },
   {
     id: "cr_lead_02",
@@ -212,7 +284,7 @@ export const demoCreators = [
     avg_roas: 4.1,
     avg_ctr: 3.6,
     total_spend: 9400,
-    profile_picture: "https://via.placeholder.com/80?text=T"
+    profile_picture: "https://via.placeholder.com/80?text=T",
   },
   {
     id: "cr_lead_03",
@@ -220,80 +292,28 @@ export const demoCreators = [
     avg_roas: 3.7,
     avg_ctr: 3.2,
     total_spend: 7400,
-    profile_picture: "https://via.placeholder.com/80?text=S"
-  }
+    profile_picture: "https://via.placeholder.com/80?text=S",
+  },
 ];
-
-export const demoHookAnalysis = [
-  {
-    hook: "Stop Scroll",
-    ctr: 4.8,
-    roas: 5.1,
-    conversions: 3800,
-    message: "Sehr stark – eignet sich zum Skalieren"
-  },
-  {
-    hook: "Story",
-    ctr: 3.1,
-    roas: 3.6,
-    conversions: 1400,
-    message: "Stabil – gut für Retargeting"
-  },
-  {
-    hook: "Problem-Solution",
-    ctr: 2.8,
-    roas: 2.9,
-    conversions: 900,
-    message: "Erweiterbar – neue Varianten testen"
-  }
-];
-
-export const demoTestingLog = [
-  {
-    id: "test_01",
-    title: "Hook-Test Vol. 8",
-    status: "Laufend",
-    findings:
-      "Hook A outperformt alle Varianten. A wird Gewinner. B/C pausieren.",
-    next_step: "Neue Hook-Varianten entwickeln.",
-    date: "2025-01-22"
-  },
-  {
-    id: "test_02",
-    title: "Retargeting – DPA vs Video",
-    status: "Abgeschlossen",
-    findings: "Video outperformt DPA bei CTR deutlich.",
-    next_step: "2 neue Videos testen.",
-    date: "2025-01-19"
-  }
-];
-
-export const demoForecast = {
-  next7days: {
-    projected_spend: 7200,
-    projected_revenue: 34800,
-    projected_roas: 4.83,
-    confidence: 0.87
-  },
-  message: "Basierend auf der Performance der letzten 14 Tage."
-};
 
 /* ------------------------------------------------------------
-   WICHTIG: Globale Registrierung für Dashboard & Compute.js
+   AGGREGIERTES OBJEKT + WINDOW-HOOK
 ------------------------------------------------------------- */
 
-window.SignalOneDemo = {
-  DemoData: {
-    account: demoAccount,
-    campaigns: demoCampaigns,
-    creatives: demoCreatives,
-    funnel: demoFunnel,
-    alerts: demoAlerts,
-    creators: demoCreators,
-    hookAnalysis: demoHookAnalysis,
-    testingLog: demoTestingLog,
-    forecast: demoForecast
-  }
+export const DemoData = {
+  brands: demoBrands,
+  campaignsByBrand: demoCampaignsByBrand,
+  creatives: demoCreatives,
+  funnel: demoFunnel,
+  alerts: demoAlerts,
+  creators: demoCreators,
 };
 
-console.log("✅ DemoData geladen:", window.SignalOneDemo);
+// Browser-Hook für compute.js etc.
+if (typeof window !== "undefined") {
+  window.SignalOneDemo = window.SignalOneDemo || {};
+  window.SignalOneDemo.DemoData = DemoData;
+  window.SignalOneDemo.brands = DemoData.brands;
+}
+
+export default DemoData;
