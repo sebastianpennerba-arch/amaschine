@@ -1,7 +1,13 @@
 import DataLayer from "./packages/data/index.js";
+import { DemoData } from "./demoData.js";
 
 /* ----------------------------------------------------------
-   SignalOne.cloud – Frontend Core
+   SignalOne.cloud – Frontend Core (FULL REWRITE)
+   - MetaAuth (Mock + Live)
+   - AppState
+   - Navigation (Sidebar A – Hauptmodule + Tools + Einstellungen)
+   - View Handling & Module Loader
+   - Status / Toast / Modal / Loader
 ----------------------------------------------------------*/
 
 /* ----------------------------------------------------------
@@ -402,12 +408,7 @@ const AppState = {
 };
 
 /* ----------------------------------------------------------
-   4) DEMO DATA
-----------------------------------------------------------*/
-import { DemoData } from "./demoData.js";
-
-/* ----------------------------------------------------------
-   5) MODULE REGISTRY & VIEW MAP
+   4) MODULE REGISTRY & VIEW MAP
 ----------------------------------------------------------*/
 const modules = {
   dashboard: () => import("./packages/dashboard/index.js"),
@@ -455,7 +456,7 @@ const modulesRequiringMeta = new Set([
 ]);
 
 /* ----------------------------------------------------------
-   6) HELPERS
+   5) HELPERS / FORMATTER
 ----------------------------------------------------------*/
 function useDemoMode() {
   const settings = AppState.settings || {};
@@ -488,11 +489,389 @@ function getEffectiveBrandOwnerName() {
   return brand?.owner || "SignalOne Nutzer";
 }
 
-/* ----------------------------------------------------------
-   7) NAVIGATION / SIDEBAR – Design A (FIXED + COLLAPSIBLE)
-----------------------------------------------------------*/
+function formatNumber(value) {
+  if (value == null || isNaN(value)) return "–";
+  return new Intl.NumberFormat("de-DE").format(value);
+}
 
-// 5 Hauptmodule + Tools + Einstellungen (Labels)
+function formatCurrency(value, currency = AppState.settings.currency || "EUR") {
+  if (value == null || isNaN(value)) return "–";
+  return new Intl.NumberFormat("de-DE", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+function formatPercent(value, decimals = 1) {
+  if (value == null || isNaN(value)) return "–";
+  return `${value.toFixed(decimals)} %`;
+}
+
+/* ----------------------------------------------------------
+   6) TOASTS
+----------------------------------------------------------*/
+function ensureToastContainer() {
+  let el = document.getElementById("toastContainer");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "toastContainer";
+    el.style.position = "fixed";
+    el.style.right = "24px";
+    el.style.bottom = "24px";
+    el.style.zIndex = "1000";
+    el.style.display = "flex";
+    el.style.flexDirection = "column";
+    el.style.gap = "8px";
+    document.body.appendChild(el);
+  }
+  return el;
+}
+
+function showToast(message, type = "info", timeout = 3800) {
+  const container = ensureToastContainer();
+  const toast = document.createElement("div");
+  toast.className = "sx-toast";
+  toast.style.minWidth = "260px";
+  toast.style.maxWidth = "360px";
+  toast.style.padding = "10px 14px";
+  toast.style.borderRadius = "999px";
+  toast.style.fontSize = "0.82rem";
+  toast.style.display = "flex";
+  toast.style.alignItems = "center";
+  toast.style.justifyContent = "space-between";
+  toast.style.boxShadow =
+    "0 16px 40px rgba(15,23,42,0.45),0 0 0 0.5px rgba(255,255,255,0.9) inset";
+  toast.style.backdropFilter = "blur(18px)";
+  toast.style.border = "1px solid rgba(148,163,184,0.7)";
+  toast.style.color = "#0f172a";
+
+  let bg = "rgba(248,250,252,0.96)";
+  if (type === "success") bg = "rgba(220,252,231,0.98)";
+  if (type === "warning") bg = "rgba(254,243,199,0.98)";
+  if (type === "error") bg = "rgba(254,226,226,0.98)";
+  toast.style.background = bg;
+
+  toast.innerHTML = `
+    <span>${message}</span>
+    <button style="
+      margin-left:12px;
+      border:none;
+      background:transparent;
+      cursor:pointer;
+      font-size:0.8rem;
+      color:#6b7280;
+    ">&times;</button>
+  `;
+
+  toast.querySelector("button").addEventListener("click", () => {
+    container.removeChild(toast);
+  });
+
+  container.appendChild(toast);
+
+  if (timeout > 0) {
+    setTimeout(() => {
+      if (toast.parentNode === container) {
+        container.removeChild(toast);
+      }
+    }, timeout);
+  }
+}
+
+/* ----------------------------------------------------------
+   7) GLOBAL LOADER
+----------------------------------------------------------*/
+function ensureGlobalLoader() {
+  let overlay = document.getElementById("globalLoader");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "globalLoader";
+    overlay.style.position = "fixed";
+    overlay.style.inset = "0";
+    overlay.style.display = "none";
+    overlay.style.alignItems = "center";
+    overlay.style.justifyContent = "center";
+    overlay.style.zIndex = "999";
+    overlay.style.background =
+      "radial-gradient(circle at 0% 0%, rgba(15,23,42,0.85), rgba(15,23,42,0.98))";
+    overlay.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;color:#e5e7eb;">
+        <div style="
+          width:42px;
+          height:42px;
+          border-radius:999px;
+          border:3px solid rgba(148,163,184,0.6);
+          border-top-color:#d4af37;
+          animation: spinLoader 0.9s linear infinite;
+        "></div>
+        <div style="font-size:0.78rem;letter-spacing:0.18em;text-transform:uppercase;">
+          SignalOne lädt...
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes spinLoader {
+        to { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  return overlay;
+}
+
+function showGlobalLoader() {
+  const overlay = ensureGlobalLoader();
+  overlay.style.display = "flex";
+}
+
+function hideGlobalLoader() {
+  const overlay = ensureGlobalLoader();
+  overlay.style.display = "none";
+}
+
+/* ----------------------------------------------------------
+   8) SYSTEM MODAL
+----------------------------------------------------------*/
+function openSystemModal(title, html) {
+  const overlay = document.getElementById("modalOverlay");
+  const titleEl = document.getElementById("modalTitle");
+  const bodyEl = document.getElementById("modalBody");
+  if (!overlay || !titleEl || !bodyEl) return;
+
+  titleEl.textContent = title || "";
+  bodyEl.innerHTML = html || "";
+  overlay.classList.remove("hidden");
+}
+
+function closeSystemModal() {
+  const overlay = document.getElementById("modalOverlay");
+  if (!overlay) return;
+  overlay.classList.add("hidden");
+}
+
+/* ----------------------------------------------------------
+   9) NOTIFICATIONS
+----------------------------------------------------------*/
+function pushNotification(type, message, meta = {}) {
+  AppState.notifications.push({ type, message, meta, ts: Date.now() });
+  const countEl = document.getElementById("notificationsBadge");
+  if (countEl) {
+    countEl.textContent = String(AppState.notifications.length);
+    countEl.classList.remove("hidden");
+  }
+}
+
+function clearNotifications() {
+  AppState.notifications = [];
+  const countEl = document.getElementById("notificationsBadge");
+  if (countEl) {
+    countEl.textContent = "";
+    countEl.classList.add("hidden");
+  }
+}
+
+/* ----------------------------------------------------------
+   10) STATUS / TOPBAR UI
+----------------------------------------------------------*/
+function updateSystemHealthUI() {
+  const row = document.getElementById("systemHealthText");
+  if (row) {
+    row.textContent = AppState.systemHealthy ? "System Health: OK" : "System Health: Problem";
+  }
+}
+
+function updateMetaStatusUI() {
+  const txt = document.getElementById("metaStatusText");
+  const dot = document.getElementById("metaStatusDot");
+  const btns = [];
+  const topBtn = document.getElementById("metaConnectButton");
+  if (topBtn) btns.push(topBtn);
+  const sideBtn = document.getElementById("sidebarMetaConnectButton");
+  if (sideBtn) btns.push(sideBtn);
+
+  const connected = AppState.metaConnected;
+  if (txt) {
+    txt.textContent = connected ? "Meta Ads: Verbunden" : "Meta Ads: Getrennt";
+  }
+  if (dot) {
+    dot.style.background = connected ? "#22c55e" : "#6b7280";
+  }
+  btns.forEach((btn) => {
+    btn.textContent = connected ? "Meta trennen" : "Meta verbinden";
+  });
+}
+
+function updateCampaignHealthUI() {
+  const txt = document.getElementById("campaignHealthText");
+  if (!txt) return;
+
+  const brand = getEffectiveBrand();
+  if (!brand) {
+    txt.textContent = "Campaign Health: n/a";
+    return;
+  }
+
+  const campaigns = DemoData.campaignsByBrand[brand.id] || [];
+  if (!campaigns.length) {
+    txt.textContent = "Campaign Health: n/a";
+    return;
+  }
+
+  // Simple Dummy-Logik
+  const avgHealth =
+    campaigns.reduce((sum, c) => sum + (c.healthScore || 60), 0) /
+    campaigns.length;
+
+  let label = "Campaign Health: n/a";
+  if (avgHealth >= 80) label = "Campaign Health: strong";
+  else if (avgHealth >= 60) label = "Campaign Health: ok";
+  else label = "Campaign Health: weak";
+
+  txt.textContent = label;
+}
+
+function updateTopbarGreeting() {
+  const el = document.getElementById("topbarGreeting");
+  if (!el) return;
+
+  const now = new Date();
+  const hour = now.getHours();
+  let greeting = "Guten Tag";
+
+  if (hour < 5) greeting = "Guten Abend";
+  else if (hour < 11) greeting = "Guten Morgen";
+  else if (hour < 18) greeting = "Guten Tag";
+  else greeting = "Guten Abend";
+
+  const name =
+    AppState.meta.user?.name ||
+    getEffectiveBrandOwnerName() ||
+    "SignalOne Nutzer";
+
+  el.textContent = `${greeting}, ${name}`;
+}
+
+function updateTopbarDateTime() {
+  const dateEl = document.getElementById("topbarDate");
+  const timeEl = document.getElementById("topbarTime");
+  const now = new Date();
+
+  if (dateEl) {
+    dateEl.textContent = now.toLocaleDateString("de-DE", {
+      weekday: "short",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  }
+  if (timeEl) {
+    timeEl.textContent = now.toLocaleTimeString("de-DE", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+}
+
+function updateViewSubheaders() {
+  const brand = getEffectiveBrand();
+  const campaign = getEffectiveCampaign();
+
+  document
+    .querySelectorAll("[data-subheader-brand-name]")
+    .forEach((el) => (el.textContent = brand?.name || "Marke auswählen"));
+
+  document
+    .querySelectorAll("[data-subheader-brand-owner]")
+    .forEach((el) => (el.textContent = brand?.owner || "SignalOne Nutzer"));
+
+  document
+    .querySelectorAll("[data-subheader-campaign-name]")
+    .forEach((el) => (el.textContent = campaign?.name || "Kampagne auswählen"));
+}
+
+/* ----------------------------------------------------------
+   11) BRAND / CAMPAIGN SELECTS
+----------------------------------------------------------*/
+function populateBrandSelect() {
+  const select = document.getElementById("brandSelect");
+  if (!select) return;
+
+  const brands = DemoData.brands || [];
+  select.innerHTML = "";
+  brands.forEach((b) => {
+    const opt = document.createElement("option");
+    opt.value = b.id;
+    opt.textContent = b.name;
+    select.appendChild(opt);
+  });
+
+  const defaultBrand = getEffectiveBrand();
+  if (defaultBrand) {
+    select.value = defaultBrand.id;
+    AppState.selectedBrandId = defaultBrand.id;
+  }
+}
+
+function populateCampaignSelect() {
+  const select = document.getElementById("campaignSelect");
+  if (!select) return;
+
+  const brand = getEffectiveBrand();
+  if (!brand) {
+    select.innerHTML = "";
+    return;
+  }
+
+  const campaigns = DemoData.campaignsByBrand[brand.id] || [];
+  select.innerHTML = "";
+  campaigns.forEach((c) => {
+    const opt = document.createElement("option");
+    opt.value = c.id;
+    opt.textContent = c.name;
+    select.appendChild(opt);
+  });
+
+  const effective = getEffectiveCampaign();
+  if (effective) {
+    select.value = effective.id;
+    AppState.selectedCampaignId = effective.id;
+  }
+}
+
+function wireBrandAndCampaignSelects() {
+  const brandSelect = document.getElementById("brandSelect");
+  const campaignSelect = document.getElementById("campaignSelect");
+
+  if (brandSelect) {
+    brandSelect.addEventListener("change", () => {
+      AppState.selectedBrandId = brandSelect.value || null;
+      AppState.selectedCampaignId = null;
+      populateCampaignSelect();
+      updateViewSubheaders();
+      if (AppState.currentModule) {
+        loadModule(AppState.currentModule);
+      }
+    });
+  }
+
+  if (campaignSelect) {
+    campaignSelect.addEventListener("change", () => {
+      AppState.selectedCampaignId = campaignSelect.value || null;
+      updateViewSubheaders();
+      if (AppState.currentModule) {
+        loadModule(AppState.currentModule);
+      }
+    });
+  }
+}
+
+/* ----------------------------------------------------------
+   12) NAVIGATION / SIDEBAR – Design A
+----------------------------------------------------------*/
 const navStructure = {
   main: [
     { key: "dashboard", label: "Dashboard", icon: "dashboard" },
@@ -517,9 +896,25 @@ const navStructure = {
   ],
 };
 
+function navigateTo(moduleKey) {
+  if (!moduleKey || AppState.currentModule === moduleKey) return;
+
+  if (modulesRequiringMeta.has(moduleKey) && !AppState.metaConnected && !useDemoMode()) {
+    showToast("Bitte Meta verbinden oder Demo-Modus nutzen.", "warning");
+    return;
+  }
+
+  AppState.currentModule = moduleKey;
+  setActiveNavItem(moduleKey);
+  const viewId = getViewIdForModule(moduleKey);
+  setActiveView(viewId);
+  loadModule(moduleKey);
+}
+
 function createNavButton(item, nested = false) {
   const btn = document.createElement("button");
-  btn.className = "sidebar-nav-button" + (nested ? " sidebar-nav-button-nested" : "");
+  btn.className =
+    "sidebar-nav-button" + (nested ? " sidebar-nav-button-nested" : "");
   btn.setAttribute("data-module", item.key);
   btn.setAttribute("data-icon", item.icon || "");
 
@@ -541,34 +936,12 @@ function createNavButton(item, nested = false) {
   return btn;
 }
 
-function renderNav() {
-  const ul = document.getElementById("sidebarNav") || document.getElementById("navbar");
-  if (!ul) return;
-  ul.innerHTML = "";
-
-  // Hauptmodule
-  navStructure.main.forEach((item) => {
-    const li = document.createElement("li");
-    li.className = "sidebar-nav-item";
-    li.appendChild(createNavButton(item, false));
-    ul.appendChild(li);
-  });
-
-  // TOOLS COLLAPSIBLE GROUP
-  renderCollapsibleGroup("TOOLS", navStructure.tools, "tools", false);
-
-  // E INSTELLUNGEN COLLAPSIBLE GROUP
-  renderCollapsibleGroup("EINSTELLUNGEN", navStructure.settings, "settings", false);
-
-  setActiveNavItem(AppState.currentModule);
-}
-
-function renderCollapsibleGroup(labelText, items, groupKey, initiallyOpen) {
+function renderCollapsibleGroup(rootUl, labelText, items, groupKey, initiallyOpen) {
   const labelLi = document.createElement("li");
   labelLi.className = "sidebar-section-label";
   labelLi.textContent = labelText;
   labelLi.dataset.groupKey = groupKey;
-  ul.appendChild(labelLi);
+  rootUl.appendChild(labelLi);
 
   const groupLi = document.createElement("li");
   groupLi.className = "sidebar-group";
@@ -585,27 +958,57 @@ function renderCollapsibleGroup(labelText, items, groupKey, initiallyOpen) {
   });
 
   groupLi.appendChild(innerUl);
-  ul.appendChild(groupLi);
+  rootUl.appendChild(groupLi);
 
-  // initial state
-  if (!initiallyOpen) {
-    groupLi.classList.add("collapsed");
-    groupLi.style.height = "0px";
-  } else {
-    groupLi.style.height = innerUl.scrollHeight + "px";
+  const open = !!initiallyOpen;
+  if (open) {
+    groupLi.classList.add("open");
     labelLi.classList.add("open");
+    const h = innerUl.getBoundingClientRect().height;
+    groupLi.style.height = `${h}px`;
+  } else {
+    groupLi.classList.remove("open");
+    labelLi.classList.remove("open");
+    groupLi.style.height = "0px";
   }
 
   labelLi.addEventListener("click", () => {
-    const collapsed = groupLi.classList.toggle("collapsed");
-    if (collapsed) {
-      groupLi.style.height = "0px";
-      labelLi.classList.remove("open");
+    const isOpen = groupLi.classList.toggle("open");
+    labelLi.classList.toggle("open", isOpen);
+    if (isOpen) {
+      const h = innerUl.getBoundingClientRect().height;
+      groupLi.style.height = `${h}px`;
     } else {
-      groupLi.style.height = innerUl.scrollHeight + "px";
-      labelLi.classList.add("open");
+      groupLi.style.height = "0px";
     }
   });
+}
+
+function renderNav() {
+  const root =
+    document.getElementById("sidebarNav") ||
+    document.getElementById("navbar");
+  if (!root) return;
+
+  root.innerHTML = "";
+
+  navStructure.main.forEach((item) => {
+    const li = document.createElement("li");
+    li.className = "sidebar-nav-item";
+    li.appendChild(createNavButton(item, false));
+    root.appendChild(li);
+  });
+
+  renderCollapsibleGroup(root, "TOOLS", navStructure.tools, "tools", false);
+  renderCollapsibleGroup(
+    root,
+    "EINSTELLUNGEN",
+    navStructure.settings,
+    "settings",
+    false,
+  );
+
+  setActiveNavItem(AppState.currentModule);
 }
 
 function setActiveNavItem(moduleKey) {
@@ -620,12 +1023,103 @@ function setActiveNavItem(moduleKey) {
 }
 
 /* ----------------------------------------------------------
-   8) VIEW HANDLING, MODULE LOADER etc. — bleibt unverändert
-   (Dein Original-Code)
+   13) VIEW HANDLING & MODULE LOADER
 ----------------------------------------------------------*/
+function setActiveView(viewIdOrModuleKey) {
+  const viewId = viewIdMap[viewIdOrModuleKey] || viewIdOrModuleKey;
+  const allViews = document.querySelectorAll(".view");
+  allViews.forEach((v) => v.classList.remove("is-active"));
 
-// ... (restlicher Code bleibt unverändert, wie in deinem Original)
+  const target = document.getElementById(viewId);
+  if (target) {
+    target.classList.add("is-active");
+  }
+}
 
+async function loadModule(moduleKey) {
+  const loader = modules[moduleKey];
+  if (!loader) {
+    console.warn("[ModuleLoader] Unbekanntes Modul:", moduleKey);
+    return;
+  }
+
+  try {
+    const mod = await loader();
+    const initFn = mod.default?.init || mod.init;
+    if (typeof initFn === "function") {
+      const brand = getEffectiveBrand();
+      const campaign = getEffectiveCampaign();
+
+      await initFn({
+        AppState,
+        DemoData,
+        DataLayer,
+        brand,
+        campaign,
+        useDemoMode,
+        formatNumber,
+        formatCurrency,
+        formatPercent,
+      });
+    }
+  } catch (err) {
+    console.error("[ModuleLoader] Fehler beim Laden:", moduleKey, err);
+    pushNotification("error", `Modul ${moduleKey} konnte nicht geladen werden.`, {
+      error: String(err && err.message ? err.message : err),
+    });
+    showToast(
+      `Modul "${moduleKey}" konnte nicht geladen werden. Details in den Benachrichtigungen.`,
+      "error",
+    );
+  }
+}
+
+/* ----------------------------------------------------------
+   14) META CONNECT TOGGLE
+----------------------------------------------------------*/
+function toggleMetaConnection() {
+  if (AppState.metaConnected) {
+    MetaAuth.disconnect();
+  } else {
+    MetaAuth.connectWithPopup();
+  }
+}
+
+/* ----------------------------------------------------------
+   15) TESTING LOG API (simplified)
+----------------------------------------------------------*/
+const TestingLogAPI = (() => {
+  let entries = [];
+
+  function log(eventType, payload = {}) {
+    const entry = {
+      ts: new Date().toISOString(),
+      eventType,
+      payload,
+    };
+    entries.push(entry);
+    if (entries.length > 500) entries = entries.slice(-500);
+    console.info("[TestingLog]", entry);
+  }
+
+  function getAll() {
+    return [...entries];
+  }
+
+  function clear() {
+    entries = [];
+  }
+
+  return {
+    log,
+    getAll,
+    clear,
+  };
+})();
+
+/* ----------------------------------------------------------
+   16) DOMCONTENTLOADED – BOOTSTRAP
+----------------------------------------------------------*/
 document.addEventListener("DOMContentLoaded", () => {
   MetaAuth.init().catch((err) =>
     console.error("[MetaAuth] Init Fehler:", err),
@@ -642,6 +1136,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document
     .getElementById("metaConnectButton")
+    ?.addEventListener("click", () => {
+      toggleMetaConnection();
+    });
+
+  document
+    .getElementById("sidebarMetaConnectButton")
     ?.addEventListener("click", () => {
       toggleMetaConnection();
     });
@@ -709,7 +1209,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /* ----------------------------------------------------------
-   20) EXPOSED GLOBAL API
+   17) EXPOSED GLOBAL API
 ----------------------------------------------------------*/
 window.SignalOne = {
   AppState,
