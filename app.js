@@ -15,7 +15,6 @@ import { DemoData } from "./demoData.js";
 ----------------------------------------------------------*/
 const MetaAuthMock = (() => {
   const STORAGE_KEY = "signalone_meta_mock_v1";
-
   let state = {
     connected: false,
     accessToken: null,
@@ -50,7 +49,6 @@ const MetaAuthMock = (() => {
     AppState.meta.accessToken = state.accessToken;
     AppState.meta.user = state.user;
     AppState.meta.mode = state.connected ? "demo" : null;
-
     updateMetaStatusUI();
     updateCampaignHealthUI();
     updateTopbarGreeting();
@@ -198,9 +196,7 @@ const MetaAuth = (() => {
 
   function openOAuthPopupAndGetCode() {
     return new Promise((resolve) => {
-      const authUrl =
-        window.SIGNALONE_META_OAUTH_URL || "/meta/oauth/start";
-
+      const authUrl = window.SIGNALONE_META_OAUTH_URL || "/meta/oauth/start";
       const width = 520;
       const height = 720;
       const left = window.screenX + (window.outerWidth - width) / 2;
@@ -327,7 +323,6 @@ const MetaAuth = (() => {
     AppState.meta.accountId = null;
     AppState.meta.accountName = null;
     AppState.meta.mode = null;
-
     AppState.settings.demoMode = true;
     AppState.settings.dataMode = "auto";
 
@@ -335,7 +330,6 @@ const MetaAuth = (() => {
     updateCampaignHealthUI();
     updateTopbarGreeting();
     updateViewSubheaders();
-
     showToast("Meta Live-Verbindung getrennt.", "info");
   }
 
@@ -478,6 +472,7 @@ function getEffectiveBrand() {
 function getEffectiveCampaign() {
   const brand = getEffectiveBrand();
   if (!brand) return null;
+
   const campaigns = DemoData.campaignsByBrand[brand.id] || [];
   const id =
     AppState.selectedCampaignId || (campaigns[0] && campaigns[0].id) || null;
@@ -553,15 +548,8 @@ function showToast(message, type = "info", timeout = 3800) {
   toast.style.background = bg;
 
   toast.innerHTML = `
-    <span>${message}</span>
-    <button style="
-      margin-left:12px;
-      border:none;
-      background:transparent;
-      cursor:pointer;
-      font-size:0.8rem;
-      color:#6b7280;
-    ">&times;</button>
+    ${message}
+    <button onclick="this.parentElement.remove()" style="margin-left:8px;font-size:1.2rem;opacity:0.7;cursor:pointer;">×</button>
   `;
 
   toast.querySelector("button").addEventListener("click", () => {
@@ -596,29 +584,17 @@ function ensureGlobalLoader() {
     overlay.style.background =
       "radial-gradient(circle at 0% 0%, rgba(15,23,42,0.85), rgba(15,23,42,0.98))";
     overlay.innerHTML = `
-      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;color:#e5e7eb;">
-        <div style="
-          width:42px;
-          height:42px;
-          border-radius:999px;
-          border:3px solid rgba(148,163,184,0.6);
-          border-top-color:#d4af37;
-          animation: spinLoader 0.9s linear infinite;
-        "></div>
-        <div style="font-size:0.78rem;letter-spacing:0.18em;text-transform:uppercase;">
-          SignalOne lädt...
-        </div>
+      <div style="text-align:center;color:#e5e7eb;">
+        <div style="width:50px;height:50px;border:4px solid rgba(148,163,184,0.4);border-top-color:#3b82f6;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 12px;"></div>
+        <p style="font-size:0.9rem;margin:0;">Lädt...</p>
       </div>
+      <style>
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      </style>
     `;
     document.body.appendChild(overlay);
-
-    const style = document.createElement("style");
-    style.textContent = `
-      @keyframes spinLoader {
-        to { transform: rotate(360deg); }
-      }
-    `;
-    document.head.appendChild(style);
   }
   return overlay;
 }
@@ -629,258 +605,221 @@ function showGlobalLoader() {
 }
 
 function hideGlobalLoader() {
-  const overlay = ensureGlobalLoader();
-  overlay.style.display = "none";
+  const overlay = document.getElementById("globalLoader");
+  if (overlay) overlay.style.display = "none";
 }
 
 /* ----------------------------------------------------------
-   8) SYSTEM MODAL
+   8) MODAL
 ----------------------------------------------------------*/
-function openSystemModal(title, html) {
-  const overlay = document.getElementById("modalOverlay");
-  const titleEl = document.getElementById("modalTitle");
-  const bodyEl = document.getElementById("modalBody");
-  if (!overlay || !titleEl || !bodyEl) return;
+function openSystemModal(title, bodyHtml) {
+  let modal = document.getElementById("systemModal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "systemModal";
+    modal.style.position = "fixed";
+    modal.style.inset = "0";
+    modal.style.zIndex = "998";
+    modal.style.display = "none";
+    modal.style.alignItems = "center";
+    modal.style.justifyContent = "center";
+    modal.style.background = "rgba(15,23,42,0.75)";
+    modal.innerHTML = `
+      <div id="systemModalContent" style="
+        background:#ffffff;
+        border-radius:18px;
+        max-width:500px;
+        width:90%;
+        padding:24px;
+        box-shadow:0 32px 90px rgba(15,23,42,0.5);
+      ">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <h3 id="systemModalTitle" style="margin:0;font-size:1.1rem;font-weight:650;color:#0f172a;"></h3>
+          <button id="systemModalClose" style="font-size:1.6rem;opacity:0.7;cursor:pointer;">×</button>
+        </div>
+        <div id="systemModalBody" style="color:#4b5563;font-size:0.9rem;"></div>
+      </div>
+    `;
+    document.body.appendChild(modal);
 
-  titleEl.textContent = title || "";
-  bodyEl.innerHTML = html || "";
-  overlay.classList.remove("hidden");
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) closeSystemModal();
+    });
+    document
+      .getElementById("systemModalClose")
+      .addEventListener("click", closeSystemModal);
+  }
+
+  document.getElementById("systemModalTitle").textContent = title;
+  document.getElementById("systemModalBody").innerHTML = bodyHtml;
+  modal.style.display = "flex";
 }
 
 function closeSystemModal() {
-  const overlay = document.getElementById("modalOverlay");
-  if (!overlay) return;
-  overlay.classList.add("hidden");
+  const modal = document.getElementById("systemModal");
+  if (modal) modal.style.display = "none";
 }
 
 /* ----------------------------------------------------------
-   9) NOTIFICATIONS
+   9) STATUS UI UPDATES
 ----------------------------------------------------------*/
-function pushNotification(type, message, meta = {}) {
-  AppState.notifications.push({ type, message, meta, ts: Date.now() });
-  const countEl = document.getElementById("notificationsBadge");
-  if (countEl) {
-    countEl.textContent = String(AppState.notifications.length);
-    countEl.classList.remove("hidden");
-  }
-}
-
-function clearNotifications() {
-  AppState.notifications = [];
-  const countEl = document.getElementById("notificationsBadge");
-  if (countEl) {
-    countEl.textContent = "";
-    countEl.classList.add("hidden");
-  }
-}
-
-/* ----------------------------------------------------------
-   10) STATUS / TOPBAR UI
-----------------------------------------------------------*/
-function updateSystemHealthUI() {
-  const row = document.getElementById("systemHealthText");
-  if (row) {
-    row.textContent = AppState.systemHealthy ? "System Health: OK" : "System Health: Problem";
-  }
-  updateDataModeUI();
-}
-
 function updateMetaStatusUI() {
-  const txt = document.getElementById("metaStatusText");
-  const dot = document.getElementById("metaStatusDot");
-  const btns = [];
-  const topBtn = document.getElementById("metaConnectButton");
-  if (topBtn) btns.push(topBtn);
-  const sideBtn = document.getElementById("sidebarMetaConnectButton");
-  if (sideBtn) btns.push(sideBtn);
+  const btn = document.getElementById("metaConnectButton");
+  const sidebarBtn = document.getElementById("sidebarMetaConnectButton");
 
   const connected = AppState.metaConnected;
-  if (txt) {
-    txt.textContent = connected ? "Meta Ads: Verbunden" : "Meta Ads: Getrennt";
-  }
-  if (dot) {
-    dot.style.background = connected ? "#22c55e" : "#6b7280";
-  }
-  btns.forEach((btn) => {
-    btn.textContent = connected ? "Meta trennen" : "Meta verbinden";
-  });
+  const mode = AppState.meta.mode || "none";
+  const user = AppState.meta.user || {};
 
-  updateDataModeUI();
-}
-
-function updateDataModeUI() {
-  const el = document.getElementById("sidebarDataModeText");
-  if (!el) return;
-
-  let modeLabel = "Daten: Demo";
-  if (AppState.meta.mode === "live" && AppState.metaConnected) {
-    modeLabel = "Daten: Live";
-  } else if (!AppState.metaConnected && !useDemoMode()) {
-    modeLabel = "Daten: Offline";
+  if (btn) {
+    btn.textContent = connected
+      ? `✓ Verbunden (${mode === "live" ? "Live" : "Demo"})`
+      : "Meta verbinden";
+    btn.style.background = connected
+      ? "radial-gradient(circle, rgba(34,197,94,0.96), rgba(22,163,74,0.95))"
+      : "radial-gradient(circle, rgba(248,113,113,0.98), rgba(220,38,38,0.98))";
   }
 
-  el.textContent = modeLabel;
-}
-
-function updateCampaignHealthUI() {
-  const txt = document.getElementById("campaignHealthText");
-  if (!txt) return;
-
-  const brand = getEffectiveBrand();
-  if (!brand) {
-    txt.textContent = "Campaign Health: n/a";
-    return;
-  }
-
-  const campaigns = DemoData.campaignsByBrand[brand.id] || [];
-  if (!campaigns.length) {
-    txt.textContent = "Campaign Health: n/a";
-    return;
-  }
-
-  const avgHealth =
-    campaigns.reduce((sum, c) => sum + (c.healthScore || 60), 0) /
-    campaigns.length;
-
-  let label = "Campaign Health: n/a";
-  if (avgHealth >= 80) label = "Campaign Health: strong";
-  else if (avgHealth >= 60) label = "Campaign Health: ok";
-  else label = "Campaign Health: weak";
-
-  txt.textContent = label;
-}
-
-function updateTopbarGreeting() {
-  const el = document.getElementById("topbarGreeting");
-  if (!el) return;
-
-  const now = new Date();
-  const hour = now.getHours();
-  let greeting = "Guten Tag";
-
-  if (hour < 5) greeting = "Guten Abend";
-  else if (hour < 11) greeting = "Guten Morgen";
-  else if (hour < 18) greeting = "Guten Tag";
-  else greeting = "Guten Abend";
-
-  const name =
-    AppState.meta.user?.name ||
-    getEffectiveBrandOwnerName() ||
-    "SignalOne Nutzer";
-
-  el.textContent = `${greeting}, ${name}`;
-}
-
-function updateTopbarDateTime() {
-  const dateEl = document.getElementById("topbarDate");
-  const timeEl = document.getElementById("topbarTime");
-  const now = new Date();
-
-  if (dateEl) {
-    dateEl.textContent = now.toLocaleDateString("de-DE", {
-      weekday: "short",
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  }
-  if (timeEl) {
-    timeEl.textContent = now.toLocaleTimeString("de-DE", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  if (sidebarBtn) {
+    sidebarBtn.textContent = connected
+      ? `✓ ${mode === "live" ? "Live" : "Demo"}`
+      : "Meta verbinden";
+    sidebarBtn.style.background = connected
+      ? "radial-gradient(circle, rgba(34,197,94,0.85), rgba(22,163,74,0.92))"
+      : "radial-gradient(circle, rgba(15,23,42,0.98), rgba(30,64,175,0.9))";
   }
 }
 
-function updateViewSubheaders() {
-  const brand = getEffectiveBrand();
-  const campaign = getEffectiveCampaign();
-
-  document
-    .querySelectorAll("[data-subheader-brand-name]")
-    .forEach((el) => (el.textContent = brand?.name || "Marke auswählen"));
-
-  document
-    .querySelectorAll("[data-subheader-brand-owner]")
-    .forEach((el) => (el.textContent = brand?.owner || "SignalOne Nutzer"));
-
-  document
-    .querySelectorAll("[data-subheader-campaign-name]")
-    .forEach((el) => (el.textContent = campaign?.name || "Kampagne auswählen"));
-}
-
-/**
- * Stellt sicher, dass oben rechts 3 Icon-Buttons vorhanden sind:
- * - Notifications
- * - Profil
- * - Logout (falls nicht im HTML, wird er erzeugt)
- */
-function ensureTopbarButtons() {
-  const container = document.querySelector("#topbar .topbar-right");
-  if (!container) return;
-
-  const logoutExisting = document.getElementById("logoutButton");
-  if (!logoutExisting) {
-    const btn = document.createElement("button");
-    btn.id = "logoutButton";
-    btn.className = "icon-button";
-    btn.title = "Session zurücksetzen";
-    btn.textContent = "⏻";
-    const metaBtn = document.getElementById("metaConnectButton");
-    if (metaBtn && metaBtn.parentElement === container) {
-      container.insertBefore(btn, metaBtn);
-    } else {
-      container.appendChild(btn);
-    }
-  }
-}
-
-/**
- * Stellt sicher, dass unten links im Sidebar-Footer 3 Statuszeilen existieren:
- * - Meta Status
- * - System Health
- * - Datenmodus (Demo / Live)
- */
 function ensureSidebarStatusRows() {
   const footer = document.querySelector(".sidebar-footer");
   if (!footer) return;
 
-  let systemRow = document.getElementById("systemHealthText");
-  if (!systemRow) {
-    const row = document.createElement("div");
-    row.className = "sidebar-status-row";
-    systemRow = document.createElement("span");
-    systemRow.id = "systemHealthText";
-    systemRow.textContent = "System Health: OK";
-    row.appendChild(systemRow);
-    const btn = document.getElementById("sidebarMetaConnectButton");
-    footer.insertBefore(row, btn || footer.lastChild);
+  let container = footer.querySelector(".sidebar-status-rows");
+  if (!container) {
+    container = document.createElement("div");
+    container.className = "sidebar-status-rows";
+    footer.prepend(container);
   }
 
-  if (!document.getElementById("sidebarDataModeText")) {
-    const row = document.createElement("div");
-    row.className = "sidebar-status-row";
-    const span = document.createElement("span");
-    span.id = "sidebarDataModeText";
-    span.textContent = "Daten: Demo";
-    row.appendChild(span);
-    const btn = document.getElementById("sidebarMetaConnectButton");
-    footer.insertBefore(row, btn || footer.lastChild);
-  }
+  container.innerHTML = `
+    <div class="sidebar-status-row">
+      <span class="status-dot" id="sidebarMetaDot"></span>
+      <span id="sidebarMetaStatus">Meta: –</span>
+    </div>
+    <div class="sidebar-status-row">
+      <span class="status-dot" id="sidebarSystemDot"></span>
+      <span>System: ok</span>
+    </div>
+    <div class="sidebar-status-row">
+      <span class="status-dot" id="sidebarCampaignDot"></span>
+      <span id="sidebarCampaignStatus">Kampagnen: –</span>
+    </div>
+  `;
 
-  updateSystemHealthUI();
   updateMetaStatusUI();
+  updateSystemHealthUI();
+  updateCampaignHealthUI();
+}
+
+function updateSystemHealthUI() {
+  const dot = document.getElementById("sidebarSystemDot");
+  if (dot) {
+    dot.style.background = AppState.systemHealthy ? "#22c55e" : "#ef4444";
+  }
+}
+
+function updateCampaignHealthUI() {
+  const dot = document.getElementById("sidebarCampaignDot");
+  const label = document.getElementById("sidebarCampaignStatus");
+
+  if (!AppState.metaConnected && !useDemoMode()) {
+    if (dot) dot.style.background = "#6b7280";
+    if (label) label.textContent = "Kampagnen: –";
+    return;
+  }
+
+  if (dot) dot.style.background = "#22c55e";
+  if (label) label.textContent = "Kampagnen: ok";
+}
+
+function updateTopbarGreeting() {
+  const greet = document.getElementById("topbarGreeting");
+  if (!greet) return;
+
+  const owner = getEffectiveBrandOwnerName();
+  const mode = AppState.meta.mode || "demo";
+  const demo = mode === "demo" || useDemoMode();
+
+  greet.textContent = demo
+    ? `Guten Abend, ${owner} (Demo)`
+    : `Guten Abend, ${owner}`;
+}
+
+function ensureTopbarButtons() {
+  const right = document.querySelector(".topbar-right");
+  if (!right) return;
+
+  if (!document.getElementById("notificationsButton")) {
+    const btn = document.createElement("button");
+    btn.id = "notificationsButton";
+    btn.className = "icon-button";
+    btn.title = "Benachrichtigungen";
+    btn.innerHTML = `
+      <span style="font-size:1.1rem;">🔔</span>
+      <span id="notificationsBadge" class="hidden">0</span>
+    `;
+    right.appendChild(btn);
+  }
+
+  if (!document.getElementById("settingsButton")) {
+    const btn = document.createElement("button");
+    btn.id = "settingsButton";
+    btn.className = "icon-button";
+    btn.title = "Einstellungen";
+    btn.innerHTML = `<span style="font-size:1.1rem;">⚙️</span>`;
+    right.appendChild(btn);
+  }
+
+  updateNotificationBadge();
+}
+
+function updateNotificationBadge() {
+  const badge = document.getElementById("notificationsBadge");
+  if (!badge) return;
+
+  const count = AppState.notifications.length;
+  if (count > 0) {
+    badge.textContent = count;
+    badge.classList.remove("hidden");
+  } else {
+    badge.classList.add("hidden");
+  }
+}
+
+function pushNotification(level, message, details = {}) {
+  AppState.notifications.push({
+    level,
+    message,
+    details,
+    ts: new Date(),
+  });
+  updateNotificationBadge();
+}
+
+function updateViewSubheaders() {
+  // Placeholder for future subheader updates
 }
 
 /* ----------------------------------------------------------
-   11) BRAND / CAMPAIGN SELECTS
+   10) BRAND & CAMPAIGN SELECTS
 ----------------------------------------------------------*/
 function populateBrandSelect() {
-  const select = document.getElementById("brandSelect");
+  const select = document.getElementById("topbarBrandSelect");
   if (!select) return;
 
   const brands = DemoData.brands || [];
   select.innerHTML = "";
+
   brands.forEach((b) => {
     const opt = document.createElement("option");
     opt.value = b.id;
@@ -888,25 +827,27 @@ function populateBrandSelect() {
     select.appendChild(opt);
   });
 
-  const defaultBrand = getEffectiveBrand();
-  if (defaultBrand) {
-    select.value = defaultBrand.id;
-    AppState.selectedBrandId = defaultBrand.id;
+  if (AppState.selectedBrandId) {
+    select.value = AppState.selectedBrandId;
+  } else if (brands[0]) {
+    AppState.selectedBrandId = brands[0].id;
+    select.value = brands[0].id;
   }
 }
 
 function populateCampaignSelect() {
-  const select = document.getElementById("campaignSelect");
+  const select = document.getElementById("topbarCampaignSelect");
   if (!select) return;
 
   const brand = getEffectiveBrand();
   if (!brand) {
-    select.innerHTML = "";
+    select.innerHTML = "<option>Keine Brand ausgewählt</option>";
     return;
   }
 
   const campaigns = DemoData.campaignsByBrand[brand.id] || [];
   select.innerHTML = "";
+
   campaigns.forEach((c) => {
     const opt = document.createElement("option");
     opt.value = c.id;
@@ -914,42 +855,36 @@ function populateCampaignSelect() {
     select.appendChild(opt);
   });
 
-  const effective = getEffectiveCampaign();
-  if (effective) {
-    select.value = effective.id;
-    AppState.selectedCampaignId = effective.id;
+  if (AppState.selectedCampaignId) {
+    select.value = AppState.selectedCampaignId;
+  } else if (campaigns[0]) {
+    AppState.selectedCampaignId = campaigns[0].id;
+    select.value = campaigns[0].id;
   }
 }
 
 function wireBrandAndCampaignSelects() {
-  const brandSelect = document.getElementById("brandSelect");
-  const campaignSelect = document.getElementById("campaignSelect");
+  const brandSelect = document.getElementById("topbarBrandSelect");
+  const campaignSelect = document.getElementById("topbarCampaignSelect");
 
   if (brandSelect) {
     brandSelect.addEventListener("change", () => {
-      AppState.selectedBrandId = brandSelect.value || null;
+      AppState.selectedBrandId = brandSelect.value;
       AppState.selectedCampaignId = null;
       populateCampaignSelect();
-      updateViewSubheaders();
-      if (AppState.currentModule) {
-        loadModule(AppState.currentModule);
-      }
+      updateTopbarGreeting();
     });
   }
 
   if (campaignSelect) {
     campaignSelect.addEventListener("change", () => {
-      AppState.selectedCampaignId = campaignSelect.value || null;
-      updateViewSubheaders();
-      if (AppState.currentModule) {
-        loadModule(AppState.currentModule);
-      }
+      AppState.selectedCampaignId = campaignSelect.value;
     });
   }
 }
 
 /* ----------------------------------------------------------
-   12) NAVIGATION / SIDEBAR – Design A
+   11) NAVIGATION – SIDEBAR RENDERING
 ----------------------------------------------------------*/
 const navStructure = {
   main: [
@@ -978,7 +913,11 @@ const navStructure = {
 function navigateTo(moduleKey) {
   if (!moduleKey || AppState.currentModule === moduleKey) return;
 
-  if (modulesRequiringMeta.has(moduleKey) && !AppState.metaConnected && !useDemoMode()) {
+  if (
+    modulesRequiringMeta.has(moduleKey) &&
+    !AppState.metaConnected &&
+    !useDemoMode()
+  ) {
     showToast("Bitte Meta verbinden oder Demo-Modus nutzen.", "warning");
     return;
   }
@@ -1016,18 +955,24 @@ function createNavButton(item, nested = false) {
 }
 
 function renderCollapsibleGroup(rootUl, labelText, items, groupKey, initiallyOpen) {
+  // LABEL
   const labelLi = document.createElement("li");
   labelLi.className = "sidebar-section-label";
   labelLi.textContent = labelText;
   labelLi.dataset.groupKey = groupKey;
   rootUl.appendChild(labelLi);
 
+  // GROUP CONTAINER
   const groupLi = document.createElement("li");
   groupLi.className = "sidebar-group";
   groupLi.dataset.groupKey = groupKey;
 
+  // INNER LIST
   const innerUl = document.createElement("ul");
   innerUl.className = "sidebar-group-list";
+  innerUl.style.margin = "0";
+  innerUl.style.padding = "0";
+  innerUl.style.listStyle = "none";
 
   items.forEach((item) => {
     const li = document.createElement("li");
@@ -1039,26 +984,46 @@ function renderCollapsibleGroup(rootUl, labelText, items, groupKey, initiallyOpe
   groupLi.appendChild(innerUl);
   rootUl.appendChild(groupLi);
 
+  // SET INITIAL STATE
   const open = !!initiallyOpen;
-  if (open) {
-    groupLi.classList.add("open");
-    labelLi.classList.add("open");
-    const h = innerUl.getBoundingClientRect().height;
-    groupLi.style.height = `${h}px`;
-  } else {
-    groupLi.classList.remove("open");
-    labelLi.classList.remove("open");
-    groupLi.style.height = "0px";
-  }
-
-  labelLi.addEventListener("click", () => {
-    const isOpen = groupLi.classList.toggle("open");
-    labelLi.classList.toggle("open", isOpen);
-    if (isOpen) {
-      const h = innerUl.getBoundingClientRect().height;
-      groupLi.style.height = `${h}px`;
+  
+  // Warte bis DOM bereit ist, dann setze die Höhe
+  setTimeout(() => {
+    const fullHeight = innerUl.scrollHeight;
+    
+    if (open) {
+      groupLi.classList.add("open");
+      groupLi.classList.remove("collapsed");
+      labelLi.classList.add("open");
+      groupLi.style.height = `${fullHeight}px`;
     } else {
+      groupLi.classList.add("collapsed");
+      groupLi.classList.remove("open");
+      labelLi.classList.remove("open");
       groupLi.style.height = "0px";
+    }
+  }, 0);
+
+  // TOGGLE EVENT
+  labelLi.addEventListener("click", () => {
+    const isCurrentlyOpen = groupLi.classList.contains("open");
+    const fullHeight = innerUl.scrollHeight;
+    
+    if (isCurrentlyOpen) {
+      // CLOSE
+      groupLi.style.height = `${fullHeight}px`; // Set explicit height first
+      requestAnimationFrame(() => {
+        groupLi.style.height = "0px";
+        groupLi.classList.remove("open");
+        groupLi.classList.add("collapsed");
+        labelLi.classList.remove("open");
+      });
+    } else {
+      // OPEN
+      groupLi.classList.remove("collapsed");
+      groupLi.classList.add("open");
+      labelLi.classList.add("open");
+      groupLi.style.height = `${fullHeight}px`;
     }
   });
 }
@@ -1071,6 +1036,7 @@ function renderNav() {
 
   root.innerHTML = "";
 
+  // MAIN MODULES
   navStructure.main.forEach((item) => {
     const li = document.createElement("li");
     li.className = "sidebar-nav-item";
@@ -1078,6 +1044,7 @@ function renderNav() {
     root.appendChild(li);
   });
 
+  // COLLAPSIBLE GROUPS
   renderCollapsibleGroup(root, "TOOLS", navStructure.tools, "tools", false);
   renderCollapsibleGroup(
     root,
@@ -1102,7 +1069,7 @@ function setActiveNavItem(moduleKey) {
 }
 
 /* ----------------------------------------------------------
-   13) VIEW HANDLING & MODULE LOADER
+   12) VIEW HANDLING & MODULE LOADER
 ----------------------------------------------------------*/
 function setActiveView(viewIdOrModuleKey) {
   const viewId = viewIdMap[viewIdOrModuleKey] || viewIdOrModuleKey;
@@ -1154,7 +1121,7 @@ async function loadModule(moduleKey) {
 }
 
 /* ----------------------------------------------------------
-   14) META CONNECT TOGGLE
+   13) META CONNECT TOGGLE
 ----------------------------------------------------------*/
 function toggleMetaConnection() {
   if (AppState.metaConnected) {
@@ -1165,39 +1132,33 @@ function toggleMetaConnection() {
 }
 
 /* ----------------------------------------------------------
-   15) TESTING LOG API (simplified)
+   14) TESTING LOG API (simplified)
 ----------------------------------------------------------*/
 const TestingLogAPI = (() => {
   let entries = [];
 
   function log(eventType, payload = {}) {
     const entry = {
-      ts: new Date().toISOString(),
-      eventType,
-      payload,
+      ts: new Date(),
+      type: eventType,
+      ...payload,
     };
     entries.push(entry);
-    if (entries.length > 500) entries = entries.slice(-500);
-    console.info("[TestingLog]", entry);
+    console.log("[TestingLog]", entry);
   }
 
   function getAll() {
-    return [...entries];
-  }
-
-  function clear() {
-    entries = [];
+    return entries;
   }
 
   return {
     log,
     getAll,
-    clear,
   };
 })();
 
 /* ----------------------------------------------------------
-   16) DOMCONTENTLOADED – BOOTSTRAP
+   15) DOMCONTENTLOADED – BOOTSTRAP
 ----------------------------------------------------------*/
 document.addEventListener("DOMContentLoaded", () => {
   MetaAuth.init().catch((err) =>
@@ -1234,21 +1195,14 @@ document.addEventListener("DOMContentLoaded", () => {
   updateViewSubheaders();
 
   const settingsBtn = document.getElementById("settingsButton");
-  settingsBtn?.addEventListener("click", () => navigateTo("settings"));
-
-  const modalCloseBtn = document.getElementById("modalCloseButton");
-  const modalOverlay = document.getElementById("modalOverlay");
-  modalCloseBtn?.addEventListener("click", closeSystemModal);
-  modalOverlay?.addEventListener("click", (evt) => {
-    if (evt.target === modalOverlay) closeSystemModal();
-  });
-
-  const profileBtn = document.getElementById("profileButton");
-  profileBtn?.addEventListener("click", () => {
+  settingsBtn?.addEventListener("click", () => {
     openSystemModal(
-      "Profil",
-      `<p>Aktuell angemeldet als <strong>${getEffectiveBrandOwnerName()}</strong>.</p>
-       <p style="margin-top:6px;font-size:0.85rem;color:#6b7280;">(Simulierter Nutzer)</p>`,
+      "System Einstellungen",
+      `
+<p>Aktuell angemeldet als</p>
+<p><strong>${getEffectiveBrandOwnerName()}</strong>.</p>
+<p>(Simulierter Nutzer)</p>
+      `,
     );
   });
 
@@ -1257,76 +1211,37 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!AppState.notifications.length) {
       openSystemModal(
         "Benachrichtigungen",
-        "<p>Keine Fehler oder kritischen Warnungen vorhanden.</p>",
+        `
+<p>Keine Fehler oder kritischen Warnungen vorhanden.</p>
+        `,
       );
     } else {
       const items = AppState.notifications
         .map(
-          (n) =>
-            `<li><strong>[${n.type.toUpperCase()}]</strong> ${n.message}</li>`,
+          (n) => `
+<div style="margin-bottom:12px;padding:10px;border-left:3px solid ${
+            n.level === "error" ? "#ef4444" : "#f59e0b"
+          };background:rgba(243,244,246,0.5);">
+  <strong>${n.level.toUpperCase()}</strong>: ${n.message}
+</div>
+          `,
         )
         .join("");
-      openSystemModal(
-        "Benachrichtigungen",
-        `<p>Fehler & Warnungen:</p><ul>${items}</ul>`,
-      );
-    }
-    clearNotifications();
-  });
-
-  const logoutBtn = document.getElementById("logoutButton");
-  logoutBtn?.addEventListener("click", () => {
-    MetaAuth.disconnect();
-    showToast("Session zurückgesetzt.", "success");
-  });
-
-  updateTopbarDateTime();
-  updateTopbarGreeting();
-
-  let topbarRefreshTimeout = null;
-  const scheduleTopbarRefresh = () => {
-    const now = new Date();
-    const msToNextMinute =
-      (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
-
-    if (topbarRefreshTimeout) {
-      clearTimeout(topbarRefreshTimeout);
-    }
-
-    topbarRefreshTimeout = setTimeout(() => {
-      updateTopbarDateTime();
-      updateTopbarGreeting();
-      scheduleTopbarRefresh();
-    }, Math.max(msToNextMinute, 1000));
-  };
-
-  document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) {
-      updateTopbarDateTime();
-      updateTopbarGreeting();
-      scheduleTopbarRefresh();
+      openSystemModal("Fehler & Warnungen", items);
     }
   });
 
-  scheduleTopbarRefresh();
-
-  loadModule(AppState.currentModule);
+  console.log("[SignalOne] App initialisiert.");
 });
 
 /* ----------------------------------------------------------
-   17) EXPOSED GLOBAL API
+   EXPORTS
 ----------------------------------------------------------*/
-window.SignalOne = {
+window.SignalOneApp = {
   AppState,
   navigateTo,
+  TestingLogAPI,
   showToast,
   openSystemModal,
   closeSystemModal,
-  TestingLog: TestingLogAPI,
-  DataLayer,
-  UI: {
-    showGlobalLoader,
-    hideGlobalLoader,
-    useDemoMode,
-  },
 };
