@@ -1,135 +1,275 @@
 // packages/sensei/compute.js
-// --------------------------------------------------------
-// Hilfsfunktionen für Sensei-Frontend:
-// - Normalisierung der Backend-Antwort
-// - Tonalität (good / warning / critical)
-// - Formatierung für UI
-// --------------------------------------------------------
-
-function avg(list) {
-  if (!Array.isArray(list) || !list.length) return 0;
-  const sum = list.reduce((acc, v) => acc + (Number(v) || 0), 0);
-  return sum / list.length;
-}
+// -----------------------------------------------------------------------------
+// Sensei Compute Layer
+// - Normalisiert die rohe Sensei-Analyse (Demo + Live) in ein einheitliches Modell
+// - Liefert: Totals, Creative-Liste, Offer-/Hook-Insights, Recommendations
+// -----------------------------------------------------------------------------
 
 /**
- * Score → Badge-Typ (good / warning / critical)
- * Optionaler Fallback über Label (Winner / Testing / Loser).
+ * Klassifiziert den Ton der Empfehlung / Health.
+ * Ergebnis wird für Emoji + semantische Einordnung genutzt.
  */
 export function classifyTone(score, label) {
-  const s = Number.isFinite(score) ? score : 0;
-  const normalizedLabel = (label || "").toLowerCase();
+  const s = Number(score);
+  const normalizedScore = Number.isFinite(s) ? s : null;
+  const lbl = (label || "").toLowerCase();
 
-  if (normalizedLabel.includes("winner") || normalizedLabel.includes("strong")) {
-    return "good";
-  }
-  if (normalizedLabel.includes("loser")) {
-    return "critical";
-  }
-  if (normalizedLabel.includes("test") || normalizedLabel.includes("review")) {
+  if (lbl === "winner" || lbl === "strong") return "good";
+  if (lbl === "loser" || lbl === "underperforming") return "critical";
+
+  if (normalizedScore != null) {
+    if (normalizedScore >= 80) return "good";
+    if (normalizedScore <= 45) return "critical";
     return "warning";
   }
 
-  if (s >= 70) return "good";
-  if (s >= 40) return "warning";
-  return "critical";
+  return "warning";
 }
 
 /**
- * Normalisiert die Backend-Analyse in ein UI-freundliches Objekt.
- * Erwartet die Antwort von /api/sensei/analyze.
+ * Normalisiert die Roh-Antwort aus:
+ * - DataLayer.buildDemoSenseiResponse()
+ * - Live /api/sensei/analyze
+ *
+ * Rückgabe:
+ * {
+ *   meta: { mode, source, createdAt },
+ *   totals: { totalCreatives, totalSpend, totalRevenue, avgRoas, avgCtr, avgCpm, avgScore },
+ *   creatives: [...],
+ *   offer,
+ *   hook,
+ *   recommendations: [...]
+ * }
  */
-export function normalizeSenseiAnalysis(raw) {
-  if (!raw || typeof raw !== "object") return null;
+export function normalizeSenseiAnalysis(raw, context = {}) {
+  if (!raw || raw.success === false) {
+    return null;
+  }
 
   const performance = raw.performance || {};
-  const summary = performance.summary || {};
-  const scoring = Array.isArray(performance.scoring)
-    ? performance.scoring
+  const metaMode = raw.mode || performance.mode || context.mode || "demo";
+  const source =
+    raw._source || performance._source || (metaMode === "demo" ? "demo" : "live");
+
+  // 1) Creatives sammeln ------------------------------------------------------
+  const creativeSource =
+    performance.creatives ||
+    performance.scoredCreatives ||
+    raw.creatives ||
+    raw.items ||
+    [];
+
+  const creatives = Array.isArray(creativeSource)
+    ? creativeSource.map((c, index) => normalizeCreative(c, index))
     : [];
 
-  const scores = scoring.map((s) => Number(s.score || 0));
-  const avgScore =
-    Number.isFinite(summary.avgScore) && summary.avgScore > 0
-      ? summary.avgScore
-      : avg(scores);
+  // 2) Totals berechnen -------------------------------------------------------
+  const totals = computeTotals(creatives, performance);
 
-  const tones = scoring.map((s) => classifyTone(s.score, s.label));
-  const goodCount = tones.filter((t) => t === "good").length;
-  const warningCount = tones.filter((t) => t === "warning").length;
-  const criticalCount = tones.filter((t) => t === "critical").length;
-
-  const creativeInsights = scoring.map((s, idx) => {
-    const metrics = s.metrics || {};
-    const tone = classifyTone(s.score, s.label);
-
-    return {
-      id: s.id || s.creativeId || s.metaId || `creative_${idx}`,
-      name: s.name || s.title || "Unbenannte Creative",
-      creator: s.creator || s.author || null,
-      hookLabel: s.hookLabel || s.hook || "",
-      isTesting: !!s.isTesting,
-      fatigue: s.fatigue ?? null,
-      label: s.label || "",
-      tone,
-      score: Number(s.score || 0),
-      reasoning: s.reasoning || "",
-      metrics: {
-        roas: Number(metrics.roas ?? metrics.roas30d ?? 0),
-        spend: Number(metrics.spend ?? metrics.spend30d ?? 0),
-        revenue: Number(metrics.revenue ?? 0),
-        ctr: Number(metrics.ctr ?? metrics.ctrPct ?? 0),
-        cpm: Number(metrics.cpm ?? 0),
-        purchases: Number(metrics.purchases ?? metrics.conversions ?? 0),
-      },
-    };
-  });
+  // 3) Offer / Hook / Recommendations ----------------------------------------
+  const offerBlock = normalizeOffer(raw.offer || performance.offer || null);
+  const hookBlock = normalizeHook(raw.hook || performance.hook || null);
+  const recommendations = normalizeRecommendations(
+    raw.recommendations || performance.recommendations || [],
+  );
 
   return {
-    raw,
-    source: raw._source || "demo",
-    totals: {
-      totalCreatives:
-        summary.totalCreatives || creativeInsights.length || 0,
-      avgScore,
-      goodCount,
-      warningCount,
-      criticalCount,
-      totalSpend: Number(summary.totalSpend ?? 0),
-      totalRevenue: Number(summary.totalRevenue ?? 0),
-      avgRoas: Number(summary.avgRoas ?? 0),
-      avgCtr: Number(summary.avgCtr ?? 0),
-      avgCpm: Number(summary.avgCpm ?? 0),
+    meta: {
+      mode: metaMode,
+      source,
+      createdAt:
+        raw.generatedAt || raw.createdAt || performance.generatedAt || null,
+      accountId: context.accountId || null,
     },
-    creatives: creativeInsights,
-    offer: raw.offer || null,
-    hook: raw.hook || null,
-    recommendations: Array.isArray(raw.recommendations)
-      ? raw.recommendations
+    totals,
+    creatives,
+    offer: offerBlock,
+    hook: hookBlock,
+    recommendations,
+  };
+}
+
+// -----------------------------------------------------------------------------
+// Helpers – Creatives & KPIs
+// -----------------------------------------------------------------------------
+
+function normalizeCreative(raw, index) {
+  const metrics = raw.metrics || {};
+  const score = toNumber(raw.score, null);
+  const label =
+    raw.label ||
+    raw.healthLabel ||
+    (score != null
+      ? score >= 80
+        ? "Winner"
+        : score >= 60
+          ? "Strong"
+          : score >= 40
+            ? "Neutral"
+            : "Loser"
+      : "Neutral");
+
+  const hookLabel = raw.hookLabel || raw.hook || raw.storyHook || null;
+  const fatigue = raw.fatigue || raw.fatigueLabel || null;
+  const tone = classifyTone(score, label);
+
+  return {
+    id: raw.id || `sensei_cre_${index}`,
+    name: raw.name || raw.title || "Unbenanntes Creative",
+    creator: raw.creator || raw.owner || "Unbekannt",
+    hookLabel,
+    label,
+    tone,
+    fatigue,
+    score,
+    metrics: {
+      roas: toNumber(metrics.roas),
+      spend: toNumber(metrics.spend),
+      ctr: toNumber(metrics.ctr),
+      cpm: toNumber(metrics.cpm),
+      purchases: toNumber(metrics.purchases),
+      impressions: toNumber(metrics.impressions),
+      clicks: toNumber(metrics.clicks),
+      revenue: toNumber(metrics.revenue),
+    },
+  };
+}
+
+function computeTotals(creatives, performance) {
+  // Wenn das Backend bereits aggregierte Totals liefert, nutzen wir die bevorzugt
+  const agg = performance.totals || performance.summary || {};
+
+  let totalSpend = 0;
+  let totalRevenue = 0;
+  let avgRoas = toNumber(agg.avgRoas, null);
+  let avgCtr = toNumber(agg.avgCtr, null);
+  let avgCpm = toNumber(agg.avgCpm, null);
+  let avgScore = toNumber(agg.avgScore, null);
+
+  let roasSum = 0;
+  let roasCount = 0;
+  let ctrSum = 0;
+  let ctrCount = 0;
+  let cpmSum = 0;
+  let cpmCount = 0;
+  let scoreSum = 0;
+  let scoreCount = 0;
+
+  creatives.forEach((c) => {
+    const m = c.metrics || {};
+
+    if (Number.isFinite(m.spend)) {
+      totalSpend += m.spend;
+    }
+    if (Number.isFinite(m.revenue)) {
+      totalRevenue += m.revenue;
+    } else if (Number.isFinite(m.roas) && Number.isFinite(m.spend)) {
+      totalRevenue += m.roas * m.spend;
+    }
+
+    if (Number.isFinite(m.roas)) {
+      roasSum += m.roas;
+      roasCount++;
+    }
+    if (Number.isFinite(m.ctr)) {
+      ctrSum += m.ctr;
+      ctrCount++;
+    }
+    if (Number.isFinite(m.cpm)) {
+      cpmSum += m.cpm;
+      cpmCount++;
+    }
+    if (Number.isFinite(c.score)) {
+      scoreSum += c.score;
+      scoreCount++;
+    }
+  });
+
+  if (avgRoas == null && roasCount > 0) {
+    avgRoas = roasSum / roasCount;
+  }
+  if (avgCtr == null && ctrCount > 0) {
+    avgCtr = ctrSum / ctrCount;
+  }
+  if (avgCpm == null && cpmCount > 0) {
+    avgCpm = cpmSum / cpmCount;
+  }
+  if (avgScore == null && scoreCount > 0) {
+    avgScore = scoreSum / scoreCount;
+  }
+
+  return {
+    totalCreatives: creatives.length,
+    totalSpend,
+    totalRevenue,
+    avgRoas: avgRoas || 0,
+    avgCtr: avgCtr || 0,
+    avgCpm: avgCpm || 0,
+    avgScore: avgScore || 0,
+  };
+}
+
+// -----------------------------------------------------------------------------
+// Helpers – Offer / Hook / Recommendations
+// -----------------------------------------------------------------------------
+
+function normalizeOffer(rawOffer) {
+  if (!rawOffer) return null;
+
+  return {
+    headline: rawOffer.headline || rawOffer.title || "Offer & Funnel Diagnose",
+    summary:
+      rawOffer.summary ||
+      rawOffer.overview ||
+      "Sensei hat deine Offer- & Funnel-Struktur analysiert.",
+    primaryIssue:
+      rawOffer.primaryIssue ||
+      rawOffer.mainIssue ||
+      null,
+    issues: Array.isArray(rawOffer.issues) ? rawOffer.issues : [],
+    recommendations: Array.isArray(rawOffer.recommendations)
+      ? rawOffer.recommendations
       : [],
   };
 }
 
-/**
- * Format-Helper für das UI
- */
-export function formatCurrency(value) {
-  const v = Number(value || 0);
-  return v.toLocaleString("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
+function normalizeHook(rawHook) {
+  if (!rawHook) return null;
+
+  return {
+    headline: rawHook.headline || "Hook- & Story-Analyse",
+    summary:
+      rawHook.summary ||
+      rawHook.overview ||
+      "Sensei hat deine Hook-Struktur und Story-Patterns bewertet.",
+    patterns: Array.isArray(rawHook.patterns) ? rawHook.patterns : [],
+    recommendations: Array.isArray(rawHook.recommendations)
+      ? rawHook.recommendations
+      : [],
+  };
+}
+
+function normalizeRecommendations(list) {
+  if (!Array.isArray(list)) return [];
+  return list.map((item, index) => {
+    if (typeof item === "string") {
+      return { id: `rec_${index}`, text: item, category: "general" };
+    }
+    return {
+      id: item.id || `rec_${index}`,
+      text: item.text || item.description || "Empfehlung ohne Beschreibung",
+      category: item.category || item.type || "general",
+      priority: item.priority || "normal",
+    };
   });
 }
 
-export function formatNumber(value) {
-  const v = Number(value || 0);
-  return v.toLocaleString("de-DE", {
-    maximumFractionDigits: 0,
-  });
-}
+// -----------------------------------------------------------------------------
+// Primitive Helper
+// -----------------------------------------------------------------------------
 
-export function formatPercent(value) {
-  const v = Number(value || 0);
-  return `${v.toFixed(1).replace(".", ",")}%`;
+function toNumber(value, fallback = 0) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return n;
 }
