@@ -1,5 +1,5 @@
 // packages/sensei/dashboard.js
-// Submodul 1 – Sensei Overview / "AI Layer" Dashboard
+// Submodul 1 â€“ Sensei Overview / "AI Layer" Dashboard
 
 function getNumbers(brand) {
   if (!brand) {
@@ -51,7 +51,7 @@ export function renderSenseiOverview(root, AppState, DemoData, ctx) {
     <div class="sensei-main">
       <div class="metric-grid">
         <div class="metric-card">
-          <div class="metric-label">AD SPEND · LETZTE 30 TAGE</div>
+          <div class="metric-label">AD SPEND Â· LETZTE 30 TAGE</div>
           <div class="metric-value">${spend30d.toLocaleString("de-DE", {
             style: "currency",
             currency: "EUR",
@@ -60,17 +60,17 @@ export function renderSenseiOverview(root, AppState, DemoData, ctx) {
           <div class="metric-subtext">
             Basierend auf ${
               ctx.isDemo ? "Meta Demo-Daten" : "aktuellen Meta-Daten"
-            } für ${
-    brand ? brand.name : "kein ausgewähltes Werbekonto"
+            } fÃ¼r ${
+    brand ? brand.name : "kein ausgewÃ¤hltes Werbekonto"
   }.
           </div>
         </div>
 
         <div class="metric-card">
-          <div class="metric-label">ROAS · LETZTE 30 TAGE</div>
+          <div class="metric-label">ROAS Â· LETZTE 30 TAGE</div>
           <div class="metric-value">${roas30d.toFixed(1)}x</div>
           <div class="metric-subtext">
-            Geschätzter Umsatz: ${estRevenue.toLocaleString("de-DE", {
+            GeschÃ¤tzter Umsatz: ${estRevenue.toLocaleString("de-DE", {
               style: "currency",
               currency: "EUR",
               maximumFractionDigits: 0,
@@ -94,7 +94,7 @@ export function renderSenseiOverview(root, AppState, DemoData, ctx) {
       <div class="sensei-card" style="margin-top: 24px;">
         <div class="sensei-card-header">
           <div>
-            <div class="sensei-card-title">Sensei · Executive Summary</div>
+            <div class="sensei-card-title">Sensei Â· Executive Summary</div>
             <div class="sensei-card-subtitle">
               Sofort-Lagebild und High-Level Handlungsempfehlungen.
             </div>
@@ -105,7 +105,7 @@ export function renderSenseiOverview(root, AppState, DemoData, ctx) {
         </div>
 
         <p style="margin-bottom: 10px;">
-          Für <strong>${brand ? brand.name : "dein Konto"}</strong>${
+          FÃ¼r <strong>${brand ? brand.name : "dein Konto"}</strong>${
     campaign ? ` (Kampagne: <strong>${campaign.name}</strong>)` : ""
   } sieht Sensei aktuell folgendes:
         </p>
@@ -113,11 +113,11 @@ export function renderSenseiOverview(root, AppState, DemoData, ctx) {
         <ul style="margin-left: 16px; margin-bottom: 12px;">
           <li>Spend-Level ist ${
             spend30d > 50000 ? "hoch" : spend30d > 20000 ? "solide" : "moderat"
-          } – genug Daten für belastbare Entscheidungen.</li>
+          } â€“ genug Daten fÃ¼r belastbare Entscheidungen.</li>
           <li>ROAS von <strong>${roas30d.toFixed(
             1
-          )}x</strong> deutet auf klare Hebel über Creatives und Struktur hin.</li>
-          <li>Campaign Health: <strong>${healthLabel}</strong> – Sensei empfiehlt gezieltes Testing statt Full-Relaunch.</li>
+          )}x</strong> deutet auf klare Hebel Ã¼ber Creatives und Struktur hin.</li>
+          <li>Campaign Health: <strong>${healthLabel}</strong> â€“ Sensei empfiehlt gezieltes Testing statt Full-Relaunch.</li>
         </ul>
 
         <div class="sensei-prompt-area">
@@ -127,7 +127,7 @@ export function renderSenseiOverview(root, AppState, DemoData, ctx) {
           <textarea
             id="senseiOverviewPrompt"
             class="sensei-prompt-textarea"
-            placeholder="Beispiel: 'Gib mir eine neue Kampagnenstruktur für Q1 mit Fokus auf UGC und Hook-Testing.'"
+            placeholder="Beispiel: 'Gib mir eine neue Kampagnenstruktur fÃ¼r Q1 mit Fokus auf UGC und Hook-Testing.'"
           ></textarea>
           <button type="button" class="sensei-generate-button" id="senseiOverviewGenerate">
             <i class="fa-solid fa-wand-magic-sparkles"></i>
@@ -145,13 +145,13 @@ export function renderSenseiOverview(root, AppState, DemoData, ctx) {
         <div class="sensei-card-header">
           <div>
             <div class="sensei-card-title">Sensei Snapshot</div>
-            <div class="sensei-card-subtitle">Meta-Level Übersicht</div>
+            <div class="sensei-card-subtitle">Meta-Level Ãœbersicht</div>
           </div>
         </div>
         <ul style="margin-left: 16px;">
-          <li><strong>Konto:</strong> ${brand ? brand.name : "noch nicht gewählt"}</li>
+          <li><strong>Konto:</strong> ${brand ? brand.name : "noch nicht gewÃ¤hlt"}</li>
           <li><strong>Vertikale:</strong> ${
-            brand ? brand.vertical : "–"
+            brand ? brand.vertical : "â€“"
           }</li>
           <li><strong>Demo/Live:</strong> ${ctx.isDemo ? "Demo" : "Live"}</li>
           <li><strong>Aktive Kampagnen:</strong> ${
@@ -170,25 +170,25 @@ export function renderSenseiOverview(root, AppState, DemoData, ctx) {
           </div>
         </div>
         <ul style="margin-left: 16px;">
-          <li>📊 Struktur-Review für Top-Kampagne</li>
-          <li>🎯 Zielgruppen-Overlap Check</li>
-          <li>🎥 Creative Hook Heatmap</li>
-          <li>💰 Budget-Neuverteilung nach ROAS</li>
+          <li>ðŸ“Š Struktur-Review fÃ¼r Top-Kampagne</li>
+          <li>ðŸŽ¯ Zielgruppen-Overlap Check</li>
+          <li>ðŸŽ¥ Creative Hook Heatmap</li>
+          <li>ðŸ’° Budget-Neuverteilung nach ROAS</li>
         </ul>
       </div>
     </aside>
   `;
 
-  // Layout-Klassen für den Wrapper anwenden (falls CSS auf class-names achtet)
+  // Layout-Klassen fÃ¼r den Wrapper anwenden (falls CSS auf class-names achtet)
   const main = section.querySelector(".sensei-main");
   const sidebar = section.querySelector(".sensei-sidebar");
   if (main && sidebar) {
-    // nichts weiter nötig, die äußere .sensei-layout kümmert sich um das Grid
+    // nichts weiter nÃ¶tig, die Ã¤uÃŸere .sensei-layout kÃ¼mmert sich um das Grid
   }
 
   root.appendChild(section);
 
-  // Interaktiv: Demo-"Antwort" für Prompt
+  // Interaktiv: Demo-"Antwort" fÃ¼r Prompt
   const promptEl = section.querySelector("#senseiOverviewPrompt");
   const generateBtn = section.querySelector("#senseiOverviewGenerate");
   const responseEl = section.querySelector("#senseiOverviewResponse");
@@ -210,18 +210,18 @@ export function renderSenseiOverview(root, AppState, DemoData, ctx) {
       responseEl.innerHTML = `
         <strong>Sensei (Demo-Antwort):</strong>
         <p style="margin-top:6px;">
-          Basierend auf deinem aktuellen Setup für <strong>${
+          Basierend auf deinem aktuellen Setup fÃ¼r <strong>${
             brand ? brand.name : "dein Konto"
           }</strong>${
         campaign ? ` und der Kampagne <strong>${campaign.name}</strong>` : ""
       }
-          würde Sensei die Frage wie folgt angehen:
+          wÃ¼rde Sensei die Frage wie folgt angehen:
         </p>
         <ol style="margin-top:8px;margin-left:18px;">
           <li>Saubere Trennung von <strong>Prospecting / Testing / Scaling</strong>.</li>
-          <li>Aufsetzen eines dedizierten <strong>Creative-Testing-Stacks</strong> mit 3–5 Hooks.</li>
+          <li>Aufsetzen eines dedizierten <strong>Creative-Testing-Stacks</strong> mit 3â€“5 Hooks.</li>
           <li>Strukturierte <strong>Budget-Zuteilung</strong> entlang der Performance-Level (Top 20% Creatives hochfahren).</li>
-          <li>Aufsetzen eines wöchentlichen <strong>Sensei-Reviews</strong> (Alerts + Testing-Log).</li>
+          <li>Aufsetzen eines wÃ¶chentlichen <strong>Sensei-Reviews</strong> (Alerts + Testing-Log).</li>
         </ol>
         <p style="margin-top:6px;color:#6b7280;">
           Hinweis: Dies ist eine <strong>statische Demo-Antwort</strong>. In Live wird Sensei echte
