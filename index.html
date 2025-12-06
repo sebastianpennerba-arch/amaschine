@@ -1,256 +1,330 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SignalOne – Meta Ads Intelligence</title>
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="sx-core.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SignalOne.cloud – Performance Marketing Platform</title>
+  <link rel="stylesheet" href="./sx-core.css">
+  <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
 
-  <!-- SIDEBAR -->
+  <!-- SIDEBAR NAVIGATION -->
   <nav class="sidebar">
     <div class="sidebar-header">
-      <img src="Logo_re_Sc.png" alt="SignalOne" class="sidebar-logo" />
+      <img src="./assets/logo-light.svg" alt="SignalOne" class="sidebar-logo" onerror="this.style.display='none'">
     </div>
 
-    <ul id="sidebarNav" class="sidebar-nav"></ul>
+    <ul class="sidebar-nav" id="mainNav">
+      <li class="sidebar-nav-item">
+        <button class="sidebar-nav-button" data-view="dashboard">
+          <svg class="sidebar-btn-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="3" width="7" height="7" rx="1" class="icon-layer-fill"/>
+            <rect x="3" y="14" width="7" height="7" rx="1" class="icon-layer-fill"/>
+            <rect x="14" y="3" width="7" height="7" rx="1" class="icon-layer-fill"/>
+            <rect x="14" y="14" width="7" height="7" rx="1" class="icon-layer-fill"/>
+          </svg>
+          <span>Dashboard</span>
+        </button>
+      </li>
+
+      <li class="sidebar-nav-item">
+        <button class="sidebar-nav-button" data-view="creativeLibrary">
+          <svg class="sidebar-btn-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="4" width="16" height="16" rx="2" class="icon-layer-stroke"/>
+            <path d="M4 9h16M9 4v16" class="icon-layer-stroke"/>
+          </svg>
+          <span>Creatives</span>
+        </button>
+      </li>
+
+      <li class="sidebar-nav-item">
+        <button class="sidebar-nav-button" data-view="sensei">
+          <svg class="sidebar-btn-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            ircle cx="12" cy="12" r="9" class="icon-layer-stroke"/>
+            <path d="M12 8v4l3 3" class="icon-layer-stroke"/>
+          </svg>
+          <span>Sensei</span>
+        </button>
+      </li>
+
+      <li class="sidebar-nav-item">
+        <button class="sidebar-nav-button" data-view="campaigns">
+          <svg class="sidebar-btn-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" class="icon-layer-stroke"/>
+          </svg>
+          <span>Campaigns</span>
+        </button>
+      </li>
+
+      <li class="sidebar-nav-item">
+        <button class="sidebar-nav-button" data-view="academy">
+          <svg class="sidebar-btn-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L2 7l10 5 10-5-10-5z" class="icon-layer-fill"/>
+            <path d="M2 17l10 5 10-5M2 12l10 5 10-5" class="icon-layer-stroke"/>
+          </svg>
+          <span>Academy</span>
+        </button>
+      </li>
+    </ul>
 
     <div class="sidebar-footer">
       <div class="sidebar-status">
         <div class="status-row">
-          <span class="status-dot" id="metaStatusDot"></span>
-          <span id="metaStatusLabel">Meta: demo</span>
+          <span class="status-dot status-dot-ok" id="statusMetaDot"></span>
+          <span id="statusMetaText">Meta: demo</span>
         </div>
         <div class="status-row">
-          <span class="status-dot status-dot-ok" id="systemStatusDot"></span>
-          <span>System: OK</span>
+          <span class="status-dot status-dot-ok" id="statusSystemDot"></span>
+          <span id="statusSystemText">System: OK</span>
         </div>
       </div>
-      <button id="sidebarSettingsButton" class="sidebar-settings-button" title="Settings">
+      <button class="sidebar-settings-button" data-view="settings" title="Settings">
         ⚙️
       </button>
     </div>
   </nav>
 
-  <!-- TOPBAR -->
-  <header id="topbar">
-    <div class="topbar-left">
-      <div class="topbar-greeting">
-        <div id="topbarGreeting" class="topbar-greeting-text">GUTEN ABEND, SIGNALONE DEMO USER</div>
-        <div class="topbar-meta">
-          <span id="topbarDate">Sa, 06.12.2025</span>
-          <span class="topbar-separator">•</span>
-          <span id="topbarTime">20:39</span>
+  <!-- APP SHELL -->
+  <div class="app-shell">
+    <!-- TOPBAR -->
+    <div id="topbar">
+      <div class="topbar-left">
+        <div class="topbar-greeting">
+          <div class="topbar-greeting-text">GUTEN ABEND, SIGNALONE DEMO USER</div>
+          <div class="topbar-meta">
+            <span>Sa, 06.12.2025</span>
+            <span class="topbar-separator">•</span>
+            <span id="topbarTime">22:17</span>
+          </div>
         </div>
       </div>
-    </div>
 
-<div class="data-mode-toggle">
-  <button class="mode-btn" data-mode="demo" id="modeBtnDemo">
-    <span class="mode-icon">📊</span>
-    <span class="mode-label">Demo</span>
-  </button>
-  <button class="mode-btn" data-mode="live" id="modeBtnLive">
-    <span class="mode-icon">🔴</span>
-    <span class="mode-label">Live</span>
-  </button>
-</div>
+      <div class="topbar-center">
+        <div class="topbar-select-group">
+          <label>BRAND:</label>
+          <select class="topbar-select" id="brandSelect">
+            <option value="acme_fashion">ACME Fashion</option>
+            <option value="techgadgets_pro">TechGadgets Pro</option>
+            <option value="beautylux_cosmetics">BeautyLux Cosmetics</option>
+          </select>
+        </div>
 
-    <div class="topbar-center">
-      <div class="topbar-select-group">
-        <label>Brand:</label>
-        <select id="topbarBrandSelect" class="topbar-select">
-          <option>Deine Brand</option>
-        </select>
+        <div class="topbar-select-group">
+          <label>ACCOUNT:</label>
+          <select class="topbar-select" id="accountSelect">
+            <option value="demo">SignalOne Demo User</option>
+          </select>
+          <div class="demo-label">DEMO MODE</div>
+        </div>
       </div>
-      <div class="topbar-select-group">
-        <label>Account:</label>
-        <select id="topbarCampaignSelect" class="topbar-select">
-          <option>SignalOne Demo User</option>
-        </select>
+
+      <div class="topbar-right">
+        <button class="meta-button" id="metaButton">
+          ✦ VERBUNDEN (DEMO)
+        </button>
+
+        <!-- ✅ DATA MODE TOGGLE -->
+        <div class="data-mode-toggle">
+          <button class="mode-btn active" data-mode="demo" id="modeBtnDemo">
+            <span class="mode-icon">📊</span>
+            <span class="mode-label">Demo</span>
+          </button>
+          <button class="mode-btn" data-mode="live" id="modeBtnLive">
+            <span class="mode-icon">🔴</span>
+            <span class="mode-label">Live</span>
+          </button>
+        </div>
+
+        <button class="icon-button" id="toolsButton" title="Tools">
+          🔧
+        </button>
+        <button class="icon-button" id="notificationsButton" title="Notifications">
+          🔔
+          <span class="notification-badge">3</span>
+        </button>
+        <button class="icon-button" id="profileButton" title="Profile">
+          👤
+        </button>
       </div>
-      <div class="topbar-select-group">
-        <label class="demo-label">Demo Mode</label>
+    </div>
+
+    <!-- TOOLS DROPDOWN (hidden by default) -->
+    <div class="tools-dropdown hidden" id="toolsDropdown">
+      <div class="tools-dropdown-section">
+        <div class="tools-dropdown-label">TOOLS</div>
+        <button class="tools-dropdown-item" data-view="testingLog">Testing Log</button>
+        <button class="tools-dropdown-item" data-view="roast">Account Roast</button>
+        <button class="tools-dropdown-item" data-view="reports">Reports & Exports</button>
+        <button class="tools-dropdown-item" data-view="analytics">Analytics</button>
+        <button class="tools-dropdown-item" data-view="creatorInsights">Creator Insights</button>
+      </div>
+      <div class="tools-dropdown-divider"></div>
+      <div class="tools-dropdown-section">
+        <div class="tools-dropdown-label">SETTINGS</div>
+        <button class="tools-dropdown-item" data-view="team">Team</button>
+        <button class="tools-dropdown-item" data-view="brands">Brands</button>
+        <button class="tools-dropdown-item" data-view="shopify">Shopify Connect</button>
+        <button class="tools-dropdown-item" data-view="settings">System Settings</button>
+        <button class="tools-dropdown-item" data-view="onboarding">Onboarding</button>
       </div>
     </div>
 
-    <div class="topbar-right">
-<div class="data-mode-toggle">
-  <button class="mode-btn active" data-mode="demo" id="modeBtnDemo">
-    <span class="mode-icon">📊</span>
-    <span class="mode-label">Demo</span>
-  </button>
-  <button class="mode-btn" data-mode="live" id="modeBtnLive">
-    <span class="mode-icon">🔴</span>
-    <span class="mode-label">Live</span>
-  </button>
-</div>
-      <button id="topbarMetaButton" class="meta-button connected">
-        ✓ VERBUNDEN (DEMO)
-      </button>
-      <button id="topbarToolsButton" class="icon-button" title="Tools & More">
-        <span style="font-size:1.1rem;">⚡</span>
-      </button>
-      <button id="notificationsButton" class="icon-button" title="Benachrichtigungen">
-        <span style="font-size:1.1rem;">🔔</span>
-        <span id="notificationsBadge" class="notification-badge hidden">0</span>
-      </button>
-      <button id="profileButton" class="icon-button" title="Profile">
-        <span style="font-size:1.1rem;">👤</span>
-      </button>
-    </div>
-  </header>
-
-  <!-- TOOLS DROPDOWN (versteckt, wird per JS eingeblendet) -->
-  <div id="toolsDropdown" class="tools-dropdown hidden">
-    <div class="tools-dropdown-section">
-      <div class="tools-dropdown-label">TOOLS</div>
-      <button data-module="testingLog" class="tools-dropdown-item">Testing Log</button>
-      <button data-module="roast" class="tools-dropdown-item">Account Roast</button>
-      <button data-module="reports" class="tools-dropdown-item">Reports & Exports</button>
-      <button data-module="analytics" class="tools-dropdown-item">Analytics</button>
-      <button data-module="creatorInsights" class="tools-dropdown-item">Creator Insights</button>
-    </div>
-    <div class="tools-dropdown-divider"></div>
-    <div class="tools-dropdown-section">
-      <div class="tools-dropdown-label">SETTINGS</div>
-      <button data-module="team" class="tools-dropdown-item">Team</button>
-      <button data-module="brands" class="tools-dropdown-item">Brands</button>
-      <button data-module="shopify" class="tools-dropdown-item">Shopify Connect</button>
-      <button data-module="settings" class="tools-dropdown-item">System Settings</button>
-      <button data-module="onboarding" class="tools-dropdown-item">Onboarding</button>
-    </div>
-  </div>
-
-  <!-- MAIN CONTENT -->
-  <div class="app-shell">
+    <!-- MAIN CONTENT -->
     <main class="main-content">
-
-      <section id="dashboardView" class="view">
+      <!-- DASHBOARD VIEW -->
+      <section class="view is-active" id="dashboardView">
         <div class="view-header">
           <h2>DASHBOARD OVERVIEW</h2>
-          <p class="view-subline">Brand: <strong>Deine Brand</strong> Account: <strong>SignalOne Demo User</strong> Demo Mode</p>
+          <p class="view-subline"><strong>Brand:</strong> Deine Brand • <strong>Account:</strong> SignalOne Demo User • Demo Mode</p>
         </div>
         <div class="view-body">
           <p>Dashboard Content...</p>
         </div>
       </section>
 
-      <section id="creativeLibraryView" class="view">
+      <!-- CREATIVE LIBRARY VIEW -->
+      <section class="view" id="creativeLibraryView">
         <div class="view-header">
           <h2>CREATIVE LIBRARY</h2>
         </div>
+        <div class="view-body">
+          <p>Creative Library wird geladen...</p>
+        </div>
       </section>
 
-      <section id="senseiView" class="view">
+      <!-- SENSEI VIEW -->
+      <section class="view" id="senseiView">
         <div class="view-header">
           <h2>SENSEI AI SUITE</h2>
         </div>
+        <div class="view-body">
+          <p>Sensei AI wird geladen...</p>
+        </div>
       </section>
 
-      <section id="campaignsView" class="view">
+      <!-- CAMPAIGNS VIEW -->
+      <section class="view" id="campaignsView">
         <div class="view-header">
           <h2>CAMPAIGNS</h2>
         </div>
+        <div class="view-body">
+          <p>Campaigns wird geladen...</p>
+        </div>
       </section>
 
-      <section id="academyView" class="view">
+      <!-- ACADEMY VIEW -->
+      <section class="view" id="academyView">
         <div class="view-header">
           <h2>SIGNALONE ACADEMY</h2>
         </div>
+        <div class="view-body">
+          <p>Academy wird geladen...</p>
+        </div>
       </section>
 
-      <section id="testingLogView" class="view">
+      <!-- TESTING LOG VIEW -->
+      <section class="view" id="testingLogView">
         <div class="view-header">
           <h2>TESTING LOG</h2>
         </div>
+        <div class="view-body">
+          <p>Testing Log wird geladen...</p>
+        </div>
       </section>
 
-      <section id="roastView" class="view">
+      <!-- ROAST VIEW -->
+      <section class="view" id="roastView">
         <div class="view-header">
           <h2>ACCOUNT ROAST</h2>
         </div>
+        <div class="view-body">
+          <p>Roast wird geladen...</p>
+        </div>
       </section>
 
-      <section id="reportsView" class="view">
+      <!-- REPORTS VIEW -->
+      <section class="view" id="reportsView">
         <div class="view-header">
           <h2>REPORTS & EXPORTS</h2>
         </div>
+        <div class="view-body">
+          <p>Reports wird geladen...</p>
+        </div>
       </section>
 
-      <section id="analyticsView" class="view">
+      <!-- ANALYTICS VIEW -->
+      <section class="view" id="analyticsView">
         <div class="view-header">
           <h2>ANALYTICS</h2>
         </div>
+        <div class="view-body">
+          <p>Analytics wird geladen...</p>
+        </div>
       </section>
 
-      <section id="creatorInsightsView" class="view">
+      <!-- CREATOR INSIGHTS VIEW -->
+      <section class="view" id="creatorInsightsView">
         <div class="view-header">
           <h2>CREATOR INSIGHTS</h2>
         </div>
+        <div class="view-body">
+          <p>Creator Insights wird geladen...</p>
+        </div>
       </section>
 
-      <section id="teamView" class="view">
+      <!-- TEAM VIEW -->
+      <section class="view" id="teamView">
         <div class="view-header">
           <h2>TEAM</h2>
         </div>
+        <div class="view-body">
+          <p>Team wird geladen...</p>
+        </div>
       </section>
 
-      <section id="brandsView" class="view">
+      <!-- BRANDS VIEW -->
+      <section class="view" id="brandsView">
         <div class="view-header">
           <h2>BRANDS</h2>
         </div>
+        <div class="view-body">
+          <p>Brands wird geladen...</p>
+        </div>
       </section>
 
-      <section id="shopifyView" class="view">
+      <!-- SHOPIFY VIEW -->
+      <section class="view" id="shopifyView">
         <div class="view-header">
           <h2>SHOPIFY CONNECT</h2>
         </div>
+        <div class="view-body">
+          <p>Shopify wird geladen...</p>
+        </div>
       </section>
 
-      <section id="settingsView" class="view">
+      <!-- SETTINGS VIEW -->
+      <section class="view" id="settingsView">
         <div class="view-header">
           <h2>SETTINGS</h2>
         </div>
-      </section>
-
-      <section id="onboardingView" class="view">
-        <div class="view-header">
-          <h2>ONBOARDING</h2>
+        <div class="view-body">
+          <p>Settings wird geladen...</p>
         </div>
       </section>
 
+      <!-- ONBOARDING VIEW -->
+      <section class="view" id="onboardingView">
+        <div class="view-header">
+          <h2>ONBOARDING</h2>
+        </div>
+        <div class="view-body">
+          <p>Onboarding wird geladen...</p>
+        </div>
+      </section>
     </main>
   </div>
 
-  <!-- SVG ICONS -->
-  <svg style="display:none;">
-    <symbol id="icon-dashboard" viewBox="0 0 24 24">
-      <rect x="3" y="3" width="7" height="7" rx="1" class="icon-layer-fill"/>
-      <rect x="14" y="3" width="7" height="7" rx="1" class="icon-layer-stroke"/>
-      <rect x="3" y="14" width="7" height="7" rx="1" class="icon-layer-stroke"/>
-      <rect x="14" y="14" width="7" height="7" rx="1" class="icon-layer-stroke"/>
-    </symbol>
-    <symbol id="icon-library" viewBox="0 0 24 24">
-      <rect x="4" y="4" width="16" height="16" rx="2" class="icon-layer-fill"/>
-      <path d="M9 9h6M9 12h6M9 15h4" class="icon-layer-stroke"/>
-    </symbol>
-    <symbol id="icon-sensei" viewBox="0 0 24 24">
-      ircle cx="12" cy="12" r="9" class="icon-layer-fill"/>
-      <path d="M12 8v8M8 12h8" class="icon-layer-stroke"/>
-    </symbol>
-    <symbol id="icon-campaigns" viewBox="0 0 24 24">
-      <path d="M3 12l9-9 9 9-9 9-9-9z" class="icon-layer-fill"/>
-      ircle cx="12" cy="12" r="3" class="icon-layer-stroke"/>
-    </symbol>
-    <symbol id="icon-academy" viewBox="0 0 24 24">
-      <path d="M12 3l9 5-9 5-9-5 9-5z" class="icon-layer-fill"/>
-      <path d="M3 13l9 5 9-5" class="icon-layer-stroke"/>
-    </symbol>
-  </svg>
-
-  <script type="module" src="app.js"></script>
+  <script type="module" src="./app.js"></script>
 </body>
 </html>
