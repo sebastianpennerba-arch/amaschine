@@ -1,23 +1,25 @@
 // packages/creativeLibrary/index.js
 // ---------------------------------------------------------
-//  P2 – Creative Library
+//  P2 – Creative Library (Premium C Upgrade)
 //  UI-Layer (Grid, Filter, Modal) + DataLayer-Anbindung
 //  -> Compute-Layer: compute.js
 //  -> Varianten-Gruppierung: group.js
 //  -> Test-Slot: SignalOne.TestingLog.openTestSlot
+//  -> Creative Health: health.js
 // ---------------------------------------------------------
 
 import { buildCreativeLibraryViewModel } from "./compute.js";
 import { groupCreatives } from "./group.js";
+import { computeCreativeHealth } from "./health.js";
 
 // Public API: wird von app.js als Modul geladen
 export async function render(section, AppState, options = {}) {
   const useDemoMode = !!options.useDemoMode;
 
+  if (!section) return;
+
   const SignalOne = window.SignalOne || {};
   const DataLayer = SignalOne.DataLayer;
-
-  if (!section) return;
 
   // 1) DataLayer & Meta-Gatekeeper ---------------------------------
   if (!DataLayer) {
@@ -73,8 +75,10 @@ export async function render(section, AppState, options = {}) {
   const rawCreatives = Array.isArray(dlResult.items)
     ? dlResult.items
     : Array.isArray(dlResult)
-      ? dlResult
-      : [];
+    ? dlResult
+    : [];
+
+  const dataSource = classifySource(dlResult._source, useDemoMode);
 
   const rangeLabel =
     AppState?.dateRange?.label || AppState?.dateRange?.preset || "Letzte 30 Tage";
@@ -94,6 +98,12 @@ export async function render(section, AppState, options = {}) {
 
   const variantModel = groupCreatives(creatives);
   const variantById = variantModel.byCreativeId;
+
+  // Creative Health Map
+  const creativeHealth = new Map();
+  for (const c of creatives) {
+    creativeHealth.set(c.id, computeCreativeHealth(c));
+  }
 
   // 3) Empty-State ---------------------------------------------------
   if (!creatives.length) {
@@ -118,8 +128,15 @@ export async function render(section, AppState, options = {}) {
         <div>
           <h2 class="view-title">Creative Library</h2>
           <p class="view-subtitle">
-            ${escapeHtml(headerMeta.brandName)} • ${escapeHtml(headerMeta.modeLabel)}
+            ${escapeHtml(headerMeta.brandName)} • ${escapeHtml(
+    headerMeta.modeLabel
+  )} • Range: ${escapeHtml(rangeLabel)}
           </p>
+          <div class="view-meta-row">
+            <span class="kpi-badge ${dataSource.badgeClass}">
+              Datenmodus: ${dataSource.label}
+            </span>
+          </div>
         </div>
 
         <div class="creative-mini-kpis">
@@ -189,6 +206,7 @@ export async function render(section, AppState, options = {}) {
     tag: "all",
     bucket: "all",
     sort: "score_desc",
+    healthById: creativeHealth,
   };
 
   function smoothSet(html) {
@@ -244,6 +262,7 @@ export async function render(section, AppState, options = {}) {
         const group = variantById.get(c.id);
         const variantCount = group?.variantCount || 1;
         const hasVariants = variantCount > 1;
+        const health = state.healthById.get(c.id);
 
         return `
           <article class="creative-library-item" data-id="${escapeHtml(c.id)}">
@@ -262,14 +281,23 @@ export async function render(section, AppState, options = {}) {
             <div class="creative-info">
               <div class="creative-title-row">
                 <span class="creative-title">${escapeHtml(c.name)}</span>
+                ${
+                  health
+                    ? `<span class="kpi-badge ${health.tone}" style="margin-left:auto;">
+                         ${escapeHtml(health.label)}
+                       </span>`
+                    : ""
+                }
               </div>
               <div class="creative-kpi">
-                ⭐ ${formatBucketLabel(c.bucket)} • Score: ${c.score ?? "-"}
+                ${formatBucketLabel(c.bucket)} • Score: ${c.score ?? "-"}${
+          health ? ` • ${escapeHtml(health.reasonShort)}` : ""
+        }
               </div>
               <div class="creative-kpi">
                 ROAS: ${formatRoas(m.roas)} · Spend: ${formatCurrency(
-                  m.spend,
-                )}
+          m.spend,
+        )}
               </div>
               <div class="creative-kpi">
                 CTR: ${formatPercent(m.ctr)} · CPM: ${formatCurrency(m.cpm)}
@@ -413,6 +441,12 @@ function openCreativeModal(creative, variants = []) {
   const uniqVariants = dedupeById(
     Array.isArray(variants) && variants.length ? variants : [creative],
   );
+
+  const healthMap = new Map();
+  uniqVariants.forEach((v) => {
+    healthMap.set(v.id, computeCreativeHealth(v));
+  });
+
   const activeId = creative.id;
 
   const bodyHtml = `
@@ -423,8 +457,9 @@ function openCreativeModal(creative, variants = []) {
           <h4 class="creative-variant-heading">Varianten</h4>
           <div class="creative-variant-items">
             ${uniqVariants
-              .map(
-                (v) => `
+              .map((v) => {
+                const h = healthMap.get(v.id);
+                return `
               <button
                 class="creative-variant-pill ${
                   v.id === activeId ? "active" : ""
@@ -437,11 +472,13 @@ function openCreativeModal(creative, variants = []) {
                 <div class="creative-variant-pill-meta">
                   ROAS ${formatRoas(v.metrics?.roas)} • ${
                   v.metrics?.purchases ?? "–"
-                } Purchases
+                } Purchases${
+                  h ? ` • ${escapeHtml(h.label)}` : ""
+                }
                 </div>
               </button>
-            `,
-              )
+            `;
+              })
               .join("")}
           </div>
         </aside>
@@ -449,6 +486,7 @@ function openCreativeModal(creative, variants = []) {
         <div class="creative-variant-detail" data-role="variant-detail">
           ${renderVariantDetailHtml(
             uniqVariants.find((v) => v.id === activeId) || uniqVariants[0],
+            healthMap.get(activeId),
           )}
         </div>
       </div>
@@ -472,12 +510,15 @@ function openCreativeModal(creative, variants = []) {
       pills.forEach((p) => p.classList.remove("active"));
       btn.classList.add("active");
 
-      detailEl.innerHTML = renderVariantDetailHtml(selected);
+      detailEl.innerHTML = renderVariantDetailHtml(
+        selected,
+        healthMap.get(id),
+      );
     });
   });
 }
 
-function renderVariantDetailHtml(c) {
+function renderVariantDetailHtml(c, health) {
   const m = c.metrics || {};
 
   return `
@@ -532,8 +573,14 @@ function renderVariantDetailHtml(c) {
       <div class="creative-modal-right">
         <h3 class="creative-modal-title">${escapeHtml(c.name)}</h3>
         <p class="creative-modal-subtitle">
-          ${formatBucketLabel(c.bucket)} • Score ${c.score ?? "-"} • ${
-            c.daysActive ? `${c.daysActive} Tage live` : ""
+          ${formatBucketLabel(c.bucket)} • Score ${c.score ?? "-"}${
+            c.daysActive ? ` • ${c.daysActive} Tage live` : ""
+          }${
+            health
+              ? ` • <span class="kpi-badge ${health.tone}">${escapeHtml(
+                  health.label,
+                )}</span>`
+              : ""
           }
         </p>
 
@@ -550,16 +597,11 @@ function renderVariantDetailHtml(c) {
         <div class="creative-modal-section">
           <h4>Sensei Insight (Light)</h4>
           <p class="creative-modal-text">
-            Dieses Creative performt ${
-              m.roas && m.roas >= 4
-                ? "stark über"
-                : m.roas && m.roas >= 1.5
-                  ? "über"
-                  : m.roas && m.roas > 0
-                    ? "unter"
-                    : "auf"
-            } deinem erwarteten Benchmark. Nutze ähnliche Hooks & Creator,
-            um weitere Varianten zu testen.
+            ${
+              health
+                ? escapeHtml(health.reasonShort)
+                : "Dieses Creative liegt im neutralen Bereich. Nutze Varianten-Tests, um klare Winner herauszuarbeiten."
+            }
           </p>
         </div>
 
@@ -630,7 +672,7 @@ function escapeHtml(str) {
   if (str == null) return "";
   return String(str)
     .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
+    .replace(/</g, "&lt;/g")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 }
@@ -645,4 +687,23 @@ function dedupeById(list) {
     out.push(item);
   }
   return out;
+}
+
+function classifySource(source, useDemoMode) {
+  const src = (source || "").toString().toLowerCase();
+
+  if (src === "live" || src === "live-strict") {
+    return { label: "Live-Daten (Meta)", badgeClass: "good" };
+  }
+  if (src === "demo-fallback" || src === "live-fallback") {
+    return { label: "Demo-Fallback", badgeClass: "warning" };
+  }
+  if (src === "demo") {
+    return { label: "Demo-Daten", badgeClass: "warning" };
+  }
+
+  return {
+    label: useDemoMode ? "Demo-Daten" : "Auto (Demo/Live)",
+    badgeClass: useDemoMode ? "warning" : "good",
+  };
 }
