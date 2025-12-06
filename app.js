@@ -1,5 +1,8 @@
 import DataLayer from "./packages/data/index.js";
 import { DemoData } from "./demoData.js";
+import { LoadingStates, LoadingManager } from "./packages/core/loadingStates.js";
+import { ImagePlaceholder, initLazyLoading } from "./packages/core/imagePlaceholder.js";
+import { ButtonFeedback, initButtonFeedback } from "./packages/core/buttonFeedback.js";
 
 /* ========================================
    SignalOne.cloud – Frontend Core
@@ -585,8 +588,18 @@ document.addEventListener("DOMContentLoaded", () => {
   
   // Load Initial Module
   loadModule(AppState.currentModule);
+
+  // Init Loading Systems
+  initLazyLoading();
+  initButtonFeedback();
   
-  console.log("[SignalOne] ✓ App initialized (Apple-Style Clean)");
+  // Make globally available
+  window.LoadingStates = LoadingStates;
+  window.LoadingManager = LoadingManager;
+  window.ImagePlaceholder = ImagePlaceholder;
+  window.ButtonFeedback = ButtonFeedback;
+  
+  console.log("[SignalOne] ✓ Loading Systems initialized"); 
 });
 
 /* GLOBAL EXPORTS */
