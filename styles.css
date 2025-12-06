@@ -1259,6 +1259,7 @@ nav.sidebar {
 
 /* MODAL OVERLAY */
 
+/* FIXED MODAL OVERLAY (REPLACES OLD ONE) */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -1266,8 +1267,21 @@ nav.sidebar {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 210;
   backdrop-filter: blur(12px);
+
+  /* THE IMPORTANT PART */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+  z-index: 210;
+}
+
+.modal-overlay.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .modal {
