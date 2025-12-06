@@ -193,17 +193,11 @@ nav.sidebar {
   width: 160px;
   height: 42px;
   border-radius: 12px;
-  /* Ensure image exists or fallback */
-  background: #020617 url("Logo_re_Sc.png") center center / contain no-repeat;
+  background: #020617;
   box-shadow:
     0 0 0 1px rgba(148, 163, 184, 0.6),
     0 18px 40px rgba(15, 23, 42, 0.8);
-  text-indent: -9999px;
-  overflow: hidden;
-  color: white; /* Fallback text visible if indent fails/image missing */
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  object-fit: contain;
 }
 
 /* ---------- MENU ---------- */
@@ -364,6 +358,7 @@ nav.sidebar {
     box-shadow 0.16s ease,
     transform 0.06s ease;
 }
+
 .sidebar-footer-button:hover {
   background: radial-gradient(
     circle at 0% 0%,
@@ -377,7 +372,7 @@ nav.sidebar {
 
 /* ==============================
    5) APP-SHELL & TOPBAR
-============================== */
+   ============================== */
 
 .app-shell {
   display: flex;
@@ -393,7 +388,7 @@ nav.sidebar {
   right: 0;
   height: 92px;
   padding: 16px 32px;
-  z-index: 30; /* Higher than content, lower than sidebar? Sidebar is 40. */
+  z-index: 30;
 
   display: flex;
   align-items: center;
@@ -446,26 +441,7 @@ nav.sidebar {
   text-transform: uppercase;
 }
 
-.topbar-greeting-meta span {
-  color: rgba(226, 232, 240, 0.9);
-  font-size: 0.78rem;
-}
-
 /* Selects / Inputs */
-
-.topbar-select-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.topbar-select-group label {
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: rgba(226, 232, 240, 0.92);
-  font-weight: 600;
-}
 
 .topbar-select {
   min-width: 220px;
@@ -477,7 +453,6 @@ nav.sidebar {
   border: 1px solid var(--input-border);
   outline: none;
   appearance: none;
-  /* Simple arrow inline SVG */
   background-image: url("data:image/svg+xml,%3Csvg width='9' height='5' viewBox='0 0 9 5' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L4.5 4L8 1' stroke='%236b7280' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
@@ -524,15 +499,6 @@ nav.sidebar {
     border-color 0.16s ease;
 }
 
-.icon-svg-top {
-  width: 18px;
-  height: 18px;
-}
-
-.icon-svg-top use {
-  pointer-events: none;
-}
-
 .icon-button:hover {
   border-color: var(--color-primary);
   color: #1d4ed8;
@@ -540,17 +506,6 @@ nav.sidebar {
     0 20px 50px rgba(15, 23, 42, 0.35),
     0 0 0 0.6px rgba(255, 255, 255, 0.95) inset;
   transform: translateY(-1px);
-}
-
-.notification-dot {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: #f97316;
-  box-shadow: 0 0 0 2px #f9fafb;
 }
 
 /* META CONNECT BUTTON (TOPBAR SPECIAL) */
@@ -619,7 +574,7 @@ nav.sidebar {
 
 /* ==============================
    6) MAIN CONTENT & VIEWS
-============================== */
+   ============================== */
 
 .main-content {
   flex: 1;
@@ -646,6 +601,12 @@ nav.sidebar {
     0 0 0 0.8px rgba(255, 255, 255, 0.9) inset;
   border: 1px solid rgba(148, 163, 184, 0.45);
   backdrop-filter: blur(26px);
+
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity 0.18s ease-out,
+    transform 0.12s ease-out;
 }
 
 /* GOLD HEADER STRIP */
@@ -670,6 +631,8 @@ nav.sidebar {
 
   border-bottom: 1px solid rgba(146, 101, 22, 0.6);
   z-index: 55;
+  background: transparent;
+  color: #111827;
 }
 
 .view[data-header-theme="c"]::before {
@@ -677,10 +640,11 @@ nav.sidebar {
   color: #111827;
 }
 
+/* Aktivierter View */
 .view.is-active {
   display: block;
-  opacity: 1 !important;
-  transform: translateY(0) !important;
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* SUBHEADER */
@@ -750,7 +714,7 @@ nav.sidebar {
 
 /* ==============================
    7) CARDS & KPI
-============================== */
+   ============================== */
 
 .card {
   background: var(--surface);
@@ -840,7 +804,7 @@ nav.sidebar {
 
 /* ==============================
    8) DASHBOARD GRIDS / TABLES
-============================== */
+   ============================== */
 
 .dashboard-grid {
   display: grid;
@@ -885,7 +849,7 @@ nav.sidebar {
 
 /* ==============================
    9) CREATIVE LIBRARY
-============================== */
+   ============================== */
 
 .creative-view-root {
   padding: 16px 22px 40px 22px;
@@ -1149,7 +1113,7 @@ nav.sidebar {
 
 /* ==============================
    10) LOADER, TOASTS, MODAL
-============================== */
+   ============================== */
 
 .global-loader {
   position: fixed;
@@ -1159,10 +1123,6 @@ nav.sidebar {
   justify-content: center;
   z-index: 200;
   backdrop-filter: blur(10px);
-}
-
-#globalLoader.active {
-  display: flex;
 }
 
 .global-loader-inner {
@@ -1259,29 +1219,19 @@ nav.sidebar {
 
 /* MODAL OVERLAY */
 
-/* FIXED MODAL OVERLAY (REPLACES OLD ONE) */
 .modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.66);
-  display: flex;
+  display: none; /* base: hidden */
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(12px);
-
-  /* THE IMPORTANT PART */
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-
-  transition: opacity 0.25s ease, visibility 0.25s ease;
   z-index: 210;
+  backdrop-filter: blur(12px);
 }
 
 .modal-overlay.open {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
+  display: flex;
 }
 
 .modal {
@@ -1348,7 +1298,7 @@ nav.sidebar {
 
 /* ==============================
    11) ANIMATIONS
-============================== */
+   ============================== */
 
 @keyframes fadeInUp {
   from {
@@ -1367,7 +1317,7 @@ nav.sidebar {
 
 /* ==============================
    12) TOOLTIP SYSTEM
-============================== */
+   ============================== */
 
 [data-tooltip] {
   position: relative;
@@ -1404,7 +1354,7 @@ nav.sidebar {
 
 /* ==============================
    13) ADDITIONAL UTILITY CLASSES
-============================== */
+   ============================== */
 
 .metric-card,
 .dashboard-card,
@@ -1470,426 +1420,9 @@ table td {
   padding: 10px 12px;
 }
 
-/* ==========================================================================
-   CREATIVE MODAL – CORE LAYOUT & TOKENS
-   ========================================================================== */
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 0.74rem;
-  border: 1px solid transparent;
-  background: #e5e7eb;
-  color: #111827;
-}
-
-.badge-soft {
-  background: #f1f5f9;
-  border-color: rgba(148, 163, 184, 0.6);
-  color: #475569;
-}
-
-.badge-good {
-  background: var(--color-success-soft);
-  border-color: rgba(22, 163, 74, 0.75);
-  color: #166534;
-}
-
-.badge-warning {
-  background: var(--color-warning-soft);
-  border-color: rgba(245, 158, 11, 0.8);
-  color: #92400e;
-}
-
-.badge-critical {
-  background: var(--color-danger-soft);
-  border-color: rgba(220, 38, 38, 0.8);
-  color: #b91c1c;
-}
-
-/* Buttons für Modals & Settings */
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  padding: 7px 14px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  border: 1px solid transparent;
-  cursor: pointer;
-  background: #e5e7eb;
-  color: #111827;
-  transition:
-    background 0.16s ease,
-    box-shadow 0.16s ease,
-    transform 0.06s ease,
-    border-color 0.16s ease;
-}
-
-.btn.small {
-  padding: 5px 12px;
-  font-size: 0.76rem;
-}
-
-.btn.primary {
-  background: radial-gradient(
-    circle at 0% 0%,
-    rgba(34, 197, 94, 0.96),
-    rgba(21, 128, 61, 0.96)
-  );
-  color: #ecfdf5;
-  border-color: rgba(22, 163, 74, 0.9);
-}
-
-.btn.primary:hover {
-  box-shadow:
-    0 18px 40px rgba(22, 163, 74, 0.45),
-    0 0 0 0.6px rgba(255, 255, 255, 0.95) inset;
-  transform: translateY(-1px);
-}
-
-.btn.ghost {
-  background: #f8fafc;
-  border-color: rgba(148, 163, 184, 0.8);
-  color: #1f2937;
-}
-
-.btn.ghost:hover {
-  background: #e5e7eb;
-  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.2);
-}
-
-/* ==========================================================================
-   CREATIVE MODAL — LAYOUT
-   ========================================================================== */
-
-.creative-modal {
-  padding: 20px 26px 24px 26px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.creative-modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 10px;
-}
-
-.creative-modal-title {
-  font-size: 1.28rem;
-  font-weight: 600;
-  margin-bottom: 2px;
-  color: #0f172a;
-}
-
-.creative-modal-subtitle {
-  font-size: 0.85rem;
-  color: #475569;
-  margin-bottom: 8px;
-}
-
-.creative-modal-badges {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.creative-modal-main {
-  display: grid;
-  grid-template-columns: 300px 1fr;
-  gap: 24px;
-}
-
-/* LEFT SIDE — THUMBNAIL */
-
-.creative-modal-left {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.creative-modal-thumb {
-  width: 100%;
-  height: 170px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #e2e8f0, #f1f5f9);
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgba(148, 163, 184, 0.25);
-}
-
-.creative-modal-thumb-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 8px 12px;
-  background: linear-gradient(
-    to top,
-    rgba(15, 23, 42, 0.45),
-    rgba(15, 23, 42, 0)
-  );
-  color: white;
-  font-size: 0.8rem;
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
-}
-
-/* MINI TRENDLINE CHART (SVG) */
-
-.mini-chart {
-  width: 100%;
-  height: 52px;
-  margin-bottom: 8px;
-}
-
-.mini-chart-line {
-  fill: none;
-  stroke: #3b82f6;
-  stroke-width: 3;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  filter: drop-shadow(0 1px 2px rgba(30, 58, 138, 0.2));
-}
-
-.mini-chart-point {
-  fill: #3b82f6;
-  stroke: white;
-  stroke-width: 1.8;
-  r: 3.8;
-}
-
-/* KPI BLOCKS */
-
-.creative-modal-kpis {
-  background: #f8fafc;
-  border: 1px solid rgba(148, 163, 184, 0.28);
-  padding: 14px;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.creative-kpi-label {
-  font-size: 0.75rem;
-  color: #64748b;
-  text-transform: uppercase;
-  display: block;
-}
-
-.creative-kpi-value {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #0f172a;
-}
-
-/* PERFORMANCE PULSE BAR */
-
-.pulse-wrapper {
-  width: 100%;
-  height: 10px;
-  background: #e2e8f0;
-  border-radius: 12px;
-  overflow: hidden;
-  margin-top: 6px;
-}
-
-.pulse-bar {
-  height: 100%;
-  background: linear-gradient(90deg, #16a34a, #4ade80);
-  transform-origin: left center;
-  transition: transform 0.28s ease-out;
-}
-
-/* HOOK HEATMAP */
-
-.hook-heatmap {
-  margin-top: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.hook-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.82rem;
-  color: #475569;
-}
-
-.hook-bar {
-  width: 55%;
-  height: 8px;
-  background: #e2e8f0;
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-.hook-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #2563eb, #06b6d4);
-  border-radius: 6px;
-  transition: width 0.4s ease-out;
-}
-
-/* RIGHT SIDE — SECTIONS */
-
-.creative-modal-right {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-}
-
-.creative-modal-section h4 {
-  font-size: 0.92rem;
-  margin-bottom: 6px;
-  color: #1e293b;
-  font-weight: 600;
-}
-
-.creative-modal-text {
-  font-size: 0.83rem;
-  color: #475569;
-  margin-bottom: 6px;
-  line-height: 1.45;
-}
-
-.creative-modal-list {
-  font-size: 0.82rem;
-  color: #475569;
-  margin-bottom: 10px;
-  padding-left: 18px;
-  line-height: 1.45;
-}
-
-.creative-modal-actions {
-  display: flex;
-  gap: 10px;
-}
-
-/* ==========================================================================
-   RESPONSIVE — MODAL
-   ========================================================================== */
-
-@media (max-width: 840px) {
-  .creative-modal-main {
-    grid-template-columns: 1fr;
-  }
-
-  .creative-modal-thumb {
-    height: 150px;
-  }
-}
-
-/* ============================================================
-   CREATIVE MODAL – FULL SIZE OVERRIDE
-   ============================================================ */
-
-.modal:has(.creative-modal) {
-  max-width: 1080px;
-  width: 92%;
-  border-radius: 22px;
-  padding: 0;
-}
-
-.modal:has(.creative-modal) .modal-header {
-  display: none;
-}
-
-.modal:has(.creative-modal) #modalBody {
-  padding: 0;
-}
-
-/* ==========================================================================
-   CAMPAIGNS VIEW
-   ========================================================================== */
-
-.campaigns-root {
-  padding: 16px 22px 32px;
-}
-
-.campaigns-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 22px;
-  margin-bottom: 18px;
-}
-
-.campaigns-header-main {
-  max-width: 520px;
-}
-
-.campaigns-meta-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.status-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 0.74rem;
-  border: 1px solid transparent;
-}
-
-.status-pill--active {
-  background: var(--color-success-soft);
-  border-color: rgba(22, 163, 74, 0.7);
-  color: #166534;
-}
-
-.status-pill--paused {
-  background: var(--color-warning-soft);
-  border-color: rgba(245, 158, 11, 0.8);
-  color: #92400e;
-}
-
-.status-pill--testing {
-  background: rgba(59, 130, 246, 0.06);
-  border-color: rgba(59, 130, 246, 0.65);
-  color: #1d4ed8;
-}
-
-.campaigns-summary {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.campaigns-summary-stat {
-  font-size: 0.82rem;
-  color: #4b5563;
-}
-
-/* Tabellen-Highlight für ausgewählte Kampagne */
-
-.campaign-row-selected {
-  background: rgba(59, 130, 246, 0.06);
-}
-
-.campaign-row-selected:hover {
-  background: rgba(59, 130, 246, 0.08);
-}
-
-/* ==========================================================================
+/* ======================================================================
    SETTINGS – DEMO-MODE BLOCK
-   ========================================================================== */
+   ====================================================================== */
 
 .settings-block {
   margin-bottom: 18px;
@@ -1968,7 +1501,7 @@ table td {
 
 /* ==============================
    14) RESPONSIVE (Minimal)
-============================== */
+   ============================== */
 
 @media (max-width: 1200px) {
   .dashboard-grid {
@@ -2041,16 +1574,8 @@ table td {
     padding: 12px 16px;
   }
 
-  .topbar-greeting-meta {
-    display: none;
-  }
-
-  .creative-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .kpi-grid {
-    grid-template-columns: 1fr;
+  .main-content {
+    padding-top: 100px;
   }
 
   .view::before {
