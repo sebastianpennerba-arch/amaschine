@@ -153,6 +153,24 @@ img {
   transition: stroke 0.16s ease;
 }
 
+/* Fallback: färbt komplette SVGs, falls kein icon-layer-* gesetzt wurde */
+.sidebar-btn-icon svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  fill: var(--sidebar-icon-inactive-fill);
+  transition: fill 0.16s ease, transform 0.12s ease;
+}
+
+.sidebar-nav-button:hover .sidebar-btn-icon svg {
+  fill: var(--sidebar-icon-hover-fill);
+  transform: translateY(-0.5px);
+}
+
+.sidebar-nav-button.active .sidebar-btn-icon svg {
+  fill: var(--sidebar-icon-active-fill);
+}
+
 /* ==============================
    4) SIDEBAR – DESIGN A (220px)
 ============================== */
@@ -226,7 +244,7 @@ nav.sidebar {
   text-transform: uppercase;
   letter-spacing: 0.12em;
   margin-top: 10px;
-  opacity: 0.85;
+  opacity: 0.9;
 
   cursor: pointer;
   user-select: none;
@@ -234,6 +252,13 @@ nav.sidebar {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.sidebar-section-label::before {
+  content: "•";
+  font-size: 0.9rem;
+  margin-right: 4px;
+  color: rgba(200, 164, 81, 0.9);
 }
 
 .sidebar-section-label::after {
@@ -293,12 +318,6 @@ nav.sidebar {
     box-shadow 0.16s ease,
     transform 0.06s ease,
     color 0.16s ease;
-}
-
-.sidebar-btn-icon {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
 }
 
 .sidebar-nav-button:hover {
