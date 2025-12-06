@@ -225,7 +225,7 @@ function createSvgIconFromSymbol(symbolId, className = "") {
   return svg;
 }
 
-// ⭐ FIX: Views wirklich sichtbar machen (.is-active + .hidden)
+// ⭐ Views wirklich sichtbar machen (.is-active + .hidden)
 function setActiveView(viewId) {
   const views = document.querySelectorAll(".view");
   views.forEach((v) => {
@@ -533,6 +533,12 @@ function showToast(message, type = "info") {
    MODAL
 -----------------------------------------------------------*/
 function openSystemModal(title, bodyHtml) {
+  // Schutz: leere Modals nicht anzeigen (verhindert „weiße Box“ beim App-Start)
+  if (!title && !bodyHtml) {
+    console.warn("[SignalOne][Modal] Aufruf ohne Inhalt blockiert.");
+    return;
+  }
+
   const overlay = document.getElementById("modalOverlay");
   const titleEl = document.getElementById("modalTitle");
   const bodyEl = document.getElementById("modalBody");
