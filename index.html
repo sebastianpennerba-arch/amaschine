@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SignalOne.cloud</title>
 
-  <!-- Core Styles -->
+  <!-- CORE CSS -->
   <link rel="stylesheet" href="./styles.css" />
   <link rel="stylesheet" href="./sx-core.css" />
 
@@ -13,12 +13,14 @@
 <body>
 
   <!-- ========================= -->
-  <!--        SIDEBAR            -->
+  <!--         SIDEBAR           -->
   <!-- ========================= -->
 
   <nav class="sidebar">
+
     <div class="sidebar-header">
-      <img src="./assets/logo.svg" class="sidebar-logo" alt="SignalOne Logo" />
+      <!-- FIXED: Richtiger Logo-Pfad -->
+      <img src="./assets/logo.svg" alt="SignalOne Logo" class="sidebar-logo" />
     </div>
 
     <ul id="navbar" class="sidebar-nav"></ul>
@@ -39,20 +41,21 @@
     </div>
 
     <button id="settingsButton" class="settings-button">SETTINGS</button>
+
   </nav>
 
   <!-- ========================= -->
-  <!--       APP SHELL WRAPPER   -->
-  <!--  (Fixiert das Layout!)    -->
+  <!--        APP-SHELL          -->
   <!-- ========================= -->
 
   <div class="app-shell">
 
     <!-- ========================= -->
-    <!--         TOPBAR            -->
+    <!--          TOPBAR           -->
     <!-- ========================= -->
 
     <header id="topbar" class="topbar">
+
       <div class="topbar-left">
         <div id="topbarGreeting" class="topbar-greeting">Guten Tag!</div>
         <div id="topbarDate" class="topbar-date">Datum: –</div>
@@ -60,52 +63,74 @@
       </div>
 
       <div class="topbar-right">
+
         <select id="brandSelect" class="topbar-select"></select>
         <select id="campaignSelect" class="topbar-select"></select>
 
         <button id="metaConnectButton" class="meta-button">META VERBINDEN</button>
 
-        <button id="notificationsButton" class="topbar-icon-btn">🔔</button>
-        <button id="profileButton" class="topbar-icon-btn">👤</button>
-        <button id="logoutButton" class="topbar-icon-btn">⏻</button>
+        <button id="notificationsButton" class="icon-button">🔔</button>
+        <button id="profileButton" class="icon-button">👤</button>
+        <button id="logoutButton" class="icon-button">⏻</button>
       </div>
+
     </header>
 
     <!-- ========================= -->
-    <!--       MAIN VIEWS          -->
+    <!--          VIEWS            -->
     <!-- ========================= -->
 
     <main class="main-content">
 
-      <section id="dashboardView" class="view"></section>
-      <section id="creativeLibraryView" class="view hidden"></section>
-      <section id="campaignsView" class="view hidden"></section>
-      <section id="senseiView" class="view hidden"></section>
-      <section id="testingLogView" class="view hidden"></section>
-      <section id="reportsView" class="view hidden"></section>
-      <section id="creatorInsightsView" class="view hidden"></section>
-      <section id="analyticsView" class="view hidden"></section>
-      <section id="teamView" class="view hidden"></section>
-      <section id="brandsView" class="view hidden"></section>
-      <section id="shopifyView" class="view hidden"></section>
-      <section id="roastView" class="view hidden"></section>
-      <section id="onboardingView" class="view hidden"></section>
-      <section id="settingsView" class="view hidden"></section>
+      <section id="dashboardView" class="view" data-view-title="DASHBOARD"></section>
+
+      <section id="creativeLibraryView" class="view hidden" data-view-title="CREATIVE LIBRARY"></section>
+
+      <section id="campaignsView" class="view hidden" data-view-title="KAMPAGNEN"></section>
+
+      <section id="senseiView" class="view hidden" data-view-title="SENSEI"></section>
+
+      <section id="testingLogView" class="view hidden" data-view-title="TESTING LOG"></section>
+
+      <section id="reportsView" class="view hidden" data-view-title="REPORTS"></section>
+
+      <section id="creatorInsightsView" class="view hidden" data-view-title="CREATOR INSIGHTS"></section>
+
+      <section id="analyticsView" class="view hidden" data-view-title="ANALYTICS"></section>
+
+      <section id="teamView" class="view hidden" data-view-title="TEAM"></section>
+
+      <section id="brandsView" class="view hidden" data-view-title="BRANDS"></section>
+
+      <section id="shopifyView" class="view hidden" data-view-title="SHOPIFY"></section>
+
+      <section id="roastView" class="view hidden" data-view-title="ROAST"></section>
+
+      <section id="onboardingView" class="view hidden" data-view-title="ONBOARDING"></section>
+
+      <section id="settingsView" class="view hidden" data-view-title="SETTINGS"></section>
 
     </main>
 
   </div> <!-- END APP-SHELL -->
 
+
   <!-- ========================= -->
-  <!--         LOADER            -->
+  <!--        LOADER             -->
   <!-- ========================= -->
 
   <div id="globalLoader" class="global-loader hidden">
-    <div class="loader-spinner"></div>
+    <div class="global-loader-inner">
+      <div class="loader-dot"></div>
+      <div class="loader-dot"></div>
+      <div class="loader-dot"></div>
+      <span>Lade Daten …</span>
+    </div>
   </div>
 
+
   <!-- ========================= -->
-  <!--          MODAL            -->
+  <!--         MODAL             -->
   <!-- ========================= -->
 
   <div id="modalOverlay" class="modal-overlay hidden">
@@ -118,14 +143,16 @@
     </div>
   </div>
 
+
   <!-- ========================= -->
-  <!--          TOASTS           -->
+  <!--         TOASTS            -->
   <!-- ========================= -->
 
   <div id="toastContainer" class="toast-container"></div>
 
+
   <!-- ========================= -->
-  <!--      SCRIPT (MODULE)      -->
+  <!--        SCRIPT JS          -->
   <!-- ========================= -->
 
   <script type="module" src="./app.js"></script>
