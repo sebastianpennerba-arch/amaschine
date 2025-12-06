@@ -1,6 +1,6 @@
 // packages/data/live/campaigns.js
 // -----------------------------------------------------------------------------
-// LIVE Campaign Fetch über dein echtes Backend
+// LIVE Campaign Fetch Ã¼ber dein echtes Backend
 // -----------------------------------------------------------------------------
 
 const API_BASE = "/api/meta";
@@ -14,7 +14,7 @@ async function post(path, body) {
 
   if (!res.ok) {
     const err = await res.text().catch(() => "Unknown error");
-    throw new Error(`[Meta Live] ${path}: ${res.status} – ${err}`);
+    throw new Error(`[Meta Live] ${path}: ${res.status} â€“ ${err}`);
   }
 
   return res.json();
@@ -34,7 +34,7 @@ export async function fetchLiveCampaigns({ accountId, accessToken }) {
   return res.data.data || []; // Graph API packt Ergebnisse in .data.data
 }
 
-// Holt Insights für eine Kampagne
+// Holt Insights fÃ¼r eine Kampagne
 export async function fetchLiveCampaignInsights({
   campaignId,
   accessToken,
