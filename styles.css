@@ -519,6 +519,7 @@ nav.sidebar {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
   color: #cbd5e1;
   font-size: 0.8rem;
   letter-spacing: 0.04em;
