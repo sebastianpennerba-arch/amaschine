@@ -172,7 +172,7 @@ const MetaAuth = (() => {
     return res.json();
   }
 
-  // Optional Dev-Shortcut: Wenn ein globaler Dev-Token gesetzt ist, wird kein Popup benötigt.
+  // Optional Dev-Shortcut
   async function connectWithDevTokenIfAvailable() {
     const devToken = window.SIGNALONE_META_DEV_TOKEN;
     if (!devToken) return false;
@@ -201,7 +201,7 @@ const MetaAuth = (() => {
   function openOAuthPopupAndGetCode() {
     return new Promise((resolve) => {
       const authUrl =
-        window.SIGNALONE_META_OAUTH_URL || "/meta/oauth/start"; // Backend-Endpoint, der die echte FB-URL zurückgeben kann
+        window.SIGNALONE_META_OAUTH_URL || "/meta/oauth/start";
 
       const width = 520;
       const height = 720;
@@ -234,7 +234,6 @@ const MetaAuth = (() => {
       }, 500);
 
       function onMessage(event) {
-        // Callback-Seite muss senden: { source: "signalone-meta-oauth", code, error? }
         const data = event.data || {};
         if (data.source !== "signalone-meta-oauth") return;
 
@@ -263,11 +262,9 @@ const MetaAuth = (() => {
   async function connectLive() {
     showGlobalLoader();
     try {
-      // a) Dev-Token-Shortcut (z. B. für interne Demos)
       const usedDev = await connectWithDevTokenIfAvailable();
       if (usedDev) return;
 
-      // b) Normaler OAuth-Flow mit Popup
       const result = await openOAuthPopupAndGetCode();
       if (!result || !result.code) {
         showToast("Meta-Verbindung abgebrochen.", "warning");
@@ -276,9 +273,7 @@ const MetaAuth = (() => {
 
       const tokenPayload = await postMeta("/oauth/token", { code: result.code });
       const accessToken =
-        tokenPayload.accessToken ||
-        tokenPayload.token ||
-        tokenPayload.access_token;
+        tokenPayload.accessToken || tokenPayload.token || tokenPayload.access_token;
 
       if (!accessToken) {
         throw new Error("Kein Access Token aus /oauth/token erhalten.");
@@ -333,7 +328,6 @@ const MetaAuth = (() => {
     AppState.meta.accountName = null;
     AppState.meta.mode = null;
 
-    // Optional: wieder DemoMode aktivieren
     AppState.settings.demoMode = true;
     AppState.settings.dataMode = "auto";
 
@@ -346,23 +340,19 @@ const MetaAuth = (() => {
   }
 
   async function init() {
-    // 1) Live-State aus Storage laden
     loadLiveFromStorage();
 
-    // 2) Wenn Live aktiv → direkt rehydrieren
     if (liveState.connected && liveState.accessToken) {
       syncLiveToAppState();
       return;
     }
 
-    // 3) Sonst Demo-Mock initialisieren
     MetaAuthMock.init();
     AppState.meta.mode = AppState.metaConnected ? "demo" : null;
     updateMetaStatusUI();
   }
 
   async function connectWithPopup() {
-    // DemoMode-Gate: im DemoMode keine echten Requests, nur Mock
     if (useDemoMode()) {
       MetaAuthMock.connectWithPopup();
       AppState.meta.mode = "demo";
@@ -399,7 +389,7 @@ const AppState = {
     user: null,
     accountId: null,
     accountName: null,
-    mode: null, // "demo" | "live"
+    mode: null,
   },
   selectedBrandId: null,
   selectedCampaignId: null,
@@ -408,7 +398,7 @@ const AppState = {
   notifications: [],
   settings: {
     demoMode: true,
-    dataMode: "auto", // "auto" | "live" | "demo"
+    dataMode: "auto",
     theme: "titanium",
     currency: "EUR",
     defaultRange: "last_30_days",
@@ -431,6 +421,7 @@ const modules = {
   campaigns: () => import("./packages/campaigns/index.js"),
   testingLog: () => import("./packages/testingLog/index.js"),
   sensei: () => import("./packages/sensei/index.js"),
+  academy: () => import("./packages/academy/index.js"),
   onboarding: () => import("./packages/onboarding/index.js"),
   team: () => import("./packages/team/index.js"),
   brands: () => import("./packages/brands/index.js"),
@@ -440,8 +431,6 @@ const modules = {
   analytics: () => import("./packages/analytics/index.js"),
   roast: () => import("./packages/roast/index.js"),
   settings: () => import("./packages/settings/index.js"),
-  // NEU: Academy-Modul
-  academy: () => import("./packages/academy/index.js"),
 };
 
 const viewIdMap = {
@@ -450,6 +439,7 @@ const viewIdMap = {
   campaigns: "campaignsView",
   testingLog: "testingLogView",
   sensei: "senseiView",
+  academy: "academyView",
   reports: "reportsView",
   creatorInsights: "creatorInsightsView",
   analytics: "analyticsView",
@@ -459,11 +449,8 @@ const viewIdMap = {
   roast: "roastView",
   onboarding: "onboardingView",
   settings: "settingsView",
-  // NEU: Academy View
-  academy: "academyView",
 };
 
-// Views, die Meta (Demo oder Live) brauchen
 const modulesRequiringMeta = new Set([
   "dashboard",
   "creativeLibrary",
@@ -510,7 +497,6 @@ function getEffectiveBrandOwnerName() {
 /* ----------------------------------------------------------
    7) NAVIGATION / SIDEBAR
 -----------------------------------------------------------*/
-// Reihenfolge leicht angepasst, Academy integriert
 const navItems = [
   { key: "dashboard", label: "Dashboard", icon: "dashboard" },
   { key: "creativeLibrary", label: "Creatives", icon: "library" },
@@ -519,7 +505,7 @@ const navItems = [
   { key: "academy", label: "Academy", icon: "workspace" },
   { key: "testingLog", label: "Testing Log", icon: "testing" },
   { key: "reports", label: "Reports", icon: "reports" },
-  { key: "creatorInsights", label: "Creator", icon: "creator" },
+  { key: "creatorInsights", label: "Creator", icon: "creators" },
   { key: "analytics", label: "Analytics", icon: "analytics" },
   { key: "team", label: "Team", icon: "team" },
   { key: "brands", label: "Brands", icon: "brands" },
@@ -542,15 +528,14 @@ function renderNav() {
     btn.className = "sidebar-nav-button";
     btn.setAttribute("data-module", item.key);
 
-    // Anpassung: Klassen an CSS angepasst (.icon-svg, .label)
     btn.innerHTML = `
-      <span class="icon-svg">
+      <span class="sidebar-nav-icon">
         <svg aria-hidden="true" width="20" height="20">
           <use href="#icon-${item.icon}"></use>
         </svg>
       </span>
-      <span class="label">${item.label}</span>
-    `;
+      <span class="sidebar-nav-label">${item.label}</span>
+    ";
 
     btn.addEventListener("click", () => navigateTo(item.key));
 
@@ -565,7 +550,7 @@ function setActiveNavItem(moduleKey) {
   const buttons = document.querySelectorAll(".sidebar-nav-button");
   buttons.forEach((btn) => {
     if (btn.getAttribute("data-module") === moduleKey) {
-      btn.classList.add("active"); // WICHTIG: CSS erwartet .active, nicht .is-active
+      btn.classList.add("active");
     } else {
       btn.classList.remove("active");
     }
@@ -695,7 +680,6 @@ function updateCampaignHealthUI() {
     return;
   }
 
-  // Simplified: Bei Demo immer "OK"
   dot.style.backgroundColor = "var(--color-success)";
   label.textContent = "Campaign Health: OK";
 }
@@ -708,8 +692,7 @@ function updateMetaStatusUI() {
 
   if (AppState.metaConnected) {
     dot.style.backgroundColor = "var(--color-success)";
-    const mode =
-      AppState.meta?.mode || (useDemoMode() ? "demo" : "live");
+    const mode = AppState.meta?.mode || (useDemoMode() ? "demo" : "live");
     const modeLabel = mode === "live" ? "Live" : "Demo";
     label.textContent = `Meta Ads: Verbunden (${modeLabel})`;
     if (btn) btn.textContent = "META TRENNEN";
@@ -856,11 +839,6 @@ function updateViewSubheaders() {
         <span class="view-subheader-title">${title}</span>
         <span class="view-subheader-meta">
           ${owner} • ${vertical} • ${campaignsCount} Kampagnen
-          ${
-            campaign
-              ? ` • Aktive Kampagne: ${campaign.name}`
-              : ""
-          }
         </span>
       </div>
     `;
@@ -897,7 +875,6 @@ async function loadModule(key) {
     return;
   }
 
-  // Meta-Gate: wenn Modul Meta braucht und weder Demo noch Live zugelassen
   if (modulesRequiringMeta.has(key) && !AppState.metaConnected && !useDemoMode()) {
     section.innerHTML = `
       <div class="view-inner">
@@ -944,9 +921,7 @@ async function loadModule(key) {
       <div class="view-inner">
         <h2 class="view-title">Fehler</h2>
         <p class="view-subtitle">Modul "${key}" konnte nicht geladen werden.</p>
-        <pre class="error-pre">${String(
-          err && err.message ? err.message : err,
-        )}</pre>
+        <pre class="error-pre">${String(err && err.message ? err.message : err)}</pre>
       </div>
     `;
     pushNotification("error", `Modul "${key}" konnte nicht geladen werden.`, {
@@ -1109,22 +1084,19 @@ function toggleMetaConnection() {
 document.addEventListener("DOMContentLoaded", () => {
   console.log("🚀 SignalOne Bootstrap startet...");
 
-  // 1) MetaAuth (Live + Demo) initialisieren
-  MetaAuth.init();
+  MetaAuth.init().catch((err) =>
+    console.error("[MetaAuth] Init Fehler:", err),
+  );
 
-  // 2) Sidebar + Navigation
   renderNav();
 
-  // 3) Brand/Campaign Selects
   populateBrandSelect();
   populateCampaignSelect();
   wireBrandAndCampaignSelects();
 
-  // 4) Aktive View setzen
   const initialViewId = getViewIdForModule(AppState.currentModule);
   setActiveView(initialViewId);
 
-  // 5) Buttons verdrahten
   document
     .getElementById("metaConnectButton")
     ?.addEventListener("click", () => {
@@ -1183,7 +1155,6 @@ document.addEventListener("DOMContentLoaded", () => {
     showToast("Session zurückgesetzt.", "success");
   });
 
-  // 6) Topbar Zeit + Greeting
   updateTopbarDateTime();
   updateTopbarGreeting();
   setInterval(() => {
@@ -1191,7 +1162,6 @@ document.addEventListener("DOMContentLoaded", () => {
     updateTopbarGreeting();
   }, 60000);
 
-  // 7) Startmodul laden
   loadModule(AppState.currentModule);
 
   console.log("✅ SignalOne Bootstrap abgeschlossen!");
