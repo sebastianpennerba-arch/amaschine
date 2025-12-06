@@ -225,7 +225,7 @@ function createSvgIconFromSymbol(symbolId, className = "") {
   return svg;
 }
 
-// Aktiviert die gewünschte View (.is-active + .hidden)
+// Views wirklich sichtbar machen (.is-active + .hidden)
 function setActiveView(viewId) {
   const views = document.querySelectorAll(".view");
   views.forEach((v) => {
@@ -547,9 +547,6 @@ function openSystemModal(title, bodyHtml) {
 
   titleEl.textContent = title || "";
   bodyEl.innerHTML = bodyHtml || "";
-
-  // Wichtig: hidden entfernen, sonst bleibt Overlay unsichtbar
-  overlay.classList.remove("hidden");
   overlay.classList.add("open");
 }
 
@@ -557,7 +554,6 @@ function closeSystemModal() {
   const overlay = document.getElementById("modalOverlay");
   if (!overlay) return;
   overlay.classList.remove("open");
-  overlay.classList.add("hidden");
 }
 
 /* ----------------------------------------------------------
