@@ -6,6 +6,14 @@
 //  → Deep Integration mit SignalOne.TestingLog API
 // ---------------------------------------------------------
 
+export async function init(ctx = {}) {
+  const section = document.getElementById("testingLogView");
+  if (!section) return;
+  
+  const { AppState } = ctx;
+  render(section, AppState);
+}
+
 export function render(section, AppState, options = {}) {
   const SignalOne = window.SignalOne || {};
   const testing = SignalOne.TestingLog;
