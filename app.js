@@ -1,9 +1,9 @@
 /* ======================================== 
    SignalOne.cloud – Frontend Core
-   STANDALONE VERSION (NO IMPORTS)
+   COMPLETE STANDALONE VERSION
 ======================================== */
 
-// HARD-CODED DEMO DATA (inline, kein Import nötig)
+// HARD-CODED DEMO DATA
 const DemoData = {
   brands: [
     { id: "acme", name: "ACME Fashion", spend30d: 116234, revenue30d: 557923, roas30d: 4.8, ctr30d: 3.2, cpm30d: 8.4, purchases30d: 4890 },
@@ -14,7 +14,7 @@ const DemoData = {
   campaigns: {}
 };
 
-const DataLayer = {}; // Dummy
+const DataLayer = {};
 
 /* META AUTH MOCK */
 const MetaAuthMock = (() => {
@@ -134,6 +134,34 @@ const viewIdMap = {
   onboarding: "onboardingView",
 };
 
+/* RENDER SIDEBAR NAVIGATION */
+function renderSidebarNav() {
+  const nav = document.getElementById("sidebarNav");
+  if (!nav) return;
+
+  const items = [
+    { key: "dashboard", icon: "📊", label: "Dashboard" },
+    { key: "creativeLibrary", icon: "🎨", label: "Creative Library" },
+    { key: "campaigns", icon: "📈", label: "Kampagnen" },
+    { key: "testingLog", icon: "🧪", label: "Testing Log" },
+    { key: "sensei", icon: "🧠", label: "Sensei" },
+    { key: "academy", icon: "🎓", label: "Academy" },
+  ];
+
+  nav.innerHTML = items
+    .map(
+      (item) => `
+    <li>
+      <button class="sidebar-nav-button" data-view="${item.key}">
+        <span class="sidebar-nav-icon">${item.icon}</span>
+        <span class="sidebar-nav-label">${item.label}</span>
+      </button>
+    </li>
+  `
+    )
+    .join("");
+}
+
 /* HELPERS */
 function useDemoMode() {
   return AppState.settings.demoMode || !AppState.metaConnected;
@@ -147,7 +175,11 @@ function formatNumber(value) {
 }
 function formatCurrency(value, currency = "EUR") {
   if (value == null || isNaN(value)) return "–";
-  return new Intl.NumberFormat("de-DE", { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
+  return new Intl.NumberFormat("de-DE", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(value);
 }
 function formatPercent(value, decimals = 1) {
   if (value == null || isNaN(value)) return "–";
@@ -169,10 +201,20 @@ function ensureToastContainer() {
 function showToast(message, type = "info", timeout = 3500) {
   const container = ensureToastContainer();
   const toast = document.createElement("div");
-  let bg = "rgba(248,250,252,0.98)", borderColor = "rgba(148,163,184,0.6)";
-  if (type === "success") { bg = "rgba(220,252,231,0.98)"; borderColor = "rgba(34,197,94,0.8)"; }
-  if (type === "warning") { bg = "rgba(254,243,199,0.98)"; borderColor = "rgba(245,158,11,0.8)"; }
-  if (type === "error") { bg = "rgba(254,226,226,0.98)"; borderColor = "rgba(239,68,68,0.8)"; }
+  let bg = "rgba(248,250,252,0.98)",
+    borderColor = "rgba(148,163,184,0.6)";
+  if (type === "success") {
+    bg = "rgba(220,252,231,0.98)";
+    borderColor = "rgba(34,197,94,0.8)";
+  }
+  if (type === "warning") {
+    bg = "rgba(254,243,199,0.98)";
+    borderColor = "rgba(245,158,11,0.8)";
+  }
+  if (type === "error") {
+    bg = "rgba(254,226,226,0.98)";
+    borderColor = "rgba(239,68,68,0.8)";
+  }
 
   toast.style.cssText = `min-width:280px;max-width:400px;padding:12px 16px;border-radius:8px;font-size:0.85rem;display:flex;align-items:center;justify-content:space-between;gap:12px;background:${bg};border:1px solid ${borderColor};box-shadow:0 16px 40px rgba(15,23,42,0.4);backdrop-filter:blur(16px);color:#0f172a;font-weight:500;`;
 
@@ -180,7 +222,8 @@ function showToast(message, type = "info", timeout = 3500) {
   span.textContent = message;
   const btn = document.createElement("button");
   btn.textContent = "×";
-  btn.style.cssText = "background:none;border:none;cursor:pointer;font-size:1.2rem;color:inherit;padding:0;";
+  btn.style.cssText =
+    "background:none;border:none;cursor:pointer;font-size:1.2rem;color:inherit;padding:0;";
   btn.onclick = () => toast.remove();
 
   toast.appendChild(span);
@@ -219,18 +262,37 @@ function hideGlobalLoader() {
 
 /* META UI UPDATE */
 function updateMetaUI() {
-  const dot = document.getElementById("statusMetaDot");
-  const text = document.getElementById("statusMetaText");
-  const btn = document.getElementById("metaButton");
+  // Sidebar IDs (aus deiner index.html)
+  const dot = document.getElementById("metaStatusDot");
+  const text = document.getElementById("metaStatusText");
+  const sidebarBtn = document.getElementById("sidebarMetaConnectButton");
+  // Topbar ID
+  const topbarBtn = document.getElementById("metaConnectButton");
 
   if (AppState.metaConnected) {
-    if (dot) { dot.classList.add("status-dot-green"); dot.classList.remove("status-dot-gray"); }
+    if (dot) {
+      dot.classList.add("status-dot-green");
+      dot.classList.remove("status-dot-gray");
+    }
     if (text) text.textContent = "Meta Ads: Verbunden";
-    if (btn) { btn.textContent = "Meta trennen"; btn.classList.add("btn-danger"); btn.classList.remove("btn-primary"); }
+    if (sidebarBtn) {
+      sidebarBtn.textContent = "Meta trennen";
+      sidebarBtn.classList.add("btn-danger");
+      sidebarBtn.classList.remove("btn-primary");
+    }
+    if (topbarBtn) topbarBtn.textContent = "Meta trennen";
   } else {
-    if (dot) { dot.classList.add("status-dot-gray"); dot.classList.remove("status-dot-green"); }
+    if (dot) {
+      dot.classList.add("status-dot-gray");
+      dot.classList.remove("status-dot-green");
+    }
     if (text) text.textContent = "Meta Ads: Getrennt";
-    if (btn) { btn.textContent = "Meta verbinden"; btn.classList.add("btn-primary"); btn.classList.remove("btn-danger"); }
+    if (sidebarBtn) {
+      sidebarBtn.textContent = "Meta verbinden";
+      sidebarBtn.classList.add("btn-primary");
+      sidebarBtn.classList.remove("btn-danger");
+    }
+    if (topbarBtn) topbarBtn.textContent = "Meta verbinden";
   }
 }
 
@@ -239,11 +301,17 @@ async function navigateTo(moduleName) {
   console.log(`[navigateTo] Switching to: ${moduleName}`);
   showGlobalLoader();
   try {
-    document.querySelectorAll(".sidebar-nav-button").forEach(b => b.classList.remove("active"));
-    const activeBtn = document.querySelector(`.sidebar-nav-button[data-view="${moduleName}"]`);
+    document
+      .querySelectorAll(".sidebar-nav-button")
+      .forEach((b) => b.classList.remove("active"));
+    const activeBtn = document.querySelector(
+      `.sidebar-nav-button[data-view="${moduleName}"]`
+    );
     if (activeBtn) activeBtn.classList.add("active");
 
-    document.querySelectorAll(".view-section").forEach(v => v.style.display = "none");
+    document
+      .querySelectorAll(".view")
+      .forEach((v) => (v.style.display = "none"));
     const targetViewId = getViewIdForModule(moduleName);
     const targetView = document.getElementById(targetViewId);
     if (targetView) targetView.style.display = "block";
@@ -254,11 +322,22 @@ async function navigateTo(moduleName) {
       try {
         const mod = await modules[moduleName]();
         if (mod && mod.init) {
-          await mod.init({ AppState, DemoData, DataLayer, useDemoMode, formatNumber, formatCurrency, formatPercent, showToast });
+          await mod.init({
+            AppState,
+            DemoData,
+            DataLayer,
+            useDemoMode,
+            formatNumber,
+            formatCurrency,
+            formatPercent,
+            showToast,
+          });
         }
       } catch (modErr) {
-        console.warn(`[navigateTo] Modul ${moduleName} konnte nicht geladen werden:`, modErr);
-        // Fallback: Show basic content
+        console.warn(
+          `[navigateTo] Modul ${moduleName} konnte nicht geladen werden:`,
+          modErr
+        );
         if (targetView) {
           targetView.innerHTML = `<div class="view-body"><h2>Modul: ${moduleName}</h2><p class="color-fg-muted">Dieses Modul lädt noch...</p></div>`;
         }
@@ -275,23 +354,40 @@ async function navigateTo(moduleName) {
 /* INIT APP */
 async function initApp() {
   console.log("[initApp] Starting...");
+
+  // 1. Sidebar-Menü rendern
+  renderSidebarNav();
+
+  // 2. Meta Auth initialisieren
   MetaAuthMock.init();
 
-  document.querySelectorAll(".sidebar-nav-button").forEach(btn => {
+  // 3. Event-Listener für Sidebar-Buttons
+  document.querySelectorAll(".sidebar-nav-button").forEach((btn) => {
     btn.addEventListener("click", () => {
       const view = btn.getAttribute("data-view");
       if (view) navigateTo(view);
     });
   });
 
-  const metaBtn = document.getElementById("metaButton");
-  if (metaBtn) {
-    metaBtn.addEventListener("click", () => {
+  // 4. Event-Listener für Meta-Buttons (Sidebar + Topbar)
+  const sidebarMetaBtn = document.getElementById("sidebarMetaConnectButton");
+  const topbarMetaBtn = document.getElementById("metaConnectButton");
+
+  if (sidebarMetaBtn) {
+    sidebarMetaBtn.addEventListener("click", () => {
       if (AppState.metaConnected) MetaAuthMock.disconnect();
       else MetaAuthMock.connectWithPopup();
     });
   }
 
+  if (topbarMetaBtn) {
+    topbarMetaBtn.addEventListener("click", () => {
+      if (AppState.metaConnected) MetaAuthMock.disconnect();
+      else MetaAuthMock.connectWithPopup();
+    });
+  }
+
+  // 5. Start Dashboard
   console.log("[initApp] Navigating to dashboard...");
   await navigateTo("dashboard");
   console.log("[initApp] Complete.");
