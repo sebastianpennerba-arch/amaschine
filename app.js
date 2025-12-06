@@ -1,18 +1,19 @@
 import DataLayer from "./packages/data/index.js";
 import { DemoData } from "./demoData.js";
-import { LoadingStates, LoadingManager } from "./packages/core/loadingStates.js";
-import { ImagePlaceholder, initLazyLoading } from "./packages/core/imagePlaceholder.js";
-import { ButtonFeedback, initButtonFeedback } from "./packages/core/buttonFeedback.js";
 
 /* ========================================
    SignalOne.cloud – Frontend Core
-   APPLE-STYLE CLEAN VERSION - VOLLSTÄNDIG
+   APPLE-STYLE CLEAN VERSION
 ======================================== */
 
 /* META AUTH MOCK */
 const MetaAuthMock = (() => {
   const STORAGE_KEY = "signalone_meta_mock_v1";
-  let state = { connected: false, accessToken: null, user: null };
+  let state = {
+    connected: false,
+    accessToken: null,
+    user: null
+  };
 
   function loadFromStorage() {
     try {
@@ -41,7 +42,7 @@ const MetaAuthMock = (() => {
     updateMetaUI();
   }
 
-  function () {
+  function init() {
     loadFromStorage();
     syncToAppState();
   }
@@ -51,11 +52,14 @@ const MetaAuthMock = (() => {
     setTimeout(() => {
       state.connected = true;
       state.accessToken = "demo_token_123";
-      state.user = { id: "1234567890", name: "SignalOne Demo User" };
+      state.user = {
+        id: "1234567890",
+        name: "SignalOne Demo User"
+      };
       saveToStorage();
       syncToAppState();
       hideGlobalLoader();
-      showToast("Meta Ads (Demo) verbunden", "success");
+      showToast("✅ Meta Ads (Demo) verbunden", "success");
     }, 600);
   }
 
@@ -68,57 +72,60 @@ const MetaAuthMock = (() => {
     showToast("Meta-Verbindung getrennt", "info");
   }
 
-  return { , connectWithPopup, disconnect };
+  return {
+    init,
+    connectWithPopup,
+    disconnect
+  };
 })();
 
-// In app.js - nach initApp()
+/* DATA MODE TOGGLE */
 function initDataModeToggle() {
   const demoBtn = document.getElementById('modeBtnDemo');
   const liveBtn = document.getElementById('modeBtnLive');
-  
+
   if (!demoBtn || !liveBtn) return;
-  
+
   // Initial State
   updateModeButtons();
-  
+
   demoBtn.addEventListener('click', () => {
     AppState.settings.demoMode = true;
     updateModeButtons();
     reloadCurrentView();
+    showToast("📊 Demo-Modus aktiviert", "info");
   });
-  
+
   liveBtn.addEventListener('click', () => {
     AppState.settings.demoMode = false;
-    
+
     // Check if Meta is connected
     if (!AppState.meta?.accessToken) {
       showMetaConnectModal();
       return;
     }
-    
+
     updateModeButtons();
     reloadCurrentView();
+    showToast("🔴 Live-Modus aktiviert", "success");
   });
 }
 
 function updateModeButtons() {
   const demoBtn = document.getElementById('modeBtnDemo');
   const liveBtn = document.getElementById('modeBtnLive');
-  const demoModeBadge = document.querySelector('.demo-mode-badge');
-  
+
   if (AppState.settings.demoMode) {
     demoBtn?.classList.add('active');
     liveBtn?.classList.remove('active');
-    if (demoModeBadge) demoModeBadge.style.display = 'block';
   } else {
     demoBtn?.classList.remove('active');
     liveBtn?.classList.add('active');
-    if (demoModeBadge) demoModeBadge.style.display = 'none';
   }
 }
 
 function reloadCurrentView() {
-  const currentView = AppState.currentView || 'dashboard';
+  const currentView = AppState.currentModule || 'dashboard';
   SignalOne.navigateTo(currentView);
 }
 
@@ -133,9 +140,11 @@ function showMetaConnectModal() {
         <button class="modal-close" onclick="this.closest('.meta-connect-modal').remove()">×</button>
       </div>
       <div class="modal-body">
-        <p>Um Live-Daten zu nutzen, musst du zuerst dein Meta Ads Konto verbinden.</p>
-        <button class="btn-primary btn-connect-meta" onclick="window.SignalOne.connectMeta()">
-          Mit Meta verbinden
+        <p style="margin-bottom:16px;color:var(--color-text-muted);line-height:1.6;">
+          Um Live-Daten zu nutzen, musst du zuerst dein Meta Ads Konto verbinden.
+        </p>
+        <button class="btn-primary" onclick="window.SignalOne.MetaAuthMock.connectWithPopup(); this.closest('.meta-connect-modal').remove();" style="margin-bottom:12px;">
+          🔗 Mit Meta verbinden
         </button>
         <button class="btn-secondary" onclick="this.closest('.meta-connect-modal').remove()">
           Abbrechen
@@ -146,33 +155,29 @@ function showMetaConnectModal() {
   document.body.appendChild(modal);
 }
 
-// In initApp() aufrufen:
-// initDataModeToggle();
-
-
 /* APP STATE */
 const AppState = {
   currentModule: "dashboard",
   metaConnected: false,
-  meta: { 
-    accessToken: null, 
-    user: null, 
-    accountId: null, 
-    accountName: null, 
-    mode: null 
+  meta: {
+    accessToken: null,
+    user: null,
+    accountId: null,
+    accountName: null,
+    mode: null
   },
   selectedBrandId: null,
   selectedCampaignId: null,
   licenseLevel: "free",
   systemHealthy: true,
   notifications: [],
-  settings: { 
-    demoMode: true, 
-    dataMode: "auto", 
-    theme: "titanium", 
-    currency: "EUR", 
-    defaultRange: "last_30_days" 
-  },
+  settings: {
+    demoMode: true,
+    dataMode: "auto",
+    theme: "titanium",
+    currency: "EUR",
+    defaultRange: "last_30_days"
+  }
 };
 
 /* MODULE REGISTRY */
@@ -191,7 +196,7 @@ const modules = {
   brands: () => import("./packages/brands/index.js"),
   shopify: () => import("./packages/shopify/index.js"),
   settings: () => import("./packages/settings/index.js"),
-  onboarding: () => import("./packages/onboarding/index.js"),
+  onboarding: () => import("./packages/onboarding/index.js")
 };
 
 const viewIdMap = {
@@ -209,17 +214,8 @@ const viewIdMap = {
   brands: "brandsView",
   shopify: "shopifyView",
   settings: "settingsView",
-  onboarding: "onboardingView",
+  onboarding: "onboardingView"
 };
-
-/* NAVIGATION STRUCTURE - NUR HAUPTMODULE */
-const mainNavItems = [
-  { key: "dashboard", label: "Dashboard", icon: "dashboard" },
-  { key: "creativeLibrary", label: "Creatives", icon: "library" },
-  { key: "sensei", label: "Sensei", icon: "sensei" },
-  { key: "campaigns", label: "Campaigns", icon: "campaigns" },
-  { key: "academy", label: "Academy", icon: "academy" },
-];
 
 /* HELPERS */
 function useDemoMode() {
@@ -237,10 +233,10 @@ function formatNumber(value) {
 
 function formatCurrency(value, currency = "EUR") {
   if (value == null || isNaN(value)) return "–";
-  return new Intl.NumberFormat("de-DE", { 
-    style: "currency", 
-    currency, 
-    maximumFractionDigits: 0 
+  return new Intl.NumberFormat("de-DE", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0
   }).format(value);
 }
 
@@ -259,7 +255,7 @@ function ensureToastContainer() {
       position: fixed;
       right: 24px;
       bottom: 24px;
-      z-index: 1000;
+      z-index: 10000;
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -272,38 +268,49 @@ function ensureToastContainer() {
 function showToast(message, type = "info", timeout = 3500) {
   const container = ensureToastContainer();
   const toast = document.createElement("div");
-  
+
   let bg = "rgba(248,250,252,0.98)";
-  if (type === "success") bg = "rgba(220,252,231,0.98)";
-  if (type === "warning") bg = "rgba(254,243,199,0.98)";
-  if (type === "error") bg = "rgba(254,226,226,0.98)";
+  let borderColor = "rgba(148,163,184,0.6)";
   
+  if (type === "success") {
+    bg = "rgba(220,252,231,0.98)";
+    borderColor = "rgba(34,197,94,0.8)";
+  }
+  if (type === "warning") {
+    bg = "rgba(254,243,199,0.98)";
+    borderColor = "rgba(245,158,11,0.8)";
+  }
+  if (type === "error") {
+    bg = "rgba(254,226,226,0.98)";
+    borderColor = "rgba(239,68,68,0.8)";
+  }
+
   toast.style.cssText = `
     min-width: 280px;
     max-width: 400px;
     padding: 12px 16px;
-    border-radius: 999px;
+    border-radius: 8px;
     font-size: 0.85rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     background: ${bg};
-    border: 1px solid rgba(148,163,184,0.6);
+    border: 1px solid ${borderColor};
     box-shadow: 0 16px 40px rgba(15,23,42,0.4);
     backdrop-filter: blur(16px);
     color: #0f172a;
     font-weight: 500;
   `;
-  
+
   toast.innerHTML = `
     <span>${message}</span>
-    <button style="font-size:1.3rem;opacity:0.7;cursor:pointer;line-height:1;">×</button>
+    <button style="background:none;border:none;cursor:pointer;font-size:1.2rem;color:inherit;padding:0;">×</button>
   `;
-  
+
   toast.querySelector("button").onclick = () => toast.remove();
   container.appendChild(toast);
-  
+
   if (timeout > 0) {
     setTimeout(() => toast.remove(), timeout);
   }
@@ -326,13 +333,10 @@ function ensureGlobalLoader() {
       backdrop-filter: blur(8px);
     `;
     overlay.innerHTML = `
-      <div style="text-align:center;color:#e5e7eb;">
-        <div style="width:50px;height:50px;border:4px solid rgba(148,163,184,0.3);border-top-color:#3b82f6;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 14px;"></div>
-        <p style="font-size:0.9rem;margin:0;letter-spacing:0.08em;">Lädt...</p>
+      <div style="text-align:center;color:#f9fafb;">
+        <div style="width:48px;height:48px;border:4px solid rgba(255,255,255,0.2);border-top-color:#fff;border-radius:50%;margin:0 auto 16px;animation:spin 0.8s linear infinite;"></div>
+        <div style="font-size:0.9rem;letter-spacing:0.05em;">Lädt...</div>
       </div>
-      <style>
-        @keyframes spin { to { transform: rotate(360deg); } }
-      </style>
     `;
     document.body.appendChild(overlay);
   }
@@ -340,7 +344,8 @@ function ensureGlobalLoader() {
 }
 
 function showGlobalLoader() {
-  ensureGlobalLoader().style.display = "flex";
+  const loader = ensureGlobalLoader();
+  loader.style.display = "flex";
 }
 
 function hideGlobalLoader() {
@@ -348,158 +353,70 @@ function hideGlobalLoader() {
   if (loader) loader.style.display = "none";
 }
 
-/* UI UPDATES */
+/* META UI UPDATE */
 function updateMetaUI() {
-  const connected = AppState.metaConnected;
-  const mode = AppState.meta.mode || "demo";
-  
-  // Topbar Button
-  const topbarBtn = document.getElementById("topbarMetaButton");
-  if (topbarBtn) {
-    topbarBtn.textContent = connected ? `✓ VERBUNDEN (${mode.toUpperCase()})` : "META VERBINDEN";
-    topbarBtn.classList.toggle("connected", connected);
-  }
-  
-  // Sidebar Status
-  const statusDot = document.getElementById("metaStatusDot");
-  const statusLabel = document.getElementById("metaStatusLabel");
-  if (statusDot) {
-    statusDot.classList.toggle("connected", connected);
-  }
-  if (statusLabel) {
-    statusLabel.textContent = connected ? `Meta: ${mode}` : "Meta: –";
-  }
-  
-  updateTopbarGreeting();
-}
+  const btn = document.getElementById("metaButton");
+  const dot = document.getElementById("statusMetaDot");
+  const text = document.getElementById("statusMetaText");
 
-function updateTopbarGreeting() {
-  const greetEl = document.getElementById("topbarGreeting");
-  if (!greetEl) return;
-  
-  const hour = new Date().getHours();
-  let greeting = "GUTEN ABEND";
-  if (hour < 12) greeting = "GUTEN MORGEN";
-  else if (hour < 18) greeting = "GUTEN TAG";
-  
-  const user = AppState.meta.user?.name || "SignalOne Demo User";
-  greetEl.textContent = `${greeting}, ${user}`.toUpperCase();
-}
-
-function updateTopbarDateTime() {
-  const dateEl = document.getElementById("topbarDate");
-  const timeEl = document.getElementById("topbarTime");
-  const now = new Date();
-  
-  if (dateEl) {
-    const days = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-    const day = days[now.getDay()];
-    const date = now.toLocaleDateString('de-DE', { 
-      day: '2-digit', 
-      month: '2-digit', 
-      year: 'numeric' 
-    });
-    dateEl.textContent = `${day}, ${date}`;
-  }
-  
-  if (timeEl) {
-    timeEl.textContent = now.toLocaleTimeString('de-DE', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-  }
-}
-
-function updateNotificationBadge() {
-  const badge = document.getElementById("notificationsBadge");
-  if (!badge) return;
-  
-  const count = AppState.notifications.length;
-  if (count > 0) {
-    badge.textContent = count;
-    badge.classList.remove("hidden");
+  if (AppState.metaConnected) {
+    if (btn) {
+      btn.textContent = "✓ VERBUNDEN (DEMO)";
+      btn.classList.add("connected");
+    }
+    if (dot) dot.classList.add("connected");
+    if (text) text.textContent = "Meta: connected";
   } else {
-    badge.classList.add("hidden");
+    if (btn) {
+      btn.textContent = "✦ NICHT VERBUNDEN";
+      btn.classList.remove("connected");
+    }
+    if (dot) dot.classList.remove("connected");
+    if (text) text.textContent = "Meta: demo";
   }
 }
 
 /* NAVIGATION */
-function navigateTo(moduleKey) {
-  if (!moduleKey || AppState.currentModule === moduleKey) return;
-  
-  AppState.currentModule = moduleKey;
-  setActiveNavItem(moduleKey);
-  const viewId = getViewIdForModule(moduleKey);
-  setActiveView(viewId);
-  loadModule(moduleKey);
-  
-  // Close tools dropdown if open
-  const dropdown = document.getElementById("toolsDropdown");
-  if (dropdown) dropdown.classList.add("hidden");
-}
+async function navigateTo(moduleKey) {
+  console.log(`[Nav] → ${moduleKey}`);
 
-function createNavButton(item) {
-  const btn = document.createElement("button");
-  btn.className = "sidebar-nav-button";
-  btn.setAttribute("data-module", item.key);
-  
-  btn.innerHTML = `
-    <span class="sidebar-btn-icon">
-      <svg viewBox="0 0 24 24">
-        <use href="#icon-${item.icon}"></use>
-      </svg>
-    </span>
-    <span class="sidebar-nav-label">${item.label}</span>
-  `;
-  
-  btn.addEventListener("click", () => navigateTo(item.key));
-  return btn;
-}
-
-function renderNav() {
-  const root = document.getElementById("sidebarNav");
-  if (!root) return;
-  
-  root.innerHTML = "";
-  
-  mainNavItems.forEach((item) => {
-    const li = document.createElement("li");
-    li.className = "sidebar-nav-item";
-    li.appendChild(createNavButton(item));
-    root.appendChild(li);
-  });
-  
-  setActiveNavItem(AppState.currentModule);
-}
-
-function setActiveNavItem(moduleKey) {
-  const buttons = document.querySelectorAll(".sidebar-nav-button[data-module]");
-  buttons.forEach((btn) => {
-    btn.classList.toggle("active", btn.getAttribute("data-module") === moduleKey);
-  });
-}
-
-/* VIEW HANDLING */
-function setActiveView(viewId) {
-  const allViews = document.querySelectorAll(".view");
-  allViews.forEach((v) => v.classList.remove("is-active"));
-  
-  const target = document.getElementById(viewId);
-  if (target) {
-    target.classList.add("is-active");
-  }
-}
-
-async function loadModule(moduleKey) {
-  const loader = modules[moduleKey];
-  if (!loader) {
-    console.warn("[ModuleLoader] Unknown module:", moduleKey);
+  if (!modules[moduleKey]) {
+    console.error(`[Nav] Module "${moduleKey}" not found.`);
     return;
   }
-  
+
+  // Hide all views
+  document.querySelectorAll(".view").forEach(v => {
+    v.classList.remove("is-active");
+  });
+
+  // Update sidebar active state
+  document.querySelectorAll(".sidebar-nav-button").forEach(btn => {
+    btn.classList.remove("active");
+    if (btn.dataset.view === moduleKey) {
+      btn.classList.add("active");
+    }
+  });
+
+  // Get target view
+  const targetViewId = getViewIdForModule(moduleKey);
+  const targetSection = document.getElementById(targetViewId);
+
+  if (!targetSection) {
+    console.error(`[Nav] View element #${targetViewId} not found.`);
+    return;
+  }
+
+  // Show view
+  targetSection.classList.add("is-active");
+  AppState.currentModule = moduleKey;
+
+  // Load module
   try {
-    const mod = await loader();
+    showGlobalLoader();
+    const mod = await modules[moduleKey]();
     const initFn = mod.default?.init || mod.init;
+
     if (typeof initFn === "function") {
       await initFn({
         AppState,
@@ -508,287 +425,101 @@ async function loadModule(moduleKey) {
         useDemoMode,
         formatNumber,
         formatCurrency,
-        formatPercent,
-        showToast,
+        formatPercent
       });
+    } else {
+      console.warn(`[Nav] Module "${moduleKey}" has no init function.`);
     }
+
+    hideGlobalLoader();
   } catch (err) {
-    console.error("[ModuleLoader] Failed to load:", moduleKey, err);
-    showToast(`Modul "${moduleKey}" konnte nicht geladen werden`, "error");
+    console.error(`[Nav] Failed to load "${moduleKey}":`, err);
+    hideGlobalLoader();
+    showToast(`Fehler beim Laden von ${moduleKey}`, "error");
   }
 }
 
-/* TOOLS DROPDOWN */
-function toggleToolsDropdown() {
-  const dropdown = document.getElementById("toolsDropdown");
-  if (!dropdown) return;
-  dropdown.classList.toggle("hidden");
-}
+/* INIT APP */
+async function initApp() {
+  console.log("[SignalOne] App initialization...");
 
-function wireToolsDropdown() {
-  const toolsBtn = document.getElementById("topbarToolsButton");
-  const dropdown = document.getElementById("toolsDropdown");
-  
-  if (toolsBtn) {
-    toolsBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      toggleToolsDropdown();
+  // Update time
+  function updateTime() {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString("de-DE", {
+      hour: "2-digit",
+      minute: "2-digit"
     });
+    const timeEl = document.getElementById("topbarTime");
+    if (timeEl) timeEl.textContent = timeStr;
   }
-  
-  if (dropdown) {
-    const items = dropdown.querySelectorAll(".tools-dropdown-item");
-    items.forEach((item) => {
-      item.addEventListener("click", () => {
-        const moduleKey = item.getAttribute("data-module");
-        navigateTo(moduleKey);
-      });
-    });
-    
-    // Close dropdown when clicking outside
-    document.addEventListener("click", (e) => {
-      if (!dropdown.contains(e.target) && e.target !== toolsBtn) {
-        dropdown.classList.add("hidden");
-      }
-    });
-  }
-}
+  updateTime();
+  setInterval(updateTime, 30000);
 
-/* META CONNECTION TOGGLE */
-function toggleMetaConnection() {
-  if (AppState.metaConnected) {
-    MetaAuthMock.disconnect();
-  } else {
-    MetaAuthMock.connectWithPopup();
-  }
-}
-
-/* BRAND & CAMPAIGN SELECTS */
-function populateBrandSelect() {
-  const select = document.getElementById("topbarBrandSelect");
-  if (!select) return;
-  
-  const brands = DemoData?.brands || [{ id: "1", name: "Deine Brand" }];
-  select.innerHTML = "";
-  
-  brands.forEach((b) => {
-    const opt = document.createElement("option");
-    opt.value = b.id;
-    opt.textContent = b.name;
-    select.appendChild(opt);
+  // Wire sidebar nav
+  document.querySelectorAll(".sidebar-nav-button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const view = btn.dataset.view;
+      if (view) navigateTo(view);
+    });
   });
-  
-  if (AppState.selectedBrandId) {
-    select.value = AppState.selectedBrandId;
-  } else if (brands[0]) {
-    AppState.selectedBrandId = brands[0].id;
-    select.value = brands[0].id;
-  }
-}
 
-function populateCampaignSelect() {
-  const select = document.getElementById("topbarCampaignSelect");
-  if (!select) return;
-  
-  const campaigns = [{ id: "1", name: "SignalOne Demo User" }];
-  select.innerHTML = "";
-  
-  campaigns.forEach((c) => {
-    const opt = document.createElement("option");
-    opt.value = c.id;
-    opt.textContent = c.name;
-    select.appendChild(opt);
+  // Wire settings button
+  document.querySelector(".sidebar-settings-button")?.addEventListener("click", () => {
+    navigateTo("settings");
   });
-  
-  if (AppState.selectedCampaignId) {
-    select.value = AppState.selectedCampaignId;
-  } else if (campaigns[0]) {
-    AppState.selectedCampaignId = campaigns[0].id;
-    select.value = campaigns[0].id;
-  }
-}
 
-function wireBrandAndCampaignSelects() {
-  const brandSelect = document.getElementById("topbarBrandSelect");
-  const campaignSelect = document.getElementById("topbarCampaignSelect");
-  
-  if (brandSelect) {
-    brandSelect.addEventListener("change", () => {
-      AppState.selectedBrandId = brandSelect.value;
-      AppState.selectedCampaignId = null;
-      populateCampaignSelect();
-    });
-  }
-  
-  if (campaignSelect) {
-    campaignSelect.addEventListener("change", () => {
-      AppState.selectedCampaignId = campaignSelect.value;
-    });
-  }
-}
-
-// In app.js - Meta Connect Implementation
-
-window.SignalOne.connectMeta = async function() {
-  console.log('[Meta] Starting OAuth flow...');
-  
-  // Meta OAuth Parameters
-  const CLIENT_ID = 'YOUR_META_APP_ID'; // TODO: Replace with real ID
-  const REDIRECT_URI = window.location.origin + '/oauth/callback';
-  const STATE = generateRandomState();
-  
-  // Save state to verify later
-  sessionStorage.setItem('meta_oauth_state', STATE);
-  
-  // Meta OAuth URL
-  const authUrl = `https://www.facebook.com/v18.0/dialog/oauth?` +
-    `client_id=${CLIENT_ID}` +
-    `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
-    `&state=${STATE}` +
-    `&scope=ads_management,ads_read,business_management`;
-  
-  // Open OAuth in popup
-  const popup = window.open(
-    authUrl,
-    'MetaConnect',
-    'width=600,height=700,left=200,top=100'
-  );
-  
-  // Listen for callback
-  window.addEventListener('message', handleMetaCallback);
-};
-
-function handleMetaCallback(event) {
-  // Verify origin
-  if (!event.origin.startsWith(window.location.origin)) return;
-  
-  const { type, data } = event.data;
-  
-  if (type === 'META_OAUTH_SUCCESS') {
-    console.log('[Meta] OAuth successful:', data);
-    
-    // Save token
-    AppState.meta = {
-      accessToken: data.access_token,
-      userId: data.user_id,
-      expiresAt: Date.now() + (data.expires_in * 1000)
-    };
-    
-    // Update UI
-    showMetaConnectedBadge();
-    
-    // Switch to live mode
-    AppState.settings.demoMode = false;
-    updateModeButtons();
-    
-    // Reload current view
-    reloadCurrentView();
-    
-    // Show success message
-    showToast('✅ Meta Ads erfolgreich verbunden!', 'success');
-  } else if (type === 'META_OAUTH_ERROR') {
-    console.error('[Meta] OAuth error:', data);
-    showToast('❌ Meta-Verbindung fehlgeschlagen', 'error');
-  }
-}
-
-function showMetaConnectedBadge() {
-  const badge = document.querySelector('.meta-status-badge');
-  if (badge) {
-    badge.textContent = '✅ Meta verbunden';
-    badge.classList.add('connected');
-  }
-}
-
-function generateRandomState() {
-  return Math.random().toString(36).substring(2, 15) + 
-         Math.random().toString(36).substring(2, 15);
-}
-
-function showToast(message, type = 'info') {
-  const toast = document.createElement('div');
-  toast.className = `toast toast-${type}`;
-  toast.textContent = message;
-  
-  document.body.appendChild(toast);
-  
-  setTimeout(() => toast.classList.add('visible'), 10);
-  setTimeout(() => {
-    toast.classList.remove('visible');
-    setTimeout(() => toast.remove(), 300);
-  }, 3000);
-}
-
-/* BOOTSTRAP */
-document.addEventListener("DOMContentLoaded", () => {
-  // Init Meta Auth
-  MetaAuthMock.init();
-  
-  // Render Navigation
-  renderNav();
-  
-  // Populate Selects
-  populateBrandSelect();
-  populateCampaignSelect();
-  wireBrandAndCampaignSelects();
-  
-  // Wire Tools Dropdown
-  wireToolsDropdown();
-  
-  // Set Initial View
-  const initialViewId = getViewIdForModule(AppState.currentModule);
-  setActiveView(initialViewId);
-  
-  // Wire Buttons
-    document.getElementById("topbarMetaButton")?.addEventListener("click", async (e) => {
-    await ButtonFeedback.withFeedback(e.target, async () => {
-      if (AppState.metaConnected) {
+  // Wire meta button
+  document.getElementById("metaButton")?.addEventListener("click", () => {
+    if (AppState.metaConnected) {
+      if (confirm("Meta-Verbindung trennen?")) {
         MetaAuthMock.disconnect();
-      } else {
-        await MetaAuthMock.connectWithPopup();
       }
-    }, {
-      loadingText: 'Verbinde...',
-      successText: '✓ Verbunden',
-      errorText: '✗ Verbindung fehlgeschlagen'
+    } else {
+      MetaAuthMock.connectWithPopup();
+    }
+  });
+
+  // Wire tools dropdown
+  const toolsBtn = document.getElementById("toolsButton");
+  const toolsDropdown = document.getElementById("toolsDropdown");
+
+  toolsBtn?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toolsDropdown?.classList.toggle("hidden");
+  });
+
+  document.addEventListener("click", () => {
+    toolsDropdown?.classList.add("hidden");
+  });
+
+  document.querySelectorAll(".tools-dropdown-item").forEach(item => {
+    item.addEventListener("click", () => {
+      const view = item.dataset.view;
+      if (view) navigateTo(view);
+      toolsDropdown?.classList.add("hidden");
     });
   });
-  document.getElementById("sidebarSettingsButton")?.addEventListener("click", () => navigateTo("settings"));
-  document.getElementById("notificationsButton")?.addEventListener("click", () => {
-    showToast("Keine neuen Benachrichtigungen", "info");
-  });
-  document.getElementById("profileButton")?.addEventListener("click", () => {
-    showToast("Profil-Einstellungen", "info");
-  });
-  
-  // Update UI
-  updateMetaUI();
-  updateTopbarDateTime();
-  updateNotificationBadge();
-  
-  // DateTime Interval
-  setInterval(updateTopbarDateTime, 60000);
-  
-  // Load Initial Module
-  loadModule(AppState.currentModule);
 
-  // Init Loading Systems
-  initLazyLoading();
-  initButtonFeedback();
-  
-  // Make globally available
-  window.LoadingStates = LoadingStates;
-  window.LoadingManager = LoadingManager;
-  window.ImagePlaceholder = ImagePlaceholder;
-  window.ButtonFeedback = ButtonFeedback;
-  
-  console.log("[SignalOne] ✓ Loading Systems initialized"); 
-});
+  // Initialize Meta Mock & Toggle
+  MetaAuthMock.init();
+  initDataModeToggle();
 
-/* GLOBAL EXPORTS */
-window.SignalOne = {
-  AppState,
-  navigateTo,
-  showToast,
-  MetaAuth: MetaAuthMock,
-};
+  // Load dashboard
+  await navigateTo("dashboard");
+
+  // Expose API
+  window.SignalOne = {
+    navigateTo,
+    AppState,
+    DemoData,
+    DataLayer,
+    MetaAuthMock,
+    showToast
+  };
+
+  console.log("[SignalOne] App ready.");
+}
+
+// Start app
+document.addEventListener("DOMContentLoaded", initApp);
