@@ -1583,232 +1583,228 @@ table td {
     font-size: 0.9rem;
   }
 }
+
 /* ============================================================
-   15) DASHBOARD EXTENSION – VisionOS Tabs + Panels
+   15) ACADEMY – Eigenständiges Modul
    ============================================================ */
 
-/* ---------------------------------------------
-   VisionOS – Segmented Tab Bar
-   --------------------------------------------- */
-
-.dashboard-tabs {
-  width: 100%;
+.academy-root {
   display: flex;
-  justify-content: flex-start;
-  gap: 8px;
-  margin-bottom: 22px;
-  padding: 6px;
-  border-radius: 14px;
-
-  background: rgba(255, 255, 255, 0.38);
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
-
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  box-shadow:
-    0 8px 28px rgba(15, 23, 42, 0.18),
-    0 0 0 0.6px rgba(255, 255, 255, 0.88) inset;
+  flex-direction: column;
+  gap: 22px;
 }
 
-.dashboard-tab {
-  padding: 8px 18px;
-  border-radius: 10px;
-  font-size: 0.82rem;
+.academy-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.academy-header-main {
+  max-width: 540px;
+}
+
+.academy-kicker {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.45em;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+.academy-title {
+  font-size: 1.4rem;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  color: #0f172a;
+  margin: 0 0 4px;
+}
+
+.academy-subtitle {
+  font-size: 0.9rem;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.academy-header-side {
+  min-width: 220px;
+  max-width: 260px;
+  padding: 16px 16px 14px;
+  border-radius: 14px;
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(248, 250, 252, 0.98),
+    rgba(226, 232, 240, 0.96)
+  );
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  box-shadow:
+    0 18px 40px rgba(15, 23, 42, 0.28),
+    0 0 0 0.6px rgba(255, 255, 255, 0.9) inset;
+  font-size: 0.78rem;
+  color: #4b5563;
+}
+
+.academy-header-side strong {
+  color: #0f172a;
+}
+
+/* Filter / Level Row */
+
+.academy-filters {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.academy-chip-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.academy-chip {
+  padding: 6px 13px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.55);
+  background: #f8fafc;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
   color: #475569;
   cursor: pointer;
-
-  transition:
-    background 0.18s ease,
-    box-shadow 0.18s ease,
-    color 0.18s ease;
+  transition: all 0.18s ease;
 }
 
-.dashboard-tab:hover {
-  background: rgba(255, 255, 255, 0.55);
-  color: #1e293b;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+.academy-chip.active {
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  border-color: rgba(79, 70, 229, 0.96);
+  color: #f9fafb;
+  box-shadow:
+    0 18px 40px rgba(37, 99, 235, 0.5),
+    0 0 0 0.6px rgba(255, 255, 255, 0.9) inset;
 }
 
-/* ACTIVE TAB */
-.dashboard-tab.active {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.92),
-    rgba(241, 245, 249, 0.88)
-  );
+.academy-search {
+  min-width: 220px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: #f8fafc;
+  font-size: 0.82rem;
   color: #0f172a;
-
-  box-shadow:
-    0 12px 34px rgba(15, 23, 42, 0.18),
-    0 0 0 0.8px rgba(255, 255, 255, 0.95) inset,
-    0 0 0 1px rgba(148, 163, 184, 0.55);
 }
 
-/* ---------------------------------------------
-   DASHBOARD PANELS (Overview / DeepDive / Academy)
-   --------------------------------------------- */
+/* Course Grid */
 
-.dashboard-panel {
-  display: none;
-  animation: fadeInUp 0.24s ease forwards;
-}
-
-.dashboard-panel.active {
-  display: block;
-}
-
-/* ---------------------------------------------
-   VisionOS – Progress Launch Bar
-   --------------------------------------------- */
-
-.dashboard-launchbar {
-  margin: 24px 0 32px;
-  width: 100%;
-  height: 14px;
-
-  background: rgba(255,255,255,0.4);
-  border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.45);
-
-  position: relative;
-  overflow: hidden;
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-}
-
-.dashboard-launchbar-fill {
-  height: 100%;
-  width: 0%;
-  border-radius: 999px;
-
-  background: linear-gradient(90deg, #c8a451, #facc15, #d1a237);
-  box-shadow:
-    0 0 14px rgba(234, 179, 8, 0.55),
-    0 0 0 0.8px rgba(255,255,255,0.8) inset;
-
-  transition: width 0.6s cubic-bezier(.34,.9,.42,.99);
-}
-
-/* ---------------------------------------------
-   OVERVIEW PANEL
-   --------------------------------------------- */
-
-.dashboard-overview-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0,1fr));
-  gap: 16px;
-}
-
-.dashboard-overview-card {
-  background: var(--surface);
-  padding: 18px 20px;
-  border-radius: 18px;
-
-  border: 1px solid rgba(148, 163, 184, 0.32);
-  box-shadow:
-    0 20px 45px rgba(15, 23, 42, 0.12),
-    0 0 0 0.6px rgba(255,255,255,0.85) inset;
-
-  transition:
-    box-shadow 0.2s ease-out,
-    transform 0.12s ease-out;
-}
-
-.dashboard-overview-card:hover {
-  transform: translateY(-3px);
-  box-shadow:
-    0 26px 60px rgba(15, 23, 42, 0.22),
-    0 0 0 0.7px rgba(255,255,255,0.95) inset;
-}
-
-/* ---------------------------------------------
-   DEEP DIVE PANEL
-   --------------------------------------------- */
-
-.dashboard-deepdive {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 18px;
-}
-
-.dashboard-deepdive-box {
-  background: var(--surface);
-  padding: 20px;
-  border-radius: 20px;
-  border: 1px solid rgba(148,163,184,0.35);
-
-  box-shadow:
-    0 22px 60px rgba(15,23,42,0.14),
-    0 0 0 0.4px rgba(255,255,255,0.85) inset;
-}
-
-/* ---------------------------------------------
-   ACADEMY PANEL
-   --------------------------------------------- */
-
-.dashboard-academy {
+.academy-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 22px;
+  gap: 20px;
+  margin-top: 6px;
 }
 
 .academy-card {
   border-radius: 18px;
-  padding: 22px;
+  padding: 20px 20px 16px;
   background: var(--surface);
-  border: 1px solid rgba(148,163,184,0.32);
+  border: 1px solid rgba(148, 163, 184, 0.32);
   box-shadow:
-    0 20px 50px rgba(15,23,42,0.16),
-    0 0 0 0.7px rgba(255,255,255,0.88) inset;
+    0 20px 50px rgba(15, 23, 42, 0.16),
+    0 0 0 0.7px rgba(255, 255, 255, 0.88) inset;
 
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
 
-  transition: transform 0.2s ease, box-shadow 0.22s ease;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.2s ease;
 }
 
 .academy-card:hover {
   transform: translateY(-4px);
   box-shadow:
-    0 30px 82px rgba(15,23,42,0.22),
-    0 0 0 0.8px rgba(255,255,255,0.95) inset;
+    0 30px 82px rgba(15, 23, 42, 0.25),
+    0 0 0 0.8px rgba(255, 255, 255, 0.96) inset;
+}
+
+.academy-tag {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #64748b;
+}
+
+.academy-badge-level {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+
+  background: rgba(22, 163, 74, 0.08);
+  border: 1px solid rgba(22, 163, 74, 0.55);
+  color: #166534;
+}
+
+.academy-badge-level.advanced {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(37, 99, 235, 0.8);
+  color: #1d4ed8;
 }
 
 .academy-card-title {
-  font-size: 1.1rem;
+  font-size: 1.02rem;
   font-weight: 600;
   color: #0f172a;
 }
 
 .academy-card-text {
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   color: #475569;
-  line-height: 1.46;
+  line-height: 1.5;
 }
 
-/* ---------------------------------------------
-   Responsive for Dashboard Tabs + Panels
-   --------------------------------------------- */
-
-@media (max-width: 1000px) {
-  .dashboard-deepdive {
-    grid-template-columns: 1fr;
-  }
-
-  .dashboard-academy {
-    grid-template-columns: 1fr;
-  }
-
-  .dashboard-overview-grid {
-    grid-template-columns: repeat(2, minmax(0,1fr));
-  }
+.academy-meta-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.76rem;
+  color: #6b7280;
+  margin-top: 4px;
 }
 
-@media (max-width: 700px) {
-  .dashboard-overview-grid {
+.academy-meta-chip {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 500;
+}
+
+/* CTA Button reuse */
+
+.academy-card .meta-button {
+  margin-top: 8px;
+}
+
+/* Responsive */
+
+@media (max-width: 1100px) {
+  .academy-grid {
     grid-template-columns: 1fr;
+  }
+
+  .academy-header {
+    flex-direction: column;
+  }
+
+  .academy-header-side {
+    max-width: 100%;
   }
 }
