@@ -41,7 +41,7 @@ const MetaAuthMock = (() => {
     updateMetaUI();
   }
 
-  function init() {
+  function () {
     loadFromStorage();
     syncToAppState();
   }
@@ -68,8 +68,87 @@ const MetaAuthMock = (() => {
     showToast("Meta-Verbindung getrennt", "info");
   }
 
-  return { init, connectWithPopup, disconnect };
+  return { , connectWithPopup, disconnect };
 })();
+
+// In app.js - nach initApp()
+function initDataModeToggle() {
+  const demoBtn = document.getElementById('modeBtnDemo');
+  const liveBtn = document.getElementById('modeBtnLive');
+  
+  if (!demoBtn || !liveBtn) return;
+  
+  // Initial State
+  updateModeButtons();
+  
+  demoBtn.addEventListener('click', () => {
+    AppState.settings.demoMode = true;
+    updateModeButtons();
+    reloadCurrentView();
+  });
+  
+  liveBtn.addEventListener('click', () => {
+    AppState.settings.demoMode = false;
+    
+    // Check if Meta is connected
+    if (!AppState.meta?.accessToken) {
+      showMetaConnectModal();
+      return;
+    }
+    
+    updateModeButtons();
+    reloadCurrentView();
+  });
+}
+
+function updateModeButtons() {
+  const demoBtn = document.getElementById('modeBtnDemo');
+  const liveBtn = document.getElementById('modeBtnLive');
+  const demoModeBadge = document.querySelector('.demo-mode-badge');
+  
+  if (AppState.settings.demoMode) {
+    demoBtn?.classList.add('active');
+    liveBtn?.classList.remove('active');
+    if (demoModeBadge) demoModeBadge.style.display = 'block';
+  } else {
+    demoBtn?.classList.remove('active');
+    liveBtn?.classList.add('active');
+    if (demoModeBadge) demoModeBadge.style.display = 'none';
+  }
+}
+
+function reloadCurrentView() {
+  const currentView = AppState.currentView || 'dashboard';
+  SignalOne.navigateTo(currentView);
+}
+
+function showMetaConnectModal() {
+  const modal = document.createElement('div');
+  modal.className = 'meta-connect-modal';
+  modal.innerHTML = `
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>🔴 Meta Ads verbinden</h3>
+        <button class="modal-close" onclick="this.closest('.meta-connect-modal').remove()">×</button>
+      </div>
+      <div class="modal-body">
+        <p>Um Live-Daten zu nutzen, musst du zuerst dein Meta Ads Konto verbinden.</p>
+        <button class="btn-primary btn-connect-meta" onclick="window.SignalOne.connectMeta()">
+          Mit Meta verbinden
+        </button>
+        <button class="btn-secondary" onclick="this.closest('.meta-connect-modal').remove()">
+          Abbrechen
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+// In initApp() aufrufen:
+// initDataModeToggle();
+
 
 /* APP STATE */
 const AppState = {
