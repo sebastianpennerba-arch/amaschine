@@ -16,80 +16,64 @@
   <!-- ... deine <svg> Symbol-Definitionen hier ... -->
 
   <!-- SIDEBAR -->
-  <nav class="sidebar">
-    <div class="sidebar-header">
-      <img src="./Logo_re_Sc.png" class="sidebar-logo" alt="SignalOne Logo" />
+ <nav class="sidebar-nav">
+  <!-- 4 CORE MODULE -->
+  <a href="#" class="nav-item active" data-module="dashboard">
+    <span class="nav-icon">📊</span>
+    <span class="nav-label">Dashboard</span>
+  </a>
+
+  <a href="#" class="nav-item" data-module="creativeLibrary">
+    <span class="nav-icon">🎨</span>
+    <span class="nav-label">Creatives</span>
+  </a>
+
+  <a href="#" class="nav-item" data-module="sensei">
+    <span class="nav-icon">🤖</span>
+    <span class="nav-label">Sensei</span>
+  </a>
+
+  <a href="#" class="nav-item" data-module="academy">
+    <span class="nav-icon">🎓</span>
+    <span class="nav-label">Academy</span>
+    <span class="nav-badge">NEU</span>
+  </a>
+
+  <div class="nav-separator"></div>
+
+  <!-- DROPDOWN: MEHR TOOLS -->
+  <div class="nav-item nav-more" data-dropdown="tools">
+    <div class="nav-item-content">
+      <span class="nav-icon">⚡</span>
+      <span class="nav-label">Mehr Tools</span>
     </div>
+    <span class="nav-arrow">▼</span>
+  </div>
 
-    <ul id="navbar" class="sidebar-nav"></ul>
+  <div class="nav-dropdown" id="dropdown-tools">
+    <a href="#" class="nav-item" data-module="campaigns"><span class="nav-icon-small">📋</span><span class="nav-label">Kampagnen</span></a>
+    <a href="#" class="nav-item" data-module="testingLog"><span class="nav-icon-small">🧪</span><span class="nav-label">Testing Log</span></a>
+    <a href="#" class="nav-item" data-module="reports"><span class="nav-icon-small">📈</span><span class="nav-label">Reports</span></a>
+    <a href="#" class="nav-item" data-module="analytics"><span class="nav-icon-small">📊</span><span class="nav-label">Analytics</span></a>
+  </div>
 
-    <div class="sidebar-footer">
-      <div class="sidebar-status-row">
-        <span id="sidebarSystemDot" class="status-dot"></span>
-        <span id="sidebarSystemLabel">System Health: OK</span>
-      </div>
-      <div class="sidebar-status-row">
-        <span id="sidebarCampaignDot" class="status-dot"></span>
-        <span id="sidebarCampaignLabel">Campaign Health: n/a</span>
-      </div>
-      <div class="sidebar-status-row">
-        <span id="sidebarMetaDot" class="status-dot"></span>
-        <span id="sidebarMetaLabel">Meta Ads: Getrennt</span>
-      </div>
-
-      <button id="settingsButton" class="sidebar-footer-button">
-        SETTINGS
-      </button>
+  <!-- DROPDOWN: EINSTELLUNGEN -->
+  <div class="nav-item nav-more" data-dropdown="settings">
+    <div class="nav-item-content">
+      <span class="nav-icon">⚙️</span>
+      <span class="nav-label">Einstellungen</span>
     </div>
-  </nav>
+    <span class="nav-arrow">▼</span>
+  </div>
 
-  <!-- APP SHELL -->
-  <div class="app-shell">
-    <header class="topbar" id="topbar">
-      <div class="topbar-left">
-        <div id="topbarGreeting" class="topbar-greeting">Guten Tag!</div>
-        <div id="topbarDate" class="topbar-date">Datum: –</div>
-        <div id="topbarTime" class="topbar-time">Zeit: –</div>
-      </div>
-
-      <div class="topbar-right">
-        <select id="brandSelect" class="topbar-select"></select>
-        <select id="campaignSelect" class="topbar-select"></select>
-        <button id="metaConnectButton" class="meta-button">META VERBINDEN</button>
-        <button id="notificationsButton" class="icon-button" data-tooltip="Benachrichtigungen">🔔</button>
-        <button id="profileButton" class="icon-button" data-tooltip="Profil">👤</button>
-        <button id="logoutButton" class="icon-button" data-tooltip="Logout">⏻</button>
-      </div>
-    </header>
-
-    <main id="mainView" class="main-content">
-      <section
-        id="dashboardView"
-        class="view"
-        data-view-title="DASHBOARD"
-        data-header-theme="c"
-      ></section>
-
-      <section
-        id="creativeLibraryView"
-        class="view hidden"
-        data-view-title="CREATIVE LIBRARY"
-        data-header-theme="c"
-      ></section>
-
-      <section
-        id="campaignsView"
-        class="view hidden"
-        data-view-title="KAMPAGNEN"
-        data-header-theme="c"
-      ></section>
-
-      <section
-        id="senseiView"
-        class="view hidden"
-        data-view-title="SENSEI"
-        data-header-theme="c"
-      ></section>
+  <div class="nav-dropdown" id="dropdown-settings">
+    <a href="#" class="nav-item" data-module="team"><span class="nav-icon-small">👥</span><span class="nav-label">Team</span></a>
+    <a href="#" class="nav-item" data-module="brands"><span class="nav-icon-small">🏢</span><span class="nav-label">Brands</span></a>
+    <a href="#" class="nav-item" data-module="shopify"><span class="nav-icon-small">🛍️</span><span class="nav-label">Shopify</span></a>
+    <a href="#" class="nav-item" data-module="roast"><span class="nav-icon-small">🔥</span><span class="nav-label">Roast</span></a>
+    <a href="#" class="nav-item" data-module="settings"><span class="nav-icon-small">⚙️</span><span class="nav-label">Settings</span></a>
+  </div>
+</nav>
 
       <!-- NEU: ACADEMY -->
       <section
@@ -170,7 +154,11 @@
       ></section>
     </main>
   </div>
-
+      <section 
+        id="view-academy" 
+        class="view hidden" 
+        data-view-title="SETTINGS"
+        data-header-theme="c"</section>
   <!-- LOADER -->
   <div id="globalLoader" class="global-loader hidden">
     <div class="global-loader-inner">
