@@ -1,279 +1,454 @@
 // packages/sensei/render.js
-// --------------------------------------------------------
-// Visuelle Sensei-Ansicht (VisionOS-inspiriert)
-// - Nutzt normalisierte Analyse aus compute.js
-// - Kein Daten-Fetch hier, nur reines Rendern
-// --------------------------------------------------------
-
-import {
-  formatCurrency,
-  formatNumber,
-  formatPercent,
-} from "./compute.js";
+// -----------------------------------------------------------------------------
+// Sensei Render Layer
+// - Baut die komplette Sensei View (AdSensei • AI Suite)
+// - Nutzt das normalisierte Modell aus compute.js
+// -----------------------------------------------------------------------------
 
 /**
- * Kleinere Badge-Komponente je nach Tonalität.
+ * Render Entry
+ * @param {HTMLElement} section
+ * @param {Object|null} model - normalisierte Sensei-Analyse
+ * @param {Object} [opts]
  */
-function toneBadge(tone, label) {
-  const baseLabel = label || "";
-  const toneClass = {
-    good: "sensei-badge sensei-badge--good",
-    warning: "sensei-badge sensei-badge--warning",
-    critical: "sensei-badge sensei-badge--critical",
-  }[tone || "warning"];
+export function renderSenseiView(section, model, opts = {}) {
+  if (!section) return;
 
-  return `<span class="${toneClass}">${baseLabel || tone.toUpperCase()}</span>`;
-}
+  const hasData = !!model && Array.isArray(model.creatives) && model.creatives.length;
 
-/**
- * Render der KPI-Header-Zeile (oben).
- */
-function renderHeader(summary, source) {
-  const modeLabel = source === "meta" ? "Meta Live" : "Demo";
-  return `
-    <header class="view-header sensei-header">
-      <div>
-        <div class="view-kicker">AdSensei • AI Suite (${modeLabel})</div>
-        <h2 class="view-headline">Sensei – AI Recommendations</h2>
-        <p class="view-subline">
-          Performance-Summary & Creative-Empfehlungen auf Basis deiner aktuellen Daten.
-        </p>
-        <div class="view-meta-row">
-          <span class="view-meta-pill">
-            ${summary.totalCreatives || 0} Creatives im Check
-          </span>
-          <span class="view-meta-pill">
-            Ø Score ${summary.avgScore ? summary.avgScore.toFixed(1) : "0.0"}
-          </span>
-          <span class="view-meta-pill">
-            Spend ${formatCurrency(summary.totalSpend)}
-          </span>
-          <span class="view-meta-pill subtle">
-            ROAS ${summary.avgRoas.toFixed(2)} • CTR ${formatPercent(
-    summary.avgCtr
-  )} • CPM ${summary.avgCpm.toFixed(2)}€
-          </span>
-        </div>
-      </div>
-    </header>
-  `;
-}
+  if (!hasData) {
+    renderEmptyState(section, opts.error);
+    return;
+  }
 
-/**
- * Render eines einzelnen Creative-Cards.
- */
-function renderCreativeCard(item) {
-  const m = item.metrics || {};
-  const scoreLabel = `${item.score.toFixed(1)}/100`;
+  const { totals, creatives, meta, offer, hook, recommendations } = model;
 
-  return `
-    <article class="sensei-creative-card">
-      <header class="sensei-creative-header">
+  const headerSubtitle = buildHeaderSubtitle(meta, totals);
+
+  const html = `
+    <div class="view-inner">
+      <header class="view-header">
         <div>
-          <div class="sensei-creative-name">${item.name}</div>
-          ${
-            item.creator
-              ? `<div class="sensei-creative-meta">Creator: ${item.creator}</div>`
-              : ""
-          }
+          <div class="view-kicker">AdSensei • AI Suite</div>
+          <h2 class="view-title">Daily Action Plan</h2>
+          <p class="view-subtitle">${escapeHtml(headerSubtitle)}</p>
         </div>
-        <div class="sensei-creative-score">
-          <span class="sensei-score">${scoreLabel}</span>
-          ${toneBadge(item.tone, item.label)}
+        <div class="view-header-meta">
+          ${renderModeBadge(meta)}
+          ${meta && meta.createdAt ? `<span class="meta-pill">${escapeHtml(formatDate(meta.createdAt))}</span>` : ""}
         </div>
       </header>
 
-      <section class="sensei-creative-body">
-        ${
-          item.hookLabel
-            ? `<p class="sensei-hook">Hook: <strong>${item.hookLabel}</strong></p>`
-            : ""
-        }
+      <div class="dashboard-grid">
+        <!-- Linke Spalte: Creative Landscape -->
+        <section>
+          <div class="card">
+            <h3 class="card-title">Creative Landscape</h3>
+            <p class="card-subtitle">
+              Überblick über deine wichtigsten Creatives – inkl. ROAS, CTR, CPM & Fatigue.
+            </p>
 
-        <div class="sensei-kpi-row">
-          <div class="sensei-kpi">
-            <span class="sensei-kpi-label">ROAS</span>
-            <span class="sensei-kpi-value">${m.roas.toFixed(2)}</span>
+            <div class="kpi-grid">
+              <div class="kpi-item">
+                <div class="kpi-label">Creatives</div>
+                <div class="kpi-value">${totals.totalCreatives}</div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-label">Spend</div>
+                <div class="kpi-value">${formatCurrency(totals.totalSpend)}</div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-label">Ø ROAS</div>
+                <div class="kpi-value">${formatRoas(totals.avgRoas)}</div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-label">Ø CTR</div>
+                <div class="kpi-value">${formatPercent(totals.avgCtr)}</div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-label">Ø CPM</div>
+                <div class="kpi-value">${formatCurrency(totals.avgCpm)}</div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-label">Sensei Score</div>
+                <div class="kpi-value">${formatScore(totals.avgScore)}</div>
+              </div>
+            </div>
           </div>
-          <div class="sensei-kpi">
-            <span class="sensei-kpi-label">Spend</span>
-            <span class="sensei-kpi-value">${formatCurrency(m.spend)}</span>
+
+          <div class="card" style="margin-top:16px;">
+            <h3 class="card-title">Creatives mit höchstem Impact</h3>
+            <p class="card-subtitle">
+              Sortiert nach Sensei Score – oben siehst du deine größten Hebel.
+            </p>
+
+            <div class="creative-grid">
+              ${creatives.map(renderCreativeCard).join("")}
+            </div>
           </div>
-          <div class="sensei-kpi">
-            <span class="sensei-kpi-label">Revenue</span>
-            <span class="sensei-kpi-value">${formatCurrency(
-              m.revenue
-            )}</span>
+        </section>
+
+        <!-- Rechte Spalte: Offer / Hook / Recommendations -->
+        <aside>
+          <div class="card">
+            <h3 class="card-title">Account Summary</h3>
+            <p class="card-subtitle">
+              Zusammenfassung der gesamten Performance, basierend auf der Sensei-Analyse.
+            </p>
+
+            <div class="kpi-grid">
+              <div class="kpi-item">
+                <div class="kpi-label">Revenue (ca.)</div>
+                <div class="kpi-value">${formatCurrency(totals.totalRevenue)}</div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-label">Spend</div>
+                <div class="kpi-value">${formatCurrency(totals.totalSpend)}</div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-label">Profit Ratio</div>
+                <div class="kpi-value">${formatProfitRatio(totals)}</div>
+              </div>
+            </div>
           </div>
+
+          ${offer ? renderOfferCard(offer) : ""}
+          ${hook ? renderHookCard(hook) : ""}
+          ${renderRecommendationsCard(recommendations)}
+        </aside>
+      </div>
+    </div>
+  `;
+
+  section.innerHTML = html;
+  wireInteractions(section, model);
+}
+
+// -----------------------------------------------------------------------------
+// Empty State
+// -----------------------------------------------------------------------------
+
+function renderEmptyState(section, error) {
+  const message = error
+    ? "Sensei Analyse konnte nicht geladen werden."
+    : "Verbinde deinen Meta Account oder aktiviere den Demo-Modus, um eine Sensei Analyse zu erhalten.";
+
+  section.innerHTML = `
+    <div class="view-inner">
+      <header class="view-header">
+        <div>
+          <div class="view-kicker">AdSensei • AI Suite</div>
+          <h2 class="view-title">Noch keine Analyse verfügbar</h2>
+          <p class="view-subtitle">${escapeHtml(message)}</p>
         </div>
+      </header>
 
-        <div class="sensei-kpi-row">
-          <div class="sensei-kpi">
-            <span class="sensei-kpi-label">CTR</span>
-            <span class="sensei-kpi-value">${formatPercent(m.ctr)}</span>
-          </div>
-          <div class="sensei-kpi">
-            <span class="sensei-kpi-label">CPM</span>
-            <span class="sensei-kpi-value">${m.cpm.toFixed(2)} €</span>
-          </div>
-          <div class="sensei-kpi">
-            <span class="sensei-kpi-label">Purchases</span>
-            <span class="sensei-kpi-value">${formatNumber(
-              m.purchases
-            )}</span>
-          </div>
+      <div class="card">
+        <p>
+          Du kannst jederzeit im <strong>Settings</strong>-Modul den <strong>Demo-Modus</strong> aktivieren
+          und bekommst ein vollständiges Sensei-Beispielbriefing mit hochwertigen Demo-Daten.
+        </p>
+      </div>
+    </div>
+  `;
+}
+
+// -----------------------------------------------------------------------------
+// UI Building Blocks
+// -----------------------------------------------------------------------------
+
+function renderModeBadge(meta) {
+  if (!meta) return "";
+  const mode = (meta.mode || "demo").toLowerCase();
+  const isDemo = mode === "demo";
+
+  const label = isDemo ? "Demo-Analyse" : "Live-Analyse";
+  const icon = isDemo ? "✨" : "🔴";
+  return `<span class="meta-pill">${icon} ${label}</span>`;
+}
+
+function renderCreativeCard(c) {
+  const m = c.metrics || {};
+  const toneEmoji = toneToEmoji(c.tone);
+  const fatigueLabel = c.fatigue ? ` • Fatigue: ${escapeHtml(c.fatigue)}` : "";
+
+  return `
+    <article class="creative-library-item" data-id="${escapeHtml(c.id)}">
+      <div class="creative-info">
+        <div class="creative-title-row">
+          <span class="creative-title">${escapeHtml(c.name)}</span>
         </div>
-
-        ${
-          item.reasoning
-            ? `<p class="sensei-reasoning">${item.reasoning}</p>`
-            : ""
-        }
-      </section>
-
-      <footer class="sensei-creative-footer">
-        ${
-          item.isTesting
-            ? `<span class="sensei-chip sensei-chip--testing">Testing</span>`
-            : ""
-        }
-        ${
-          item.fatigue === "high"
-            ? `<span class="sensei-chip sensei-chip--fatigue">Fatigue</span>`
-            : ""
-        }
-      </footer>
+        <div class="creative-kpi">
+          ${toneEmoji} ${escapeHtml(c.label || "Neutral")} • Score: ${formatScore(c.score)}
+        </div>
+        <div class="creative-kpi">
+          ROAS: ${formatRoas(m.roas)} · Spend: ${formatCurrency(m.spend)} · CTR: ${formatPercent(m.ctr)}
+        </div>
+        <div class="creative-kpi">
+          CPM: ${formatCurrency(m.cpm)} · Purchases: ${formatNumber(m.purchases)}${fatigueLabel}
+        </div>
+        <div class="creative-kpi">
+          🎬 Hook: ${c.hookLabel ? escapeHtml(c.hookLabel) : "Kein Hook hinterlegt."}
+        </div>
+        <div class="creative-kpi">
+          👤 Creator: ${escapeHtml(c.creator || "Unknown")}
+        </div>
+      </div>
     </article>
   `;
 }
 
-/**
- * Render der rechtsseitigen Zusammenfassung / Empfehlungen.
- */
-function renderSidebar(normalized) {
-  const t = normalized.totals;
-  const recs = normalized.recommendations || [];
-  const offer = normalized.offer || {};
-  const hook = normalized.hook || {};
-
-  const trafficSummary = `
-    <ul class="sensei-summary-list">
-      <li><strong>Spend:</strong> ${formatCurrency(t.totalSpend)}</li>
-      <li><strong>Revenue:</strong> ${formatCurrency(t.totalRevenue)}</li>
-      <li><strong>Ø ROAS:</strong> ${t.avgRoas.toFixed(2)}</li>
-      <li><strong>Ø CTR:</strong> ${formatPercent(t.avgCtr)}</li>
-      <li><strong>Ø CPM:</strong> ${t.avgCpm.toFixed(2)} €</li>
-    </ul>
-  `;
-
-  const distribution = `
-    <ul class="sensei-summary-list">
-      <li><span class="sensei-dot good"></span>${t.goodCount} starke Creatives</li>
-      <li><span class="sensei-dot warning"></span>${t.warningCount} Beobachten</li>
-      <li><span class="sensei-dot critical"></span>${t.criticalCount} kritisch</li>
-    </ul>
-  `;
-
-  const recList = recs
-    .slice(0, 6)
-    .map((r) => `<li>${r}</li>`)
-    .join("");
-
-  const offerText = offer.summary || "";
-  const hookText = hook.summary || "";
+function renderOfferCard(offer) {
+  const issues = Array.isArray(offer.issues) ? offer.issues : [];
+  const recs = Array.isArray(offer.recommendations) ? offer.recommendations : [];
 
   return `
-    <aside class="sensei-sidebar">
-      <section class="sensei-sidebar-card">
-        <h3>Account Summary</h3>
-        ${trafficSummary}
-      </section>
-
-      <section class="sensei-sidebar-card">
-        <h3>Creative Landscape</h3>
-        ${distribution}
-      </section>
+    <div class="card" style="margin-top:16px;">
+      <h3 class="card-title">${escapeHtml(offer.headline || "Offer & Funnel Diagnose")}</h3>
+      <p class="card-subtitle">${escapeHtml(offer.summary || "")}</p>
 
       ${
-        offerText || hookText
+        offer.primaryIssue
+          ? `<p class="card-subtitle"><strong>Hauptproblem:</strong> ${escapeHtml(
+              offer.primaryIssue,
+            )}</p>`
+          : ""
+      }
+
+      ${
+        issues.length
           ? `
-      <section class="sensei-sidebar-card">
-        <h3>Offer & Hook</h3>
-        ${
-          offerText
-            ? `<p class="sensei-sidebar-text">${offerText}</p>`
-            : ""
-        }
-        ${
-          hookText
-            ? `<p class="sensei-sidebar-text">${hookText}</p>`
-            : ""
-        }
-      </section>
+        <div style="margin-top:8px;">
+          <div class="card-section-title">Auffälligkeiten</div>
+          <ul class="card-list">
+            ${issues
+              .map((i) => `<li>${escapeHtml(i.text || i)}</li>`)
+              .join("")}
+          </ul>
+        </div>
       `
           : ""
       }
 
       ${
-        recList
+        recs.length
           ? `
-      <section class="sensei-sidebar-card">
-        <h3>Sensei – Nächste Schritte</h3>
-        <ul class="sensei-summary-list">${recList}</ul>
-      </section>
+        <div style="margin-top:12px;">
+          <div class="card-section-title">Konkrete Offer-Steps</div>
+          <ul class="card-list">
+            ${recs
+              .map((r) => `<li>${escapeHtml(r.text || r)}</li>`)
+              .join("")}
+          </ul>
+        </div>
       `
           : ""
       }
-    </aside>
+    </div>
   `;
 }
 
-/**
- * Main Render-Funktion für das Sensei-View.
- * - `analysis` ist das normalisierte Objekt aus compute.normalizeSenseiAnalysis
- * - Falls kein analysis → zeigt eine leere / freundliche leere State
- */
-export function renderSenseiView(section, normalized) {
-  if (!normalized) {
-    section.innerHTML = `
-      <div class="sensei-root">
-        <header class="view-header sensei-header">
-          <div>
-            <div class="view-kicker">AdSensei • AI Suite</div>
-            <h2 class="view-headline">Sensei – AI Recommendations</h2>
-            <p class="view-subline">
-              Starte eine Analyse, sobald Creatives verfügbar sind.
-            </p>
-          </div>
-        </header>
-        <p style="padding:16px;font-size:0.9rem;color:#6b7280;">
-          Noch keine Daten verfügbar. Bitte Meta verbinden oder Demo-Daten aktivieren.
+function renderHookCard(hook) {
+  const patterns = Array.isArray(hook.patterns) ? hook.patterns : [];
+  const recs = Array.isArray(hook.recommendations) ? hook.recommendations : [];
+
+  return `
+    <div class="card" style="margin-top:16px;">
+      <h3 class="card-title">${escapeHtml(hook.headline || "Hook & Story Analyse")}</h3>
+      <p class="card-subtitle">${escapeHtml(hook.summary || "")}</p>
+
+      ${
+        patterns.length
+          ? `
+        <div style="margin-top:8px;">
+          <div class="card-section-title">Hook-Patterns</div>
+          <ul class="card-list">
+            ${patterns
+              .map((p) => `<li>${escapeHtml(p.text || p)}</li>`)
+              .join("")}
+          </ul>
+        </div>
+      `
+          : ""
+      }
+
+      ${
+        recs.length
+          ? `
+        <div style="margin-top:12px;">
+          <div class="card-section-title">Empfohlene Hooks & Tests</div>
+          <ul class="card-list">
+            ${recs
+              .map((r) => `<li>${escapeHtml(r.text || r)}</li>`)
+              .join("")}
+          </ul>
+        </div>
+      `
+          : ""
+      }
+    </div>
+  `;
+}
+
+function renderRecommendationsCard(recommendations) {
+  const list = Array.isArray(recommendations) ? recommendations : [];
+  if (!list.length) {
+    return `
+      <div class="card" style="margin-top:16px;">
+        <h3 class="card-title">Sensei Empfehlungen</h3>
+        <p class="card-subtitle">
+          Keine spezifischen Empfehlungen – dein Account wirkt im Moment stabil.
         </p>
       </div>
     `;
-    return;
   }
 
-  const headerHTML = renderHeader(
-    normalized.totals,
-    normalized.source || "demo"
-  );
-  const listHTML = normalized.creatives
-    .slice(0, 30) // Hard-Cap fürs UI
-    .map(renderCreativeCard)
-    .join("");
-  const sidebarHTML = renderSidebar(normalized);
+  const top = list.slice(0, 6);
 
-  section.innerHTML = `
-    <div class="sensei-root">
-      ${headerHTML}
+  return `
+    <div class="card" style="margin-top:16px;">
+      <h3 class="card-title">Sensei Empfehlungen</h3>
+      <p class="card-subtitle">
+        Priorisierte Handlungsempfehlungen für heute. Setz 1–3 Punkte direkt um.
+      </p>
 
-      <section class="sensei-layout">
-        <div class="sensei-main">
-          ${listHTML}
-        </div>
-        ${sidebarHTML}
-      </section>
+      <ol class="card-list numbered">
+        ${top
+          .map((r) => {
+            const text = typeof r === "string" ? r : r.text || r.description || "";
+            return `<li>${escapeHtml(text)}</li>`;
+          })
+          .join("")}
+      </ol>
+
+      <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="meta-button" data-role="sensei-refresh">
+          Neu analysieren
+        </button>
+        <button class="meta-button meta-button-secondary" data-role="sensei-demo-hint">
+          Demo-Usecase anzeigen
+        </button>
+      </div>
     </div>
   `;
+}
+
+// -----------------------------------------------------------------------------
+// Interactions
+// -----------------------------------------------------------------------------
+
+function wireInteractions(section, model) {
+  const refreshBtn = section.querySelector('[data-role="sensei-refresh"]');
+  const demoHintBtn = section.querySelector('[data-role="sensei-demo-hint"]');
+
+  const SignalOne = window.SignalOne || {};
+  const showToast =
+    SignalOne.showToast || (window.showToast ? window.showToast.bind(window) : null);
+
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", () => {
+      showToast?.("Sensei wird beim nächsten Aufruf neu berechnet.", "info");
+    });
+  }
+
+  if (demoHintBtn) {
+    demoHintBtn.addEventListener("click", () => {
+      showToast?.(
+        "Im Demo-Modus siehst du einen vollständigen Beispiel-Account mit Sensei Analyse.",
+        "success",
+      );
+    });
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Formatting Helpers
+// -----------------------------------------------------------------------------
+
+function escapeHtml(str) {
+  if (str == null) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function formatCurrency(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n === 0) return "€0";
+  return new Intl.NumberFormat("de-DE", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(n);
+}
+
+function formatRoas(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n === 0) return "–";
+  return `${n.toFixed(1)}x`;
+}
+
+function formatPercent(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n === 0) return "–";
+  const perc = n > 1 ? n : n * 100;
+  return `${perc.toFixed(1)}%`;
+}
+
+function formatScore(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "–";
+  return `${Math.round(n)}/100`;
+}
+
+function formatNumber(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n === 0) return "–";
+  return new Intl.NumberFormat("de-DE").format(n);
+}
+
+function formatProfitRatio(totals) {
+  const spend = Number(totals.totalSpend) || 0;
+  const rev = Number(totals.totalRevenue) || 0;
+  if (!spend || !rev) return "–";
+  const ratio = (rev - spend) / spend;
+  return `${(ratio * 100).toFixed(1)}%`;
+}
+
+function formatDate(value) {
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleString("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function toneToEmoji(tone) {
+  switch (tone) {
+    case "good":
+      return "🟢";
+    case "critical":
+      return "🔴";
+    case "warning":
+    default:
+      return "🟡";
+  }
+}
+
+function buildHeaderSubtitle(meta, totals) {
+  const mode =
+    meta && meta.mode === "live"
+      ? "Live-Analyse deines Accounts"
+      : "Demo-Analyse eines Beispiel-Accounts";
+
+  const spend = formatCurrency(totals.totalSpend);
+  const roas = formatRoas(totals.avgRoas);
+
+  return `${mode} – ${spend} Spend • Ø ROAS ${roas}`;
 }
