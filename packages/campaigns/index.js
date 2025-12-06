@@ -18,6 +18,15 @@
 import DataLayer from "../data/index.js";
 
 // Entry Point für app.js → loadModule("campaigns")
+export async function init(ctx = {}) {
+  const section = document.getElementById("campaignsView");
+  if (!section) return;
+  
+  const { AppState, useDemoMode } = ctx;
+  const isDemo = typeof useDemoMode === "function" ? useDemoMode() : true;
+  
+  render(section, AppState, { useDemoMode: isDemo });
+}
 export function render(section, AppState, opts = {}) {
   if (!section) {
     console.error("[Campaigns] Missing target section.");
