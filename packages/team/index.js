@@ -1,6 +1,14 @@
 // packages/team/index.js
 // Block 4 – Team Manager (UI only, Demo Mode)
 
+export async function init(ctx = {}) {
+  const section = document.getElementById("teamView");
+  if (!section) return;
+  
+  const { AppState } = ctx;
+  render(section, AppState);
+}
+
 export function render(root, AppState) {
   // Falls Team-Array nicht existiert: initialisieren
   if (!Array.isArray(AppState.teamMembers)) {
