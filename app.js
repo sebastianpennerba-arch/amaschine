@@ -276,7 +276,9 @@ const MetaAuth = (() => {
 
       const tokenPayload = await postMeta("/oauth/token", { code: result.code });
       const accessToken =
-        tokenPayload.accessToken || tokenPayload.token || tokenPayload.access_token;
+        tokenPayload.accessToken ||
+        tokenPayload.token ||
+        tokenPayload.access_token;
 
       if (!accessToken) {
         throw new Error("Kein Access Token aus /oauth/token erhalten.");
@@ -438,6 +440,8 @@ const modules = {
   analytics: () => import("./packages/analytics/index.js"),
   roast: () => import("./packages/roast/index.js"),
   settings: () => import("./packages/settings/index.js"),
+  // NEU: Academy-Modul
+  academy: () => import("./packages/academy/index.js"),
 };
 
 const viewIdMap = {
@@ -455,6 +459,8 @@ const viewIdMap = {
   roast: "roastView",
   onboarding: "onboardingView",
   settings: "settingsView",
+  // NEU: Academy View
+  academy: "academyView",
 };
 
 // Views, die Meta (Demo oder Live) brauchen
@@ -504,17 +510,19 @@ function getEffectiveBrandOwnerName() {
 /* ----------------------------------------------------------
    7) NAVIGATION / SIDEBAR
 -----------------------------------------------------------*/
+// Reihenfolge leicht angepasst, Academy integriert
 const navItems = [
   { key: "dashboard", label: "Dashboard", icon: "dashboard" },
   { key: "creativeLibrary", label: "Creatives", icon: "library" },
   { key: "campaigns", label: "Kampagnen", icon: "campaigns" },
   { key: "sensei", label: "Sensei", icon: "sensei" },
+  { key: "academy", label: "Academy", icon: "workspace" },
   { key: "testingLog", label: "Testing Log", icon: "testing" },
   { key: "reports", label: "Reports", icon: "reports" },
   { key: "creatorInsights", label: "Creator", icon: "creator" },
   { key: "analytics", label: "Analytics", icon: "analytics" },
   { key: "team", label: "Team", icon: "team" },
-  { key: "brands", label: "Brands", icon: "workspace" },
+  { key: "brands", label: "Brands", icon: "brands" },
   { key: "shopify", label: "Shopify", icon: "shopify" },
   { key: "roast", label: "Roast", icon: "roast" },
   { key: "onboarding", label: "Onboarding", icon: "onboarding" },
@@ -534,13 +542,14 @@ function renderNav() {
     btn.className = "sidebar-nav-button";
     btn.setAttribute("data-module", item.key);
 
+    // Anpassung: Klassen an CSS angepasst (.icon-svg, .label)
     btn.innerHTML = `
-      <span class="sidebar-nav-icon">
+      <span class="icon-svg">
         <svg aria-hidden="true" width="20" height="20">
           <use href="#icon-${item.icon}"></use>
         </svg>
       </span>
-      <span class="sidebar-nav-label">${item.label}</span>
+      <span class="label">${item.label}</span>
     `;
 
     btn.addEventListener("click", () => navigateTo(item.key));
@@ -556,9 +565,9 @@ function setActiveNavItem(moduleKey) {
   const buttons = document.querySelectorAll(".sidebar-nav-button");
   buttons.forEach((btn) => {
     if (btn.getAttribute("data-module") === moduleKey) {
-      btn.classList.add("is-active");
+      btn.classList.add("active"); // WICHTIG: CSS erwartet .active, nicht .is-active
     } else {
-      btn.classList.remove("is-active");
+      btn.classList.remove("active");
     }
   });
 }
@@ -703,7 +712,7 @@ function updateMetaStatusUI() {
       AppState.meta?.mode || (useDemoMode() ? "demo" : "live");
     const modeLabel = mode === "live" ? "Live" : "Demo";
     label.textContent = `Meta Ads: Verbunden (${modeLabel})`;
-    if (btn) btn.textContent = "META TRENnen".toUpperCase();
+    if (btn) btn.textContent = "META TRENNEN";
   } else {
     dot.style.backgroundColor = "var(--color-text-soft)";
     label.textContent = "Meta Ads: Getrennt";
@@ -847,6 +856,11 @@ function updateViewSubheaders() {
         <span class="view-subheader-title">${title}</span>
         <span class="view-subheader-meta">
           ${owner} • ${vertical} • ${campaignsCount} Kampagnen
+          ${
+            campaign
+              ? ` • Aktive Kampagne: ${campaign.name}`
+              : ""
+          }
         </span>
       </div>
     `;
@@ -930,7 +944,9 @@ async function loadModule(key) {
       <div class="view-inner">
         <h2 class="view-title">Fehler</h2>
         <p class="view-subtitle">Modul "${key}" konnte nicht geladen werden.</p>
-        <pre class="error-pre">${String(err && err.message ? err.message : err)}</pre>
+        <pre class="error-pre">${String(
+          err && err.message ? err.message : err,
+        )}</pre>
       </div>
     `;
     pushNotification("error", `Modul "${key}" konnte nicht geladen werden.`, {
