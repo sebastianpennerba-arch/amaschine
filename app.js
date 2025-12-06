@@ -2,7 +2,7 @@ import DataLayer from "./packages/data/index.js";
 import { DemoData } from "./demoData.js";
 
 /* ----------------------------------------------------------
-   SignalOne.cloud – Frontend Core (FULL REWRITE)
+   SignalOne.cloud – Frontend Core
    - MetaAuth (Mock + Live)
    - AppState
    - Navigation (Sidebar A – Hauptmodule + Tools + Einstellungen)
@@ -738,7 +738,6 @@ function updateCampaignHealthUI() {
     return;
   }
 
-  // Simple Dummy-Logik
   const avgHealth =
     campaigns.reduce((sum, c) => sum + (c.healthScore || 60), 0) /
     campaigns.length;
@@ -811,10 +810,10 @@ function updateViewSubheaders() {
 }
 
 /**
- * Stellt sicher, dass oben rechts wieder 3 Icon-Buttons vorhanden sind:
+ * Stellt sicher, dass oben rechts 3 Icon-Buttons vorhanden sind:
  * - Notifications
  * - Profil
- * - Logout (neu erzeugt, falls nicht im HTML)
+ * - Logout (falls nicht im HTML, wird er erzeugt)
  */
 function ensureTopbarButtons() {
   const container = document.querySelector("#topbar .topbar-right");
@@ -846,7 +845,6 @@ function ensureSidebarStatusRows() {
   const footer = document.querySelector(".sidebar-footer");
   if (!footer) return;
 
-  // System Health Row sicherstellen
   let systemRow = document.getElementById("systemHealthText");
   if (!systemRow) {
     const row = document.createElement("div");
@@ -859,7 +857,6 @@ function ensureSidebarStatusRows() {
     footer.insertBefore(row, btn || footer.lastChild);
   }
 
-  // Datenmodus Row sicherstellen
   if (!document.getElementById("sidebarDataModeText")) {
     const row = document.createElement("div");
     row.className = "sidebar-status-row";
@@ -973,7 +970,7 @@ const navStructure = {
     { key: "team", label: "Team", icon: "team" },
     { key: "brands", label: "Brands", icon: "brands" },
     { key: "shopify", label: "Shopify", icon: "shopify" },
-    { key: "settings", label: "Einstellungen", icon: "settings" },
+    { key: "settings", label: "System", icon: "settings" },
     { key: "onboarding", label: "Onboarding", icon: "onboarding" },
   ],
 };
@@ -1286,7 +1283,6 @@ document.addEventListener("DOMContentLoaded", () => {
   updateTopbarDateTime();
   updateTopbarGreeting();
 
-  // Update the greeting and clock genau zum Minutenwechsel, um Drift zu vermeiden
   let topbarRefreshTimeout = null;
   const scheduleTopbarRefresh = () => {
     const now = new Date();
