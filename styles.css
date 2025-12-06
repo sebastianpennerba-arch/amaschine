@@ -515,6 +515,19 @@ nav.sidebar {
   text-transform: uppercase;
 }
 
+.topbar-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #cbd5e1;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+}
+
+.topbar-meta-separator {
+  color: rgba(203, 213, 225, 0.6);
+}
+
 /* SELECT DROPDOWNS */
 
 .topbar-select {
