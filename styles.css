@@ -163,7 +163,7 @@ nav.sidebar {
   bottom: 0;
 
   width: 200px;
-  padding: 20px 0 18px;
+  padding: 0 0 18px;
 
   background: #020617;
   border-right: 1px solid rgba(15, 23, 42, 0.9);
@@ -171,9 +171,6 @@ nav.sidebar {
 
   display: flex;
   flex-direction: column;
-
-  /* WICHTIG: damit Footer immer am Boden bleibt */
-  justify-content: space-between;
 
   color: #e5e7eb;
   z-index: 40;
@@ -183,8 +180,8 @@ nav.sidebar {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding-bottom: 10px;
-  margin-bottom: 10px;
+  padding: 22px 0 14px;
+  margin: 0;
   width: 100%;
   border-bottom: 1px solid rgba(51, 65, 85, 0.9);
 }
@@ -205,14 +202,14 @@ nav.sidebar {
 -------------------------------- */
 
 .sidebar-nav {
-  padding: 0;
+  padding: 16px 0 0;
   margin: 0;
   list-style: none;
 
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 /* SECTION LABELS (TOOLS / EINSTELLUNGEN) */
@@ -223,8 +220,8 @@ nav.sidebar {
   font-size: 0.68rem;
   color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  margin-top: 8px;
+  letter-spacing: 0.16em;
+  margin-top: 14px;
   opacity: 0.85;
 
   cursor: pointer;
@@ -263,6 +260,14 @@ nav.sidebar {
   justify-content: center;
 }
 
+.sidebar-btn-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* HAUPTPUNKTE */
+
 .sidebar-nav-button {
   width: 160px;
   padding: 10px 12px;
@@ -290,7 +295,14 @@ nav.sidebar {
     color 0.16s ease;
 }
 
+.sidebar-nav-button svg use {
+  fill: var(--sidebar-icon-inactive-fill);
+  stroke: var(--sidebar-icon-inactive-stroke);
+  transition: fill 0.16s ease, stroke 0.16s ease;
+}
+
 /* NESTED: Tools / Einstellungen – schlank, kein fetter Button */
+
 .sidebar-nav-button-nested {
   margin-left: 4px;
 
@@ -310,12 +322,6 @@ nav.sidebar {
   box-shadow: none;
 }
 
-.sidebar-btn-icon {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-}
-
 .sidebar-nav-button:hover {
   background: rgba(255, 255, 255, 0.14);
   border-color: rgba(255, 255, 255, 0.28);
@@ -324,11 +330,8 @@ nav.sidebar {
   box-shadow: 0 18px 45px rgba(15, 23, 42, 0.9);
 }
 
-.sidebar-nav-button:hover .icon-layer-fill {
+.sidebar-nav-button:hover svg use {
   fill: var(--sidebar-icon-hover-fill);
-}
-
-.sidebar-nav-button:hover .icon-layer-stroke {
   stroke: var(--sidebar-icon-hover-stroke);
 }
 
@@ -338,11 +341,8 @@ nav.sidebar {
   color: #ffffff;
 }
 
-.sidebar-nav-button.active .icon-layer-fill {
+.sidebar-nav-button.active svg use {
   fill: var(--sidebar-icon-active-fill);
-}
-
-.sidebar-nav-button.active .icon-layer-stroke {
   stroke: var(--sidebar-icon-active-stroke);
 }
 
@@ -368,7 +368,7 @@ nav.sidebar {
 .sidebar-footer {
   width: 100%;
   padding-top: 12px;
-  margin-top: 12px;
+  margin-top: auto;
 
   border-top: 1px solid rgba(31, 41, 55, 0.9);
 
