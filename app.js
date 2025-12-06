@@ -569,7 +569,19 @@ document.addEventListener("DOMContentLoaded", () => {
   setActiveView(initialViewId);
   
   // Wire Buttons
-  document.getElementById("topbarMetaButton")?.addEventListener("click", toggleMetaConnection);
+    document.getElementById("topbarMetaButton")?.addEventListener("click", async (e) => {
+    await ButtonFeedback.withFeedback(e.target, async () => {
+      if (AppState.metaConnected) {
+        MetaAuthMock.disconnect();
+      } else {
+        await MetaAuthMock.connectWithPopup();
+      }
+    }, {
+      loadingText: 'Verbinde...',
+      successText: '✓ Verbunden',
+      errorText: '✗ Verbindung fehlgeschlagen'
+    });
+  });
   document.getElementById("sidebarSettingsButton")?.addEventListener("click", () => navigateTo("settings"));
   document.getElementById("notificationsButton")?.addEventListener("click", () => {
     showToast("Keine neuen Benachrichtigungen", "info");
