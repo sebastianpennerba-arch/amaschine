@@ -1,6 +1,6 @@
 // packages/creativeLibrary/index.js
 // ---------------------------------------------------------
-//  P2 – Creative Library (Premium C Upgrade)
+//  P2 â€“ Creative Library (Premium C Upgrade)
 //  UI-Layer (Grid, Filter, Modal) + DataLayer-Anbindung
 //  -> Compute-Layer: compute.js
 //  -> Varianten-Gruppierung: group.js
@@ -27,7 +27,7 @@ export async function render(section, AppState, options = {}) {
       <div class="view-inner">
         <h2 class="view-title">Creative Library</h2>
         <p class="view-subtitle">
-          DataLayer ist noch nicht initialisiert. Bitte Backend prüfen.
+          DataLayer ist noch nicht initialisiert. Bitte Backend prÃ¼fen.
         </p>
       </div>
     `;
@@ -111,10 +111,10 @@ export async function render(section, AppState, options = {}) {
       <div class="view-inner">
         <h2 class="view-title">Creative Library</h2>
         <p class="view-subtitle">
-          Für diesen Account konnten noch keine Creatives gefunden werden.
+          FÃ¼r diesen Account konnten noch keine Creatives gefunden werden.
         </p>
         <p class="view-subtitle">
-          Prüfe im Meta Ads Manager, ob Kampagnen aktiv sind – oder aktiviere den Demo-Modus in den Settings.
+          PrÃ¼fe im Meta Ads Manager, ob Kampagnen aktiv sind â€“ oder aktiviere den Demo-Modus in den Settings.
         </p>
       </div>
     `;
@@ -128,9 +128,9 @@ export async function render(section, AppState, options = {}) {
         <div>
           <h2 class="view-title">Creative Library</h2>
           <p class="view-subtitle">
-            ${escapeHtml(headerMeta.brandName)} • ${escapeHtml(
+            ${escapeHtml(headerMeta.brandName)} â€¢ ${escapeHtml(
     headerMeta.modeLabel
-  )} • Range: ${escapeHtml(rangeLabel)}
+  )} â€¢ Range: ${escapeHtml(rangeLabel)}
           </p>
           <div class="view-meta-row">
             <span class="kpi-badge ${dataSource.badgeClass}">
@@ -151,7 +151,7 @@ export async function render(section, AppState, options = {}) {
             </span>
           </div>
           <div class="creative-mini-kpi">
-            <span class="creative-mini-kpi-label">Ø ROAS</span>
+            <span class="creative-mini-kpi-label">Ã˜ ROAS</span>
             <span class="creative-mini-kpi-value">
               ${formatRoas(stats.avgRoas)}
             </span>
@@ -290,24 +290,24 @@ export async function render(section, AppState, options = {}) {
                 }
               </div>
               <div class="creative-kpi">
-                ${formatBucketLabel(c.bucket)} • Score: ${c.score ?? "-"}${
-          health ? ` • ${escapeHtml(health.reasonShort)}` : ""
+                ${formatBucketLabel(c.bucket)} â€¢ Score: ${c.score ?? "-"}${
+          health ? ` â€¢ ${escapeHtml(health.reasonShort)}` : ""
         }
               </div>
               <div class="creative-kpi">
-                ROAS: ${formatRoas(m.roas)} · Spend: ${formatCurrency(
+                ROAS: ${formatRoas(m.roas)} Â· Spend: ${formatCurrency(
           m.spend,
         )}
               </div>
               <div class="creative-kpi">
-                CTR: ${formatPercent(m.ctr)} · CPM: ${formatCurrency(m.cpm)}
+                CTR: ${formatPercent(m.ctr)} Â· CPM: ${formatCurrency(m.cpm)}
               </div>
               <div class="creative-kpi">
-                🎬 Hook: ${c.hook ? escapeHtml(c.hook) : "–"}
+                ðŸŽ¬ Hook: ${c.hook ? escapeHtml(c.hook) : "â€“"}
               </div>
               <div class="creative-kpi">
-                👤 Creator: ${escapeHtml(c.creator || "Unknown")}
-                ${c.daysActive ? ` · 📅 ${c.daysActive} Tage` : ""}
+                ðŸ‘¤ Creator: ${escapeHtml(c.creator || "Unknown")}
+                ${c.daysActive ? ` Â· ðŸ“… ${c.daysActive} Tage` : ""}
               </div>
             </div>
             <div class="creative-actions">
@@ -423,7 +423,7 @@ export async function render(section, AppState, options = {}) {
 }
 
 /* ----------------------------------------------------------
-   Modal – Varianten-Layout
+   Modal â€“ Varianten-Layout
 -----------------------------------------------------------*/
 
 function openCreativeModal(creative, variants = []) {
@@ -470,10 +470,10 @@ function openCreativeModal(creative, variants = []) {
                   ${escapeHtml(v.name)}
                 </div>
                 <div class="creative-variant-pill-meta">
-                  ROAS ${formatRoas(v.metrics?.roas)} • ${
-                  v.metrics?.purchases ?? "–"
+                  ROAS ${formatRoas(v.metrics?.roas)} â€¢ ${
+                  v.metrics?.purchases ?? "â€“"
                 } Purchases${
-                  h ? ` • ${escapeHtml(h.label)}` : ""
+                  h ? ` â€¢ ${escapeHtml(h.label)}` : ""
                 }
                 </div>
               </button>
@@ -564,7 +564,7 @@ function renderVariantDetailHtml(c, health) {
           <div>
             <span class="creative-kpi-label">Purchases</span>
             <span class="creative-kpi-value">${
-              m.purchases != null ? m.purchases : "–"
+              m.purchases != null ? m.purchases : "â€“"
             }</span>
           </div>
         </div>
@@ -573,11 +573,11 @@ function renderVariantDetailHtml(c, health) {
       <div class="creative-modal-right">
         <h3 class="creative-modal-title">${escapeHtml(c.name)}</h3>
         <p class="creative-modal-subtitle">
-          ${formatBucketLabel(c.bucket)} • Score ${c.score ?? "-"}${
-            c.daysActive ? ` • ${c.daysActive} Tage live` : ""
+          ${formatBucketLabel(c.bucket)} â€¢ Score ${c.score ?? "-"}${
+            c.daysActive ? ` â€¢ ${c.daysActive} Tage live` : ""
           }${
             health
-              ? ` • <span class="kpi-badge ${health.tone}">${escapeHtml(
+              ? ` â€¢ <span class="kpi-badge ${health.tone}">${escapeHtml(
                   health.label,
                 )}</span>`
               : ""
@@ -634,7 +634,7 @@ function showLoader(active) {
 
 function formatCurrency(value) {
   const n = Number(value);
-  if (!Number.isFinite(n) || n === 0) return "€0";
+  if (!Number.isFinite(n) || n === 0) return "â‚¬0";
   return new Intl.NumberFormat("de-DE", {
     style: "currency",
     currency: "EUR",
@@ -644,13 +644,13 @@ function formatCurrency(value) {
 
 function formatRoas(value) {
   const n = Number(value);
-  if (!Number.isFinite(n) || n === 0) return "–";
+  if (!Number.isFinite(n) || n === 0) return "â€“";
   return `${n.toFixed(1)}x`;
 }
 
 function formatPercent(value) {
   const n = Number(value);
-  if (!Number.isFinite(n) || n === 0) return "–";
+  if (!Number.isFinite(n) || n === 0) return "â€“";
   const perc = n > 1 ? n : n * 100;
   return `${perc.toFixed(1)}%`;
 }
@@ -658,11 +658,11 @@ function formatPercent(value) {
 function formatBucketLabel(bucket) {
   switch (bucket) {
     case "winner":
-      return "⭐ Winner";
+      return "â­ Winner";
     case "testing":
-      return "🧪 Testing";
+      return "ðŸ§ª Testing";
     case "loser":
-      return "❌ Loser";
+      return "âŒ Loser";
     default:
       return "Creative";
   }
