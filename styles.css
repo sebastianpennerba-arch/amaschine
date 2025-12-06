@@ -523,6 +523,7 @@ nav.sidebar {
   color: #cbd5e1;
   font-size: 0.8rem;
   letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
 }
 
 .topbar-meta-item {
