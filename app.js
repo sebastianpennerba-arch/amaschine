@@ -431,7 +431,7 @@ const modules = {
   analytics: () => import("./packages/analytics/index.js"),
   roast: () => import("./packages/roast/index.js"),
   settings: () => import("./packages/settings/index.js"),
-  academy: () => import('./packages/academy/index.js'),
+  academy: () => import("./packages/academy/index.js"),
 };
 
 const viewIdMap = {
@@ -449,6 +449,7 @@ const viewIdMap = {
   roast: "roastView",
   onboarding: "onboardingView",
   settings: "settingsView",
+  academy: "academyView",
 };
 
 // Views, die Meta (Demo oder Live) brauchen
@@ -498,29 +499,59 @@ function getEffectiveBrandOwnerName() {
 /* ----------------------------------------------------------
    7) NAVIGATION / SIDEBAR
 -----------------------------------------------------------*/
-const navItems = [
-  { key: "dashboard", label: "Dashboard", icon: "dashboard" },
-  { key: "creativeLibrary", label: "Creatives", icon: "library" },
-  { key: "campaigns", label: "Kampagnen", icon: "campaigns" },
-  { key: "sensei", label: "Sensei", icon: "sensei" },
-  { key: "testingLog", label: "Testing Log", icon: "testing" },
-  { key: "reports", label: "Reports", icon: "reports" },
-  { key: "creatorInsights", label: "Creator", icon: "creators" },
-  { key: "analytics", label: "Analytics", icon: "analytics" },
-  { key: "team", label: "Team", icon: "team" },
-  { key: "brands", label: "Brands", icon: "brands" },
-  { key: "shopify", label: "Shopify", icon: "shopify" },
-  { key: "roast", label: "Roast", icon: "roast" },
-  { key: "onboarding", label: "Onboarding", icon: "onboarding" },
-  { key: "settings", label: "Settings", icon: "settings" },
-];
+
+// Gruppierte Navigation: 4 Hauptmodule + Academy, Mehr Tools, Einstellungen
+const navStructure = {
+  main: [
+    { key: "dashboard", label: "Dashboard", icon: "dashboard" },
+    { key: "creativeLibrary", label: "Creatives", icon: "library" },
+    { key: "sensei", label: "Sensei", icon: "sensei" },
+    { key: "campaigns", label: "Kampagnen", icon: "campaigns" },
+    // Academy als eigener, sichtbarer Hauptpunkt
+    { key: "academy", label: "Academy", icon: "sensei" },
+  ],
+  tools: [
+    { key: "testingLog", label: "Testing Log", icon: "testing" },
+    { key: "roast", label: "Roast", icon: "roast" },
+    {
+      key: "reports",
+      label: "Reports (Suite)",
+      icon: "reports",
+    },
+    {
+      key: "analytics",
+      label: "Analytics (Suite)",
+      icon: "analytics",
+    },
+    {
+      key: "creatorInsights",
+      label: "Creator Insights (Suite)",
+      icon: "creators",
+    },
+  ],
+  settings: [
+    { key: "team", label: "Team", icon: "team" },
+    { key: "brands", label: "Brands", icon: "brands" },
+    { key: "shopify", label: "Shopify", icon: "shopify" },
+    { key: "settings", label: "Settings", icon: "settings" },
+    { key: "onboarding", label: "Onboarding", icon: "onboarding" },
+  ],
+};
 
 function renderNav() {
   const ul = document.getElementById("navbar");
   if (!ul) return;
 
   ul.innerHTML = "";
-  navItems.forEach((item) => {
+
+  function addSectionLabel(text) {
+    const li = document.createElement("li");
+    li.className = "sidebar-nav-section-label";
+    li.textContent = text;
+    ul.appendChild(li);
+  }
+
+  function addItem(item) {
     const li = document.createElement("li");
     li.className = "sidebar-nav-item";
 
@@ -541,7 +572,18 @@ function renderNav() {
 
     li.appendChild(btn);
     ul.appendChild(li);
-  });
+  }
+
+  // Hauptmodule + Academy
+  navStructure.main.forEach(addItem);
+
+  // Mehr Tools
+  addSectionLabel("Mehr Tools");
+  navStructure.tools.forEach(addItem);
+
+  // Einstellungen
+  addSectionLabel("Einstellungen");
+  navStructure.settings.forEach(addItem);
 
   setActiveNavItem(AppState.currentModule);
 }
@@ -1195,16 +1237,3 @@ window.SignalOne = {
     useDemoMode,
   },
 };
-// Dropdown Toggle
-document.querySelectorAll('.nav-item.nav-more').forEach(toggle => {
-  toggle.addEventListener('click', (e) => {
-    e.preventDefault();
-    const dropdownId = toggle.getAttribute('data-dropdown');
-    const dropdown = document.getElementById(`dropdown-${dropdownId}`);
-    toggle.classList.toggle('active');
-    dropdown.classList.toggle('active');
-    document.querySelectorAll('.nav-dropdown').forEach(dd => { if (dd !== dropdown) dd.classList.remove('active'); });
-    document.querySelectorAll('.nav-item.nav-more').forEach(t => { if (t !== toggle) t.classList.remove('active'); });
-  });
-});
-
