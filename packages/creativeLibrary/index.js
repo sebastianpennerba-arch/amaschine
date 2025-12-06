@@ -14,43 +14,100 @@ import { computeCreativeHealth } from "./health.js";
 
 // Public API: wird von app.js als Modul geladen
 export async function render(section, AppState, options = {}) {
-  const useDemoMode = !!options.useDemoMode;
-
   if (!section) return;
-
-  const SignalOne = window.SignalOne || {};
-  const DataLayer = SignalOne.DataLayer;
-
-  // 1) DataLayer & Meta-Gatekeeper ---------------------------------
-  if (!DataLayer) {
-    section.innerHTML = `
-      <div class="view-inner">
-        <h2 class="view-title">Creative Library</h2>
-        <p class="view-subtitle">
-          DataLayer ist noch nicht initialisiert. Bitte Backend prÃ¼fen.
-        </p>
-      </div>
-    `;
-    return;
+  
+  // Progressive Loading mit Steps
+  LoadingManager.show('creatives', section, 'progressive', {
+    steps: [
+      'Meta API verbinden...',
+      'Creatives laden...',
+      'Performance berechnen...',
+      'Thumbnails generieren...'
+    ]
+  });
+  
+  try {
+    // Step 1
+    updateProgressStep(0);
+    await new Promise(resolve => setTimeout(resolve, 400));
+    
+    // Step 2
+    updateProgressStep(1);
+    const creatives = await fetchCreatives(AppState);
+    
+    // Step 3
+    updateProgressStep(2);
+    const computed = buildCreativeLibraryViewModel(creatives);
+    
+    // Step 4
+    updateProgressStep(3);
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Render mit Image Placeholders
+    const html = renderCreativeGrid(computed);
+    LoadingManager.hide('creatives', html);
+    
+    // Lazy Loading für Thumbnails aktivieren
+    initLazyLoading();
+    
+  } catch (err) {
+    LoadingManager.hide('creatives', LoadingStates.error(
+      'Creatives konnten nicht geladen werden',
+      'window.SignalOne.navigateTo("creativeLibrary")'
+    ));
   }
+}
 
-  const meta = (AppState && AppState.meta) || {};
-  const hasLiveAccess =
-    !!meta.token || !!meta.accessToken || !!meta.activeAccountId;
+function updateProgressStep(index) {
+  const steps = document.querySelectorAll('.progress-step');
+  steps.forEach((step, i) => {
+    if (i < index) {
+      step.classList.add('completed');
+      step.classList.remove('active');
+    } else if (i === index) {
+      step.classList.add('active');
+    } else {
+      step.classList.remove('active', 'completed');
+    }
+  });
+  
+  // Update Progress Bar
+  const progress = ((index + 1) / steps.length) * 100;
+  const fill = document.querySelector('.progress-fill');
+  if (fill) fill.style.width = `${progress}%`;
+}
 
-  if (!useDemoMode && !hasLiveAccess) {
-    section.innerHTML = `
-      <div class="view-inner">
-        <h2 class="view-title">Creative Library</h2>
-        <p class="view-subtitle">
-          Verbinde deinen Meta Account, um Live-Creatives zu sehen.
-        </p>
-      </div>
-    `;
-    return;
+function renderCreativeGrid(creatives) {
+  if (!creatives || !creatives.length) {
+    return LoadingStates.empty(
+      'Noch keine Creatives vorhanden',
+      '🎬',
+      'Creative hochladen',
+      'window.SignalOne.navigateTo("sensei")'
+    );
   }
+  
+  return `
+    <div class="creative-grid">
+      ${creatives.map(c => `
+        <div class="creative-card">
+          ${ImagePlaceholder.lazyImage(
+            c.thumbnailUrl || c.previewUrl,
+            c.name,
+            280,
+            350
+          )}
+          <div class="creative-meta">
+            <h4>${escapeHtml(c.name)}</h4>
+            <p>${escapeHtml(c.hook || 'Kein Hook')}</p>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
 
-  // 2) Rohdaten vom DataLayer holen --------------------------------
+// 2) Rohdaten vom DataLayer holen --------------------------------
   const accountId =
     meta.activeAccountId ||
     meta.selectedAccountId ||
