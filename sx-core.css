@@ -5,7 +5,7 @@
  */
 
 /* =========================================================
-   1) GLOBAL LOADER – VisionOS Orb (NEU & Bereinigt)
+   1) GLOBAL LOADER – VisionOS Orb
    ========================================================= */
 
 #globalLoader {
@@ -44,11 +44,7 @@
   padding: 14px 18px;
   border-radius: 999px;
 
-  background: radial-gradient(
-    circle at 0% 0%,
-    #ffffff,
-    #e5e7f5
-  );
+  background: radial-gradient(circle at 0% 0%, #ffffff, #e5e7f5);
 
   border: 1px solid rgba(148, 163, 184, 0.55);
 
@@ -147,11 +143,6 @@
   transition: opacity 0.18s ease-out, transform 0.12s ease-out;
 }
 
-.view.active {
-  opacity: 1;
-  transform: translateY(0);
-}
-
 .view.is-active {
   display: block;
   opacity: 1 !important;
@@ -203,64 +194,4 @@ button:active,
 /* Soft Hover on Tables */
 table tbody tr {
   transition: background 0.15s ease-out;
-}
-
-/* =========================================================
-   4) SYSTEM MODAL (FIXED VERSION)
-   ========================================================= */
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  background: rgba(0, 0, 0, 0.42);
-  backdrop-filter: blur(4px);
-
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-
-  transition: opacity 0.25s ease, visibility 0.25s ease;
-  z-index: 300; /* über allem */
-}
-
-.modal-overlay.open {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: all;
-}
-
-.modal {
-  background: white;
-  padding: 20px;
-  border-radius: 16px;
-  width: 420px;
-  max-width: 90%;
-
-  box-shadow:
-    0 25px 60px rgba(15, 23, 42, 0.28),
-    0 0 0 0.6px rgba(255, 255, 255, 0.9) inset;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.modal-close {
-  font-size: 20px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  opacity: 0.6;
-  transition: opacity 0.15s ease;
-}
-
-.modal-close:hover {
-  opacity: 1;
 }
