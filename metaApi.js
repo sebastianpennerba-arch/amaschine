@@ -1,292 +1,168 @@
-// ============================================================
-// Meta API Client - Fixed Version
-// Added: Caching, Better error handling, Request timeouts
-// ============================================================
+// metaApi.js – FINAL VERSION for https://signalone-backend.onrender.com
+// Frontend-Proxy für Meta-API über das Backend
+// - Nutzt automatisch AppState.meta.accessToken, wenn kein Token übergeben wird
+// - Schickt beim Insights-Endpoint { accessToken, timeRangePreset } an das Backend
+// - Liefert bei Insights ein Objekt im Format { ok, success, data, error? }
 
-import ENV from './config.js';
-import apiCache from './utils/cache.js';
-import { AppState } from './state.js';
+import { AppState } from "./state.js";
 
-const BASE_URL = `${ENV.API_BASE_URL}/meta`;
+const BASE_URL = "https://signalone-backend.onrender.com/api/meta";
 
 /**
- * Resolve access token from explicit param or AppState
+ * Hilfsfunktion: ermittelt den zu verwendenden Access Token
+ * - bevorzugt expliziten Parameter
+ * - sonst AppState.meta.accessToken
  */
 function resolveAccessToken(explicitToken) {
-  if (explicitToken) return explicitToken;
-  return AppState?.meta?.accessToken || null;
+    if (explicitToken) return explicitToken;
+    return AppState?.meta?.accessToken || null;
 }
 
 /**
- * Enhanced fetch with timeout
- */
-async function fetchWithTimeout(url, options = {}, timeout = ENV.REQUEST_TIMEOUT) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
-  
-  try {
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
-    return response;
-  } catch (err) {
-    clearTimeout(timeoutId);
-    if (err.name === 'AbortError') {
-      throw new Error('Request timeout');
-    }
-    throw err;
-  }
-}
-
-/**
- * JSON POST wrapper with error handling
+ * Kleine Wrapper-Funktion für Fetch + JSON
  */
 async function jsonPost(url, body) {
-  try {
-    const res = await fetchWithTimeout(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
+    const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body || {})
     });
-    
+
     let data = null;
     try {
-      data = await res.json();
+        data = await res.json();
     } catch {
-      data = null;
+        data = null;
     }
-    
+
     return { res, data };
-  } catch (err) {
-    console.error('jsonPost error:', err);
-    return { 
-      res: null, 
-      data: { ok: false, error: err.message } 
-    };
-  }
 }
 
-/**
- * 1. Exchange OAuth code for token
- */
+// 1. OAuth Code gegen Token tauschen
 export async function exchangeMetaCodeForToken(code, redirectUri) {
-  const { res, data } = await jsonPost(`${BASE_URL}/oauth/token`, {
-    code,
-    redirectUri
-  });
-  
-  if (!res?.ok || !data?.ok || !data.accessToken) {
-    console.error('exchangeMetaCodeForToken failed:', data);
-    return null;
-  }
-  
-  return data.accessToken;
+    const { res, data } = await jsonPost(`${BASE_URL}/oauth/token`, {
+        code,
+        redirectUri
+    });
+
+    if (!res.ok || !data?.ok || !data.accessToken) {
+        console.error("exchangeMetaCodeForToken failed:", data);
+        return null;
+    }
+
+    return data.accessToken;
 }
 
-/**
- * 2. Fetch Meta user profile
- */
+// 2. User laden
 export async function fetchMetaUser(accessToken) {
-  const token = resolveAccessToken(accessToken);
-  if (!token) return null;
-  
-  // Check cache first
-  const cacheKey = apiCache.generateKey(`${BASE_URL}/me`, { token });
-  const cached = apiCache.get(cacheKey);
-  if (cached) {
-    console.log('fetchMetaUser: Using cached data');
-    return cached;
-  }
-  
-  const { res, data } = await jsonPost(`${BASE_URL}/me`, {
-    accessToken: token
-  });
-  
-  if (!res?.ok || !data?.ok) {
-    console.error('fetchMetaUser failed:', data);
-    return null;
-  }
-  
-  // Cache response
-  apiCache.set(cacheKey, data.data);
-  
-  return data.data;
+    const token = resolveAccessToken(accessToken);
+    if (!token) return null;
+
+    const { res, data } = await jsonPost(`${BASE_URL}/me`, {
+        accessToken: token
+    });
+
+    if (!res.ok || !data?.ok) {
+        console.error("fetchMetaUser failed:", data);
+        return null;
+    }
+
+    return data.data;
 }
 
-/**
- * 3. Fetch Meta ad accounts
- */
+// 3. Werbekonten laden
 export async function fetchMetaAdAccounts(accessToken) {
-  const token = resolveAccessToken(accessToken);
-  if (!token) return [];
-  
-  // Check cache
-  const cacheKey = apiCache.generateKey(`${BASE_URL}/adaccounts`, { token });
-  const cached = apiCache.get(cacheKey);
-  if (cached) {
-    console.log('fetchMetaAdAccounts: Using cached data');
-    return cached;
-  }
-  
-  const { res, data } = await jsonPost(`${BASE_URL}/adaccounts`, {
-    accessToken: token
-  });
-  
-  if (!res?.ok || !data?.ok) {
-    console.error('fetchMetaAdAccounts failed:', data);
-    return [];
-  }
-  
-  const accounts = data.data?.data || [];
-  
-  // Cache response
-  apiCache.set(cacheKey, accounts);
-  
-  return accounts;
+    const token = resolveAccessToken(accessToken);
+    if (!token) return [];
+
+    const { res, data } = await jsonPost(`${BASE_URL}/adaccounts`, {
+        accessToken: token
+    });
+
+    if (!res.ok || !data?.ok) {
+        console.error("fetchMetaAdAccounts failed:", data);
+        return [];
+    }
+
+    // Backend liefert { ok: true, data: { data: [...] } }
+    return data.data?.data || [];
 }
 
-/**
- * 4. Fetch campaigns for account
- */
+// 4. Kampagnen laden
 export async function fetchMetaCampaigns(accountId, accessToken) {
-  const token = resolveAccessToken(accessToken);
-  if (!token || !accountId) return [];
-  
-  // Check cache
-  const cacheKey = apiCache.generateKey(
-    `${BASE_URL}/campaigns/${accountId}`,
-    { token }
-  );
-  const cached = apiCache.get(cacheKey);
-  if (cached) {
-    console.log('fetchMetaCampaigns: Using cached data');
-    return cached;
-  }
-  
-  const { res, data } = await jsonPost(`${BASE_URL}/campaigns/${accountId}`, {
-    accessToken: token
-  });
-  
-  if (!res?.ok || !data?.ok) {
-    console.error('fetchMetaCampaigns failed:', data);
-    return [];
-  }
-  
-  const campaigns = data.data?.data || [];
-  
-  // Cache response
-  apiCache.set(cacheKey, campaigns);
-  
-  return campaigns;
+    const token = resolveAccessToken(accessToken);
+    if (!token || !accountId) return [];
+
+    const { res, data } = await jsonPost(`${BASE_URL}/campaigns/${accountId}`, {
+        accessToken: token
+    });
+
+    if (!res.ok || !data?.ok) {
+        console.error("fetchMetaCampaigns failed:", data);
+        return [];
+    }
+
+    return data.data?.data || [];
 }
 
-/**
- * 5. Fetch ads for account
- */
+// 5. Ads laden
 export async function fetchMetaAds(accountId, accessToken) {
-  const token = resolveAccessToken(accessToken);
-  if (!token || !accountId) return [];
-  
-  // Check cache
-  const cacheKey = apiCache.generateKey(
-    `${BASE_URL}/ads/${accountId}`,
-    { token }
-  );
-  const cached = apiCache.get(cacheKey);
-  if (cached) {
-    console.log('fetchMetaAds: Using cached data');
-    return cached;
-  }
-  
-  const { res, data } = await jsonPost(`${BASE_URL}/ads/${accountId}`, {
-    accessToken: token
-  });
-  
-  if (!res?.ok || !data?.ok) {
-    console.error('fetchMetaAds failed:', data);
-    return [];
-  }
-  
-  const ads = data.data?.data || [];
-  
-  // Cache response
-  apiCache.set(cacheKey, ads);
-  
-  return ads;
+    const token = resolveAccessToken(accessToken);
+    if (!token || !accountId) return [];
+
+    const { res, data } = await jsonPost(`${BASE_URL}/ads/${accountId}`, {
+        accessToken: token
+    });
+
+    if (!res.ok || !data?.ok) {
+        console.error("fetchMetaAds failed:", data);
+        return [];
+    }
+
+    return data.data?.data || [];
 }
 
-/**
- * 6. Fetch campaign insights
- */
+// 6. Kampagnen-Insights laden (WICHTIG! Dashboard fix)
+//    - Dashboard ruft auf mit: fetchMetaCampaignInsights(campaignId, preset)
+//    - Wir ergänzen automatisch den Access Token
+//    - Wir schicken { accessToken, timeRangePreset } an das Backend
+//    - Wir geben ein Objekt zurück, das sowohl in aggregateCampaigns()
+//      als auch im Single-Campaign-Branch funktioniert.
 export async function fetchMetaCampaignInsights(
-  campaignId,
-  timeRangePreset,
-  accessToken
+    campaignId,
+    timeRangePreset,
+    accessToken
 ) {
-  const token = resolveAccessToken(accessToken);
-  
-  if (!token || !campaignId) {
-    console.error('fetchMetaCampaignInsights: Missing token or campaignId');
-    return {
-      ok: false,
-      success: false,
-      error: 'Missing token or campaignId'
-    };
-  }
-  
-  const preset = timeRangePreset || AppState.timeRangePreset || 'last_30d';
-  
-  // Check cache
-  const cacheKey = apiCache.generateKey(
-    `${BASE_URL}/insights/${campaignId}`,
-    { token, preset }
-  );
-  const cached = apiCache.get(cacheKey);
-  if (cached) {
-    console.log('fetchMetaCampaignInsights: Using cached data');
-    return {
-      ok: true,
-      success: true,
-      data: cached
-    };
-  }
-  
-  const { res, data } = await jsonPost(`${BASE_URL}/insights/${campaignId}`, {
-    accessToken: token,
-    timeRangePreset: preset
-  });
-  
-  if (!res?.ok || !data) {
-    console.error('fetchMetaCampaignInsights HTTP error:', res?.status, data);
-    return {
-      ok: false,
-      success: false,
-      error: data?.error || `HTTP ${res?.status}`
-    };
-  }
-  
-  const success = !!data.ok;
-  
-  // Cache successful response
-  if (success && data.data) {
-    apiCache.set(cacheKey, data.data);
-  }
-  
-  return {
-    ...data,
-    ok: data.ok,
-    success
-  };
-}
+    const token = resolveAccessToken(accessToken);
 
-/**
- * Clear all Meta API cache
- */
-export function clearMetaCache() {
-  apiCache.clearAll();
-  console.log('Meta API cache cleared');
+    if (!token || !campaignId) {
+        console.error("fetchMetaCampaignInsights called without token or campaignId");
+        return { ok: false, success: false, error: "Missing token or campaignId" };
+    }
+
+    const preset = timeRangePreset || AppState.timeRangePreset || "last_30d";
+
+    const { res, data } = await jsonPost(`${BASE_URL}/insights/${campaignId}`, {
+        accessToken: token,
+        timeRangePreset: preset
+    });
+
+    if (!res.ok || !data) {
+        console.error("fetchMetaCampaignInsights HTTP error:", res.status, data);
+        return {
+            ok: false,
+            success: false,
+            error: data?.error || `HTTP ${res.status}`,
+            data
+        };
+    }
+
+    // Backend liefert: { ok: true, data: { data: [ ... ] } }
+    const success = !!data.ok;
+
+    return {
+        ...data,
+        ok: data.ok,
+        success
+    };
 }
