@@ -1,877 +1,233 @@
 // packages/dashboard/index.js
-// -----------------------------------------------------------------------------
-// SignalOne – Dashboard (Upgrade C)
-// Tabs: Overview • Deep Dive • Academy
-// - Nutzt DataLayer.fetchDashboardSummary(accountId) falls vorhanden
-// - Zeigt Launch-Status (0–100 %) permanent im Header
-// - VisionOS Tabs via .dashboard-tabs / .dashboard-tab / .dashboard-panel
-// -----------------------------------------------------------------------------
-
 import DataLayer from "../data/index.js";
 
-/**
- * WICHTIG:
- * Dieses Modul unterstützt zwei Aufrufarten:
- *
- * 1) Alte App-Architektur (app.js):
- *    modules.dashboard() → import("./packages/dashboard/index.js")
- *    const initFn = mod.default?.init || mod.init;
- *    initFn({ AppState, DemoData, DataLayer, useDemoMode, ... })
- *
- * 2) Direkter Render-Call:
- *    render(section, AppState, { useDemoMode: true })
- *
- * Dadurch bleibt das Grundgerüst stabil und alle Views „leben“ wieder.
- */
+/* ==========================================
+   DASHBOARD MODULE - FIXED VERSION
+========================================== */
 
-/**
- * Entry-Point für app.js (init-Style).
- * Wird von app.js via loadModule("dashboard") aufgerufen.
- *
- * @param {object} ctx
- *   ctx = {
- *     AppState,
- *     DemoData,
- *     DataLayer,
- *     brand,
- *     campaign,
- *     useDemoMode,        // Funktion aus app.js
- *     formatNumber,
- *     formatCurrency,
- *     formatPercent
- *   }
- */
 export async function init(ctx = {}) {
   const section = document.getElementById("dashboardView");
   if (!section) return;
-
-  const { AppState, useDemoMode } = ctx;
+  
+  const { AppState, DemoData, useDemoMode } = ctx;
   const isDemo = typeof useDemoMode === "function" ? useDemoMode() : true;
-
-  await render(section, AppState, {
-    useDemoMode: isDemo,
-  });
+  
+  await render(section, AppState, { useDemoMode: isDemo, DemoData });
 }
 
-/**
- * Direkter Render-Entry (z. B. für Tests oder zukünftige Loader).
- *
- * @param {HTMLElement} section   #dashboardView
- * @param {object}      AppState  globaler AppState aus app.js
- * @param {object}      opts      { useDemoMode: boolean }
- */
-export async function render(section, AppState, opts = {}) {
+async function render(section, AppState, opts = {}) {
   if (!section) return;
+  
   const isDemo = !!opts.useDemoMode;
+  const DemoData = opts.DemoData || {};
   
-  // 1) LOADING STATE ANZEIGEN
-  LoadingManager.show('dashboard', section, 'skeleton', {
-    html: LoadingStates.skeletonKPI(4) + `
-      <div style="margin-top: 30px;">
-        ${LoadingStates.skeleton('slow')}
-      </div>
-    `,
-    speed: 'medium'
-  });
+  // Skeleton anzeigen
+  section.innerHTML = renderSkeleton();
   
-  // 2) DATEN LADEN
+  // Daten laden
   let summary = null;
   try {
-    summary = await loadSummary(AppState, isDemo);
-    
-    // Simuliere unterschiedliche Lade-Zeiten
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
+    if (isDemo) {
+      summary = buildDemoSummary(DemoData);
+    } else {
+      const accountId = AppState?.selectedBrandId || AppState?.meta?.accountId || "demo";
+      summary = await DataLayer.fetchDashboardSummary({ accountId, preferLive: !isDemo });
+    }
   } catch (err) {
-    console.error("[Dashboard] Fehler:", err);
-    
-    // ERROR STATE
-    LoadingManager.hide('dashboard', LoadingStates.error(
-      'Dashboard konnte nicht geladen werden',
-      'window.SignalOne.navigateTo("dashboard")'
-    ));
+    console.error("[Dashboard] Error:", err);
+    section.innerHTML = renderError();
     return;
   }
   
-  // 3) CONTENT RENDERN
-  const html = renderDashboard(AppState, isDemo, summary);
-  LoadingManager.hide('dashboard', html);
-  
-  // 4) INTERAKTIONEN VERDRAHTEN
-  wireTabs(section);
-  wireCTAs(section);
+  // Dashboard rendern
+  section.innerHTML = renderDashboard(summary, isDemo);
+  wireTabs();
 }
 
-/* ---------------------------------------------------------------------------
- *  DATA LOADING
- * ------------------------------------------------------------------------ */
-
-async function loadSummary(AppState, isDemo) {
-  const accountId =
-    AppState?.meta?.activeAccountId ||
-    AppState?.meta?.selectedAccountId ||
-    AppState?.meta?.accountId ||
-    "DEMO_ACCOUNT";
-
-  if (DataLayer && typeof DataLayer.fetchDashboardSummary === "function") {
-    return DataLayer.fetchDashboardSummary({
-      accountId,
-      preferLive: !isDemo,
-    });
-  }
-
-  // Fallback – minimale Demo-Struktur
+function buildDemoSummary(DemoData) {
+  const brands = DemoData.brands || [];
+  const creatives = DemoData.creatives || [];
+  
+  const totalSpend = brands.reduce((sum, b) => sum + (b.spend30d || 0), 0);
+  const avgRoas = brands.reduce((sum, b) => sum + (b.roas30d || 0), 0) / Math.max(brands.length, 1);
+  
   return {
     metrics: {
-      spend30d: 120000,
-      revenue30d: 420000,
-      roas30d: 3.5,
-      ctr30d: 0.028,
-      cpm30d: 12.5,
-      purchases30d: 2800,
+      spend30d: totalSpend,
+      revenue30d: totalSpend * avgRoas,
+      roas30d: avgRoas,
+      ctr30d: 2.8,
+      cpm30d: 8.5,
+      purchases30d: Math.round(totalSpend * avgRoas / 50),
     },
     alerts: {
-      level: "warning",
+      level: "good",
       items: [
-        {
-          severity: "warning",
-          title: "Scaling-Phase aktiv",
-          message:
-            "Ein Teil deines Budgets läuft auf Kampagnen mit sinkendem ROAS.",
-        },
-        {
-          severity: "info",
-          title: "Creatives im Testing",
-          message: "3 neue UGC-Creatives laufen erst seit < 3 Tagen.",
-        },
+        { severity: "info", title: "Demo-Modus aktiv", message: "Du siehst Demo-Daten. Verbinde Meta für Live-Daten." }
       ],
     },
-    bestCampaign: {
-      name: "SC – Evergreen UGC – Main GEO",
-      roas: 4.8,
-      spend: 34000,
-    },
-    worstCampaign: {
-      name: "TOF – Broad Prospecting – DACH",
-      roas: 1.2,
-      spend: 22000,
-    },
-    bestCreative: {
-      name: 'UGC: „Problem → Lösung“-Hook',
-      roas: 6.1,
-      spend: 16000,
-    },
-    worstCreative: {
-      name: "Static – Rabattbanner 15%",
-      roas: 0.9,
-      spend: 8000,
-    },
+    bestCampaign: brands[0] ? { name: brands[0].name, roas: brands[0].roas30d, spend: brands[0].spend30d } : null,
+    worstCampaign: brands[brands.length - 1] ? { name: brands[brands.length - 1].name, roas: brands[brands.length - 1].roas30d, spend: brands[brands.length - 1].spend30d } : null,
+    bestCreative: creatives[0] || null,
+    worstCreative: creatives[creatives.length - 1] || null,
   };
 }
 
-/* ---------------------------------------------------------------------------
- *  RENDERING
- * ------------------------------------------------------------------------ */
-
-function renderSkeleton(AppState, isDemo) {
-  const brandName = getBrandName(AppState) || "Aktuelle Brand";
-  const modeLabel = isDemo ? "Demo / Showroom" : "Live / Hybrid";
-  const launchScore = computeLaunchScore(AppState);
-
+function renderSkeleton() {
   return `
-    <div class="dashboard-root">
-      ${renderHeader(brandName, modeLabel, launchScore, AppState, isDemo, null)}
-      ${renderTabs()}
-      <div class="dashboard-panel-group">
-        <section class="dashboard-panel active" data-panel="overview">
-          <div class="dashboard-overview-grid">
-            <div class="dashboard-overview-card">
-              <h3 class="card-title">Kern-KPIs (30 Tage)</h3>
-              <p class="card-subtitle">Lade Spend, Umsatz, ROAS, CTR & CPM …</p>
-              <div class="kpi-grid" style="margin-top:10px;">
-                ${skeletonLine()}
-                ${skeletonLine()}
-                ${skeletonLine()}
-                ${skeletonLine()}
-              </div>
-            </div>
-            <div class="dashboard-overview-card">
-              <h3 class="card-title">Health & Alerts</h3>
-              <p class="card-subtitle">Analysiere kritische Signale im Account …</p>
-              ${skeletonPill()}
-              ${skeletonPill()}
-              ${skeletonPill()}
-            </div>
-            <div class="dashboard-overview-card">
-              <h3 class="card-title">Top & Low Performer</h3>
-              <p class="card-subtitle">
-                Identifiziere deine stärksten & schwächsten Assets …
-              </p>
-              ${skeletonLine()}
-              ${skeletonLine()}
-            </div>
-          </div>
-        </section>
-
-        <section class="dashboard-panel" data-panel="deepdive">
-          <div class="dashboard-deepdive-box">
-            <h3 class="card-title">Performance Deep Dive</h3>
-            <p class="card-subtitle">Detaildaten werden geladen …</p>
-          </div>
-        </section>
-
-        <section class="dashboard-panel" data-panel="academy">
-          ${renderAcademyPanel()}
-        </section>
+    <div class="view-header">
+      <h2>DASHBOARD OVERVIEW</h2>
+      <p class="view-subline">Lädt Dashboard-Daten...</p>
+    </div>
+    <div class="view-body">
+      <div class="skeleton-grid" style="grid-template-columns: repeat(4, 1fr);">
+        ${Array(4).fill('<div class="skeleton-card"><div class="skeleton-loader" style="height:100px;"></div></div>').join('')}
       </div>
     </div>
   `;
 }
 
-function renderDashboard(AppState, isDemo, summary) {
-  const brandName = getBrandName(AppState) || "Aktuelle Brand";
-  const modeLabel = isDemo ? "Demo / Showroom" : "Live / Hybrid";
-  const launchScore = computeLaunchScore(AppState);
-
-  const metrics = summary?.metrics || summary || {};
-  const alerts = summary?.alerts || null;
-  const bestCampaign = summary?.bestCampaign || null;
-  const worstCampaign = summary?.worstCampaign || null;
-  const bestCreative = summary?.bestCreative || null;
-  const worstCreative = summary?.worstCreative || null;
-
+function renderError() {
   return `
-    <div class="dashboard-root">
-      ${renderHeader(brandName, modeLabel, launchScore, AppState, isDemo, alerts)}
-      ${renderTabs()}
-      <div class="dashboard-panel-group">
-        <!-- OVERVIEW -->
-        <section class="dashboard-panel active" data-panel="overview">
-          ${renderOverviewPanel(
-            metrics,
-            alerts,
-            bestCampaign,
-            worstCampaign,
-            bestCreative,
-            worstCreative,
-          )}
-        </section>
-
-        <!-- DEEP DIVE -->
-        <section class="dashboard-panel" data-panel="deepdive">
-          ${renderDeepDivePanel(metrics)}
-        </section>
-
-        <!-- ACADEMY -->
-        <section class="dashboard-panel" data-panel="academy">
-          ${renderAcademyPanel()}
-        </section>
+    <div class="view-header">
+      <h2>DASHBOARD OVERVIEW</h2>
+    </div>
+    <div class="view-body">
+      <div class="error-state">
+        <div class="error-icon">⚠️</div>
+        <div class="error-message">Dashboard konnte nicht geladen werden</div>
+        <button class="btn-retry" onclick="window.location.reload()">🔄 Erneut versuchen</button>
       </div>
     </div>
   `;
 }
 
-/* ---------------------------------------------------------------------------
- *  HEADER, TABS & PANELS
- * ------------------------------------------------------------------------ */
-
-function renderHeader(brandName, modeLabel, launchScore, AppState, isDemo, alerts) {
-  const modeBadge =
-    isDemo || !AppState?.metaConnected
-      ? `<span class="view-meta-pill"><span class="dot-live" style="background:#0ea5e9;"></span> Demo Mode</span>`
-      : `<span class="view-meta-pill"><span class="dot-live"></span> Live Daten</span>`;
-
-  const accountName =
-    AppState?.meta?.accountName ||
-    AppState?.meta?.user?.name ||
-    brandName;
-
-  const alertsText =
-    alerts?.level === "critical"
-      ? "Kritische Signale im Account aktiv."
-      : alerts?.level === "warning"
-      ? "Es gibt Warnsignale, die du prüfen solltest."
-      : "Aktuell keine kritischen Signals.";
-
-  const launchLabel =
-    launchScore >= 80
-      ? "Launch-ready"
-      : launchScore >= 60
-      ? "Fast bereit"
-      : "Setup ausstehend";
-
+function renderDashboard(summary, isDemo) {
+  const m = summary.metrics || {};
+  
   return `
-    <header class="view-header" style="align-items:flex-start;margin-bottom:20px;">
-      <div>
-        <h2>DASHBOARD OVERVIEW</h2>
-        <div class="view-meta-row">
-          <span class="view-meta-pill">
-            Brand: <strong>${escapeHtml(brandName)}</strong>
-          </span>
-          <span class="view-meta-pill">
-            Account: <strong>${escapeHtml(accountName)}</strong>
-          </span>
-          ${modeBadge}
-        </div>
-        <p class="view-subline">
-          Zentraler Überblick über Spend, ROAS, CTR & CPM – plus deine wichtigsten Signale
-          aus Kampagnen, Creatives und Tests.
-        </p>
-      </div>
-
-      <div style="min-width:220px;max-width:260px;">
-        <div class="settings-block">
-          <div class="settings-block-header">
-            <div>
-              <div class="settings-title">Launch-Status</div>
-              <div class="settings-subtitle">
-                ${launchLabel} • ${launchScore}%
-              </div>
-            </div>
-          </div>
-          <div class="dashboard-launchbar" style="margin-top:10px;">
-            <div
-              class="dashboard-launchbar-fill"
-              style="width:${Math.max(0, Math.min(100, launchScore))}%;"
-            ></div>
-          </div>
-          <div style="font-size:0.76rem;color:#6b7280;margin-top:4px;">
-            ${alertsText}
-          </div>
-        </div>
-      </div>
-    </header>
-  `;
-}
-
-function renderTabs() {
-  return `
-    <div class="dashboard-tabs">
-      <button class="dashboard-tab active" data-tab="overview">Overview</button>
-      <button class="dashboard-tab" data-tab="deepdive">Deep&nbsp;Dive</button>
-      <button class="dashboard-tab" data-tab="academy">Academy</button>
+    <div class="view-header">
+      <h2>DASHBOARD OVERVIEW</h2>
+      <p class="view-subline">
+        <strong>Brand:</strong> ${summary.brandName || 'Demo Brand'} • 
+        <strong>Account:</strong> ${summary.accountName || 'Demo User'} • 
+        ${isDemo ? '<span style="color:#f59e0b;">Demo Mode</span>' : '<span style="color:#22c55e;">Live Mode</span>'}
+      </p>
+    </div>
+    
+    <div class="view-body">
+      ${renderLaunchStatus()}
+      ${renderKPIs(m)}
+      ${renderAlerts(summary.alerts)}
+      ${renderTopPerformers(summary)}
     </div>
   `;
 }
 
-/* OVERVIEW PANEL */
-
-function renderOverviewPanel(
-  metrics,
-  alerts,
-  bestCampaign,
-  worstCampaign,
-  bestCreative,
-  worstCreative,
-) {
-  const spend = metrics?.spend30d ?? metrics?.spend ?? 0;
-  const revenue = metrics?.revenue30d ?? metrics?.revenue ?? 0;
-  const roas = metrics?.roas30d ?? metrics?.roas ?? 0;
-  const ctr = metrics?.ctr30d ?? metrics?.ctr ?? 0;
-  const cpm = metrics?.cpm30d ?? metrics?.cpm ?? 0;
-  const purchases = metrics?.purchases30d ?? metrics?.purchases ?? 0;
-
+function renderLaunchStatus() {
   return `
-    <div class="dashboard-overview-grid">
-      <!-- KPIs -->
-      <article class="dashboard-overview-card">
-        <h3 class="card-title">Kern-KPIs (30 Tage)</h3>
-        <p class="card-subtitle">
-          Spend, Umsatz und ROAS bilden die Basis für deine Performance-Entscheidungen.
-        </p>
-        <div class="kpi-grid" style="margin-top:12px;">
-          <div class="kpi-item">
-            <div class="kpi-label">Spend</div>
-            <div class="kpi-value">${formatCurrency(spend)}</div>
-            <div class="kpi-badge good">Budget aktiv</div>
-          </div>
-          <div class="kpi-item">
-            <div class="kpi-label">Umsatz (geschätzt)</div>
-            <div class="kpi-value">${formatCurrency(revenue)}</div>
-            <div class="kpi-badge">${formatRoas(roas)} ROAS</div>
-          </div>
-          <div class="kpi-item">
-            <div class="kpi-label">CTR</div>
-            <div class="kpi-value">${formatPercent(ctr)}</div>
-            <div class="kpi-badge">Traffic-Qualität</div>
-          </div>
-          <div class="kpi-item">
-            <div class="kpi-label">CPM</div>
-            <div class="kpi-value">${formatCurrency(cpm)}</div>
-            <div class="kpi-badge">Kostenniveau</div>
-          </div>
-        </div>
-        <div style="margin-top:10px;font-size:0.8rem;color:#6b7280;">
-          Purchases (30 Tage): <strong>${formatInt(purchases)}</strong>
-        </div>
-      </article>
-
-      <!-- Health & Alerts -->
-      <article class="dashboard-overview-card">
-        <h3 class="card-title">Health & Alerts</h3>
-        <p class="card-subtitle">
-          Kritische Signale aus Kampagnen & Creatives, die du im Blick behalten solltest.
-        </p>
-        <div style="margin-top:8px;">
-          ${renderAlertsList(alerts)}
-        </div>
-        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="meta-button" data-dashboard-cta="sensei">
-            Sensei Analyse
-          </button>
-          <button class="meta-button" data-dashboard-cta="testing">
-            Testing Log
-          </button>
-        </div>
-      </article>
-
-      <!-- Top & Low Performer -->
-      <article class="dashboard-overview-card">
-        <h3 class="card-title">Top & Low Performer</h3>
-        <p class="card-subtitle">
-          Schnellüberblick über deine stärksten und schwächsten Kampagnen & Creatives.
-        </p>
-        <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;">
-          ${
-            bestCampaign
-              ? renderPerformerRow("🏆 Kampagne (Top)", bestCampaign, "good")
-              : `<div class="kpi-item"><div class="kpi-label">Top-Kampagne</div><div class="kpi-value">–</div></div>`
-          }
-          ${
-            bestCreative
-              ? renderPerformerRow("⭐ Creative (Top)", bestCreative, "good")
-              : ""
-          }
-          ${
-            worstCampaign
-              ? renderPerformerRow("⚠ Kampagne (Low)", worstCampaign, "bad")
-              : ""
-          }
-          ${
-            worstCreative
-              ? renderPerformerRow("✖ Creative (Low)", worstCreative, "bad")
-              : ""
-          }
-        </div>
-        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="meta-button" data-dashboard-cta="creatives">
-            Creative Library
-          </button>
-          <button class="meta-button" data-dashboard-cta="campaigns">
-            Kampagnen
-          </button>
-        </div>
-      </article>
+    <div class="dashboard-section">
+      <h3>Launch-Status</h3>
+      <div class="launch-status-bar">
+        <div class="launch-status-fill" style="width: 80%;">80%</div>
+      </div>
+      <p style="font-size:0.85rem;color:#6b7280;margin-top:8px;">Launch-ready • 80% • 4 von 5 Modulen aktiv</p>
     </div>
   `;
 }
 
-/* DEEP DIVE PANEL */
-
-function renderDeepDivePanel(metrics = {}) {
-  const spend7 = metrics?.spend7d ?? null;
-  const spend30 = metrics?.spend30d ?? metrics?.spend ?? null;
-  const roas7 = metrics?.roas7d ?? null;
-  const roas30 = metrics?.roas30d ?? metrics?.roas ?? null;
-  const ctr = metrics?.ctr30d ?? metrics?.ctr ?? null;
-  const cpm = metrics?.cpm30d ?? metrics?.cpm ?? null;
-  const cpa = metrics?.cpa30d ?? metrics?.cpa ?? null;
-
+function renderKPIs(metrics) {
   return `
-    <div class="dashboard-deepdive">
-      <div class="dashboard-deepdive-box">
-        <h3 class="card-title">Performance Deep Dive</h3>
-        <p class="card-subtitle">
-          Kurzfristige vs. langfristige Performance. Ideal, um Scaling-Entscheidungen zu treffen.
-        </p>
-        <table class="table-mini" style="margin-top:10px;">
-          <thead>
-            <tr>
-              <th>Fenster</th>
-              <th>Spend</th>
-              <th>ROAS</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>7 Tage</td>
-              <td>${spend7 != null ? formatCurrency(spend7) : "–"}</td>
-              <td>${roas7 != null ? formatRoas(roas7) : "–"}</td>
-            </tr>
-            <tr>
-              <td>30 Tage</td>
-              <td>${spend30 != null ? formatCurrency(spend30) : "–"}</td>
-              <td>${roas30 != null ? formatRoas(roas30) : "–"}</td>
-            </tr>
-          </tbody>
-        </table>
-        <div style="margin-top:14px;font-size:0.8rem;color:#6b7280;">
-          Nutze den Unterschied zwischen 7-Tage- und 30-Tage-ROAS, um zu erkennen,
-          ob dein Account eher in eine positive oder negative Richtung driftet.
-        </div>
-      </div>
-
-      <div class="dashboard-deepdive-box">
-        <h3 class="card-title">Traffic & Kosten</h3>
-        <p class="card-subtitle">
-          CTR, CPM und CPA zeigen dir, ob dein Funnel-Einstieg sauber arbeitet.
-        </p>
-        <table class="table-mini" style="margin-top:10px;">
-          <tbody>
-            <tr>
-              <td>CTR</td>
-              <td>${formatPercent(ctr)}</td>
-            </tr>
-            <tr>
-              <td>CPM</td>
-              <td>${formatCurrency(cpm)}</td>
-            </tr>
-            <tr>
-              <td>CPA (approx.)</td>
-              <td>${formatCurrency(cpa)}</td>
-            </tr>
-          </tbody>
-        </table>
-        <div style="margin-top:14px;font-size:0.8rem;color:#6b7280;">
-          Bei steigenden CPM und fallender CTR solltest du Creatives & Hook-Struktur priorisieren.
-        </div>
-        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="meta-button" data-dashboard-cta="sensei">
-            Sensei öffnen
-          </button>
-          <button class="meta-button" data-dashboard-cta="testing">
-            Testplan anlegen
-          </button>
-        </div>
+    <div class="dashboard-section">
+      <h3>Kern-KPIs (30 Tage)</h3>
+      <div class="kpi-grid">
+        ${renderKPI('Spend', formatCurrency(metrics.spend30d), 'primary')}
+        ${renderKPI('Umsatz', formatCurrency(metrics.revenue30d), 'success')}
+        ${renderKPI('ROAS', formatNumber(metrics.roas30d, 1) + 'x', metrics.roas30d >= 3 ? 'success' : 'warning')}
+        ${renderKPI('CTR', formatPercent(metrics.ctr30d * 100, 2), 'primary')}
       </div>
     </div>
   `;
 }
 
-/* ACADEMY PANEL (Static Placeholder – Academy Einstieg) */
-
-function renderAcademyPanel() {
+function renderKPI(label, value, tone = 'primary') {
+  const colors = {
+    primary: '#3b82f6',
+    success: '#22c55e',
+    warning: '#f59e0b',
+    danger: '#ef4444'
+  };
+  
   return `
-    <div class="dashboard-academy">
-      <article class="academy-card">
-        <div class="view-kicker">Foundation</div>
-        <h3 class="academy-card-title">Meta Media Buying Fundamentals</h3>
-        <p class="academy-card-text">
-          Die Basis: ROAS, CTR, CPM, CPA & Budgets verstehen. Nach diesem Modul liest du
-          dein Dashboard wie eine Bilanz – ohne Rätselraten.
-        </p>
-        <button class="meta-button" data-dashboard-cta="academy-meta">
-          Modul (Demo) öffnen
-        </button>
-      </article>
-
-      <article class="academy-card">
-        <div class="view-kicker">Creatives</div>
-        <h3 class="academy-card-title">Creative Strategy & Hooks</h3>
-        <p class="academy-card-text">
-          Wie du Winner-Creatives baust, Hook-Patterns erkennst und deine Creative Library
-          nutzt, um systematisch neue Tests zu fahren.
-        </p>
-        <button class="meta-button" data-dashboard-cta="academy-hooks">
-          Hook Playbook
-        </button>
-      </article>
-
-      <article class="academy-card">
-        <div class="view-kicker">Testing</div>
-        <h3 class="academy-card-title">Testing & Iteration Blueprint</h3>
-        <p class="academy-card-text">
-          Klarer Fahrplan für A/B-Tests: Setup, Laufzeit, Auswertung und wann du Creatives
-          oder Kampagnen konsequent killen solltest.
-        </p>
-        <button class="meta-button" data-dashboard-cta="academy-testing">
-          Testing Blueprint
-        </button>
-      </article>
-
-      <article class="academy-card">
-        <div class="view-kicker">Scaling</div>
-        <h3 class="academy-card-title">Scaling Playbooks</h3>
-        <p class="academy-card-text">
-          Für Accounts, die performen: Wann du Budget hochziehen kannst, welche Methoden
-          (Vertical / Horizontal Scaling) Sinn machen und wie du Kontrolle behältst.
-        </p>
-        <button class="meta-button" data-dashboard-cta="academy-scaling">
-          Scaling Playbook
-        </button>
-      </article>
+    <div class="kpi-card">
+      <div class="kpi-label">${label}</div>
+      <div class="kpi-value" style="color:${colors[tone]};">${value}</div>
     </div>
   `;
 }
 
-/* ---------------------------------------------------------------------------
- *  HELPERS – Alerts, Performer, Skeleton
- * ------------------------------------------------------------------------ */
-
-function renderAlertsList(alerts) {
-  if (!alerts) {
-    return `<p class="card-subtitle" style="margin-top:6px;color:#6b7280;">
-      Aktuell keine kritischen Warnsignale – dein Account läuft stabil.
-    </p>`;
+function renderAlerts(alerts) {
+  if (!alerts || !alerts.items || !alerts.items.length) {
+    return `
+      <div class="dashboard-section">
+        <h3>Health & Alerts</h3>
+        <div class="empty-state" style="padding:40px;">
+          <div class="empty-icon" style="font-size:2rem;">✓</div>
+          <div class="empty-message">Aktuell keine kritischen Warnsignale – dein Account läuft stabil.</div>
+        </div>
+      </div>
+    `;
   }
-
-  const items = Array.isArray(alerts.items)
-    ? alerts.items
-    : [
-        ...(alerts.red || []),
-        ...(alerts.yellow || []),
-        ...(alerts.green || []),
-      ];
-
-  if (!items.length) {
-    return `<p class="card-subtitle" style="margin-top:6px;color:#6b7280;">
-      Aktuell keine kritischen Warnsignale – dein Account läuft stabil.
-    </p>`;
-  }
-
+  
   return `
-    <ul style="margin:8px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;">
-      ${items
-        .slice(0, 3)
-        .map((a) => {
-          const sev =
-            a.severity ||
-            a.level ||
-            (alerts.red?.includes(a)
-              ? "critical"
-              : alerts.yellow?.includes(a)
-              ? "warning"
-              : "info");
-
-          const emoji =
-            sev === "critical" ? "🚨" : sev === "warning" ? "⚠️" : "ℹ️";
-
-          return `
-            <li style="display:flex;gap:8px;align-items:flex-start;">
-              <span style="font-size:0.9rem;">${emoji}</span>
-              <div>
-                <div style="font-size:0.8rem;font-weight:600;">
-                  ${escapeHtml(a.title || a.label || "Signal")}
-                </div>
-                ${
-                  a.message || a.text
-                    ? `<div style="font-size:0.78rem;color:#6b7280;">
-                        ${escapeHtml(a.message || a.text)}
-                       </div>`
-                    : ""
-                }
-              </div>
-            </li>
-          `;
-        })
-        .join("")}
-    </ul>
+    <div class="dashboard-section">
+      <h3>Health & Alerts</h3>
+      ${alerts.items.map(a => `
+        <div class="alert-card alert-${a.severity}">
+          <strong>${a.title}</strong>
+          <p>${a.message}</p>
+        </div>
+      `).join('')}
+    </div>
   `;
 }
 
-function renderPerformerRow(label, entity, tone) {
-  const name = entity?.name || entity?.title || "Unbenannt";
-  const roas = entity?.roas ?? entity?.metrics?.roas ?? null;
-  const spend = entity?.spend ?? entity?.metrics?.spend ?? null;
-  const color =
-    tone === "good" ? "#16a34a" : tone === "bad" ? "#b91c1c" : "#6b7280";
-
+function renderTopPerformers(summary) {
   return `
-    <div style="display:flex;flex-direction:column;gap:2px;padding:6px 0;border-bottom:1px dashed rgba(148,163,184,0.35);">
-      <div style="display:flex;justify-content:space-between;gap:8px;">
-        <span style="font-size:0.78rem;color:${color};text-transform:uppercase;letter-spacing:0.12em;">
-          ${escapeHtml(label)}
-        </span>
-        <span style="font-size:0.78rem;color:#6b7280;">
-          ROAS ${formatRoas(roas)} • ${formatCurrency(spend)}
-        </span>
-      </div>
-      <div style="font-size:0.86rem;font-weight:500;color:#0f172a;">
-        ${escapeHtml(name)}
+    <div class="dashboard-section">
+      <h3>Top & Bottom Performers</h3>
+      <div class="performers-grid">
+        <div class="performer-card">
+          <div class="performer-label">🏆 Beste Kampagne</div>
+          <div class="performer-name">${summary.bestCampaign?.name || '–'}</div>
+          <div class="performer-metric">ROAS: ${formatNumber(summary.bestCampaign?.roas, 1) || '–'}x</div>
+        </div>
+        <div class="performer-card">
+          <div class="performer-label">⚠️ Schwächste Kampagne</div>
+          <div class="performer-name">${summary.worstCampaign?.name || '–'}</div>
+          <div class="performer-metric">ROAS: ${formatNumber(summary.worstCampaign?.roas, 1) || '–'}x</div>
+        </div>
       </div>
     </div>
   `;
 }
 
-function skeletonLine() {
-  return `
-    <div style="
-      height: 12px;
-      border-radius: 999px;
-      background: linear-gradient(90deg,#e5e7eb,#f1f5f9,#e5e7eb);
-      background-size: 200% 100%;
-      animation: dashboard-skeleton 1s ease-in-out infinite;
-    "></div>
-  `;
+function wireTabs() {
+  // Tab-Logik hier wenn nötig
 }
 
-function skeletonPill() {
-  return `
-    <div style="
-      height: 22px;
-      width: 70%;
-      border-radius: 999px;
-      margin-top: 6px;
-      background: linear-gradient(90deg,#e5e7eb,#f1f5f9,#e5e7eb);
-      background-size: 200% 100%;
-      animation: dashboard-skeleton 1s ease-in-out infinite;
-    "></div>
-  `;
+// Helper Functions
+function formatCurrency(value) {
+  if (value == null || isNaN(value)) return '–';
+  return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value);
 }
 
-/* ---------------------------------------------------------------------------
- *  INTERACTION – Tabs & CTAs
- * ------------------------------------------------------------------------ */
-
-function wireTabs(rootEl) {
-  const tabs = Array.from(rootEl.querySelectorAll(".dashboard-tab"));
-  const panels = Array.from(rootEl.querySelectorAll(".dashboard-panel"));
-
-  if (!tabs.length || !panels.length) return;
-
-  tabs.forEach((tab) => {
-    tab.addEventListener("click", () => {
-      const target = tab.getAttribute("data-tab");
-      if (!target) return;
-
-      tabs.forEach((t) => t.classList.remove("active"));
-      tab.classList.add("active");
-
-      panels.forEach((panel) => {
-        const key = panel.getAttribute("data-panel");
-        if (key === target) {
-          panel.classList.add("active");
-        } else {
-          panel.classList.remove("active");
-        }
-      });
-    });
-  });
+function formatNumber(value, decimals = 0) {
+  if (value == null || isNaN(value)) return '–';
+  return value.toFixed(decimals);
 }
 
-function wireCTAs(rootEl) {
-  const navigateTo = window.SignalOne?.navigateTo;
-  const showToast = window.SignalOne?.showToast;
-
-  rootEl.addEventListener("click", (ev) => {
-    const btn = ev.target.closest("[data-dashboard-cta]");
-    if (!btn) return;
-
-    const action = btn.getAttribute("data-dashboard-cta");
-    switch (action) {
-      case "sensei":
-        navigateTo?.("sensei");
-        break;
-      case "testing":
-        navigateTo?.("testingLog");
-        break;
-      case "creatives":
-        navigateTo?.("creativeLibrary");
-        break;
-      case "campaigns":
-        navigateTo?.("campaigns");
-        break;
-
-      // Academy Platzhalter – hier später eigenes Modul anbinden
-      case "academy-meta":
-      case "academy-hooks":
-      case "academy-testing":
-      case "academy-scaling":
-        if (showToast) {
-          showToast(
-            "Die SignalOne Academy wird als eigenes Modul ergänzt – dieses Tab ist der Einstieg.",
-            "info",
-          );
-        }
-        break;
-      default:
-        break;
-    }
-  });
+function formatPercent(value, decimals = 1) {
+  if (value == null || isNaN(value)) return '–';
+  return `${value.toFixed(decimals)}%`;
 }
-
-/* ---------------------------------------------------------------------------
- *  SMALL HELPERS
- * ------------------------------------------------------------------------ */
-
-function getBrandName(AppState) {
-  return (
-    AppState?.currentBrand?.name ||
-    AppState?.brand?.name ||
-    AppState?.meta?.accountName ||
-    "Deine Brand"
-  );
-}
-
-function computeLaunchScore(AppState) {
-  let score = 60;
-
-  if (AppState?.metaConnected) score += 20;
-  if (AppState?.meta?.mode === "live") score += 10;
-  if (AppState?.settings?.demoMode === false) score += 5;
-
-  if (score > 100) score = 100;
-  if (score < 10) score = 10;
-  return Math.round(score);
-}
-
-function formatCurrency(v) {
-  const n = Number(v || 0);
-  if (!Number.isFinite(n) || n === 0) return "€0";
-  return new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(n);
-}
-
-function formatRoas(v) {
-  const n = Number(v || 0);
-  if (!Number.isFinite(n) || n <= 0) return "–";
-  return `${n.toFixed(1)}x`;
-}
-
-function formatPercent(v) {
-  const n = Number(v || 0);
-  if (!Number.isFinite(n) || n === 0) return "–";
-  const perc = n > 1 ? n : n * 100;
-  return `${perc.toFixed(1)}%`;
-}
-
-function formatInt(v) {
-  const n = Number(v || 0);
-  if (!Number.isFinite(n) || n === 0) return "–";
-  return n.toLocaleString("de-DE");
-}
-
-function escapeHtml(str) {
-  if (str == null) return "";
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-/* Skeleton Animation (re-uses existing fadeInUp keyframes) */
-const skeletonStyleId = "dashboard-skeleton-style";
-if (typeof document !== "undefined" && !document.getElementById(skeletonStyleId)) {
-  const style = document.createElement("style");
-  style.id = skeletonStyleId;
-  style.textContent = `
-    @keyframes dashboard-skeleton {
-      0% { background-position: 0% 50%; }
-      100% { background-position: 100% 50%; }
-    }
-  `;
-  document.head.appendChild(style);
-}
-
-/* ---------------------------------------------------------------------------
- *  DEFAULT EXPORT (für app.js Loader)
- * ------------------------------------------------------------------------ */
-
-export default {
-  init,
-  render,
-};
