@@ -525,7 +525,15 @@ nav.sidebar {
   letter-spacing: 0.04em;
 }
 
-.topbar-meta-separator {
+.topbar-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.topbar-meta-item:not(:last-child)::after {
+  content: "•";
   color: rgba(203, 213, 225, 0.6);
 }
 
