@@ -1,231 +1,195 @@
 <!DOCTYPE html>
 <html lang="de">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SignalOne.cloud</title>
+  <head>
+    <meta charset="UTF-8" />
 
-  <!-- Core Styles -->
-  <link rel="stylesheet" href="./styles.css" />
-  <link rel="stylesheet" href="./sx-core.css" />
+    <!-- Responsive Layout -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Prevent FOUC -->
-  <style>
-    body { opacity: 0; transition: opacity .2s ease; }
-  </style>
-</head>
+    <title>SignalOne.cloud</title>
 
-<body onload="document.body.style.opacity = '1'">
+    <!-- Core Styles -->
+    <link rel="stylesheet" href="./styles.css" />
 
-  <!-- ========================================================= -->
-  <!--                     SVG ICON DEFINITIONS                  -->
-  <!-- ========================================================= -->
-  <svg style="display:none;">
-    <!-- Dashboard -->
-    <symbol id="icon-dashboard" viewBox="0 0 24 24">
-      <rect class="icon-layer-fill" x="3" y="3" width="8" height="8" rx="2"/>
-      <rect class="icon-layer-fill" x="13" y="3" width="8" height="4" rx="2"/>
-      <rect class="icon-layer-fill" x="13" y="9" width="8" height="12" rx="2"/>
-      <rect class="icon-layer-fill" x="3" y="13" width="8" height="8" rx="2"/>
-    </symbol>
+    <!-- Prevent FOUC -->
+    <style>
+      body { opacity: 0; transition: opacity 0.15s ease; }
+      body.visible { opacity: 1; }
+    </style>
+  </head>
 
-    <!-- Library -->
-    <symbol id="icon-library" viewBox="0 0 24 24">
-      <rect class="icon-layer-stroke" x="4" y="4" width="16" height="16" rx="2"/>
-      <path class="icon-layer-stroke" d="M8 4v16"/>
-      <path class="icon-layer-stroke" d="M16 4v16"/>
-    </symbol>
-
-    <!-- Sensei -->
-    <symbol id="icon-sensei" viewBox="0 0 24 24">
-      <circle class="icon-layer-stroke" cx="12" cy="7" r="4"/>
-      <path class="icon-layer-stroke" d="M4 21c1-5 5-8 8-8s7 3 8 8"/>
-    </symbol>
-
-    <!-- Campaigns -->
-    <symbol id="icon-campaigns" viewBox="0 0 24 24">
-      <path class="icon-layer-stroke" d="M4 6h16M4 12h16M4 18h16"/>
-      <circle class="icon-layer-fill" cx="8" cy="6" r="1.8"/>
-      <circle class="icon-layer-fill" cx="12" cy="12" r="1.8"/>
-      <circle class="icon-layer-fill" cx="16" cy="18" r="1.8"/>
-    </symbol>
-
-    <!-- Academy -->
-    <symbol id="icon-academy" viewBox="0 0 24 24">
-      <path class="icon-layer-stroke" d="M12 3l10 6-10 6L2 9l10-6z"/>
-      <path class="icon-layer-stroke" d="M2 9v4c0 3 4 6 10 6s10-3 10-6V9"/>
-    </symbol>
-
-    <!-- Tools Icons -->
-    <symbol id="icon-testing" viewBox="0 0 24 24">
-      <circle class="icon-layer-stroke" cx="12" cy="12" r="9"/>
-      <path class="icon-layer-stroke" d="M12 7v5l3 3"/>
-    </symbol>
-
-    <symbol id="icon-roast" viewBox="0 0 24 24">
-      <path class="icon-layer-stroke" d="M4 20h16M9 12h6M7 16h10M5 8h14"/>
-    </symbol>
-
-    <symbol id="icon-reports" viewBox="0 0 24 24">
-      <path class="icon-layer-stroke" d="M4 4h16v16H4z"/>
-      <path class="icon-layer-fill" d="M8 14h2v4H8zM12 10h2v8h-2zM16 7h2v11h-2z"/>
-    </symbol>
-
-    <symbol id="icon-analytics" viewBox="0 0 24 24">
-      <polyline class="icon-layer-stroke" points="4 18 10 10 14 14 20 6"/>
-      <circle class="icon-layer-fill" cx="10" cy="10" r="2"/>
-      <circle class="icon-layer-fill" cx="14" cy="14" r="2"/>
-    </symbol>
-
-    <symbol id="icon-creators" viewBox="0 0 24 24">
-      <circle class="icon-layer-stroke" cx="12" cy="7" r="4"/>
-      <path class="icon-layer-stroke" d="M5 21c1-5 4-8 7-8s6 3 7 8"/>
-    </symbol>
-
-    <!-- Settings Icons -->
-    <symbol id="icon-team" viewBox="0 0 24 24">
-      <circle class="icon-layer-stroke" cx="8" cy="7" r="3"/>
-      <circle class="icon-layer-stroke" cx="16" cy="7" r="3"/>
-      <path class="icon-layer-stroke" d="M4 21c0-4 2-7 4-7s4 3 4 7"/>
-      <path class="icon-layer-stroke" d="M12 21c0-4 2-7 4-7s4 3 4 7"/>
-    </symbol>
-
-    <symbol id="icon-brands" viewBox="0 0 24 24">
-      <rect class="icon-layer-stroke" x="4" y="4" width="16" height="16" rx="3"/>
-      <path class="icon-layer-stroke" d="M8 8h8v8H8z"/>
-    </symbol>
-
-    <symbol id="icon-shopify" viewBox="0 0 24 24">
-      <path class="icon-layer-stroke" d="M5 7l2-2h10l2 2v12l-2 2H7l-2-2z"/>
-      <path class="icon-layer-fill" d="M10 10h4v6h-4z"/>
-    </symbol>
-
-    <symbol id="icon-settings" viewBox="0 0 24 24">
-      <circle class="icon-layer-stroke" cx="12" cy="12" r="3"/>
-      <path class="icon-layer-stroke" d="M19 12a7 7 0 00-.2-1.6l2.1-1.6-2-3.4-2.5 1A7.1 7.1 0 0012 5a7.1 7.1 0 00-1.4.2l-2.5-1-2 3.4 2.1 1.6A7.1 7.1 0 005 12a7.1 7.1 0 00.2 1.6L3.1 15.2l2 3.4 2.5-1A7.1 7.1 0 0012 19a7.1 7.1 0 001.4-.2l2.5 1 2-3.4-2.1-1.6A7 7 0 0019 12z"/>
-    </symbol>
-
-    <symbol id="icon-onboarding" viewBox="0 0 24 24">
-      <path class="icon-layer-stroke" d="M4 4h16v12H4z"/>
-      <path class="icon-layer-fill" d="M7 18h10v2H7z"/>
-    </symbol>
-  </svg>
-
-  <!-- ========================================================= -->
-  <!--                         SIDEBAR                           -->
-  <!-- ========================================================= -->
-  <nav class="sidebar">
-    <div>
+  <body>
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
       <div class="sidebar-header">
-        <img src="Logo_re_Sc.png" class="sidebar-logo" alt="Logo">
+        <img
+          src="./assets/logo_titanium.png"
+          alt="SignalOne Logo"
+          class="sidebar-logo"
+        />
       </div>
 
       <ul id="sidebarNav" class="sidebar-nav"></ul>
-    </div>
 
-    <div class="sidebar-footer">
-      <div class="sidebar-status-row">
-        <span id="metaStatusDot" class="status-dot"></span>
-        <span id="metaStatusText">Meta Ads: Getrennt</span>
-      </div>
-
-      <div class="sidebar-status-row">
-        <span id="systemHealthText">System Health: OK</span>
-      </div>
-
-      <button id="sidebarMetaConnectButton" class="sidebar-footer-button">
-        Meta verbinden
-      </button>
-    </div>
-  </nav>
-
-  <!-- ========================================================= -->
-  <!--                         TOPBAR                            -->
-  <!-- ========================================================= -->
-  <div id="topbar">
-    <div class="topbar-left">
-      <div class="topbar-greeting">
-        <span id="topbarGreeting">Guten Tag</span>
-        <div class="topbar-meta-row">
-          <span id="topbarDate" class="topbar-meta-item">--.--.----</span>
-          <span id="topbarTime" class="topbar-meta-item">--:--</span>
-          <span id="campaignHealthText" class="topbar-meta-item">Campaign Health: n/a</span>
+      <div class="sidebar-footer">
+        <div class="sidebar-status-row">
+          <span class="status-dot" id="metaStatusDot"></span>
+          <span id="metaStatusText">Meta Ads: Getrennt</span>
         </div>
+
+        <div class="sidebar-status-row">
+          <span id="systemHealthText">System Health: OK</span>
+        </div>
+
+        <div class="sidebar-status-row">
+          <span id="sidebarDataModeText">Daten: Demo</span>
+        </div>
+
+        <button id="sidebarMetaConnectButton" class="meta-button">
+          Meta verbinden
+        </button>
+      </div>
+    </nav>
+
+    <!-- APP SHELL -->
+    <div class="app-shell">
+
+      <!-- TOPBAR -->
+      <header id="topbar">
+        <div class="topbar-left">
+          <div class="topbar-greeting">
+            <span id="topbarGreeting">Guten Tag</span>
+            <div class="topbar-meta-row">
+              <span id="topbarDate"></span>
+              <span>•</span>
+              <span id="topbarTime"></span>
+              <span class="topbar-meta-item" id="campaignHealthText">
+                Campaign Health: n/a
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="topbar-center">
+          <select id="brandSelect" class="topbar-select"></select>
+          <select id="campaignSelect" class="topbar-select"></select>
+        </div>
+
+        <div class="topbar-right">
+          <button id="notificationsButton" class="icon-button">
+            🔔
+            <span id="notificationsBadge" class="hidden"></span>
+          </button>
+
+          <button id="profileButton" class="icon-button">👤</button>
+
+          <button id="logoutButton" class="icon-button">⏻</button>
+
+          <button id="metaConnectButton" class="meta-button">
+            Meta verbinden
+          </button>
+        </div>
+      </header>
+
+      <!-- MAIN CONTENT -->
+      <main class="main-content">
+
+        <!-- Dashboard -->
+        <section id="dashboardView" class="view" data-view-title="DASHBOARD">
+          <h1>Dashboard</h1>
+        </section>
+
+        <!-- Creative Library -->
+        <section id="creativeLibraryView" class="view" data-view-title="CREATIVES">
+          <h1>Creative Library</h1>
+        </section>
+
+        <!-- Campaigns -->
+        <section id="campaignsView" class="view" data-view-title="KAMPAGNEN">
+          <h1>Kampagnen</h1>
+        </section>
+
+        <!-- Sensei -->
+        <section id="senseiView" class="view" data-view-title="SENSEI">
+          <h1>Sensei</h1>
+        </section>
+
+        <!-- Academy -->
+        <section id="academyView" class="view" data-view-title="ACADEMY">
+          <h1>Academy</h1>
+        </section>
+
+        <!-- Testing Log -->
+        <section id="testingLogView" class="view" data-view-title="TESTING LOG">
+          <h1>Testing Log</h1>
+        </section>
+
+        <!-- Roast -->
+        <section id="roastView" class="view" data-view-title="ROAST">
+          <h1>Roast</h1>
+        </section>
+
+        <!-- Reports -->
+        <section id="reportsView" class="view" data-view-title="REPORTS">
+          <h1>Reports</h1>
+        </section>
+
+        <!-- Analytics -->
+        <section id="analyticsView" class="view" data-view-title="ANALYTICS">
+          <h1>Analytics</h1>
+        </section>
+
+        <!-- Creator Insights -->
+        <section id="creatorInsightsView" class="view" data-view-title="CREATOR INSIGHTS">
+          <h1>Creator Insights</h1>
+        </section>
+
+        <!-- Team -->
+        <section id="teamView" class="view" data-view-title="TEAM">
+          <h1>Team</h1>
+        </section>
+
+        <!-- Brands -->
+        <section id="brandsView" class="view" data-view-title="BRANDS">
+          <h1>Brands</h1>
+        </section>
+
+        <!-- Shopify -->
+        <section id="shopifyView" class="view" data-view-title="SHOPIFY">
+          <h1>Shopify</h1>
+        </section>
+
+        <!-- Settings -->
+        <section id="settingsView" class="view" data-view-title="EINSTELLUNGEN">
+          <h1>Einstellungen</h1>
+        </section>
+
+        <!-- Onboarding -->
+        <section id="onboardingView" class="view" data-view-title="ONBOARDING">
+          <h1>Onboarding</h1>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- SYSTEM MODAL -->
+    <div id="modalOverlay" class="hidden">
+      <div id="modalWindow">
+        <header>
+          <h2 id="modalTitle"></h2>
+          <button id="modalCloseButton">×</button>
+        </header>
+        <div id="modalBody"></div>
       </div>
     </div>
 
-    <div class="topbar-center">
-      <select id="brandSelect" class="topbar-select"></select>
-      <select id="campaignSelect" class="topbar-select"></select>
-    </div>
+    <!-- APP BOOTSTRAP -->
+    <script type="module" src="./app.js"></script>
 
-    <div class="topbar-right">
-      <button id="notificationsButton" class="icon-button">
-        🔔
-        <span id="notificationsBadge" class="hidden"></span>
-      </button>
-
-      <button id="profileButton" class="icon-button">👤</button>
-
-      <button id="metaConnectButton" class="meta-button">
-        Meta verbinden
-      </button>
-    </div>
-  </div>
-
-  <!-- ========================================================= -->
-  <!--                       APP SHELL                            -->
-  <!-- ========================================================= -->
-  <div class="app-shell">
-    <div class="main-content">
-
-      <!-- DASHBOARD -->
-      <div id="dashboardView" class="view" data-view-title="Dashboard"></div>
-
-      <!-- CREATIVES -->
-      <div id="creativeLibraryView" class="view" data-view-title="Creatives"></div>
-
-      <!-- CAMPAIGNS -->
-      <div id="campaignsView" class="view" data-view-title="Kampagnen"></div>
-
-      <!-- SENSEI -->
-      <div id="senseiView" class="view" data-view-title="Sensei"></div>
-
-      <!-- ACADEMY -->
-      <div id="academyView" class="view" data-view-title="Academy"></div>
-
-      <!-- TOOLS -->
-      <div id="testingLogView" class="view" data-view-title="Testing Log"></div>
-      <div id="roastView" class="view" data-view-title="Roast"></div>
-      <div id="reportsView" class="view" data-view-title="Reports"></div>
-      <div id="analyticsView" class="view" data-view-title="Analytics"></div>
-      <div id="creatorInsightsView" class="view" data-view-title="Creator Insights"></div>
-
-      <!-- SETTINGS -->
-      <div id="teamView" class="view" data-view-title="Team"></div>
-      <div id="brandsView" class="view" data-view-title="Brands"></div>
-      <div id="shopifyView" class="view" data-view-title="Shopify"></div>
-      <div id="settingsView" class="view" data-view-title="Einstellungen"></div>
-      <div id="onboardingView" class="view" data-view-title="Onboarding"></div>
-
-    </div>
-  </div>
-
-  <!-- ========================================================= -->
-  <!--                        SYSTEM MODAL                       -->
-  <!-- ========================================================= -->
-  <div id="modalOverlay" class="hidden"
-    style="position:fixed;inset:0;background:rgba(0,0,0,0.45);backdrop-filter:blur(6px);z-index:1000;display:flex;align-items:center;justify-content:center;">
-    <div style="background:white;padding:20px;border-radius:16px;min-width:340px;max-width:520px;box-shadow:0 22px 50px rgba(15,23,42,0.4);">
-      <h2 id="modalTitle" style="margin-top:0;margin-bottom:12px;"></h2>
-      <div id="modalBody" style="margin-bottom:20px;"></div>
-      <button id="modalCloseButton" class="meta-button">Schließen</button>
-    </div>
-  </div>
-
-  <!-- ========================================================= -->
-  <!--                       APP SCRIPT                          -->
-  <!-- ========================================================= -->
-  <script src="./app.js" type="module"></script>
-</body>
+    <script>
+      window.addEventListener("DOMContentLoaded", () => {
+        document.body.classList.add("visible");
+      });
+    </script>
+  </body>
 </html>
