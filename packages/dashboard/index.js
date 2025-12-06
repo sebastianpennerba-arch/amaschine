@@ -63,22 +63,41 @@ export async function init(ctx = {}) {
 export async function render(section, AppState, opts = {}) {
   if (!section) return;
   const isDemo = !!opts.useDemoMode;
-
-  // Skeleton initial anzeigen
-  section.innerHTML = renderSkeleton(AppState, isDemo);
-
-  // Daten laden (versuche DataLayer, Fallback auf Demo)
+  
+  // 1) LOADING STATE ANZEIGEN
+  LoadingManager.show('dashboard', section, 'skeleton', {
+    html: LoadingStates.skeletonKPI(4) + `
+      <div style="margin-top: 30px;">
+        ${LoadingStates.skeleton('slow')}
+      </div>
+    `,
+    speed: 'medium'
+  });
+  
+  // 2) DATEN LADEN
   let summary = null;
   try {
     summary = await loadSummary(AppState, isDemo);
+    
+    // Simuliere unterschiedliche Lade-Zeiten
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
   } catch (err) {
-    console.error("[Dashboard] Fehler beim Laden des Summaries:", err);
+    console.error("[Dashboard] Fehler:", err);
+    
+    // ERROR STATE
+    LoadingManager.hide('dashboard', LoadingStates.error(
+      'Dashboard konnte nicht geladen werden',
+      'window.SignalOne.navigateTo("dashboard")'
+    ));
+    return;
   }
-
-  // Finales Dashboard rendern
-  section.innerHTML = renderDashboard(AppState, isDemo, summary);
-
-  // Interaktionen (Tabs + Buttons) verdrahten
+  
+  // 3) CONTENT RENDERN
+  const html = renderDashboard(AppState, isDemo, summary);
+  LoadingManager.hide('dashboard', html);
+  
+  // 4) INTERAKTIONEN VERDRAHTEN
   wireTabs(section);
   wireCTAs(section);
 }
