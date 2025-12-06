@@ -682,6 +682,7 @@ function updateSystemHealthUI() {
   if (row) {
     row.textContent = AppState.systemHealthy ? "System Health: OK" : "System Health: Problem";
   }
+  updateDataModeUI();
 }
 
 function updateMetaStatusUI() {
@@ -703,6 +704,22 @@ function updateMetaStatusUI() {
   btns.forEach((btn) => {
     btn.textContent = connected ? "Meta trennen" : "Meta verbinden";
   });
+
+  updateDataModeUI();
+}
+
+function updateDataModeUI() {
+  const el = document.getElementById("sidebarDataModeText");
+  if (!el) return;
+
+  let modeLabel = "Daten: Demo";
+  if (AppState.meta.mode === "live" && AppState.metaConnected) {
+    modeLabel = "Daten: Live";
+  } else if (!AppState.metaConnected && !useDemoMode()) {
+    modeLabel = "Daten: Offline";
+  }
+
+  el.textContent = modeLabel;
 }
 
 function updateCampaignHealthUI() {
@@ -791,6 +808,71 @@ function updateViewSubheaders() {
   document
     .querySelectorAll("[data-subheader-campaign-name]")
     .forEach((el) => (el.textContent = campaign?.name || "Kampagne auswählen"));
+}
+
+/**
+ * Stellt sicher, dass oben rechts wieder 3 Icon-Buttons vorhanden sind:
+ * - Notifications
+ * - Profil
+ * - Logout (neu erzeugt, falls nicht im HTML)
+ */
+function ensureTopbarButtons() {
+  const container = document.querySelector("#topbar .topbar-right");
+  if (!container) return;
+
+  const logoutExisting = document.getElementById("logoutButton");
+  if (!logoutExisting) {
+    const btn = document.createElement("button");
+    btn.id = "logoutButton";
+    btn.className = "icon-button";
+    btn.title = "Session zurücksetzen";
+    btn.textContent = "⏻";
+    const metaBtn = document.getElementById("metaConnectButton");
+    if (metaBtn && metaBtn.parentElement === container) {
+      container.insertBefore(btn, metaBtn);
+    } else {
+      container.appendChild(btn);
+    }
+  }
+}
+
+/**
+ * Stellt sicher, dass unten links im Sidebar-Footer 3 Statuszeilen existieren:
+ * - Meta Status
+ * - System Health
+ * - Datenmodus (Demo / Live)
+ */
+function ensureSidebarStatusRows() {
+  const footer = document.querySelector(".sidebar-footer");
+  if (!footer) return;
+
+  // System Health Row sicherstellen
+  let systemRow = document.getElementById("systemHealthText");
+  if (!systemRow) {
+    const row = document.createElement("div");
+    row.className = "sidebar-status-row";
+    systemRow = document.createElement("span");
+    systemRow.id = "systemHealthText";
+    systemRow.textContent = "System Health: OK";
+    row.appendChild(systemRow);
+    const btn = document.getElementById("sidebarMetaConnectButton");
+    footer.insertBefore(row, btn || footer.lastChild);
+  }
+
+  // Datenmodus Row sicherstellen
+  if (!document.getElementById("sidebarDataModeText")) {
+    const row = document.createElement("div");
+    row.className = "sidebar-status-row";
+    const span = document.createElement("span");
+    span.id = "sidebarDataModeText";
+    span.textContent = "Daten: Demo";
+    row.appendChild(span);
+    const btn = document.getElementById("sidebarMetaConnectButton");
+    footer.insertBefore(row, btn || footer.lastChild);
+  }
+
+  updateSystemHealthUI();
+  updateMetaStatusUI();
 }
 
 /* ----------------------------------------------------------
@@ -1125,6 +1207,9 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error("[MetaAuth] Init Fehler:", err),
   );
 
+  ensureTopbarButtons();
+  ensureSidebarStatusRows();
+
   renderNav();
 
   populateBrandSelect();
@@ -1200,8 +1285,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   updateTopbarDateTime();
   updateTopbarGreeting();
-   
-   // Update the greeting and clock exactly on minute changes to avoid drift
+
+  // Update the greeting and clock genau zum Minutenwechsel, um Drift zu vermeiden
   let topbarRefreshTimeout = null;
   const scheduleTopbarRefresh = () => {
     const now = new Date();
