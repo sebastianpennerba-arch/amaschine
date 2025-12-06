@@ -500,28 +500,30 @@ function getEffectiveBrandOwnerName() {
    7) NAVIGATION / SIDEBAR
 -----------------------------------------------------------*/
 
-// Gruppierte Navigation: 5 Hauptmodule (mit goldenen Icons) + Tools & Einstellungen als Akkordeon
+// SmallCaps Groups → kein Akkordeon, NICHT klickbar
 const navStructure = {
   main: [
     { key: "dashboard", label: "Dashboard", icon: "dashboard" },
     { key: "creativeLibrary", label: "Creatives", icon: "library" },
     { key: "sensei", label: "Sensei", icon: "sensei" },
     { key: "campaigns", label: "Kampagnen", icon: "campaigns" },
-    { key: "academy", label: "Academy", icon: "academy" }, // eigener Icon-Slot für Academy
+    { key: "academy", label: "Academy", icon: "academy" }
   ],
+
   tools: [
     { key: "testingLog", label: "Testing Log", icon: "testing" },
     { key: "roast", label: "Roast", icon: "roast" },
     { key: "reports", label: "Reports", icon: "reports" },
     { key: "analytics", label: "Analytics", icon: "analytics" },
-    { key: "creatorInsights", label: "Creator Insights", icon: "creators" },
+    { key: "creatorInsights", label: "Creator Insights", icon: "creators" }
   ],
+
   settings: [
     { key: "team", label: "Team", icon: "team" },
     { key: "brands", label: "Brands", icon: "brands" },
     { key: "shopify", label: "Shopify", icon: "shopify" },
     { key: "settings", label: "Einstellungen", icon: "settings" },
-    { key: "onboarding", label: "Onboarding", icon: "onboarding" },
+    { key: "onboarding", label: "Onboarding", icon: "onboarding" }
   ],
 };
 
@@ -530,138 +532,56 @@ function createNavButton(item) {
   btn.className = "sidebar-nav-button";
   btn.setAttribute("data-module", item.key);
 
-  // Goldene Icons kommen über das Icon-Sprite + CSS (Titanium)
   btn.innerHTML = `
     <span class="sidebar-nav-icon">
-      <svg aria-hidden="true" class="icon-svg" width="20" height="20">
-        <use href="#icon-${item.icon}"></use>
-      </svg>
+      <svg><use href="#icon-${item.icon}"></use></svg>
     </span>
-    <span class="label sidebar-nav-label">${item.label}</span>
+    <span class="sidebar-nav-label">${item.label}</span>
   `;
 
   btn.addEventListener("click", () => navigateTo(item.key));
   return btn;
 }
 
-function toggleAccordionGroup(groupId, forceOpen = null) {
-  const group = document.querySelector(`.sidebar-nav-group[data-group="${groupId}"]`);
-  if (!group) return;
-
-  const items = group.querySelector(".sidebar-nav-group-items");
-  const chevron = group.querySelector(".sidebar-nav-chevron");
-  if (!items) return;
-
-  const isCurrentlyOpen = group.classList.contains("is-open");
-  const shouldOpen = forceOpen !== null ? forceOpen : !isCurrentlyOpen;
-
-  // Akkordeon: immer nur eine Gruppe offen
-  const allGroups = document.querySelectorAll(".sidebar-nav-group");
-  allGroups.forEach((g) => {
-    const itsItems = g.querySelector(".sidebar-nav-group-items");
-    const itsChevron = g.querySelector(".sidebar-nav-chevron");
-    if (!itsItems) return;
-
-    if (g === group && shouldOpen) {
-      g.classList.add("is-open");
-      itsItems.style.display = "";
-      if (itsChevron) itsChevron.classList.add("is-open");
-    } else {
-      g.classList.remove("is-open");
-      itsItems.style.display = "none";
-      if (itsChevron) itsChevron.classList.remove("is-open");
-    }
-  });
-}
-
 function renderNav() {
   const ul = document.getElementById("navbar");
-  if (!ul) return;
-
   ul.innerHTML = "";
 
-  // 1) 5 Hauptmodule mit goldenen Icons
-  navStructure.main.forEach((item) => {
+  // 1) Hauptmodule
+  navStructure.main.forEach(item => {
     const li = document.createElement("li");
     li.className = "sidebar-nav-item";
-    const btn = createNavButton(item);
-    li.appendChild(btn);
+    li.appendChild(createNavButton(item));
     ul.appendChild(li);
   });
 
-  // Helper für Akkordeon-Gruppen
-  function addAccordionGroup(groupId, label, items) {
+  // Section Label: Tools
+  const labelTools = document.createElement("div");
+  labelTools.className = "sidebar-section-label";
+  labelTools.textContent = "TOOLS";
+  ul.appendChild(labelTools);
+
+  navStructure.tools.forEach(item => {
     const li = document.createElement("li");
-    li.className = "sidebar-nav-group is-collapsed";
-    li.setAttribute("data-group", groupId);
-
-    const headerBtn = document.createElement("button");
-    headerBtn.type = "button";
-    headerBtn.className = "sidebar-nav-button sidebar-nav-group-toggle";
-    headerBtn.innerHTML = `
-      <span class="sidebar-nav-label">${label}</span>
-      <span class="sidebar-nav-chevron" aria-hidden="true">▸</span>
-    `;
-    headerBtn.addEventListener("click", () => {
-      toggleAccordionGroup(groupId);
-    });
-
-    const innerList = document.createElement("ul");
-    innerList.className = "sidebar-nav-group-items";
-    innerList.style.display = "none";
-
-    items.forEach((item) => {
-      const innerLi = document.createElement("li");
-      innerLi.className = "sidebar-nav-item sidebar-nav-item-nested";
-      const btn = createNavButton(item);
-      innerLi.appendChild(btn);
-      innerList.appendChild(innerLi);
-    });
-
-    li.appendChild(headerBtn);
-    li.appendChild(innerList);
+    li.className = "sidebar-nav-item-nested";
+    li.appendChild(createNavButton(item));
     ul.appendChild(li);
-  }
+  });
 
-  // 2) Tools (Akkordeon)
-  addAccordionGroup("tools", "Tools", navStructure.tools);
+  // Section Label: Einstellungen
+  const labelSettings = document.createElement("div");
+  labelSettings.className = "sidebar-section-label";
+  labelSettings.textContent = "EINSTELLUNGEN";
+  ul.appendChild(labelSettings);
 
-  // 3) Einstellungen (Akkordeon)
-  addAccordionGroup("settings", "Einstellungen", navStructure.settings);
+  navStructure.settings.forEach(item => {
+    const li = document.createElement("li");
+    li.className = "sidebar-nav-item-nested";
+    li.appendChild(createNavButton(item));
+    ul.appendChild(li);
+  });
 
   setActiveNavItem(AppState.currentModule);
-}
-
-function setActiveNavItem(moduleKey) {
-  const buttons = document.querySelectorAll(".sidebar-nav-button[data-module]");
-  let activeBtn = null;
-
-  buttons.forEach((btn) => {
-    if (btn.getAttribute("data-module") === moduleKey) {
-      btn.classList.add("active");
-      activeBtn = btn;
-    } else {
-      btn.classList.remove("active");
-    }
-  });
-
-  // Akkordeon-Gruppen passend zur aktiven Route öffnen / schließen
-  const groups = document.querySelectorAll(".sidebar-nav-group");
-  groups.forEach((group) => {
-    const items = group.querySelector(".sidebar-nav-group-items");
-    const chevron = group.querySelector(".sidebar-nav-chevron");
-    if (!items) return;
-
-    if (activeBtn && group.contains(activeBtn)) {
-      group.classList.add("is-open");
-      items.style.display = "";
-      if (chevron) chevron.classList.add("is-open");
-    } else {
-      group.classList.remove("is-open");
-      items.style.display = "none";
-      if (chevron) chevron.classList.remove("is-open");
-    }
-  });
 }
 
 /* ----------------------------------------------------------
