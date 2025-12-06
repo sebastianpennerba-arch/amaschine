@@ -1195,3 +1195,16 @@ window.SignalOne = {
     useDemoMode,
   },
 };
+// Dropdown Toggle
+document.querySelectorAll('.nav-item.nav-more').forEach(toggle => {
+  toggle.addEventListener('click', (e) => {
+    e.preventDefault();
+    const dropdownId = toggle.getAttribute('data-dropdown');
+    const dropdown = document.getElementById(`dropdown-${dropdownId}`);
+    toggle.classList.toggle('active');
+    dropdown.classList.toggle('active');
+    document.querySelectorAll('.nav-dropdown').forEach(dd => { if (dd !== dropdown) dd.classList.remove('active'); });
+    document.querySelectorAll('.nav-item.nav-more').forEach(t => { if (t !== toggle) t.classList.remove('active'); });
+  });
+});
+
