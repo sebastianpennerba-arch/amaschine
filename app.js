@@ -1,12 +1,12 @@
 import DataLayer from "./packages/data/index.js";
 
 /* ----------------------------------------------------------
-   SignalOne.cloud – Frontend Core (MVP Backbone)
+   SignalOne.cloud – Frontend Core (Turbo Launch)
    - View Handling
    - MetaAuth (Demo + Live)
    - Toast / Modal / Status
    - Module Loader (Packages)
-   - TestingLog API (P2.5 Demo-Anbindung)
+   - TestingLog API
 -----------------------------------------------------------*/
 
 /* ----------------------------------------------------------
@@ -62,6 +62,8 @@ const MetaAuthMock = (() => {
   }
 
   function connectWithPopup() {
+    // Simulierter OAuth-Flow
+    showGlobalLoader();
     setTimeout(() => {
       state.connected = true;
       state.accessToken = "demo_access_token_123";
@@ -71,6 +73,7 @@ const MetaAuthMock = (() => {
       };
       saveToStorage();
       syncToAppState();
+      hideGlobalLoader();
       showToast("Meta Ads (Demo) erfolgreich verbunden.", "success");
     }, 600);
   }
@@ -93,9 +96,6 @@ const MetaAuthMock = (() => {
 
 /* ----------------------------------------------------------
    2) META AUTH LIVE (P5 – echter Flow via Backend)
-   - nutzt /api/meta/oauth/token, /api/meta/me, /api/meta/adaccounts
-   - respektiert DemoMode-Gate
-   - schreibt Token & Account in AppState.meta
 -----------------------------------------------------------*/
 const MetaAuth = (() => {
   const STORAGE_KEY_LIVE = "signalone_meta_live_v1";
@@ -141,12 +141,12 @@ const MetaAuth = (() => {
     AppState.meta.accountName = liveState.accountName;
     AppState.meta.mode = liveState.connected ? "live" : null;
 
-    // Live-Connect → DemoMode ausschalten, Live-Daten aktivieren
+    // Wenn Live-Connect aktiv → Demo-Mode aus
     if (liveState.connected) {
       AppState.settings.demoMode = false;
       AppState.settings.dataMode = "live";
       if (DataLayer && typeof DataLayer.setMode === "function") {
-        DataLayer.setMode("auto"); // DataLayer entscheidet anhand Settings
+        DataLayer.setMode("auto");
       }
     }
 
@@ -172,7 +172,6 @@ const MetaAuth = (() => {
     return res.json();
   }
 
-  // Optional Dev-Shortcut
   async function connectWithDevTokenIfAvailable() {
     const devToken = window.SIGNALONE_META_DEV_TOKEN;
     if (!devToken) return false;
@@ -273,7 +272,9 @@ const MetaAuth = (() => {
 
       const tokenPayload = await postMeta("/oauth/token", { code: result.code });
       const accessToken =
-        tokenPayload.accessToken || tokenPayload.token || tokenPayload.access_token;
+        tokenPayload.accessToken ||
+        tokenPayload.token ||
+        tokenPayload.access_token;
 
       if (!accessToken) {
         throw new Error("Kein Access Token aus /oauth/token erhalten.");
@@ -389,7 +390,7 @@ const AppState = {
     user: null,
     accountId: null,
     accountName: null,
-    mode: null,
+    mode: null, // "demo" | "live"
   },
   selectedBrandId: null,
   selectedCampaignId: null,
@@ -398,7 +399,7 @@ const AppState = {
   notifications: [],
   settings: {
     demoMode: true,
-    dataMode: "auto",
+    dataMode: "auto", // "auto" | "live" | "demo"
     theme: "titanium",
     currency: "EUR",
     defaultRange: "last_30_days",
@@ -421,7 +422,6 @@ const modules = {
   campaigns: () => import("./packages/campaigns/index.js"),
   testingLog: () => import("./packages/testingLog/index.js"),
   sensei: () => import("./packages/sensei/index.js"),
-  academy: () => import("./packages/academy/index.js"),
   onboarding: () => import("./packages/onboarding/index.js"),
   team: () => import("./packages/team/index.js"),
   brands: () => import("./packages/brands/index.js"),
@@ -439,7 +439,6 @@ const viewIdMap = {
   campaigns: "campaignsView",
   testingLog: "testingLogView",
   sensei: "senseiView",
-  academy: "academyView",
   reports: "reportsView",
   creatorInsights: "creatorInsightsView",
   analytics: "analyticsView",
@@ -451,6 +450,7 @@ const viewIdMap = {
   settings: "settingsView",
 };
 
+// Views, die Meta (Demo oder Live) brauchen
 const modulesRequiringMeta = new Set([
   "dashboard",
   "creativeLibrary",
@@ -502,7 +502,6 @@ const navItems = [
   { key: "creativeLibrary", label: "Creatives", icon: "library" },
   { key: "campaigns", label: "Kampagnen", icon: "campaigns" },
   { key: "sensei", label: "Sensei", icon: "sensei" },
-  { key: "academy", label: "Academy", icon: "workspace" },
   { key: "testingLog", label: "Testing Log", icon: "testing" },
   { key: "reports", label: "Reports", icon: "reports" },
   { key: "creatorInsights", label: "Creator", icon: "creators" },
@@ -530,12 +529,12 @@ function renderNav() {
 
     btn.innerHTML = `
       <span class="sidebar-nav-icon">
-        <svg aria-hidden="true" width="20" height="20">
+        <svg aria-hidden="true" class="icon-svg" width="20" height="20">
           <use href="#icon-${item.icon}"></use>
         </svg>
       </span>
-      <span class="sidebar-nav-label">${item.label}</span>
-    ";
+      <span class="label sidebar-nav-label">${item.label}</span>
+    `;
 
     btn.addEventListener("click", () => navigateTo(item.key));
 
@@ -695,7 +694,7 @@ function updateMetaStatusUI() {
     const mode = AppState.meta?.mode || (useDemoMode() ? "demo" : "live");
     const modeLabel = mode === "live" ? "Live" : "Demo";
     label.textContent = `Meta Ads: Verbunden (${modeLabel})`;
-    if (btn) btn.textContent = "META TRENNEN";
+    if (btn) btn.textContent = "META TRENnen".toUpperCase();
   } else {
     dot.style.backgroundColor = "var(--color-text-soft)";
     label.textContent = "Meta Ads: Getrennt";
@@ -814,9 +813,13 @@ function updateViewSubheaders() {
   if (!main) return;
 
   const brand = getEffectiveBrand();
-  const campaign = getEffectiveCampaign();
-
   const headerEls = main.querySelectorAll("[data-view-title]");
+
+  const owner = brand?.owner || "Brand Owner";
+  const vertical = brand?.vertical || "E-Commerce";
+  const campaignsCount =
+    (brand && (DemoData.campaignsByBrand[brand.id] || []).length) || 0;
+
   headerEls.forEach((section) => {
     const title = section.getAttribute("data-view-title") || "";
     const subId = `${section.id}-subheader`;
@@ -828,11 +831,6 @@ function updateViewSubheaders() {
       sub.className = "view-subheader";
       section.prepend(sub);
     }
-
-    const owner = brand?.owner || "Brand Owner";
-    const vertical = brand?.vertical || "E-Commerce";
-    const campaignsCount =
-      (brand && (DemoData.campaignsByBrand[brand.id] || []).length) || 0;
 
     sub.innerHTML = `
       <div class="view-subheader-main">
@@ -875,6 +873,7 @@ async function loadModule(key) {
     return;
   }
 
+  // Meta-Gate
   if (modulesRequiringMeta.has(key) && !AppState.metaConnected && !useDemoMode()) {
     section.innerHTML = `
       <div class="view-inner">
@@ -921,7 +920,9 @@ async function loadModule(key) {
       <div class="view-inner">
         <h2 class="view-title">Fehler</h2>
         <p class="view-subtitle">Modul "${key}" konnte nicht geladen werden.</p>
-        <pre class="error-pre">${String(err && err.message ? err.message : err)}</pre>
+        <pre class="error-pre">${String(
+          err && err.message ? err.message : err,
+        )}</pre>
       </div>
     `;
     pushNotification("error", `Modul "${key}" konnte nicht geladen werden.`, {
@@ -1004,7 +1005,9 @@ function createTestingLogAPI() {
   function add(entry) {
     const id =
       entry.id ||
-      `tl_${Math.random().toString(36).slice(2, 8)}_${Date.now().toString(36)}`;
+      `tl_${Math.random().toString(36).slice(2, 8)}_${Date.now().toString(
+        36,
+      )}`;
     const createdAt = entry.createdAt || Date.now();
     const normalized = {
       ...entry,
@@ -1084,19 +1087,24 @@ function toggleMetaConnection() {
 document.addEventListener("DOMContentLoaded", () => {
   console.log("🚀 SignalOne Bootstrap startet...");
 
+  // Meta Auth
   MetaAuth.init().catch((err) =>
     console.error("[MetaAuth] Init Fehler:", err),
   );
 
+  // Sidebar
   renderNav();
 
+  // Brand / Campaign
   populateBrandSelect();
   populateCampaignSelect();
   wireBrandAndCampaignSelects();
 
+  // Start-View
   const initialViewId = getViewIdForModule(AppState.currentModule);
   setActiveView(initialViewId);
 
+  // Buttons
   document
     .getElementById("metaConnectButton")
     ?.addEventListener("click", () => {
@@ -1155,6 +1163,7 @@ document.addEventListener("DOMContentLoaded", () => {
     showToast("Session zurückgesetzt.", "success");
   });
 
+  // Topbar
   updateTopbarDateTime();
   updateTopbarGreeting();
   setInterval(() => {
@@ -1162,6 +1171,7 @@ document.addEventListener("DOMContentLoaded", () => {
     updateTopbarGreeting();
   }, 60000);
 
+  // Startmodul laden
   loadModule(AppState.currentModule);
 
   console.log("✅ SignalOne Bootstrap abgeschlossen!");
