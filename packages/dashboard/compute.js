@@ -1,14 +1,14 @@
 /*
  * packages/dashboard/compute.js
  * Berechnet das komplette Dashboard-Model auf Basis von DemoData + AppState.
- * Ziel: Realistische, brand-spezifische Demo-Werte, die später 1:1 durch Live-Daten
- * ersetzt werden können (gleiche Struktur).
+ * Ziel: Realistische, brand-spezifische Demo-Werte, die spÃ¤ter 1:1 durch Live-Daten
+ * ersetzt werden kÃ¶nnen (gleiche Struktur).
  */
 
 function getDemoData() {
   const data = window.SignalOneDemo?.DemoData;
   if (!data) {
-    console.error("❌ DemoData nicht verfügbar!");
+    console.error("âŒ DemoData nicht verfÃ¼gbar!");
   }
   return data || null;
 }
@@ -23,7 +23,7 @@ function getActiveBrandFromState(appState) {
 
 /**
  * Statische Meta-Infos pro Brand (Budget, Trends, Stimmung).
- * Später kann das 1:1 aus einer DB kommen.
+ * SpÃ¤ter kann das 1:1 aus einer DB kommen.
  */
 function getBrandMetaConfig(brandId) {
   const configs = {
@@ -83,7 +83,7 @@ function computeFinancialsForBrand(brand) {
   const roas30d = brand.roas30d || 0;
   const revenue30d = spend30d * roas30d;
 
-  // Profit gemäß PDF: Umsatz – Spend – 30 % COGS
+  // Profit gemÃ¤ÃŸ PDF: Umsatz â€“ Spend â€“ 30 % COGS
   const profit30d = revenue30d - spend30d - revenue30d * 0.3;
 
   return {
@@ -145,7 +145,7 @@ function buildHeroKpis(brand, financials) {
     trendLabel: trendToLabel(trends.roas),
     trendDirection: trends.roas >= 0 ? "up" : "down",
     status: statusFromTrend(trends.roas, -0.12),
-    description: "Return on Ad Spend – Effizienz deines Accounts.",
+    description: "Return on Ad Spend â€“ Effizienz deines Accounts.",
   });
 
   hero.push({
@@ -157,7 +157,7 @@ function buildHeroKpis(brand, financials) {
     trendDirection: trends.profit >= 0 ? "up" : "down",
     status: statusFromTrend(trends.profit, -0.2),
     description:
-      "Vereinfachte Profit-Schätzung aus deinem Paid-Social-Setup (30 Tage).",
+      "Vereinfachte Profit-SchÃ¤tzung aus deinem Paid-Social-Setup (30 Tage).",
   });
 
   return hero;
@@ -224,7 +224,7 @@ function buildSevenDayPerformance(brand, financials) {
       baseRoas * (1 + clamp(noise * 1.5, -v, v)); // Variation je Wochentag
 
     const revenueDay = spend * roasDay;
-    const avgAOV = 120; // Demo: Ø Bestellwert
+    const avgAOV = 120; // Demo: Ã˜ Bestellwert
     const conversions = revenueDay / avgAOV;
 
     totalSpend += spend;
@@ -248,7 +248,7 @@ function buildSevenDayPerformance(brand, financials) {
 }
 
 /**
- * Alerts & Checks – aus Kampagnen-Health + Finanzstatus + Meta-Status.
+ * Alerts & Checks â€“ aus Kampagnen-Health + Finanzstatus + Meta-Status.
  */
 function buildAlerts(brand, financials, appState, demoModeActive) {
   const alerts = [];
@@ -266,14 +266,14 @@ function buildAlerts(brand, financials, appState, demoModeActive) {
       severity: "warning",
       label: "Beobachten",
       message:
-        "Einige Kampagnen laufen leicht unter Ziel – Fokus auf strukturierte Creative-Tests.",
+        "Einige Kampagnen laufen leicht unter Ziel â€“ Fokus auf strukturierte Creative-Tests.",
     });
   } else if (health === "critical") {
     alerts.push({
       severity: "critical",
       label: "Kritisch",
       message:
-        "Mehrere Kampagnen sind deutlich unter Ziel – Testing & Budget-Shift notwendig.",
+        "Mehrere Kampagnen sind deutlich unter Ziel â€“ Testing & Budget-Shift notwendig.",
     });
   }
 
@@ -283,7 +283,7 @@ function buildAlerts(brand, financials, appState, demoModeActive) {
       severity: "warning",
       label: "ROAS unter 3.0x",
       message:
-        "Dein 30-Tage-ROAS liegt unter 3.0x – prüfe Hooks, Creatives und Zielgruppen.",
+        "Dein 30-Tage-ROAS liegt unter 3.0x â€“ prÃ¼fe Hooks, Creatives und Zielgruppen.",
     });
   }
 
@@ -292,7 +292,7 @@ function buildAlerts(brand, financials, appState, demoModeActive) {
       severity: "critical",
       label: "Profit negativ",
       message:
-        "Die vereinfachte Profit-Schätzung ist negativ – prüfe Margen, Preise und Struktur.",
+        "Die vereinfachte Profit-SchÃ¤tzung ist negativ â€“ prÃ¼fe Margen, Preise und Struktur.",
     });
   }
 
@@ -301,12 +301,12 @@ function buildAlerts(brand, financials, appState, demoModeActive) {
       severity: "info",
       label: demoModeActive ? "Demo-Modus aktiv" : "Meta nicht verbunden",
       message: demoModeActive
-        ? "Du befindest dich im Demo-Modus. Meta Live-Daten können später jederzeit verbunden werden."
-        : "Meta ist aktuell nicht verbunden – Datenstand kann veraltet sein.",
+        ? "Du befindest dich im Demo-Modus. Meta Live-Daten kÃ¶nnen spÃ¤ter jederzeit verbunden werden."
+        : "Meta ist aktuell nicht verbunden â€“ Datenstand kann veraltet sein.",
     });
   }
 
-  // Gesamtstatus für die "Lampe"
+  // Gesamtstatus fÃ¼r die "Lampe"
   let overall = "good";
   if (alerts.some((a) => a.severity === "critical")) {
     overall = "critical";
@@ -318,7 +318,7 @@ function buildAlerts(brand, financials, appState, demoModeActive) {
 }
 
 /**
- * Top Creatives – brand-spezifische Demo-Varianten.
+ * Top Creatives â€“ brand-spezifische Demo-Varianten.
  */
 function buildTopCreatives(brand, financials) {
   const id = brand?.id || "generic";
@@ -339,21 +339,21 @@ function buildTopCreatives(brand, financials) {
         ctr: 0.029,
       },
       {
-        name: 'Creator "Outfit Story – Lea"',
+        name: 'Creator "Outfit Story â€“ Lea"',
         type: "Creator / Reel",
         roas: 5.5,
         spend: 9200,
         ctr: 0.027,
       },
       {
-        name: 'UGC "Problem → Lösung Wardrobe"',
+        name: 'UGC "Problem â†’ LÃ¶sung Wardrobe"',
         type: "UGC / Story",
         roas: 5.1,
         spend: 7400,
         ctr: 0.025,
       },
       {
-        name: 'Static "Product Grid – Essentials"',
+        name: 'Static "Product Grid â€“ Essentials"',
         type: "Static / Catalog",
         roas: 4.9,
         spend: 6800,
@@ -376,7 +376,7 @@ function buildTopCreatives(brand, financials) {
         ctr: 0.026,
       },
       {
-        name: "Creator Review – Mark",
+        name: "Creator Review â€“ Mark",
         type: "Creator / Reel",
         roas: 3.6,
         spend: 6800,
@@ -399,7 +399,7 @@ function buildTopCreatives(brand, financials) {
         ctr: 0.035,
       },
       {
-        name: "Creator Dermatologin – Trust Ad",
+        name: "Creator Dermatologin â€“ Trust Ad",
         type: "Creator / Story",
         roas: 6.1,
         spend: 8700,
@@ -483,7 +483,7 @@ function buildBudgetStatus() {
 }
 
 /**
- * Sensei Insight – Kurztext + Empfehlung.
+ * Sensei Insight â€“ Kurztext + Empfehlung.
  */
 function buildSenseiInsight(brand, financials, alerts) {
   if (!brand) {
@@ -505,20 +505,20 @@ function buildSenseiInsight(brand, financials, alerts) {
   let ctaLabel;
 
   if (!hasWarning && !hasCritical && roas >= 4 && profit > 0) {
-    text = `Für ${brand.name} liegt der 30-Tage-ROAS bei etwa ${roas.toFixed(
+    text = `FÃ¼r ${brand.name} liegt der 30-Tage-ROAS bei etwa ${roas.toFixed(
       1
-    )}x mit einem geschätzten Profit von rund ${Math.round(
+    )}x mit einem geschÃ¤tzten Profit von rund ${Math.round(
       profit
     ).toLocaleString(
       "de-DE"
-    )} €. Keine kritischen Probleme sichtbar – nutze das Momentum, um Winner-Creatives weiter zu skalieren und strukturierte Tests aufzusetzen.`;
+    )} â‚¬. Keine kritischen Probleme sichtbar â€“ nutze das Momentum, um Winner-Creatives weiter zu skalieren und strukturierte Tests aufzusetzen.`;
     ctaLabel = "Creative-Tests planen";
   } else if (hasCritical) {
-    text = `Dein Account für ${brand.name} sendet mehrere kritische Signale. ROAS und Profit liegen teilweise klar unter Ziel. Priorität: Verluste stoppen, Budgets umschichten und konsequent neue Creatives testen.`;
-    ctaLabel = "Krisenplan öffnen";
+    text = `Dein Account fÃ¼r ${brand.name} sendet mehrere kritische Signale. ROAS und Profit liegen teilweise klar unter Ziel. PrioritÃ¤t: Verluste stoppen, Budgets umschichten und konsequent neue Creatives testen.`;
+    ctaLabel = "Krisenplan Ã¶ffnen";
   } else {
-    text = `Für ${brand.name} gibt es erste Warnsignale. Performance ist noch stabil, aber nicht mehr komfortabel. Jetzt ist der ideale Zeitpunkt, um neue Hooks zu testen, Zielgruppen zu bereinigen und Budget-Allokation sauber zu strukturieren.`;
-    ctaLabel = "Nächste Tests definieren";
+    text = `FÃ¼r ${brand.name} gibt es erste Warnsignale. Performance ist noch stabil, aber nicht mehr komfortabel. Jetzt ist der ideale Zeitpunkt, um neue Hooks zu testen, Zielgruppen zu bereinigen und Budget-Allokation sauber zu strukturieren.`;
+    ctaLabel = "NÃ¤chste Tests definieren";
   }
 
   return {
