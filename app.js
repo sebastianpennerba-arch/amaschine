@@ -60,7 +60,6 @@ const MetaAuthMock = (() => {
   }
 
   function connectWithPopup() {
-    // Reine Demo-Simulation
     setTimeout(() => {
       state.connected = true;
       state.accessToken = "demo_access_token_123";
@@ -106,10 +105,9 @@ const AppState = {
   systemHealthy: true,
   notifications: [],
   settings: {
-    // Hybrid-Modus: DataLayer liest diese Werte
-    demoMode: true, // Demo erzwingen (überschreibt Live)
-    dataMode: "auto", // "auto" | "live" | "demo"
-    theme: "titanium", // "light" | "titanium"
+    demoMode: true,
+    dataMode: "auto",
+    theme: "titanium",
     currency: "EUR",
     defaultRange: "last_30_days",
     cacheTtl: 300,
@@ -225,7 +223,6 @@ function createSvgIconFromSymbol(symbolId, className = "") {
   return svg;
 }
 
-// Views wirklich sichtbar machen (.is-active + .hidden)
 function setActiveView(viewId) {
   const views = document.querySelectorAll(".view");
   views.forEach((v) => {
@@ -256,8 +253,7 @@ function updateTopbarDateTime() {
   const dateEl = document.getElementById("topbarDate");
   const timeEl = document.getElementById("topbarTime");
   const now = new Date();
-
-  if (dateEl) {
+     if (dateEl) {
     dateEl.textContent = `Datum: ${now.toLocaleDateString("de-DE", {
       year: "numeric",
       month: "2-digit",
@@ -533,7 +529,6 @@ function showToast(message, type = "info") {
    MODAL
 -----------------------------------------------------------*/
 function openSystemModal(title, bodyHtml) {
-  // Schutz: leere Modals nicht anzeigen (verhindert „weiße Box“ beim App-Start)
   if (!title && !bodyHtml) {
     console.warn("[SignalOne][Modal] Aufruf ohne Inhalt blockiert.");
     return;
@@ -584,7 +579,6 @@ function toggleMetaConnection() {
 function useDemoMode() {
   if (AppState.settings.dataMode === "demo") return true;
   if (AppState.settings.dataMode === "live") return false;
-  // auto:
   return !AppState.metaConnected || AppState.settings.demoMode;
 }
 
