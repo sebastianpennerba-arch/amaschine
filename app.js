@@ -627,6 +627,98 @@ function wireBrandAndCampaignSelects() {
   }
 }
 
+// In app.js - Meta Connect Implementation
+
+window.SignalOne.connectMeta = async function() {
+  console.log('[Meta] Starting OAuth flow...');
+  
+  // Meta OAuth Parameters
+  const CLIENT_ID = 'YOUR_META_APP_ID'; // TODO: Replace with real ID
+  const REDIRECT_URI = window.location.origin + '/oauth/callback';
+  const STATE = generateRandomState();
+  
+  // Save state to verify later
+  sessionStorage.setItem('meta_oauth_state', STATE);
+  
+  // Meta OAuth URL
+  const authUrl = `https://www.facebook.com/v18.0/dialog/oauth?` +
+    `client_id=${CLIENT_ID}` +
+    `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
+    `&state=${STATE}` +
+    `&scope=ads_management,ads_read,business_management`;
+  
+  // Open OAuth in popup
+  const popup = window.open(
+    authUrl,
+    'MetaConnect',
+    'width=600,height=700,left=200,top=100'
+  );
+  
+  // Listen for callback
+  window.addEventListener('message', handleMetaCallback);
+};
+
+function handleMetaCallback(event) {
+  // Verify origin
+  if (!event.origin.startsWith(window.location.origin)) return;
+  
+  const { type, data } = event.data;
+  
+  if (type === 'META_OAUTH_SUCCESS') {
+    console.log('[Meta] OAuth successful:', data);
+    
+    // Save token
+    AppState.meta = {
+      accessToken: data.access_token,
+      userId: data.user_id,
+      expiresAt: Date.now() + (data.expires_in * 1000)
+    };
+    
+    // Update UI
+    showMetaConnectedBadge();
+    
+    // Switch to live mode
+    AppState.settings.demoMode = false;
+    updateModeButtons();
+    
+    // Reload current view
+    reloadCurrentView();
+    
+    // Show success message
+    showToast('✅ Meta Ads erfolgreich verbunden!', 'success');
+  } else if (type === 'META_OAUTH_ERROR') {
+    console.error('[Meta] OAuth error:', data);
+    showToast('❌ Meta-Verbindung fehlgeschlagen', 'error');
+  }
+}
+
+function showMetaConnectedBadge() {
+  const badge = document.querySelector('.meta-status-badge');
+  if (badge) {
+    badge.textContent = '✅ Meta verbunden';
+    badge.classList.add('connected');
+  }
+}
+
+function generateRandomState() {
+  return Math.random().toString(36).substring(2, 15) + 
+         Math.random().toString(36).substring(2, 15);
+}
+
+function showToast(message, type = 'info') {
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = message;
+  
+  document.body.appendChild(toast);
+  
+  setTimeout(() => toast.classList.add('visible'), 10);
+  setTimeout(() => {
+    toast.classList.remove('visible');
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
 /* BOOTSTRAP */
 document.addEventListener("DOMContentLoaded", () => {
   // Init Meta Auth
