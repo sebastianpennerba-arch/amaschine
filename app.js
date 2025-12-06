@@ -1,7 +1,7 @@
 import DataLayer from "./packages/data/index.js";
 
 /* ----------------------------------------------------------
-   SignalOne.cloud – Frontend Core (Turbo Launch)
+   SignalOne.cloud – Frontend Core (Turbo Launch – Version 3)
    - View Handling
    - MetaAuth (Demo + Live)
    - Toast / Modal / Status
@@ -172,6 +172,7 @@ const MetaAuth = (() => {
     return res.json();
   }
 
+  // Optional Dev-Token-Shortcut
   async function connectWithDevTokenIfAvailable() {
     const devToken = window.SIGNALONE_META_DEV_TOKEN;
     if (!devToken) return false;
