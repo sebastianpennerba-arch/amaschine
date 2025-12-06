@@ -1,16 +1,16 @@
 // packages/dashboard/index.js
 // -----------------------------------------------------------------------------
-// SignalOne – Dashboard (Upgrade C)
-// Tabs: Overview • Deep Dive • Academy
+// SignalOne â€“ Dashboard (Upgrade C)
+// Tabs: Overview â€¢ Deep Dive â€¢ Academy
 // - Nutzt DataLayer.fetchDashboardSummary(accountId) falls vorhanden
-// - Zeigt Launch-Status (0–100 %) permanent im Header
+// - Zeigt Launch-Status (0â€“100 %) permanent im Header
 // - VisionOS Tabs via .dashboard-tabs / .dashboard-tab / .dashboard-panel
 // -----------------------------------------------------------------------------
 
 import DataLayer from "../data/index.js";
 
 /**
- * Entry-Point – wird von app.js via loadModule("dashboard") aufgerufen.
+ * Entry-Point â€“ wird von app.js via loadModule("dashboard") aufgerufen.
  *
  * @param {HTMLElement} section   #dashboardView
  * @param {object}       AppState globaler AppState aus app.js
@@ -57,7 +57,7 @@ async function loadSummary(AppState, isDemo) {
     });
   }
 
-  // Fallback – minimale Demo-Struktur
+  // Fallback â€“ minimale Demo-Struktur
   return {
     metrics: {
       spend30d: 120000,
@@ -73,7 +73,7 @@ async function loadSummary(AppState, isDemo) {
         {
           severity: "warning",
           title: "Scaling-Phase aktiv",
-          message: "Ein Teil deines Budgets läuft auf Kampagnen mit sinkendem ROAS.",
+          message: "Ein Teil deines Budgets lÃ¤uft auf Kampagnen mit sinkendem ROAS.",
         },
         {
           severity: "info",
@@ -83,22 +83,22 @@ async function loadSummary(AppState, isDemo) {
       ],
     },
     bestCampaign: {
-      name: "SC – Evergreen UGC – Main GEO",
+      name: "SC â€“ Evergreen UGC â€“ Main GEO",
       roas: 4.8,
       spend: 34000,
     },
     worstCampaign: {
-      name: "TOF – Broad Prospecting – US",
+      name: "TOF â€“ Broad Prospecting â€“ US",
       roas: 1.2,
       spend: 22000,
     },
     bestCreative: {
-      name: "UGC: „Problem → Lösung“ Hook",
+      name: "UGC: â€žProblem â†’ LÃ¶sungâ€œ Hook",
       roas: 6.1,
       spend: 16000,
     },
     worstCreative: {
-      name: "Static – Rabattbanner 15%",
+      name: "Static â€“ Rabattbanner 15%",
       roas: 0.9,
       spend: 8000,
     },
@@ -123,7 +123,7 @@ function renderSkeleton(AppState, isDemo) {
           <div class="dashboard-overview-grid">
             <div class="dashboard-overview-card">
               <h3 class="card-title">Kern-KPIs (30 Tage)</h3>
-              <p class="card-subtitle">Lade Spend, Umsatz, ROAS, CTR & CPM …</p>
+              <p class="card-subtitle">Lade Spend, Umsatz, ROAS, CTR & CPM â€¦</p>
               <div class="kpi-grid" style="margin-top:10px;">
                 ${skeletonLine()}
                 ${skeletonLine()}
@@ -133,14 +133,14 @@ function renderSkeleton(AppState, isDemo) {
             </div>
             <div class="dashboard-overview-card">
               <h3 class="card-title">Health & Alerts</h3>
-              <p class="card-subtitle">Analysiere kritische Signale im Account …</p>
+              <p class="card-subtitle">Analysiere kritische Signale im Account â€¦</p>
               ${skeletonPill()}
               ${skeletonPill()}
               ${skeletonPill()}
             </div>
             <div class="dashboard-overview-card">
               <h3 class="card-title">Top & Low Performer</h3>
-              <p class="card-subtitle">Identifiziere deine stärksten & schwächsten Assets …</p>
+              <p class="card-subtitle">Identifiziere deine stÃ¤rksten & schwÃ¤chsten Assets â€¦</p>
               ${skeletonLine()}
               ${skeletonLine()}
             </div>
@@ -149,7 +149,7 @@ function renderSkeleton(AppState, isDemo) {
         <section class="dashboard-panel" data-panel="deepdive">
           <div class="dashboard-deepdive-box">
             <h3 class="card-title">Performance Deep Dive</h3>
-            <p class="card-subtitle">Detaildaten werden geladen …</p>
+            <p class="card-subtitle">Detaildaten werden geladen â€¦</p>
           </div>
         </section>
         <section class="dashboard-panel" data-panel="academy">
@@ -214,7 +214,7 @@ function renderHeader(brandName, modeLabel, launchScore, AppState, isDemo, alert
     alerts?.level === "critical"
       ? "Kritische Signale im Account aktiv."
       : alerts?.level === "warning"
-      ? "Es gibt Warnsignale, die du prüfen solltest."
+      ? "Es gibt Warnsignale, die du prÃ¼fen solltest."
       : "Aktuell keine kritischen Signals.";
 
   const launchLabel =
@@ -238,7 +238,7 @@ function renderHeader(brandName, modeLabel, launchScore, AppState, isDemo, alert
           ${modeBadge}
         </div>
         <p class="view-subline">
-          Zentraler Überblick über Spend, ROAS, CTR & CPM – plus deine wichtigsten Signale
+          Zentraler Ãœberblick Ã¼ber Spend, ROAS, CTR & CPM â€“ plus deine wichtigsten Signale
           aus Kampagnen, Creatives und Tests.
         </p>
       </div>
@@ -249,7 +249,7 @@ function renderHeader(brandName, modeLabel, launchScore, AppState, isDemo, alert
             <div>
               <div class="settings-title">Launch-Status</div>
               <div class="settings-subtitle">
-                ${launchLabel} • ${launchScore}%
+                ${launchLabel} â€¢ ${launchScore}%
               </div>
             </div>
           </div>
@@ -301,7 +301,7 @@ function renderOverviewPanel(
       <article class="dashboard-overview-card">
         <h3 class="card-title">Kern-KPIs (30 Tage)</h3>
         <p class="card-subtitle">
-          Spend, Umsatz und ROAS bilden die Basis für deine Performance-Entscheidungen.
+          Spend, Umsatz und ROAS bilden die Basis fÃ¼r deine Performance-Entscheidungen.
         </p>
         <div class="kpi-grid" style="margin-top:12px;">
           <div class="kpi-item">
@@ -310,14 +310,14 @@ function renderOverviewPanel(
             <div class="kpi-badge good">Budget aktiv</div>
           </div>
           <div class="kpi-item">
-            <div class="kpi-label">Umsatz (geschätzt)</div>
+            <div class="kpi-label">Umsatz (geschÃ¤tzt)</div>
             <div class="kpi-value">${formatCurrency(revenue)}</div>
             <div class="kpi-badge">${formatRoas(roas)} ROAS</div>
           </div>
           <div class="kpi-item">
             <div class="kpi-label">CTR</div>
             <div class="kpi-value">${formatPercent(ctr)}</div>
-            <div class="kpi-badge">Traffic-Qualität</div>
+            <div class="kpi-badge">Traffic-QualitÃ¤t</div>
           </div>
           <div class="kpi-item">
             <div class="kpi-label">CPM</div>
@@ -353,27 +353,27 @@ function renderOverviewPanel(
       <article class="dashboard-overview-card">
         <h3 class="card-title">Top & Low Performer</h3>
         <p class="card-subtitle">
-          Schnellüberblick über deine stärksten und schwächsten Kampagnen & Creatives.
+          SchnellÃ¼berblick Ã¼ber deine stÃ¤rksten und schwÃ¤chsten Kampagnen & Creatives.
         </p>
         <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;">
           ${
             bestCampaign
-              ? renderPerformerRow("🏆 Kampagne (Top)", bestCampaign, "good")
-              : `<div class="kpi-item"><div class="kpi-label">Top-Kampagne</div><div class="kpi-value">–</div></div>`
+              ? renderPerformerRow("ðŸ† Kampagne (Top)", bestCampaign, "good")
+              : `<div class="kpi-item"><div class="kpi-label">Top-Kampagne</div><div class="kpi-value">â€“</div></div>`
           }
           ${
             bestCreative
-              ? renderPerformerRow("⭐ Creative (Top)", bestCreative, "good")
+              ? renderPerformerRow("â­ Creative (Top)", bestCreative, "good")
               : ""
           }
           ${
             worstCampaign
-              ? renderPerformerRow("⚠ Kampagne (Low)", worstCampaign, "bad")
+              ? renderPerformerRow("âš  Kampagne (Low)", worstCampaign, "bad")
               : ""
           }
           ${
             worstCreative
-              ? renderPerformerRow("❌ Creative (Low)", worstCreative, "bad")
+              ? renderPerformerRow("âŒ Creative (Low)", worstCreative, "bad")
               : ""
           }
         </div>
@@ -419,13 +419,13 @@ function renderDeepDivePanel(metrics = {}, alerts) {
           <tbody>
             <tr>
               <td>7 Tage</td>
-              <td>${spend7 != null ? formatCurrency(spend7) : "–"}</td>
-              <td>${roas7 != null ? formatRoas(roas7) : "–"}</td>
+              <td>${spend7 != null ? formatCurrency(spend7) : "â€“"}</td>
+              <td>${roas7 != null ? formatRoas(roas7) : "â€“"}</td>
             </tr>
             <tr>
               <td>30 Tage</td>
-              <td>${spend30 != null ? formatCurrency(spend30) : "–"}</td>
-              <td>${roas30 != null ? formatRoas(roas30) : "–"}</td>
+              <td>${spend30 != null ? formatCurrency(spend30) : "â€“"}</td>
+              <td>${roas30 != null ? formatRoas(roas30) : "â€“"}</td>
             </tr>
           </tbody>
         </table>
@@ -461,7 +461,7 @@ function renderDeepDivePanel(metrics = {}, alerts) {
         </div>
         <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
           <button class="meta-button" data-dashboard-cta="sensei">
-            Sensei öffnen
+            Sensei Ã¶ffnen
           </button>
           <button class="meta-button" data-dashboard-cta="testing">
             Testplan anlegen
@@ -472,7 +472,7 @@ function renderDeepDivePanel(metrics = {}, alerts) {
   `;
 }
 
-/* ACADEMY PANEL (Static Placeholder – dein Academy-Einstieg) */
+/* ACADEMY PANEL (Static Placeholder â€“ dein Academy-Einstieg) */
 
 function renderAcademyPanel() {
   return `
@@ -482,10 +482,10 @@ function renderAcademyPanel() {
         <h3 class="academy-card-title">Meta Media Buying Fundamentals</h3>
         <p class="academy-card-text">
           Die Basis: ROAS, CTR, CPM, CPA & Budgets verstehen. Nach diesem Modul liest du
-          dein Dashboard wie eine Bilanz – ohne Rätselraten.
+          dein Dashboard wie eine Bilanz â€“ ohne RÃ¤tselraten.
         </p>
         <button class="meta-button" data-dashboard-cta="academy-meta">
-          Modul (Demo) öffnen
+          Modul (Demo) Ã¶ffnen
         </button>
       </article>
 
@@ -505,7 +505,7 @@ function renderAcademyPanel() {
         <div class="view-kicker">Testing</div>
         <h3 class="academy-card-title">Testing & Iteration Blueprint</h3>
         <p class="academy-card-text">
-          Klarer Fahrplan für A/B-Tests: Setup, Laufzeit, Auswertung und wann du Creatives
+          Klarer Fahrplan fÃ¼r A/B-Tests: Setup, Laufzeit, Auswertung und wann du Creatives
           oder Kampagnen konsequent killen solltest.
         </p>
         <button class="meta-button" data-dashboard-cta="academy-testing">
@@ -517,8 +517,8 @@ function renderAcademyPanel() {
         <div class="view-kicker">Scaling</div>
         <h3 class="academy-card-title">Scaling Playbooks</h3>
         <p class="academy-card-text">
-          Für Accounts, die performen: Wann du Budget hochziehen kannst, welche Methoden
-          (Vertical / Horizontal Scaling) Sinn machen und wie du Kontrolle behältst.
+          FÃ¼r Accounts, die performen: Wann du Budget hochziehen kannst, welche Methoden
+          (Vertical / Horizontal Scaling) Sinn machen und wie du Kontrolle behÃ¤ltst.
         </p>
         <button class="meta-button" data-dashboard-cta="academy-scaling">
           Scaling Playbook
@@ -529,13 +529,13 @@ function renderAcademyPanel() {
 }
 
 /* ---------------------------------------------------------------------------
- *  HELPERS – Alerts, Performer, Skeleton
+ *  HELPERS â€“ Alerts, Performer, Skeleton
  * ------------------------------------------------------------------------ */
 
 function renderAlertsList(alerts) {
   if (!alerts) {
     return `<p class="card-subtitle" style="margin-top:6px;color:#6b7280;">
-      Aktuell keine kritischen Warnsignale – dein Account läuft stabil.
+      Aktuell keine kritischen Warnsignale â€“ dein Account lÃ¤uft stabil.
     </p>`;
   }
 
@@ -549,7 +549,7 @@ function renderAlertsList(alerts) {
 
   if (!items.length) {
     return `<p class="card-subtitle" style="margin-top:6px;color:#6b7280;">
-      Aktuell keine kritischen Warnsignale – dein Account läuft stabil.
+      Aktuell keine kritischen Warnsignale â€“ dein Account lÃ¤uft stabil.
     </p>`;
   }
 
@@ -568,7 +568,7 @@ function renderAlertsList(alerts) {
               : "info");
 
           const emoji =
-            sev === "critical" ? "🚨" : sev === "warning" ? "⚠️" : "ℹ️";
+            sev === "critical" ? "ðŸš¨" : sev === "warning" ? "âš ï¸" : "â„¹ï¸";
 
           return `
             <li style="display:flex;gap:8px;align-items:flex-start;">
@@ -607,7 +607,7 @@ function renderPerformerRow(label, entity, tone) {
           ${escapeHtml(label)}
         </span>
         <span style="font-size:0.78rem;color:#6b7280;">
-          ROAS ${formatRoas(roas)} • ${formatCurrency(spend)}
+          ROAS ${formatRoas(roas)} â€¢ ${formatCurrency(spend)}
         </span>
       </div>
       <div style="font-size:0.86rem;font-weight:500;color:#0f172a;">
@@ -644,7 +644,7 @@ function skeletonPill() {
 }
 
 /* ---------------------------------------------------------------------------
- *  INTERACTION – Tabs & CTAs
+ *  INTERACTION â€“ Tabs & CTAs
  * ------------------------------------------------------------------------ */
 
 function wireTabs(rootEl) {
@@ -696,14 +696,14 @@ function wireCTAs(rootEl, AppState) {
         navigateTo?.("campaigns");
         break;
 
-      // Academy Platzhalter – hier später eigenes Modul anbinden
+      // Academy Platzhalter â€“ hier spÃ¤ter eigenes Modul anbinden
       case "academy-meta":
       case "academy-hooks":
       case "academy-testing":
       case "academy-scaling":
         if (showToast) {
           showToast(
-            "Die SignalOne Academy wird als eigenes Modul ergänzt – dieses Tab ist der Einstieg.",
+            "Die SignalOne Academy wird als eigenes Modul ergÃ¤nzt â€“ dieses Tab ist der Einstieg.",
             "info",
           );
         }
@@ -741,7 +741,7 @@ function computeLaunchScore(AppState) {
 
 function formatCurrency(v) {
   const n = Number(v || 0);
-  if (!Number.isFinite(n) || n === 0) return "€0";
+  if (!Number.isFinite(n) || n === 0) return "â‚¬0";
   return new Intl.NumberFormat("de-DE", {
     style: "currency",
     currency: "EUR",
@@ -751,20 +751,20 @@ function formatCurrency(v) {
 
 function formatRoas(v) {
   const n = Number(v || 0);
-  if (!Number.isFinite(n) || n <= 0) return "–";
+  if (!Number.isFinite(n) || n <= 0) return "â€“";
   return `${n.toFixed(1)}x`;
 }
 
 function formatPercent(v) {
   const n = Number(v || 0);
-  if (!Number.isFinite(n) || n === 0) return "–";
+  if (!Number.isFinite(n) || n === 0) return "â€“";
   const perc = n > 1 ? n : n * 100;
   return `${perc.toFixed(1)}%`;
 }
 
 function formatInt(v) {
   const n = Number(v || 0);
-  if (!Number.isFinite(n) || n === 0) return "–";
+  if (!Number.isFinite(n) || n === 0) return "â€“";
   return n.toLocaleString("de-DE");
 }
 
