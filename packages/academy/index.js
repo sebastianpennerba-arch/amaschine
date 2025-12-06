@@ -1,171 +1,112 @@
 // packages/academy/index.js
-// -----------------------------------------------------------------------------
-// SignalOne Academy – Eigenständiges Lern-Modul
-// Wird von app.js via loadModule("academy") oder ähnlich geladen.
-// -----------------------------------------------------------------------------
+// ---------------------------------------------------------
+// SignalOne Academy – MVP View
+// Fokus: Demo-taugliche Übersicht, ohne Backend-Abhängigkeiten
+// ---------------------------------------------------------
 
-/**
- * Render-Funktion für die Academy View
- * @param {HTMLElement} section  - DOM-Node (#academyView)
- * @param {object} AppState      - globaler AppState
- * @param {object} options       - { useDemoMode: boolean }
- */
-export function render(section, AppState, options = {}) {
+export async function render(section, AppState, { useDemoMode } = {}) {
   if (!section) return;
 
-  section.innerHTML = buildAcademyHtml(AppState);
-}
-
-function buildAcademyHtml(AppState) {
-  const brandName =
-    AppState?.currentBrand?.name ||
-    AppState?.brand?.name ||
-    AppState?.meta?.accountName ||
-    "Deine Brand";
-
-  return `
-    <div class="academy-root">
-      <header class="academy-header">
-        <div class="academy-header-main">
-          <div class="academy-kicker">SignalOne • Academy</div>
-          <h2 class="academy-title">Performance Marketing & Creative Strategy lernen</h2>
-          <p class="academy-subtitle">
-            Die Academy ist dein Lern-Hub für Meta Ads, Creatives, Testing & Scaling.
-            Kurze, umsetzbare Module – direkt mit deinem SignalOne Setup verknüpft.
+  section.innerHTML = `
+    <div class="creative-view-root">
+      <header class="creative-library-header">
+        <div>
+          <div class="view-kicker">SignalOne Academy</div>
+          <h2 class="view-headline">Lerne Meta Ads direkt im Tool</h2>
+          <p class="view-subline">
+            Die Academy macht aus SignalOne nicht nur ein Tool, sondern ein komplettes Performance-OS.
+            Free Mini-Kurse für Leads, Premium-Masterclasses für Umsatz – alles direkt hier drin.
           </p>
+          <div class="view-meta-row">
+            <span class="view-meta-pill">
+              <span class="dot-live"></span>
+              Demo-Inhalte aktiviert
+            </span>
+            <span class="view-meta-pill">
+              🎯 Fokus: Creative Performance & Testing
+            </span>
+          </div>
         </div>
 
-        <aside class="academy-header-side">
-          <div style="font-weight:600;margin-bottom:4px;">Academy Status</div>
-          <div style="margin-bottom:6px;">
-            Aktive Brand: <strong>${escapeHtml(brandName)}</strong>
+        <div class="creative-view-kpis">
+          <div class="creative-mini-kpi">
+            <div class="creative-mini-kpi-label">Mini-Kurse</div>
+            <div class="creative-mini-kpi-value">6</div>
           </div>
-          <div style="margin-bottom:4px;">
-            Lernpfade für Media Buyer, Founder & Creator-Teams.
+          <div class="creative-mini-kpi">
+            <div class="creative-mini-kpi-label">Masterclasses</div>
+            <div class="creative-mini-kpi-value">5</div>
           </div>
-          <div style="font-size:0.76rem;color:#6b7280;">
-            In Zukunft kannst du hier deinen Fortschritt, Zertifizierungen
-            und empfohlene Module auf Basis deiner Account-Daten sehen.
+          <div class="creative-mini-kpi">
+            <div class="creative-mini-kpi-label">Status</div>
+            <div class="creative-mini-kpi-value">
+              ${useDemoMode ? "Demo / Showroom" : "Live + Demo"}
+            </div>
           </div>
-        </aside>
+        </div>
       </header>
 
-      <section class="academy-filters">
-        <div class="academy-chip-row">
-          <button class="academy-chip active" data-academy-filter="all">Alle</button>
-          <button class="academy-chip" data-academy-filter="foundation">Fundament</button>
-          <button class="academy-chip" data-academy-filter="creatives">Creatives</button>
-          <button class="academy-chip" data-academy-filter="testing">Testing</button>
-          <button class="academy-chip" data-academy-filter="scaling">Scaling</button>
-        </div>
-        <input
-          type="search"
-          class="academy-search"
-          placeholder="Suche nach Modulen, z. B. „UGC Hooks“"
-          data-academy-search
-        />
-      </section>
+      <div style="display:grid;grid-template-columns:2fr 1.6fr;gap:20px;margin-top:8px;">
+        <!-- LEFT: Course buckets -->
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div class="dashboard-card" style="padding:18px 18px 16px;">
+            <h3 style="margin:0 0 6px;font-size:1.02rem;font-weight:700;">Free Mini-Kurse</h3>
+            <p style="margin:0 0 10px;font-size:0.87rem;color:#64748b;">
+              Perfekt für Einsteiger, Lead-Gen und Ads-Setup – alles kostenlos als Einstieg.
+            </p>
+            <ul style="margin:0;padding-left:18px;font-size:0.86rem;color:#111827;line-height:1.5;">
+              <li>Meta Ads Essentials</li>
+              <li>ROAS verstehen (ohne Mathe-Trauma)</li>
+              <li>How to create a Hook</li>
+              <li>Die größten Creative-Fehler</li>
+              <li>CTR &amp; CPM erklärt</li>
+              <li>Scaling Basics</li>
+            </ul>
+          </div>
 
-      <section class="academy-grid" data-academy-grid>
-        ${academyCards
-          .map((c) => renderAcademyCard(c))
-          .join("")}
-      </section>
+          <div class="dashboard-card" style="padding:18px 18px 16px;">
+            <h3 style="margin:0 0 6px;font-size:1.02rem;font-weight:700;">Premium Masterclasses</h3>
+            <p style="margin:0 0 10px;font-size:0.87rem;color:#64748b;">
+              Hochwertige Video-Trainings, die du später 1:1 verkaufen kannst.
+            </p>
+            <ul style="margin:0;padding-left:18px;font-size:0.86rem;color:#111827;line-height:1.5;">
+              <li>7-Figure Meta Ads Strategy Masterclass</li>
+              <li>Creative Winner System</li>
+              <li>UGC Bootcamp</li>
+              <li>Testing Bible</li>
+              <li>Scaling Blueprint &amp; Agency Accelerator</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- RIGHT: Context & Sensei tie-in -->
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div class="dashboard-card" style="padding:18px 18px 16px;">
+            <h3 style="margin:0 0 6px;font-size:1.02rem;font-weight:700;">Kontextuelle Empfehlungen</h3>
+            <p style="margin:0 0 10px;font-size:0.87rem;color:#64748b;">
+              Sensei verknüpft deine Daten mit passenden Kursen – so wird aus Fehlern direkt ein Learning.
+            </p>
+            <ul style="margin:0;padding-left:18px;font-size:0.86rem;color:#111827;line-height:1.5;">
+              <li>ROAS Problem → <strong>„ROAS retten“</strong> Kurs</li>
+              <li>CTR schwach → <strong>Hook &amp; Scrollstop Training</strong></li>
+              <li>Creative Fatigue → <strong>Creative Refresh Framework</strong></li>
+              <li>Testing Chaos → <strong>Testing Playbook &amp; Checklisten</strong></li>
+            </ul>
+          </div>
+
+          <div class="dashboard-card" style="padding:18px 18px 16px;">
+            <h3 style="margin:0 0 6px;font-size:1.02rem;font-weight:700;">Launch-Plan (MVP &amp; Pro)</h3>
+            <p style="margin:0 0 8px;font-size:0.87rem;color:#64748b;">
+              Für Live-Betrieb kannst du einfach echte Kurs-Links hinterlegen (Loom, Kajabi, Skool, etc.).
+            </p>
+            <ol style="margin:0;padding-left:18px;font-size:0.84rem;color:#111827;line-height:1.5;">
+              <li>Demo-Kurse mit Loom &amp; Notion aufbauen</li>
+              <li>Upsell-Strecke: Free → Masterclass → Subscription</li>
+              <li>Aktionen im Dashboard, Creative Library &amp; Testing Log verlinken</li>
+            </ol>
+          </div>
+        </div>
+      </div>
     </div>
   `;
-}
-
-/* ------------------------------------------------------------------------- */
-/*  Static Module Definition – V1 (Demo / Showroom)                          */
-/* ------------------------------------------------------------------------- */
-
-const academyCards = [
-  {
-    id: "fundamentals-media-buying",
-    track: "foundation",
-    tag: "Foundation",
-    level: "beginner",
-    title: "Meta Media Buying Fundamentals",
-    text: "Lerne die Basis von ROAS, CTR, CPM und Budget-Logik, damit du dein Dashboard sauber lesen kannst.",
-    length: "45 Min",
-    format: "Video + Cheatsheet",
-  },
-  {
-    id: "creative-strategy-hooks",
-    track: "creatives",
-    tag: "Creatives",
-    level: "intermediate",
-    title: "Creative Strategy & Hook Frameworks",
-    text: "Wie du Winning-Hooks entwickelst, UGC-Strukturen baust und deine Creative Library systematisch nutzt.",
-    length: "60 Min",
-    format: "Video + Templates",
-  },
-  {
-    id: "testing-blueprint",
-    track: "testing",
-    tag: "Testing",
-    level: "intermediate",
-    title: "Testing Blueprint",
-    text: "Sauber geplante Tests: Laufzeit, Samplesize, Kriterien und wann du Creatives oder Adsets killst.",
-    length: "40 Min",
-    format: "Workshop",
-  },
-  {
-    id: "scaling-playbooks",
-    track: "scaling",
-    tag: "Scaling",
-    level: "advanced",
-    title: "Scaling Playbooks",
-    text: "Vertical vs. Horizontal Scaling, Budget Shifts, Warm-Audience-Strategien – ohne den Account zu sprengen.",
-    length: "50 Min",
-    format: "Playbook + Beispiele",
-  },
-];
-
-function renderAcademyCard(c) {
-  const levelClass = c.level === "advanced" ? "advanced" : "";
-  const levelLabel =
-    c.level === "beginner"
-      ? "Einsteiger"
-      : c.level === "advanced"
-      ? "Advanced"
-      : "Intermediate";
-
-  return `
-    <article 
-      class="academy-card" 
-      data-academy-track="${escapeHtml(c.track)}"
-      data-academy-id="${escapeHtml(c.id)}"
-    >
-      <div class="academy-tag">${escapeHtml(c.tag)}</div>
-      <div class="academy-badge-level ${levelClass}">${levelLabel}</div>
-      <h3 class="academy-card-title">${escapeHtml(c.title)}</h3>
-      <p class="academy-card-text">
-        ${escapeHtml(c.text)}
-      </p>
-      <div class="academy-meta-row">
-        <span>${escapeHtml(c.length)}</span>
-        <span class="academy-meta-chip">${escapeHtml(c.format)}</span>
-      </div>
-      <button 
-        class="meta-button" 
-        data-academy-open="${escapeHtml(c.id)}"
-      >
-        Modul öffnen (Demo)
-      </button>
-    </article>
-  `;
-}
-
-/* ------------------------------------------------------------------------- */
-/*  Utils                                                                    */
-/* ------------------------------------------------------------------------- */
-
-function escapeHtml(str) {
-  if (str == null) return "";
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
 }
