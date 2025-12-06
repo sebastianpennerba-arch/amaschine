@@ -1,68 +1,66 @@
 // packages/sensei/index.js
-// --------------------------------------------------------
-// Entry-Point für das Sensei-View
-// - Wird von app.js via dynamic import geladen:
-//     import("/packages/sensei/index.js")
-// - Holt Daten über den DataLayer
-// - Normalisiert und übergibt an render.js
-// --------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Sensei View Entry
+// - Wird von app.js dynamisch geladen
+// - Holt Daten via DataLayer.fetchSenseiAnalysis()
+// - Nutzt compute.js + render.js
+// -----------------------------------------------------------------------------
 
-import DataLayer from "/packages/data/index.js";
 import { normalizeSenseiAnalysis } from "./compute.js";
 import { renderSenseiView } from "./render.js";
 
-function showLoader(section) {
-  section.innerHTML = `
-    <div class="sensei-root">
-      <header class="view-header sensei-header">
-        <div>
-          <div class="view-kicker">AdSensei • AI Suite</div>
-          <h2 class="view-headline">Sensei – AI Recommendations</h2>
-          <p class="view-subline">
-            Analyse läuft – Sensei zieht deine Creatives & Kampagnen zusammen.
-          </p>
-        </div>
-      </header>
-      <div style="padding:18px;">
-        <div class="skeleton-block" style="height: 140px; margin-bottom: 12px;"></div>
-        <div class="skeleton-block" style="height: 140px; margin-bottom: 12px;"></div>
-        <div class="skeleton-block" style="height: 140px;"></div>
-      </div>
-    </div>
-  `;
-}
+export async function render(section, AppState, opts = {}) {
+  if (!section) return;
 
-/**
- * Haupt-Render-Funktion, wie von app.js erwartet:
- *   render(section, appState, opts)
- */
-export async function render(section, appState, opts = {}) {
+  const SignalOne = window.SignalOne || {};
+  const DataLayer = SignalOne.DataLayer;
+  const showToast =
+    SignalOne.showToast || (window.showToast ? window.showToast.bind(window) : null);
   const useDemoMode = !!opts.useDemoMode;
 
-  showLoader(section);
+  if (!DataLayer) {
+    section.innerHTML = `
+      <div class="view-inner">
+        <header class="view-header">
+          <div>
+            <div class="view-kicker">AdSensei • AI Suite</div>
+            <h2 class="view-title">Sensei</h2>
+            <p class="view-subtitle">
+              DataLayer ist noch nicht initialisiert. Bitte Backend-Konfiguration prüfen.
+            </p>
+          </div>
+        </header>
+      </div>
+    `;
+    return;
+  }
+
+  // Account-Kontext bestimmen (kompatibel mit AppState & Meta-Setup)
+  const accountId =
+    AppState?.meta?.selectedAdAccountId ||
+    AppState?.meta?.adAccountId ||
+    AppState?.selectedAdAccountId ||
+    AppState?.selectedAccountId ||
+    null;
 
   try {
-    const rawAnalysis = await DataLayer.fetchSenseiAnalysis({
+    const result = await DataLayer.fetchSenseiAnalysis({
+      accountId,
       preferLive: !useDemoMode,
     });
 
-    const normalized = normalizeSenseiAnalysis(rawAnalysis);
-    renderSenseiView(section, normalized);
+    const model = normalizeSenseiAnalysis(result, {
+      accountId,
+      mode: result?.mode || (useDemoMode ? "demo" : "live"),
+    });
+
+    renderSenseiView(section, model);
   } catch (err) {
-    console.error("[Sensei] Analyse fehlgeschlagen:", err);
-
-    // Versuche freundliche Fehlermeldung + Toast
-    if (window.SignalOne?.showToast) {
-      window.SignalOne.showToast(
-        "Sensei Analyse konnte nicht geladen werden. Fallback auf leere Ansicht.",
-        "error"
-      );
-    }
-
-    renderSenseiView(section, null);
+    console.error("[Sensei] Rendering Error:", err);
+    showToast?.(
+      "Sensei Analyse konnte nicht geladen werden. Es wird ein leerer Zustand angezeigt.",
+      "error",
+    );
+    renderSenseiView(section, null, { error: err });
   }
 }
-
-export default {
-  render,
-};
