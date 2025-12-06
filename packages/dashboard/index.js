@@ -45,31 +45,109 @@ async function render(section, AppState, opts = {}) {
 }
 
 function buildDemoSummary(DemoData) {
-  const brands = DemoData.brands || [];
-  const creatives = DemoData.creatives || [];
-  
-  const totalSpend = brands.reduce((sum, b) => sum + (b.spend30d || 0), 0);
-  const avgRoas = brands.reduce((sum, b) => sum + (b.roas30d || 0), 0) / Math.max(brands.length, 1);
-  
+  // Wenn DemoData mit Brands kommt, nimm echte Aggregation
+  const brands = DemoData?.brands || [];
+
+  if (brands.length > 0) {
+    const totalSpend = brands.reduce((sum, b) => sum + (b.spend30d || 0), 0);
+    const totalRevenue = brands.reduce((sum, b) => sum + (b.revenue30d || 0), 0);
+    const totalPurchases = brands.reduce((sum, b) => sum + (b.purchases30d || 0), 0);
+
+    const avgRoas =
+      brands.reduce((sum, b) => sum + (b.roas30d || 0), 0) /
+      Math.max(brands.length, 1);
+
+    const avgCtr =
+      brands.reduce((sum, b) => sum + (b.ctr30d || 0), 0) /
+      Math.max(brands.length, 1);
+
+    const avgCpm =
+      brands.reduce((sum, b) => sum + (b.cpm30d || 0), 0) /
+      Math.max(brands.length, 1);
+
+    const sortedByRoas = [...brands].sort(
+      (a, b) => (b.roas30d || 0) - (a.roas30d || 0)
+    );
+
+    return {
+      metrics: {
+        spend30d: totalSpend,
+        revenue30d: totalRevenue,
+        roas30d: avgRoas,
+        ctr30d: avgCtr,
+        cpm30d: avgCpm,
+        purchases30d: totalPurchases,
+      },
+      alerts: {
+        level: "good",
+        items: [
+          {
+            severity: "info",
+            title: "Demo-Modus aktiv",
+            message:
+              "Du siehst konsolidierte Demo-Daten aus mehreren DTC-Brands.",
+          },
+        ],
+      },
+      bestCampaign: sortedByRoas[0]
+        ? {
+            name: sortedByRoas[0].name,
+            roas: sortedByRoas[0].roas30d,
+            spend: sortedByRoas[0].spend30d,
+          }
+        : null,
+      worstCampaign: sortedByRoas[sortedByRoas.length - 1]
+        ? {
+            name: sortedByRoas[sortedByRoas.length - 1].name,
+            roas: sortedByRoas[sortedByRoas.length - 1].roas30d,
+            spend: sortedByRoas[sortedByRoas.length - 1].spend30d,
+          }
+        : null,
+      bestCreative: DemoData?.creatives?.[0] || null,
+      worstCreative:
+        DemoData?.creatives?.[DemoData.creatives.length - 1] || null,
+    };
+  }
+
+  // Fallback: HARDCODED DEMO-ZAHLEN, falls irgendwas mit DemoData schiefgeht
   return {
     metrics: {
-      spend30d: totalSpend,
-      revenue30d: totalSpend * avgRoas,
-      roas30d: avgRoas,
-      ctr30d: 2.8,
+      spend30d: 36500,
+      revenue30d: 124750,
+      roas30d: 3.42,
+      ctr30d: 1.8,
       cpm30d: 8.5,
-      purchases30d: Math.round(totalSpend * avgRoas / 50),
+      purchases30d: 2570,
     },
     alerts: {
       level: "good",
       items: [
-        { severity: "info", title: "Demo-Modus aktiv", message: "Du siehst Demo-Daten. Verbinde Meta für Live-Daten." }
+        {
+          severity: "info",
+          title: "Demo-Modus aktiv",
+          message:
+            "Fallback-Demo-Zahlen werden angezeigt, weil DemoData leer ist.",
+        },
       ],
     },
-    bestCampaign: brands[0] ? { name: brands[0].name, roas: brands[0].roas30d, spend: brands[0].spend30d } : null,
-    worstCampaign: brands[brands.length - 1] ? { name: brands[brands.length - 1].name, roas: brands[brands.length - 1].roas30d, spend: brands[brands.length - 1].spend30d } : null,
-    bestCreative: creatives[0] || null,
-    worstCreative: creatives[creatives.length - 1] || null,
+    bestCampaign: {
+      name: "FrischNova Scale",
+      roas: 4.1,
+      spend: 18000,
+    },
+    worstCampaign: {
+      name: "Hotel Prospector",
+      roas: 2.3,
+      spend: 8000,
+    },
+    bestCreative: {
+      name: "Hook V5 Kitchen",
+      roas: 5.2,
+    },
+    worstCreative: {
+      name: "UGC Test A",
+      roas: 3.0,
+    },
   };
 }
 
