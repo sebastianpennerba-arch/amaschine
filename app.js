@@ -1,12 +1,20 @@
-// import DataLayer from "./packages/data/index.js"; // SPÄTER WIEDER AKTIVIEREN
-const DataLayer = {}; // DUMMY bis Backend deployt ist
-
-import { DemoData } from "./demoData.js";
-
 /* ======================================== 
    SignalOne.cloud – Frontend Core
-   APPLE-STYLE CLEAN VERSION 
+   STANDALONE VERSION (NO IMPORTS)
 ======================================== */
+
+// HARD-CODED DEMO DATA (inline, kein Import nötig)
+const DemoData = {
+  brands: [
+    { id: "acme", name: "ACME Fashion", spend30d: 116234, revenue30d: 557923, roas30d: 4.8, ctr30d: 3.2, cpm30d: 8.4, purchases30d: 4890 },
+    { id: "tech", name: "TechGadgets Pro", spend30d: 98211, revenue30d: 432128, roas30d: 4.4, ctr30d: 2.9, cpm30d: 9.1, purchases30d: 3421 },
+    { id: "beauty", name: "BeautyLux Cosmetics", spend30d: 67877, revenue30d: 257933, roas30d: 3.8, ctr30d: 2.6, cpm30d: 7.8, purchases30d: 2145 }
+  ],
+  creatives: [],
+  campaigns: {}
+};
+
+const DataLayer = {}; // Dummy
 
 /* META AUTH MOCK */
 const MetaAuthMock = (() => {
@@ -217,7 +225,7 @@ function updateMetaUI() {
 
   if (AppState.metaConnected) {
     if (dot) { dot.classList.add("status-dot-green"); dot.classList.remove("status-dot-gray"); }
-    if (text) text.textContent = "Meta Ads: Getrennt";
+    if (text) text.textContent = "Meta Ads: Verbunden";
     if (btn) { btn.textContent = "Meta trennen"; btn.classList.add("btn-danger"); btn.classList.remove("btn-primary"); }
   } else {
     if (dot) { dot.classList.add("status-dot-gray"); dot.classList.remove("status-dot-green"); }
@@ -228,6 +236,7 @@ function updateMetaUI() {
 
 /* NAVIGATION */
 async function navigateTo(moduleName) {
+  console.log(`[navigateTo] Switching to: ${moduleName}`);
   showGlobalLoader();
   try {
     document.querySelectorAll(".sidebar-nav-button").forEach(b => b.classList.remove("active"));
@@ -242,9 +251,17 @@ async function navigateTo(moduleName) {
     AppState.currentModule = moduleName;
 
     if (modules[moduleName]) {
-      const mod = await modules[moduleName]();
-      if (mod && mod.init) {
-        await mod.init({ AppState, DemoData, DataLayer, useDemoMode, formatNumber, formatCurrency, formatPercent, showToast });
+      try {
+        const mod = await modules[moduleName]();
+        if (mod && mod.init) {
+          await mod.init({ AppState, DemoData, DataLayer, useDemoMode, formatNumber, formatCurrency, formatPercent, showToast });
+        }
+      } catch (modErr) {
+        console.warn(`[navigateTo] Modul ${moduleName} konnte nicht geladen werden:`, modErr);
+        // Fallback: Show basic content
+        if (targetView) {
+          targetView.innerHTML = `<div class="view-body"><h2>Modul: ${moduleName}</h2><p class="color-fg-muted">Dieses Modul lädt noch...</p></div>`;
+        }
       }
     }
   } catch (err) {
@@ -257,6 +274,7 @@ async function navigateTo(moduleName) {
 
 /* INIT APP */
 async function initApp() {
+  console.log("[initApp] Starting...");
   MetaAuthMock.init();
 
   document.querySelectorAll(".sidebar-nav-button").forEach(btn => {
@@ -274,7 +292,9 @@ async function initApp() {
     });
   }
 
+  console.log("[initApp] Navigating to dashboard...");
   await navigateTo("dashboard");
+  console.log("[initApp] Complete.");
 }
 
 /* START */
