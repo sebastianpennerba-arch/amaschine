@@ -1,7 +1,7 @@
 import DataLayer from "./packages/data/index.js";
 
 /* ----------------------------------------------------------
-   SignalOne.cloud â€“ Frontend Core (Turbo Launch)
+   SignalOne.cloud – Frontend Core (Turbo Launch)
    - View Handling
    - MetaAuth (Demo + Live)
    - Toast / Modal / Status
@@ -10,7 +10,7 @@ import DataLayer from "./packages/data/index.js";
 -----------------------------------------------------------*/
 
 /* ----------------------------------------------------------
-   1) META AUTH MOCK (P5 â€“ Demo)
+   1) META AUTH MOCK (P5 – Demo)
 -----------------------------------------------------------*/
 const MetaAuthMock = (() => {
   const STORAGE_KEY = "signalone_meta_mock_v1";
@@ -95,7 +95,7 @@ const MetaAuthMock = (() => {
 })();
 
 /* ----------------------------------------------------------
-   2) META AUTH LIVE (P5 â€“ echter Flow via Backend)
+   2) META AUTH LIVE (P5 – echter Flow via Backend)
 -----------------------------------------------------------*/
 const MetaAuth = (() => {
   const STORAGE_KEY_LIVE = "signalone_meta_live_v1";
@@ -141,7 +141,7 @@ const MetaAuth = (() => {
     AppState.meta.accountName = liveState.accountName;
     AppState.meta.mode = liveState.connected ? "live" : null;
 
-    // Wenn Live-Connect aktiv â†’ Demo-Mode aus
+    // Wenn Live-Connect aktiv → Demo-Mode aus
     if (liveState.connected) {
       AppState.settings.demoMode = false;
       AppState.settings.dataMode = "live";
@@ -215,7 +215,7 @@ const MetaAuth = (() => {
 
       if (!popup) {
         showToast(
-          "Popup blockiert. Bitte Popups fÃ¼r diese Seite erlauben.",
+          "Popup blockiert. Bitte Popups für diese Seite erlauben.",
           "warning",
         );
         resolve(null);
@@ -500,43 +500,79 @@ function getEffectiveBrandOwnerName() {
    7) NAVIGATION / SIDEBAR
 -----------------------------------------------------------*/
 
-// Gruppierte Navigation: 4 Hauptmodule + Academy, Mehr Tools, Einstellungen
+// Gruppierte Navigation: 5 Hauptmodule (mit goldenen Icons) + Tools & Einstellungen als Akkordeon
 const navStructure = {
   main: [
     { key: "dashboard", label: "Dashboard", icon: "dashboard" },
     { key: "creativeLibrary", label: "Creatives", icon: "library" },
     { key: "sensei", label: "Sensei", icon: "sensei" },
     { key: "campaigns", label: "Kampagnen", icon: "campaigns" },
-    // Academy als eigener, sichtbarer Hauptpunkt
-    { key: "academy", label: "Academy", icon: "sensei" },
+    { key: "academy", label: "Academy", icon: "academy" }, // eigener Icon-Slot für Academy
   ],
   tools: [
     { key: "testingLog", label: "Testing Log", icon: "testing" },
     { key: "roast", label: "Roast", icon: "roast" },
-    {
-      key: "reports",
-      label: "Reports (Suite)",
-      icon: "reports",
-    },
-    {
-      key: "analytics",
-      label: "Analytics (Suite)",
-      icon: "analytics",
-    },
-    {
-      key: "creatorInsights",
-      label: "Creator Insights (Suite)",
-      icon: "creators",
-    },
+    { key: "reports", label: "Reports", icon: "reports" },
+    { key: "analytics", label: "Analytics", icon: "analytics" },
+    { key: "creatorInsights", label: "Creator Insights", icon: "creators" },
   ],
   settings: [
     { key: "team", label: "Team", icon: "team" },
     { key: "brands", label: "Brands", icon: "brands" },
     { key: "shopify", label: "Shopify", icon: "shopify" },
-    { key: "settings", label: "Settings", icon: "settings" },
+    { key: "settings", label: "Einstellungen", icon: "settings" },
     { key: "onboarding", label: "Onboarding", icon: "onboarding" },
   ],
 };
+
+function createNavButton(item) {
+  const btn = document.createElement("button");
+  btn.className = "sidebar-nav-button";
+  btn.setAttribute("data-module", item.key);
+
+  // Goldene Icons kommen über das Icon-Sprite + CSS (Titanium)
+  btn.innerHTML = `
+    <span class="sidebar-nav-icon">
+      <svg aria-hidden="true" class="icon-svg" width="20" height="20">
+        <use href="#icon-${item.icon}"></use>
+      </svg>
+    </span>
+    <span class="label sidebar-nav-label">${item.label}</span>
+  `;
+
+  btn.addEventListener("click", () => navigateTo(item.key));
+  return btn;
+}
+
+function toggleAccordionGroup(groupId, forceOpen = null) {
+  const group = document.querySelector(`.sidebar-nav-group[data-group="${groupId}"]`);
+  if (!group) return;
+
+  const items = group.querySelector(".sidebar-nav-group-items");
+  const chevron = group.querySelector(".sidebar-nav-chevron");
+  if (!items) return;
+
+  const isCurrentlyOpen = group.classList.contains("is-open");
+  const shouldOpen = forceOpen !== null ? forceOpen : !isCurrentlyOpen;
+
+  // Akkordeon: immer nur eine Gruppe offen
+  const allGroups = document.querySelectorAll(".sidebar-nav-group");
+  allGroups.forEach((g) => {
+    const itsItems = g.querySelector(".sidebar-nav-group-items");
+    const itsChevron = g.querySelector(".sidebar-nav-chevron");
+    if (!itsItems) return;
+
+    if (g === group && shouldOpen) {
+      g.classList.add("is-open");
+      itsItems.style.display = "";
+      if (itsChevron) itsChevron.classList.add("is-open");
+    } else {
+      g.classList.remove("is-open");
+      itsItems.style.display = "none";
+      if (itsChevron) itsChevron.classList.remove("is-open");
+    }
+  });
+}
 
 function renderNav() {
   const ul = document.getElementById("navbar");
@@ -544,57 +580,86 @@ function renderNav() {
 
   ul.innerHTML = "";
 
-  function addSectionLabel(text) {
-    const li = document.createElement("li");
-    li.className = "sidebar-nav-section-label";
-    li.textContent = text;
-    ul.appendChild(li);
-  }
-
-  function addItem(item) {
+  // 1) 5 Hauptmodule mit goldenen Icons
+  navStructure.main.forEach((item) => {
     const li = document.createElement("li");
     li.className = "sidebar-nav-item";
-
-    const btn = document.createElement("button");
-    btn.className = "sidebar-nav-button";
-    btn.setAttribute("data-module", item.key);
-
-    btn.innerHTML = `
-      <span class="sidebar-nav-icon">
-        <svg aria-hidden="true" class="icon-svg" width="20" height="20">
-          <use href="#icon-${item.icon}"></use>
-        </svg>
-      </span>
-      <span class="label sidebar-nav-label">${item.label}</span>
-    `;
-
-    btn.addEventListener("click", () => navigateTo(item.key));
-
+    const btn = createNavButton(item);
     li.appendChild(btn);
+    ul.appendChild(li);
+  });
+
+  // Helper für Akkordeon-Gruppen
+  function addAccordionGroup(groupId, label, items) {
+    const li = document.createElement("li");
+    li.className = "sidebar-nav-group is-collapsed";
+    li.setAttribute("data-group", groupId);
+
+    const headerBtn = document.createElement("button");
+    headerBtn.type = "button";
+    headerBtn.className = "sidebar-nav-button sidebar-nav-group-toggle";
+    headerBtn.innerHTML = `
+      <span class="sidebar-nav-label">${label}</span>
+      <span class="sidebar-nav-chevron" aria-hidden="true">▸</span>
+    `;
+    headerBtn.addEventListener("click", () => {
+      toggleAccordionGroup(groupId);
+    });
+
+    const innerList = document.createElement("ul");
+    innerList.className = "sidebar-nav-group-items";
+    innerList.style.display = "none";
+
+    items.forEach((item) => {
+      const innerLi = document.createElement("li");
+      innerLi.className = "sidebar-nav-item sidebar-nav-item-nested";
+      const btn = createNavButton(item);
+      innerLi.appendChild(btn);
+      innerList.appendChild(innerLi);
+    });
+
+    li.appendChild(headerBtn);
+    li.appendChild(innerList);
     ul.appendChild(li);
   }
 
-  // Hauptmodule + Academy
-  navStructure.main.forEach(addItem);
+  // 2) Tools (Akkordeon)
+  addAccordionGroup("tools", "Tools", navStructure.tools);
 
-  // Mehr Tools
-  addSectionLabel("Mehr Tools");
-  navStructure.tools.forEach(addItem);
-
-  // Einstellungen
-  addSectionLabel("Einstellungen");
-  navStructure.settings.forEach(addItem);
+  // 3) Einstellungen (Akkordeon)
+  addAccordionGroup("settings", "Einstellungen", navStructure.settings);
 
   setActiveNavItem(AppState.currentModule);
 }
 
 function setActiveNavItem(moduleKey) {
-  const buttons = document.querySelectorAll(".sidebar-nav-button");
+  const buttons = document.querySelectorAll(".sidebar-nav-button[data-module]");
+  let activeBtn = null;
+
   buttons.forEach((btn) => {
     if (btn.getAttribute("data-module") === moduleKey) {
       btn.classList.add("active");
+      activeBtn = btn;
     } else {
       btn.classList.remove("active");
+    }
+  });
+
+  // Akkordeon-Gruppen passend zur aktiven Route öffnen / schließen
+  const groups = document.querySelectorAll(".sidebar-nav-group");
+  groups.forEach((group) => {
+    const items = group.querySelector(".sidebar-nav-group-items");
+    const chevron = group.querySelector(".sidebar-nav-chevron");
+    if (!items) return;
+
+    if (activeBtn && group.contains(activeBtn)) {
+      group.classList.add("is-open");
+      items.style.display = "";
+      if (chevron) chevron.classList.add("is-open");
+    } else {
+      group.classList.remove("is-open");
+      items.style.display = "none";
+      if (chevron) chevron.classList.remove("is-open");
     }
   });
 }
@@ -737,7 +802,7 @@ function updateMetaStatusUI() {
     const mode = AppState.meta?.mode || (useDemoMode() ? "demo" : "live");
     const modeLabel = mode === "live" ? "Live" : "Demo";
     label.textContent = `Meta Ads: Verbunden (${modeLabel})`;
-    if (btn) btn.textContent = "META TRENnen".toUpperCase();
+    if (btn) btn.textContent = "META TRENNEN";
   } else {
     dot.style.backgroundColor = "var(--color-text-soft)";
     label.textContent = "Meta Ads: Getrennt";
@@ -879,7 +944,7 @@ function updateViewSubheaders() {
       <div class="view-subheader-main">
         <span class="view-subheader-title">${title}</span>
         <span class="view-subheader-meta">
-          ${owner} â€¢ ${vertical} â€¢ ${campaignsCount} Kampagnen
+          ${owner} • ${vertical} • ${campaignsCount} Kampagnen
         </span>
       </div>
     `;
@@ -921,7 +986,7 @@ async function loadModule(key) {
     section.innerHTML = `
       <div class="view-inner">
         <h2 class="view-title">Meta-Konto verbinden</h2>
-        <p class="view-subtitle">Dieses Modul benÃ¶tigt ein verbundenes Meta Ads Konto oder den Demo-Modus.</p>
+        <p class="view-subtitle">Dieses Modul benötigt ein verbundenes Meta Ads Konto oder den Demo-Modus.</p>
         <p class="view-subtitle">Nutze den META VERBINDEN Button oben rechts oder aktiviere den Demo-Modus in den Settings.</p>
       </div>
     `;
@@ -948,7 +1013,7 @@ async function loadModule(key) {
       section.innerHTML = `
         <div class="view-inner">
           <h2 class="view-title">${key}</h2>
-          <p class="view-subtitle">Render-Funktion fÃ¼r dieses Modul fehlt.</p>
+          <p class="view-subtitle">Render-Funktion für dieses Modul fehlt.</p>
         </div>
       `;
       return;
@@ -1023,11 +1088,11 @@ function createTestingLogAPI() {
         id: "tl_1",
         createdAt: Date.now() - 5 * 24 * 3600 * 1000,
         status: "running",
-        hypothesis: "UGC Hook mit Social Proof schlÃ¤gt statische Offer-Ad",
+        hypothesis: "UGC Hook mit Social Proof schlägt statische Offer-Ad",
         primaryMetric: "ROAS",
         variants: [
-          { label: "A", name: "Static Carousel â€“ Offer Focus" },
-          { label: "B", name: "UGC Vertical â€“ Problem/Solution" },
+          { label: "A", name: "Static Carousel – Offer Focus" },
+          { label: "B", name: "UGC Vertical – Problem/Solution" },
         ],
       },
       {
@@ -1075,17 +1140,17 @@ function createTestingLogAPI() {
         ? `<ul>${candidates
             .map(
               (c) =>
-                `<li>${c.name || "Creative"} â€“ ROAS ${
-                  c.metrics?.roas ?? "â€“"
+                `<li>${c.name || "Creative"} – ROAS ${
+                  c.metrics?.roas ?? "–"
                 }x</li>`,
             )
             .join("")}</ul>`
-        : "<p>Keine weiteren Creatives Ã¼bergeben.</p>";
+        : "<p>Keine weiteren Creatives übergeben.</p>";
 
     open(
       "Testing Slot (Demo)",
       `
-      <p>In der finalen Version Ã¶ffnest du hier direkt einen neuen A/B-Test-Slot.</p>
+      <p>In der finalen Version öffnest du hier direkt einen neuen A/B-Test-Slot.</p>
       <p><strong>Target:</strong> ${name}</p>
       <div style="margin-top:12px;">
         <strong>Kandidaten:</strong><br>
@@ -1128,7 +1193,7 @@ function toggleMetaConnection() {
    19) BOOTSTRAP
 -----------------------------------------------------------*/
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("ðŸš€ SignalOne Bootstrap startet...");
+  console.log("🚀 SignalOne Bootstrap startet...");
 
   // Meta Auth
   MetaAuth.init().catch((err) =>
@@ -1203,7 +1268,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const logoutBtn = document.getElementById("logoutButton");
   logoutBtn?.addEventListener("click", () => {
     MetaAuth.disconnect();
-    showToast("Session zurÃ¼ckgesetzt.", "success");
+    showToast("Session zurückgesetzt.", "success");
   });
 
   // Topbar
@@ -1217,7 +1282,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Startmodul laden
   loadModule(AppState.currentModule);
 
-  console.log("âœ… SignalOne Bootstrap abgeschlossen!");
+  console.log("✅ SignalOne Bootstrap abgeschlossen!");
 });
 
 /* ----------------------------------------------------------
