@@ -1,285 +1,1036 @@
-<!DOCTYPE html>
-<html lang="de">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SignalOne.cloud</title>
+/*
+ * SignalOne – Vision Pro Titanium Light
+ * Full UI: Sidebar A (5 Hauptmodule + Tools + Einstellungen), Topbar,
+ * Dashboard, Creatives, Campaigns, Sensei, Reports, Logs
+ */
 
-    <!-- STYLES -->
-    <link rel="stylesheet" href="./styles.css" />
+/* ==============================
+   1) DESIGN TOKENS
+============================== */
 
-    <!-- FOUC FIX -->
-    <style>
-      body { opacity: 0; transition: opacity 0.2s ease; }
-      body.visible { opacity: 1; }
-    </style>
-  </head>
+:root {
+  /* PRIMARY */
+  --color-primary: #3b6af8;
+  --color-primary-hover: #315bd6;
+  --color-primary-soft: #e8efff;
 
-  <body>
-    <!-- ===========================
-         SIDEBAR (HARD-CODED)
-    ============================ -->
-    <nav class="sidebar">
-      <div class="sidebar-header">
-        <img
-          src="./assets/logo_re_sc.png"
-          alt="SignalOne Logo"
-          class="sidebar-logo"
-        />
-      </div>
+  /* NEUTRAL BACKGROUND STACK */
+  --color-bg: #e5e7f2;
+  --color-bg-panel: #ffffff;
+  --color-bg-soft: #f1f5f9;
+  --color-bg-hover: #e7e9ed;
 
-      <ul class="sidebar-nav">
+  /* GRAPHITE TEXT */
+  --color-text-main: #0f172a;
+  --color-text-soft: #4f535a;
+  --color-text-muted: #6b7280;
 
-        <!-- =========================
-             HAUPTMODULE
-        ========================== -->
+  /* BORDERS */
+  --color-border-subtle: #e2e8f0;
+  --color-border-strong: #c4c7cd;
 
-        <li class="sidebar-nav-item">
-          <button class="sidebar-nav-button" data-view="dashboardView">
-            <svg class="sidebar-btn-icon" viewBox="0 0 24 24">
-              <rect class="icon-layer-fill" x="3" y="3" width="7" height="7"></rect>
-              <rect class="icon-layer-stroke" x="3" y="3" width="7" height="7"></rect>
-            </svg>
-            Dashboard
-          </button>
-        </li>
+  /* STATUS COLORS */
+  --color-success: #16a34a;
+  --color-success-soft: rgba(22, 163, 74, 0.08);
+  --color-warning: #ea980c;
+  --color-warning-soft: rgba(234, 152, 12, 0.1);
+  --color-danger: #e11d48;
+  --color-danger-soft: rgba(225, 29, 72, 0.08);
 
-        <li class="sidebar-nav-item">
-          <button class="sidebar-nav-button" data-view="creativeLibraryView">
-            <svg class="sidebar-btn-icon" viewBox="0 0 24 24">
-              <circle class="icon-layer-fill" cx="6" cy="6" r="3"></circle>
-              <circle class="icon-layer-stroke" cx="6" cy="6" r="3"></circle>
-            </svg>
-            Creatives
-          </button>
-        </li>
+  /* SURFACES */
+  --color-sidebar-bg: #020617;
+  --color-topbar-bg: rgba(15, 23, 42, 0.96);
+  --color-surface: #ffffff;
+  --color-surface-soft: #f8fafc;
 
-        <li class="sidebar-nav-item">
-          <button class="sidebar-nav-button" data-view="campaignsView">
-            <svg class="sidebar-btn-icon" viewBox="0 0 24 24">
-              <path class="icon-layer-fill" d="M4 12h6v6H4z"></path>
-              <path class="icon-layer-stroke" d="M4 12h6v6H4z"></path>
-            </svg>
-            Kampagnen
-          </button>
-        </li>
+  /* SHADOWS */
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.12);
+  --shadow-lg: 0 16px 40px rgba(15, 23, 42, 0.18);
+  --shadow-card: 0 18px 45px rgba(15, 23, 42, 0.22);
+  --shadow-soft: var(--shadow-md);
 
-        <li class="sidebar-nav-item">
-          <button class="sidebar-nav-button" data-view="senseiView">
-            <svg class="sidebar-btn-icon" viewBox="0 0 24 24">
-              <polygon class="icon-layer-fill" points="3,12 12,3 21,12 12,21"></polygon>
-              <polygon class="icon-layer-stroke" points="3,12 12,3 21,12 12,21"></polygon>
-            </svg>
-            Sensei
-          </button>
-        </li>
+  /* RADIUS */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
 
-        <li class="sidebar-nav-item">
-          <button class="sidebar-nav-button" data-view="reportsView">
-            <svg class="sidebar-btn-icon" viewBox="0 0 24 24">
-              <path class="icon-layer-fill" d="M4 4h16v16H4z"></path>
-              <path class="icon-layer-stroke" d="M4 4h16v16H4z"></path>
-            </svg>
-            Reports
-          </button>
-        </li>
+  /* INPUTS */
+  --input-bg: #ffffff;
+  --input-border: #cfd2d8;
+  --input-focus: #3b6af8;
 
-        <!-- =========================
-             TOOLS SECTION
-        ========================== -->
-        <span class="sidebar-section-label" data-section="toolsGroup">Tools</span>
+  /* SIDEBAR ICON COLORS (Duotone Gold) */
+  --sidebar-icon-active-fill: #c8a451;
+  --sidebar-icon-active-stroke: #9c8242;
+  --sidebar-icon-inactive-fill: #8f8057;
+  --sidebar-icon-inactive-stroke: #6e6244;
+  --sidebar-icon-hover-fill: #ddc36b;
+  --sidebar-icon-hover-stroke: #b1943f;
 
-        <div id="toolsGroup" class="sidebar-group">
-          <li class="sidebar-nav-item-nested">
-            <button class="sidebar-nav-button-nested" data-view="analyticsView">
-              Analytics
-            </button>
-          </li>
+  /* DERIVED */
+  --surface: var(--color-surface);
+  --surface-alt: var(--color-surface-soft);
+  --text-primary: var(--color-text-main);
+  --text-secondary: var(--color-text-muted);
+  --border: var(--color-border-subtle);
+  --success: var(--color-success);
+  --warning: var(--color-warning);
+  --danger: var(--color-danger);
+  --accent: var(--color-primary);
+}
 
-          <li class="sidebar-nav-item-nested">
-            <button class="sidebar-nav-button-nested" data-view="creatorInsightsView">
-              Creator Insights
-            </button>
-          </li>
+/* ==============================
+   2) RESET & BASE
+============================== */
 
-          <li class="sidebar-nav-item-nested">
-            <button class="sidebar-nav-button-nested" data-view="testingLogView">
-              Testing Log
-            </button>
-          </li>
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
-          <li class="sidebar-nav-item-nested">
-            <button class="sidebar-nav-button-nested" data-view="roastView">
-              Roast
-            </button>
-          </li>
-        </div>
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
 
-        <!-- =========================
-             EINSTELLUNGEN SECTION
-        ========================== -->
-        <span class="sidebar-section-label" data-section="settingsGroup">Einstellungen</span>
+body {
+  min-height: 100vh;
+  display: flex;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI",
+    system-ui, sans-serif;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+  color: var(--color-text-main);
+  background:
+    radial-gradient(circle at 0% 0%, #ffffff 92%, rgba(226, 232, 240, 0.8)),
+    radial-gradient(circle at 100% 0%, #e0e7ff 86%, transparent),
+    linear-gradient(145deg, #eef1f6, #e5e7f2);
+  -webkit-font-smoothing: antialiased;
+}
 
-        <div id="settingsGroup" class="sidebar-group">
-          <li class="sidebar-nav-item-nested">
-            <button class="sidebar-nav-button-nested" data-view="teamView">
-              Team
-            </button>
-          </li>
+.hidden {
+  display: none !important;
+}
 
-          <li class="sidebar-nav-item-nested">
-            <button class="sidebar-nav-button-nested" data-view="brandsView">
-              Brands
-            </button>
-          </li>
+a {
+  color: inherit;
+  text-decoration: none;
+}
 
-          <li class="sidebar-nav-item-nested">
-            <button class="sidebar-nav-button-nested" data-view="shopifyView">
-              Shopify
-            </button>
-          </li>
+button {
+  font-family: inherit;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+}
 
-          <li class="sidebar-nav-item-nested">
-            <button class="sidebar-nav-button-nested" data-view="settingsView">
-              System Setup
-            </button>
-          </li>
-        </div>
-      </ul>
+img {
+  display: block;
+  max-width: 100%;
+}
 
-      <!-- =========================
-           FOOTER (STATUS)
-      ========================== -->
-      <div class="sidebar-footer">
-        <div class="sidebar-status-row">
-          <span class="status-dot"></span>
-          <span id="metaStatusText">Meta: Getrennt</span>
-        </div>
+/* ==============================
+   3) SIDEBAR ICON BASE STYLES
+============================== */
 
-        <div class="sidebar-status-row">
-          <span>System Health: OK</span>
-        </div>
+.icon-layer-fill {
+  fill: var(--sidebar-icon-inactive-fill);
+  stroke: none;
+  transition: fill 0.16s ease;
+}
 
-        <div class="sidebar-status-row">
-          <span>Datenmodus: Demo</span>
-        </div>
+.icon-layer-stroke {
+  fill: none;
+  stroke: var(--sidebar-icon-inactive-stroke);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke 0.16s ease;
+}
 
-        <button id="sidebarMetaConnectButton" class="meta-button">
-          Meta verbinden
-        </button>
-      </div>
-    </nav>
+/* ==============================
+   4) SIDEBAR – DESIGN A (220px)
+============================== */
 
-    <!-- ===========================
-         APP SHELL
-    ============================ -->
-    <div class="app-shell">
+nav.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
 
-      <!-- TOPBAR -->
-      <header id="topbar">
-        <div class="topbar-left">
-          <div class="topbar-greeting">
-            <span id="topbarGreeting">Guten Tag</span>
-            <div class="topbar-meta-row">
-              <span id="topbarDate"></span>
-              <span>•</span>
-              <span id="topbarTime"></span>
-              <span id="campaignHealthText">Campaign Health: n/a</span>
-            </div>
-          </div>
-        </div>
+  width: 220px;
+  padding: 20px 0 18px;
 
-        <div class="topbar-center">
-          <select id="brandSelect" class="topbar-select"></select>
-          <select id="campaignSelect" class="topbar-select"></select>
-        </div>
+  background: #020617;
+  border-right: 1px solid rgba(15, 23, 42, 0.9);
+  box-shadow: var(--shadow-soft);
 
-        <div class="topbar-right">
-          <button id="notificationsButton" class="icon-button">🔔</button>
-          <button id="profileButton" class="icon-button">👤</button>
-          <button id="logoutButton" class="icon-button">⏻</button>
-          <button id="metaConnectButton" class="meta-button">Meta verbinden</button>
-        </div>
-      </header>
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 
-      <!-- MAIN CONTENT -->
-      <main class="main-content">
+  color: #e5e7eb;
+  z-index: 40;
+}
 
-        <section id="dashboardView" class="view" data-view-title="DASHBOARD">
-          <h1>Dashboard</h1>
-        </section>
+/* HEADER */
 
-        <section id="creativeLibraryView" class="view" data-view-title="CREATIVE LIBRARY">
-          <h1>Creative Library</h1>
-        </section>
+.sidebar-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  width: 100%;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.9);
+}
 
-        <section id="campaignsView" class="view" data-view-title="KAMPAGNEN">
-          <h1>Kampagnen</h1>
-        </section>
+.sidebar-logo {
+  width: 160px;
+  height: 42px;
+  border-radius: 12px;
+  background: #020617;
+  box-shadow:
+    0 0 0 1px rgba(148, 163, 184, 0.6),
+    0 18px 40px rgba(15, 23, 42, 0.8);
+  object-fit: contain;
+}
 
-        <section id="senseiView" class="view" data-view-title="SENSEI">
-          <h1>Sensei</h1>
-        </section>
+/* ------------------------------
+   MENU ROOT
+-------------------------------- */
 
-        <section id="reportsView" class="view" data-view-title="REPORTS">
-          <h1>Reports</h1>
-        </section>
+.sidebar-nav {
+  padding: 0;
+  margin: 0;
+  list-style: none;
 
-        <section id="analyticsView" class="view" data-view-title="ANALYTICS">
-          <h1>Analytics</h1>
-        </section>
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
 
-        <section id="creatorInsightsView" class="view" data-view-title="CREATOR INSIGHTS">
-          <h1>Creator Insights</h1>
-        </section>
+/* SECTION LABELS (TOOLS / EINSTELLUNGEN) */
 
-        <section id="testingLogView" class="view" data-view-title="TESTING LOG">
-          <h1>Testing Log</h1>
-        </section>
+.sidebar-section-label {
+  width: 180px;
+  padding: 4px 0 2px;
+  font-size: 0.68rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-top: 10px;
+  opacity: 0.85;
 
-        <section id="roastView" class="view" data-view-title="ROAST">
-          <h1>Roast</h1>
-        </section>
+  cursor: pointer;
+  user-select: none;
 
-        <section id="teamView" class="view" data-view-title="TEAM">
-          <h1>Team</h1>
-        </section>
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-        <section id="brandsView" class="view" data-view-title="BRANDS">
-          <h1>Brands</h1>
-        </section>
+.sidebar-section-label::after {
+  content: "›";
+  font-size: 0.8rem;
+  transition: transform 0.18s ease;
+}
 
-        <section id="shopifyView" class="view" data-view-title="SHOPIFY">
-          <h1>Shopify</h1>
-        </section>
+.sidebar-section-label.open::after {
+  transform: rotate(90deg);
+}
 
-        <section id="settingsView" class="view" data-view-title="SYSTEM SETUP">
-          <h1>System Setup</h1>
-        </section>
+/* COLLAPSIBLE GROUP */
 
-      </main>
-    </div>
+.sidebar-group {
+  width: 180px;
+  overflow: hidden;
+  transition: height 0.22s ease, opacity 0.2s ease;
+}
 
-    <!-- ===========================
-         SYSTEM MODAL
-    ============================ -->
-    <div id="modalOverlay" class="hidden">
-      <div id="modalWindow">
-        <header>
-          <h2 id="modalTitle"></h2>
-          <button id="modalCloseButton">×</button>
-        </header>
-        <div id="modalBody"></div>
-      </div>
-    </div>
+.sidebar-group.collapsed {
+  height: 0 !important;
+  opacity: 0;
+  pointer-events: none;
+}
 
-    <!-- BOOT -->
-    <script type="module" src="./app.js"></script>
+/* Hauptmodule */
 
-    <script>
-      window.addEventListener("DOMContentLoaded", () => {
-        document.body.classList.add("visible");
-      });
-    </script>
-  </body>
-</html>
+.sidebar-nav-item {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.sidebar-nav-button {
+  width: 180px;
+  padding: 10px 12px;
+  border-radius: 12px;
+
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  text-align: left;
+  text-transform: uppercase;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: rgba(209, 213, 219, 0.9);
+
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    transform 0.06s ease,
+    color 0.16s ease;
+}
+
+.sidebar-btn-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.sidebar-nav-button:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #f9fafb;
+  transform: translateY(-1px);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.9);
+}
+
+.sidebar-nav-button:hover .icon-layer-fill {
+  fill: var(--sidebar-icon-hover-fill);
+}
+
+.sidebar-nav-button:hover .icon-layer-stroke {
+  stroke: var(--sidebar-icon-hover-stroke);
+}
+
+.sidebar-nav-button.active {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(129, 140, 248, 0.95);
+  color: #ffffff;
+}
+
+.sidebar-nav-button.active .icon-layer-fill {
+  fill: var(--sidebar-icon-active-fill);
+}
+
+.sidebar-nav-button.active .icon-layer-stroke {
+  stroke: var(--sidebar-icon-active-stroke);
+}
+
+/* ------------------------------
+   NESTED BUTTONS (Tools + Settings)
+-------------------------------- */
+
+.sidebar-nav-item-nested {
+  width: 100%;
+}
+
+.sidebar-nav-button-nested {
+  width: 172px;
+  padding: 6px 8px 6px 24px;
+  border-radius: 8px;
+
+  margin-left: 4px;
+
+  background: transparent;
+  border: 1px solid transparent;
+
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(156, 163, 175, 0.96);
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    transform 0.06s ease;
+}
+
+.sidebar-nav-button-nested:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(148, 163, 184, 0.6);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.sidebar-nav-button-nested.active {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: rgba(129, 140, 248, 0.9);
+  color: #ffffff;
+}
+
+/* ==============================
+   SIDEBAR FOOTER / STATUS (3 LINES)
+============================== */
+
+.sidebar-footer {
+  width: 100%;
+  padding-top: 14px;
+  margin-top: 16px;
+
+  border-top: 1px solid rgba(31, 41, 55, 0.9);
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding-left: 20px;
+}
+
+.sidebar-status-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.78rem;
+  color: rgba(156, 163, 175, 0.96);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(75, 85, 99, 1);
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 1);
+}
+
+/* SETTINGS FOOTER BUTTON (Sidebar Meta Connect) */
+
+.sidebar-footer-button {
+  width: 180px;
+  margin-top: 6px;
+
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.85);
+  padding: 8px 10px;
+
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(15, 23, 42, 0.98),
+    rgba(30, 64, 175, 0.9)
+  );
+  color: #e5e7eb;
+
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    transform 0.06s ease;
+}
+
+.sidebar-footer-button:hover {
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(59, 130, 246, 0.85),
+    rgba(30, 64, 175, 0.95)
+  );
+  border-color: rgba(129, 140, 248, 0.95);
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.9);
+  transform: translateY(-1px);
+}
+
+/* ==============================
+   5) APP-SHELL & TOPBAR
+============================== */
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  margin-left: 220px;
+}
+
+#topbar {
+  position: fixed;
+  top: 0;
+  left: 220px;
+  right: 0;
+  height: 92px;
+  padding: 16px 32px;
+  z-index: 30;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(15, 23, 42, 0.98),
+    rgba(15, 23, 42, 0.94)
+  );
+  border-bottom: 1px solid rgba(15, 23, 42, 0.9);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(26px);
+  color: #e5e7eb;
+}
+
+.topbar-left,
+.topbar-center,
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.topbar-left {
+  min-width: 260px;
+}
+
+.topbar-center {
+  flex: 1;
+  justify-content: center;
+  gap: 10px;
+}
+
+.topbar-right {
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.topbar-greeting {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+#topbarGreeting {
+  color: #f9fafb;
+  font-size: 0.96rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.topbar-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  color: #cbd5e1;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.topbar-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+/* SELECT DROPDOWNS */
+
+.topbar-select {
+  min-width: 220px;
+  padding: 7px 30px 7px 10px;
+  font-size: 0.84rem;
+  color: var(--color-text-main);
+  background-color: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid var(--input-border);
+  outline: none;
+  appearance: none;
+
+  background-image: url("data:image/svg+xml,%3Csvg width='9' height='5' viewBox='0 0 9 5' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L4.5 4L8 1' stroke='%236b7280' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 9px 5px;
+}
+
+.topbar-select:hover {
+  border-color: var(--input-focus);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.12);
+}
+
+.topbar-select:focus-visible {
+  border-color: var(--input-focus);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.22);
+}
+
+.topbar-select option {
+  background: #ffffff;
+  color: var(--color-text-main);
+}
+
+/* ICON BUTTONS */
+
+.icon-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.95);
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(248, 250, 252, 0.98),
+    rgba(226, 232, 240, 0.96)
+  );
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #4b5563;
+
+  position: relative;
+  transition:
+    background 0.16s ease,
+    box-shadow 0.16s ease,
+    transform 0.06s ease,
+    border-color 0.16s ease;
+}
+
+.icon-button:hover {
+  border-color: var(--color-primary);
+  color: #1d4ed8;
+  box-shadow:
+    0 20px 50px rgba(15, 23, 42, 0.35),
+    0 0 0 0.6px rgba(255, 255, 255, 0.95) inset;
+  transform: translateY(-1px);
+}
+
+#notificationsBadge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #ef4444;
+  color: white;
+  font-size: 0.6rem;
+  padding: 2px 5px;
+  border-radius: 999px;
+}
+
+/* META CONNECT BUTTON (TOP) */
+
+#topbar .meta-button {
+  border-radius: 999px;
+  border: 1px solid rgba(248, 113, 113, 0.95);
+  padding: 7px 14px;
+
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(248, 113, 113, 0.98),
+    rgba(220, 38, 38, 0.98)
+  );
+  color: #fef2f2;
+
+  min-width: 160px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  transition:
+    box-shadow 0.16s ease,
+    transform 0.06s ease,
+    background 0.16s ease,
+    border-color 0.16s ease;
+}
+
+/* META BUTTON GENERIC */
+
+.meta-button {
+  border-radius: 999px;
+  border: 1px solid rgba(37, 99, 235, 0.9);
+  padding: 7px 12px;
+
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(59, 130, 246, 0.96),
+    rgba(147, 197, 253, 0.95)
+  );
+
+  color: #f9fafb;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+
+  transition:
+    box-shadow 0.16s ease,
+    transform 0.06s ease,
+    background 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.meta-button:hover {
+  box-shadow:
+    0 24px 70px rgba(30, 64, 175, 0.6),
+    0 0 0 0.6px rgba(255, 255, 255, 0.9) inset;
+  transform: translateY(-1px);
+}
+
+/* ==============================
+   6) MAIN CONTENT + VIEWS
+============================== */
+
+.main-content {
+  flex: 1;
+  padding: 120px 0 40px;
+}
+
+.view {
+  position: relative;
+  display: none;
+  max-width: 1440px;
+  margin: 54px auto 0;
+  padding: 24px 26px 44px;
+
+  border-radius: 26px;
+  background: radial-gradient(
+    circle at 0% 0%,
+    rgba(248, 250, 252, 0.98),
+    rgba(226, 232, 240, 0.94)
+  );
+
+  box-shadow:
+    0 28px 90px rgba(15, 23, 42, 0.4),
+    0 0 0 0.8px rgba(255, 255, 255, 0.9) inset;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  backdrop-filter: blur(26px);
+
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity 0.18s ease-out,
+    transform 0.12s ease-out;
+}
+
+.view.is-active {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ==============================
+   7) DASHBOARD – TITANIUM
+============================== */
+
+.dashboard-root {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Header */
+
+.view-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.view-header h2 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 650;
+  color: #111827;
+}
+
+.view-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.view-meta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  font-size: 0.78rem;
+  color: #4b5563;
+}
+
+.view-meta-pill strong {
+  font-weight: 600;
+}
+
+.view-subline {
+  font-size: 0.86rem;
+  color: #6b7280;
+  max-width: 620px;
+}
+
+/* Launch Status Block */
+
+.settings-block {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.14);
+}
+
+.settings-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings-title {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #6b7280;
+}
+
+.settings-subtitle {
+  font-size: 0.86rem;
+  color: #111827;
+}
+
+/* Launchbar */
+
+.dashboard-launchbar {
+  width: 100%;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(226, 232, 240, 0.9);
+  overflow: hidden;
+}
+
+.dashboard-launchbar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #22c55e, #a3e635, #facc15);
+}
+
+/* Tabs */
+
+.dashboard-tabs {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(226, 232, 240, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  gap: 4px;
+}
+
+.dashboard-tab {
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  border: none;
+  background: transparent;
+  color: #4b5563;
+}
+
+.dashboard-tab.active {
+  background: #ffffff;
+  box-shadow: 0 14px 35px rgba(148, 163, 184, 0.6);
+  color: #111827;
+}
+
+/* Panels */
+
+.dashboard-panel-group {
+  margin-top: 10px;
+}
+
+.dashboard-panel {
+  display: none;
+}
+
+.dashboard-panel.active {
+  display: block;
+}
+
+/* OVERVIEW GRID */
+
+.dashboard-overview-grid {
+  display: grid;
+  grid-template-columns: 2fr 1.4fr 1.4fr;
+  gap: 16px;
+}
+
+.dashboard-overview-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 14px 16px;
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+}
+
+.card-title {
+  font-size: 0.9rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  margin: 0 0 6px;
+  color: #111827;
+}
+
+.card-subtitle {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin: 0 0 4px;
+}
+
+/* KPI GRID */
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+  margin-top: 8px;
+}
+
+.kpi-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.kpi-label {
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
+.kpi-value {
+  font-size: 1rem;
+  font-weight: 650;
+  color: #111827;
+}
+
+.kpi-badge {
+  margin-top: 1px;
+  display: inline-flex;
+  align-items: center;
+  max-width: max-content;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #4b5563;
+  background: rgba(226, 232, 240, 0.9);
+}
+
+.kpi-badge.good {
+  background: var(--color-success-soft);
+  color: #166534;
+}
+
+/* DEEP DIVE */
+
+.dashboard-deepdive {
+  display: grid;
+  grid-template-columns: 1.6fr 1.4fr;
+  gap: 16px;
+}
+
+.dashboard-deepdive-box {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 14px 16px;
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+}
+
+.table-mini {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.table-mini th,
+.table-mini td {
+  padding: 5px 4px;
+  text-align: left;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+/* ACADEMY PANEL */
+
+.dashboard-academy {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.academy-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 14px 16px;
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+}
+
+.view-kicker {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.academy-card-title {
+  font-size: 0.94rem;
+  font-weight: 650;
+  margin: 0 0 4px;
+}
+
+.academy-card-text {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin: 0 0 10px;
+}
+
+/* ==============================
+   8) TOASTS
+============================== */
+
+.sx-toast {
+  font-family: inherit;
+}
+
+/* ==============================
+   END OF FILE
+============================== */
