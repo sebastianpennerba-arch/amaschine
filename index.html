@@ -2,30 +2,121 @@
 <html lang="de">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SignalOne – Meta Ads Intelligence</title>
 
-    <!-- Core Styles -->
+    <title>SignalOne – Meta Intelligence Suite</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <link rel="stylesheet" href="styles.css" />
     <link rel="stylesheet" href="sx-core.css" />
   </head>
 
   <body>
-    <!-- ============================
-         SIDEBAR (Titanium Version)
-    ============================= -->
+
+    <!-- ========================= ICON SPRITE (GOLD) ========================= -->
+    <svg style="display:none;">
+      <symbol id="icon-dashboard" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/>
+        <rect x="7" y="7" width="4" height="4" rx="1" stroke="currentColor" stroke-width="2" fill="none"/>
+        <rect x="13" y="7" width="4" height="10" rx="1" stroke="currentColor" stroke-width="2" fill="none"/>
+      </symbol>
+
+      <symbol id="icon-library" viewBox="0 0 24 24">
+        <rect x="5" y="4" width="14" height="16" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+        <line x1="9" y1="8" x2="15" y2="8" stroke="currentColor" stroke-width="2"/>
+        <line x1="9" y1="12" x2="15" y2="12" stroke="currentColor" stroke-width="2"/>
+        <line x1="9" y1="16" x2="13" y2="16" stroke="currentColor" stroke-width="2"/>
+      </symbol>
+
+      <symbol id="icon-sensei" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2" fill="none"/>
+        <path d="M2 12C4 7 8 4 12 4s8 3 10 8c-2 5-6 8-10 8s-8-3-10-8z"
+          stroke="currentColor" stroke-width="2" fill="none"/>
+      </symbol>
+
+      <symbol id="icon-campaigns" viewBox="0 0 24 24">
+        <path d="M4 16l8-12 8 12H4z" stroke="currentColor" stroke-width="2" fill="none"/>
+        <circle cx="12" cy="16" r="2" stroke="currentColor" stroke-width="2" fill="none"/>
+      </symbol>
+
+      <symbol id="icon-academy" viewBox="0 0 24 24">
+        <path d="M12 4l9 5-9 5-9-5 9-5z" stroke="currentColor" stroke-width="2" fill="none"/>
+        <path d="M5 14v4c0 .5.5 1 1 1h12c.5 0 1-.5 1-1v-4" stroke="currentColor" stroke-width="2" fill="none"/>
+      </symbol>
+
+      <!-- Tools -->
+      <symbol id="icon-testing" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/>
+        <path d="M8 12h8" stroke="currentColor" stroke-width="2"/>
+      </symbol>
+
+      <symbol id="icon-roast" viewBox="0 0 24 24">
+        <path d="M12 3l7 7-7 7-7-7 7-7z" stroke="currentColor" stroke-width="2" fill="none"/>
+      </symbol>
+
+      <symbol id="icon-reports" viewBox="0 0 24 24">
+        <rect x="5" y="3" width="14" height="18" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+        <line x1="8" y1="8" x2="16" y2="8" stroke="currentColor" stroke-width="2"/>
+        <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2"/>
+        <line x1="8" y1="16" x2="14" y2="16" stroke="currentColor" stroke-width="2"/>
+      </symbol>
+
+      <symbol id="icon-analytics" viewBox="0 0 24 24">
+        <polyline points="4 14 9 9 13 13 20 6" stroke="currentColor" stroke-width="2" fill="none"/>
+        <circle cx="4" cy="14" r="2" fill="currentColor"/>
+        <circle cx="9" cy="9" r="2" fill="currentColor"/>
+        <circle cx="13" cy="13" r="2" fill="currentColor"/>
+        <circle cx="20" cy="6" r="2" fill="currentColor"/>
+      </symbol>
+
+      <symbol id="icon-creators" viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2" fill="none"/>
+        <path d="M4 20c1-4 4-6 8-6s7 2 8 6" stroke="currentColor" stroke-width="2" fill="none"/>
+      </symbol>
+
+      <!-- Einstellungen -->
+      <symbol id="icon-team" viewBox="0 0 24 24">
+        <circle cx="8" cy="10" r="3" stroke="currentColor" stroke-width="2" fill="none"/>
+        <circle cx="16" cy="10" r="3" stroke="currentColor" stroke-width="2" fill="none"/>
+        <path d="M2 20c1-5 4-7 6-7" stroke="currentColor" stroke-width="2" fill="none"/>
+        <path d="M22 20c-1-5-4-7-6-7" stroke="currentColor" stroke-width="2" fill="none"/>
+      </symbol>
+
+      <symbol id="icon-brands" viewBox="0 0 24 24">
+        <rect x="4" y="6" width="16" height="12" rx="2"
+          stroke="currentColor" stroke-width="2" fill="none"/>
+        <line x1="4" y1="10" x2="20" y2="10" stroke="currentColor" stroke-width="2"/>
+      </symbol>
+
+      <symbol id="icon-shopify" viewBox="0 0 24 24">
+        <path d="M6 4l12 2v12l-12 2z" stroke="currentColor" stroke-width="2" fill="none"/>
+      </symbol>
+
+      <symbol id="icon-settings" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none"/>
+        <path d="M4 12h2m12 0h2M12 4v2m0 12v2" stroke="currentColor" stroke-width="2"/>
+      </symbol>
+
+      <symbol id="icon-onboarding" viewBox="0 0 24 24">
+        <path d="M12 2l9 6-9 6-9-6z" stroke="currentColor" stroke-width="2" fill="none"/>
+        <path d="M3 14v5c0 .8.7 1 1 1h16c.3 0 1-.2 1-1v-5"
+          stroke="currentColor" stroke-width="2" fill="none"/>
+      </symbol>
+    </svg>
+
+    <!-- ==================================================================== -->
+    <!-- ============================ SIDEBAR ================================ -->
+    <!-- ==================================================================== -->
+
     <nav class="sidebar">
+
       <div class="sidebar-header">
-        <img
-          src="Logo_re_Sc.png"
-          class="sidebar-logo"
-        />
+        <img src="https://dummyimage.com/200x48/0f172a/ffffff&text=SignalOne"
+             class="sidebar-logo" />
       </div>
 
-      <!-- Dynamic Navbar (app.js will populate this UL) -->
       <ul id="navbar" class="sidebar-nav"></ul>
 
-      <!-- SIDEBAR FOOTER (System Health, Meta, Campaign) -->
+      <!-- STATUS -->
       <div class="sidebar-footer">
         <div class="sidebar-status-row">
           <div id="sidebarSystemDot" class="status-dot"></div>
@@ -48,17 +139,16 @@
       </div>
     </nav>
 
-    <!-- ============================
-         APP SHELL
-    ============================= -->
+    <!-- ==================================================================== -->
+    <!-- ============================= APP SHELL ============================= -->
+    <!-- ==================================================================== -->
+
     <div class="app-shell">
-      <!-- ============================
-           TOPBAR (Titanium)
-      ============================= -->
+
       <header id="topbar">
         <div class="topbar-left">
           <div class="topbar-greeting">
-            <div id="topbarGreeting">Guten Tag, Nutzer</div>
+            <div id="topbarGreeting">Guten Tag</div>
             <div>
               <span id="topbarDate"></span> · <span id="topbarTime"></span>
             </div>
@@ -71,123 +161,39 @@
         </div>
 
         <div class="topbar-right">
-          <button id="metaConnectButtonTop" class="meta-button">
-            META VERBINDEN
-          </button>
+          <button id="metaConnectButtonTop" class="meta-button">META VERBINDEN</button>
           <button class="icon-button">⚙️</button>
         </div>
       </header>
 
-      <!-- ============================
-           MAIN CONTENT & VIEWS
-      ============================= -->
       <main class="main-content">
-        <!-- Dashboard View -->
-        <section
-          id="dashboardView"
-          class="view hidden"
-          data-view-title="Dashboard"
-          data-header-theme="c"
-        ></section>
 
-        <!-- Creatives -->
-        <section
-          id="creativeLibraryView"
-          class="view hidden"
-          data-view-title="Creative Library"
-          data-header-theme="c"
-        ></section>
+        <!-- alle Views, unverändert -->
+        <section id="dashboardView" class="view hidden" data-view-title="Dashboard"></section>
+        <section id="creativeLibraryView" class="view hidden" data-view-title="Creative Library"></section>
+        <section id="senseiView" class="view hidden" data-view-title="Sensei"></section>
+        <section id="campaignsView" class="view hidden" data-view-title="Kampagnen"></section>
+        <section id="academyView" class="view hidden" data-view-title="Academy"></section>
 
-        <!-- Campaigns -->
-        <section
-          id="campaignsView"
-          class="view hidden"
-          data-view-title="Kampagnen"
-          data-header-theme="c"
-        ></section>
+        <!-- Tools -->
+        <section id="testingLogView" class="view hidden" data-view-title="Testing Log"></section>
+        <section id="roastView" class="view hidden" data-view-title="Roast"></section>
+        <section id="reportsView" class="view hidden" data-view-title="Reports"></section>
+        <section id="analyticsView" class="view hidden" data-view-title="Analytics"></section>
+        <section id="creatorInsightsView" class="view hidden" data-view-title="Creator Insights"></section>
 
-        <!-- Testing Log -->
-        <section
-          id="testingLogView"
-          class="view hidden"
-          data-view-title="Testing Log"
-          data-header-theme="c"
-        ></section>
+        <!-- Einstellungen -->
+        <section id="teamView" class="view hidden" data-view-title="Team"></section>
+        <section id="brandsView" class="view hidden" data-view-title="Brands"></section>
+        <section id="shopifyView" class="view hidden" data-view-title="Shopify"></section>
+        <section id="settingsView" class="view hidden" data-view-title="Einstellungen"></section>
+        <section id="onboardingView" class="view hidden" data-view-title="Onboarding"></section>
 
-        <!-- Sensei -->
-        <section
-          id="senseiView"
-          class="view hidden"
-          data-view-title="Sensei AI"
-          data-header-theme="c"
-        ></section>
-
-        <!-- Reports -->
-        <section
-          id="reportsView"
-          class="view hidden"
-          data-view-title="Reports"
-          data-header-theme="c"
-        ></section>
-
-        <!-- Analytics -->
-        <section
-          id="analyticsView"
-          class="view hidden"
-          data-view-title="Analytics"
-          data-header-theme="c"
-        ></section>
-
-        <!-- Team -->
-        <section
-          id="teamView"
-          class="view hidden"
-          data-view-title="Team"
-          data-header-theme="c"
-        ></section>
-
-        <!-- Brands -->
-        <section
-          id="brandsView"
-          class="view hidden"
-          data-view-title="Brands"
-          data-header-theme="c"
-        ></section>
-
-        <!-- Shopify -->
-        <section
-          id="shopifyView"
-          class="view hidden"
-          data-view-title="Shopify Integration"
-          data-header-theme="c"
-        ></section>
-
-        <!-- Roast -->
-        <section
-          id="roastView"
-          class="view hidden"
-          data-view-title="Roast"
-          data-header-theme="c"
-        ></section>
-
-        <!-- Settings -->
-        <section
-          id="settingsView"
-          class="view hidden"
-          data-view-title="Einstellungen"
-          data-header-theme="c"
-        ></section>
       </main>
     </div>
 
-    <!-- ============================
-         TOAST CONTAINER
-    ============================= -->
     <div id="toastContainer"></div>
 
-    <!-- ============================
-         GLOBAL LOADER
-    ============================= -->
     <div id="globalLoader" class="global-loader hidden">
       <div class="global-loader-inner">
         <div class="loader-dot"></div>
@@ -197,20 +203,17 @@
       </div>
     </div>
 
-    <!-- ============================
-         SYSTEM MODAL
-    ============================= -->
     <div id="modalOverlay" class="modal-overlay hidden">
       <div class="modal">
         <div class="modal-header">
           <h3 id="modalTitle"></h3>
-          <button onclick="closeSystemModal()">✖</button>
+          <button id="modalCloseButton">✖</button>
         </div>
         <div id="modalBody"></div>
       </div>
     </div>
 
-    <!-- App Core -->
     <script type="module" src="app.js"></script>
+
   </body>
 </html>
