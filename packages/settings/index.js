@@ -1,6 +1,14 @@
 // packages/settings/index.js
 // Block 4 – Settings Center (Theme, Currency, Cache, Defaults, Developer Mode + DEMO MODE)
 
+export async function init(ctx = {}) {
+  const section = document.getElementById("settingsView");
+  if (!section) return;
+  
+  const { AppState } = ctx;
+  render(section, AppState);
+}
+
 export function render(root, AppState) {
   const s = AppState.settings || {};
 
