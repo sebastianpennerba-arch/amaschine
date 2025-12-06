@@ -148,7 +148,7 @@ const moduleLabels = {
   campaigns: "Kampagnen",
   sensei: "Sensei",
   testingLog: "Testing Log",
-  reports: "Reports",
+  reports: "Reports & Export",
   creatorInsights: "Creator Insights",
   analytics: "Analytics",
   team: "Team",
@@ -225,14 +225,13 @@ function createSvgIconFromSymbol(symbolId, className = "") {
   return svg;
 }
 
+// ⭐ FIX: Views wirklich sichtbar machen (.is-active + .hidden)
 function setActiveView(viewId) {
   const views = document.querySelectorAll(".view");
   views.forEach((v) => {
-    if (v.id === viewId) {
-      v.classList.remove("hidden");
-    } else {
-      v.classList.add("hidden");
-    }
+    const isActive = v.id === viewId;
+    v.classList.toggle("is-active", isActive);
+    v.classList.toggle("hidden", !isActive);
   });
 }
 
@@ -571,6 +570,16 @@ function toggleMetaConnection() {
   } else {
     MetaAuthMock.connectWithPopup();
   }
+}
+
+/* ----------------------------------------------------------
+   DEMO / LIVE MODE
+-----------------------------------------------------------*/
+function useDemoMode() {
+  if (AppState.settings.dataMode === "demo") return true;
+  if (AppState.settings.dataMode === "live") return false;
+  // auto:
+  return !AppState.metaConnected || AppState.settings.demoMode;
 }
 
 /* ----------------------------------------------------------
