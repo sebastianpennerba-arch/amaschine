@@ -126,7 +126,7 @@ function showMetaConnectModal() {
   const modal = document.createElement('div');
   modal.className = 'meta-connect-modal';
   modal.innerHTML = `
-    <div class="modal-overlay"></div>
+    <div class="modal-overlay" onclick="this.closest('.meta-connect-modal').remove()"></div>
     <div class="modal-content">
       <div class="modal-header">
         <h3>🔴 Meta Ads verbinden</h3>
