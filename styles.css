@@ -1859,3 +1859,67 @@ table td {
 .sidebar-nav-group-toggle {
   display: none; /* nicht klickbar in Design A */
 }
+/* === Sidebar Visual Tuning – Design A === */
+
+:root {
+  --color-gold: #fbbf24; /* warmes Gold */
+}
+
+/* Goldene Icon-Bubbles vor allen Buttons */
+.sidebar-nav-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar-nav-button::before {
+  content: "";
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 20%, #fefce8, #f59e0b);
+  box-shadow:
+    0 0 0 1px rgba(251, 191, 36, 0.55),
+    0 6px 14px rgba(15, 23, 42, 0.55);
+}
+
+/* Hauptmodule etwas kräftiger */
+.sidebar-nav-item .sidebar-nav-button {
+  font-weight: 600;
+}
+
+/* Section-Labels (nicht klickbar) */
+.sidebar-section-label {
+  padding: 18px 18px 6px 18px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: rgba(148, 163, 184, 0.9);
+  opacity: 0.9;
+}
+
+/* Unterpunkte deutlich dezenter & eingerückt */
+.sidebar-nav-item-nested .sidebar-nav-button {
+  padding-left: 34px;
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+.sidebar-nav-item-nested .sidebar-nav-button::before {
+  width: 12px;
+  height: 12px;
+  box-shadow:
+    0 0 0 1px rgba(251, 191, 36, 0.45),
+    0 3px 8px rgba(15, 23, 42, 0.45);
+}
+
+/* Aktiver Button */
+.sidebar-nav-button.active {
+  box-shadow: 0 0 0 1px rgba(248, 250, 252, 0.7),
+    0 10px 25px rgba(15, 23, 42, 0.75);
+}
+
+/* Footer-Status bleibt wie gehabt */
