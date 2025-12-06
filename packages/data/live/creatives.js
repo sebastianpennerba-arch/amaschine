@@ -1,6 +1,6 @@
 // packages/data/live/creatives.js
 // -----------------------------------------------------------------------------
-// LIVE Creatives & Ads Fetch über dein Backend
+// LIVE Creatives & Ads Fetch Ã¼ber dein Backend
 // Nutzt exakt die Routen aus metaRoutes.js:
 //   /api/meta/ads/:accountId
 //   /api/meta/campaigns/:accountId
@@ -25,7 +25,7 @@ async function post(path, body) {
   return res.json();
 }
 
-// Holt alle Creatives über /ads/:accountId
+// Holt alle Creatives Ã¼ber /ads/:accountId
 export async function fetchLiveCreatives({ accountId, accessToken }) {
   if (!accountId) throw new Error("[Live Creatives] Missing accountId");
   if (!accessToken) throw new Error("[Live Creatives] Missing token");
@@ -59,14 +59,14 @@ export async function fetchLiveCreatives({ accountId, accessToken }) {
       thumbnail,
       adId: ad.id,
       campaignId: ad.campaign_id || null,
-      metrics: null // wird durch Insight-Mapping befüllt
+      metrics: null // wird durch Insight-Mapping befÃ¼llt
     };
 
     return base;
   });
 }
 
-// Holt Creative-Level Insights über Kampagnen
+// Holt Creative-Level Insights Ã¼ber Kampagnen
 export async function fetchLiveCreativeInsights({
   campaignId,
   accessToken,
