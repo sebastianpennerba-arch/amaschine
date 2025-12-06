@@ -431,6 +431,7 @@ const modules = {
   analytics: () => import("./packages/analytics/index.js"),
   roast: () => import("./packages/roast/index.js"),
   settings: () => import("./packages/settings/index.js"),
+  academy: () => import('./packages/academy/index.js'),
 };
 
 const viewIdMap = {
