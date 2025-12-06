@@ -2,24 +2,29 @@
 <html lang="de">
   <head>
     <meta charset="UTF-8" />
+    <title>SignalOne.cloud – Titanium</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SignalOne.cloud</title>
 
-    <!-- STYLES -->
+    <!-- CORE STYLES -->
     <link rel="stylesheet" href="./styles.css" />
 
     <!-- FOUC FIX -->
     <style>
-      body { opacity: 0; transition: opacity 0.2s ease; }
-      body.visible { opacity: 1; }
+      body {
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+      body.visible {
+        opacity: 1;
+      }
     </style>
   </head>
-
   <body>
     <!-- ===========================
-         SIDEBAR (HARD-CODED)
+         SIDEBAR (TITANIUM A)
     ============================ -->
     <nav class="sidebar">
+      <!-- Logo -->
       <div class="sidebar-header">
         <img
           src="./assets/logo_re_sc.png"
@@ -28,254 +33,470 @@
         />
       </div>
 
-      <ul class="sidebar-nav">
+      <!-- Navigation wird von app.js (renderNav) dynamisch gefüllt -->
+      <ul id="sidebarNav" class="sidebar-nav"></ul>
 
-        <!-- =========================
-             HAUPTMODULE
-        ========================== -->
-
-        <li class="sidebar-nav-item">
-          <button class="sidebar-nav-button" data-view="dashboardView">
-            <svg class="sidebar-btn-icon" viewBox="0 0 24 24">
-              <rect class="icon-layer-fill" x="3" y="3" width="7" height="7"></rect>
-              <rect class="icon-layer-stroke" x="3" y="3" width="7" height="7"></rect>
-            </svg>
-            Dashboard
-          </button>
-        </li>
-
-        <li class="sidebar-nav-item">
-          <button class="sidebar-nav-button" data-view="creativeLibraryView">
-            <svg class="sidebar-btn-icon" viewBox="0 0 24 24">
-              <circle class="icon-layer-fill" cx="6" cy="6" r="3"></circle>
-              <circle class="icon-layer-stroke" cx="6" cy="6" r="3"></circle>
-            </svg>
-            Creatives
-          </button>
-        </li>
-
-        <li class="sidebar-nav-item">
-          <button class="sidebar-nav-button" data-view="campaignsView">
-            <svg class="sidebar-btn-icon" viewBox="0 0 24 24">
-              <path class="icon-layer-fill" d="M4 12h6v6H4z"></path>
-              <path class="icon-layer-stroke" d="M4 12h6v6H4z"></path>
-            </svg>
-            Kampagnen
-          </button>
-        </li>
-
-        <li class="sidebar-nav-item">
-          <button class="sidebar-nav-button" data-view="senseiView">
-            <svg class="sidebar-btn-icon" viewBox="0 0 24 24">
-              <polygon class="icon-layer-fill" points="3,12 12,3 21,12 12,21"></polygon>
-              <polygon class="icon-layer-stroke" points="3,12 12,3 21,12 12,21"></polygon>
-            </svg>
-            Sensei
-          </button>
-        </li>
-
-        <li class="sidebar-nav-item">
-          <button class="sidebar-nav-button" data-view="reportsView">
-            <svg class="sidebar-btn-icon" viewBox="0 0 24 24">
-              <path class="icon-layer-fill" d="M4 4h16v16H4z"></path>
-              <path class="icon-layer-stroke" d="M4 4h16v16H4z"></path>
-            </svg>
-            Reports
-          </button>
-        </li>
-
-        <!-- =========================
-             TOOLS SECTION
-        ========================== -->
-        <span class="sidebar-section-label" data-section="toolsGroup">Tools</span>
-
-        <div id="toolsGroup" class="sidebar-group">
-          <li class="sidebar-nav-item-nested">
-            <button class="sidebar-nav-button-nested" data-view="analyticsView">
-              Analytics
-            </button>
-          </li>
-
-          <li class="sidebar-nav-item-nested">
-            <button class="sidebar-nav-button-nested" data-view="creatorInsightsView">
-              Creator Insights
-            </button>
-          </li>
-
-          <li class="sidebar-nav-item-nested">
-            <button class="sidebar-nav-button-nested" data-view="testingLogView">
-              Testing Log
-            </button>
-          </li>
-
-          <li class="sidebar-nav-item-nested">
-            <button class="sidebar-nav-button-nested" data-view="roastView">
-              Roast
-            </button>
-          </li>
-        </div>
-
-        <!-- =========================
-             EINSTELLUNGEN SECTION
-        ========================== -->
-        <span class="sidebar-section-label" data-section="settingsGroup">Einstellungen</span>
-
-        <div id="settingsGroup" class="sidebar-group">
-          <li class="sidebar-nav-item-nested">
-            <button class="sidebar-nav-button-nested" data-view="teamView">
-              Team
-            </button>
-          </li>
-
-          <li class="sidebar-nav-item-nested">
-            <button class="sidebar-nav-button-nested" data-view="brandsView">
-              Brands
-            </button>
-          </li>
-
-          <li class="sidebar-nav-item-nested">
-            <button class="sidebar-nav-button-nested" data-view="shopifyView">
-              Shopify
-            </button>
-          </li>
-
-          <li class="sidebar-nav-item-nested">
-            <button class="sidebar-nav-button-nested" data-view="settingsView">
-              System Setup
-            </button>
-          </li>
-        </div>
-      </ul>
-
-      <!-- =========================
-           FOOTER (STATUS)
-      ========================== -->
+      <!-- Footer / Status -->
       <div class="sidebar-footer">
         <div class="sidebar-status-row">
-          <span class="status-dot"></span>
-          <span id="metaStatusText">Meta: Getrennt</span>
+          <span id="metaStatusDot" class="status-dot"></span>
+          <span id="metaStatusText">Meta Ads: Getrennt</span>
         </div>
-
         <div class="sidebar-status-row">
-          <span>System Health: OK</span>
+          <span id="systemHealthText">System Health: OK</span>
         </div>
-
         <div class="sidebar-status-row">
-          <span>Datenmodus: Demo</span>
+          <span id="sidebarDataModeText">Daten: Demo</span>
         </div>
 
-        <button id="sidebarMetaConnectButton" class="meta-button">
+        <button
+          id="sidebarMetaConnectButton"
+          class="sidebar-footer-button"
+          type="button"
+        >
           Meta verbinden
         </button>
       </div>
     </nav>
 
     <!-- ===========================
-         APP SHELL
+         APP-SHELL
     ============================ -->
     <div class="app-shell">
-
       <!-- TOPBAR -->
       <header id="topbar">
+        <!-- LEFT: Greeting + Meta Info -->
         <div class="topbar-left">
           <div class="topbar-greeting">
             <span id="topbarGreeting">Guten Tag</span>
             <div class="topbar-meta-row">
-              <span id="topbarDate"></span>
-              <span>•</span>
-              <span id="topbarTime"></span>
-              <span id="campaignHealthText">Campaign Health: n/a</span>
+              <span class="topbar-meta-item" id="topbarDate"></span>
+              <span class="topbar-meta-item" id="topbarTime"></span>
+              <span class="topbar-meta-item" id="campaignHealthText">
+                Campaign Health: n/a
+              </span>
             </div>
           </div>
         </div>
 
+        <!-- CENTER: Brand / Campaign Select -->
         <div class="topbar-center">
           <select id="brandSelect" class="topbar-select"></select>
           <select id="campaignSelect" class="topbar-select"></select>
         </div>
 
+        <!-- RIGHT: Icon Buttons + Meta Connect -->
         <div class="topbar-right">
-          <button id="notificationsButton" class="icon-button">🔔</button>
-          <button id="profileButton" class="icon-button">👤</button>
-          <button id="logoutButton" class="icon-button">⏻</button>
-          <button id="metaConnectButton" class="meta-button">Meta verbinden</button>
+          <button
+            id="notificationsButton"
+            class="icon-button"
+            type="button"
+            title="Benachrichtigungen"
+          >
+            🔔
+            <span id="notificationsBadge" class="hidden"></span>
+          </button>
+
+          <button
+            id="profileButton"
+            class="icon-button"
+            type="button"
+            title="Profil"
+          >
+            👤
+          </button>
+
+          <button
+            id="logoutButton"
+            class="icon-button"
+            type="button"
+            title="Session zurücksetzen"
+          >
+            ⏻
+          </button>
+
+          <button
+            id="metaConnectButton"
+            class="meta-button"
+            type="button"
+            title="Meta Ads verbinden / trennen"
+          >
+            Meta verbinden
+          </button>
         </div>
       </header>
 
-      <!-- MAIN CONTENT -->
+      <!-- ===========================
+           MAIN CONTENT / VIEWS
+      ============================ -->
       <main class="main-content">
+        <!-- Dashboard -->
+        <section
+          id="dashboardView"
+          class="view is-active"
+          data-view-title="DASHBOARD"
+        >
+          <div class="dashboard-root">
+            <div class="view-header">
+              <div>
+                <h2>Performance Cockpit</h2>
+                <div class="view-meta-row">
+                  <span class="view-meta-pill">
+                    <strong>Brand:</strong>
+                    <span data-subheader-brand-name>–</span>
+                  </span>
+                  <span class="view-meta-pill">
+                    <strong>Owner:</strong>
+                    <span data-subheader-brand-owner>–</span>
+                  </span>
+                  <span class="view-meta-pill">
+                    <strong>Campaign:</strong>
+                    <span data-subheader-campaign-name>–</span>
+                  </span>
+                </div>
+                <p class="view-subline">
+                  Übersicht über dein aktuelles Meta-Setup, Creatives,
+                  Kampagnen & Testing-Status – optimiert für DTC-Performance.
+                </p>
+              </div>
 
-        <section id="dashboardView" class="view" data-view-title="DASHBOARD">
-          <h1>Dashboard</h1>
+              <div class="settings-block">
+                <div class="settings-block-header">
+                  <div>
+                    <div class="settings-title">Launch Readiness</div>
+                    <div class="settings-subtitle">
+                      Setup-Qualität & Tracking-Status
+                    </div>
+                  </div>
+                </div>
+                <div style="margin-top: 10px">
+                  <div class="dashboard-launchbar">
+                    <div
+                      class="dashboard-launchbar-fill"
+                      style="width: 72%"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Simple skeleton, wird von packages/dashboard überschrieben -->
+            <div class="dashboard-overview-grid" style="margin-top: 12px">
+              <div class="dashboard-overview-card">
+                <div class="card-title">Account-Performance</div>
+                <div class="card-subtitle">
+                  High-Level KPIs (Demo / Live via Meta)
+                </div>
+                <div class="kpi-grid">
+                  <div class="kpi-item">
+                    <div class="kpi-label">Umsatz (Last 30d)</div>
+                    <div class="kpi-value">–</div>
+                  </div>
+                  <div class="kpi-item">
+                    <div class="kpi-label">ROAS</div>
+                    <div class="kpi-value">–</div>
+                  </div>
+                  <div class="kpi-item">
+                    <div class="kpi-label">Ad Spend</div>
+                    <div class="kpi-value">–</div>
+                  </div>
+                  <div class="kpi-item">
+                    <div class="kpi-label">Impressions</div>
+                    <div class="kpi-value">–</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="dashboard-overview-card">
+                <div class="card-title">Testing Pipeline</div>
+                <div class="card-subtitle">Aktive Tests & Learnings</div>
+                <p style="font-size: 0.8rem; color: #6b7280">
+                  Verbinde Meta Ads, um echte Testing-Daten zu sehen. Im Demo
+                  Mode siehst du simulierte Ergebnisse aus dem SignalOne
+                  Playground.
+                </p>
+              </div>
+
+              <div class="dashboard-overview-card">
+                <div class="card-title">Sensei Alerts</div>
+                <div class="card-subtitle">Anomalien & Chancen</div>
+                <p style="font-size: 0.8rem; color: #6b7280">
+                  Der Sensei-Layer analysiert deine Accounts und meldet dir
+                  Chancen, Risiken und Quick Wins.
+                </p>
+              </div>
+            </div>
+          </div>
         </section>
 
-        <section id="creativeLibraryView" class="view" data-view-title="CREATIVE LIBRARY">
-          <h1>Creative Library</h1>
+        <!-- Creative Library -->
+        <section
+          id="creativeLibraryView"
+          class="view"
+          data-view-title="CREATIVE LIBRARY"
+        >
+          <div class="view-header">
+            <div>
+              <h2>Creative Library</h2>
+              <p class="view-subline">
+                Zentraler Hub für deine Creatives, Hooks, Thumbnails und
+                Variationen – inkl. Meta Sync & Sensei-Bewertungen.
+              </p>
+            </div>
+          </div>
         </section>
 
-        <section id="campaignsView" class="view" data-view-title="KAMPAGNEN">
-          <h1>Kampagnen</h1>
+        <!-- Campaigns -->
+        <section
+          id="campaignsView"
+          class="view"
+          data-view-title="KAMPAGNEN"
+        >
+          <div class="view-header">
+            <div>
+              <h2>Kampagnen</h2>
+              <p class="view-subline">
+                Struktur, Budgets, Status und KPIs deiner Meta-Kampagnen –
+                optimiert für DTC-Scaling.
+              </p>
+            </div>
+          </div>
         </section>
 
+        <!-- Testing Log -->
+        <section
+          id="testingLogView"
+          class="view"
+          data-view-title="TESTING LOG"
+        >
+          <div class="view-header">
+            <div>
+              <h2>Testing Log</h2>
+              <p class="view-subline">
+                Lückenlose Dokumentation deiner Tests – von Creative-Varianten
+                bis hin zu Targeting-Experiments.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Sensei -->
         <section id="senseiView" class="view" data-view-title="SENSEI">
-          <h1>Sensei</h1>
+          <div class="view-header">
+            <div>
+              <h2>Sensei</h2>
+              <p class="view-subline">
+                Der Strategie-Layer von SignalOne: Empfehlungen, Alerts und
+                Playbooks für dein Wachstum.
+              </p>
+            </div>
+          </div>
         </section>
 
-        <section id="reportsView" class="view" data-view-title="REPORTS">
-          <h1>Reports</h1>
+        <!-- Onboarding -->
+        <section
+          id="onboardingView"
+          class="view"
+          data-view-title="ONBOARDING"
+        >
+          <div class="view-header">
+            <div>
+              <h2>Onboarding</h2>
+              <p class="view-subline">
+                Schritt-für-Schritt Setup-Assistent für neue Brands und
+                Accounts.
+              </p>
+            </div>
+          </div>
         </section>
 
-        <section id="analyticsView" class="view" data-view-title="ANALYTICS">
-          <h1>Analytics</h1>
-        </section>
-
-        <section id="creatorInsightsView" class="view" data-view-title="CREATOR INSIGHTS">
-          <h1>Creator Insights</h1>
-        </section>
-
-        <section id="testingLogView" class="view" data-view-title="TESTING LOG">
-          <h1>Testing Log</h1>
-        </section>
-
-        <section id="roastView" class="view" data-view-title="ROAST">
-          <h1>Roast</h1>
-        </section>
-
+        <!-- Team -->
         <section id="teamView" class="view" data-view-title="TEAM">
-          <h1>Team</h1>
+          <div class="view-header">
+            <div>
+              <h2>Team</h2>
+              <p class="view-subline">
+                Rollen, Berechtigungen und Kollaboration – wer hat Zugriff auf
+                welche Workspaces?
+              </p>
+            </div>
+          </div>
         </section>
 
+        <!-- Brands -->
         <section id="brandsView" class="view" data-view-title="BRANDS">
-          <h1>Brands</h1>
+          <div class="view-header">
+            <div>
+              <h2>Brands</h2>
+              <p class="view-subline">
+                Alle Marken & Stores, die du mit SignalOne verwaltest.
+              </p>
+            </div>
+          </div>
         </section>
 
+        <!-- Shopify -->
         <section id="shopifyView" class="view" data-view-title="SHOPIFY">
-          <h1>Shopify</h1>
+          <div class="view-header">
+            <div>
+              <h2>Shopify Connect</h2>
+              <p class="view-subline">
+                Verknüpfe deine Shopify-Shops und synchronisiere Umsatz- &
+                Produktdaten.
+              </p>
+            </div>
+          </div>
         </section>
 
-        <section id="settingsView" class="view" data-view-title="SYSTEM SETUP">
-          <h1>System Setup</h1>
+        <!-- Reports -->
+        <section id="reportsView" class="view" data-view-title="REPORTS">
+          <div class="view-header">
+            <div>
+              <h2>Reports & Exports</h2>
+              <p class="view-subline">
+                Exportiere Performance-Daten, Testing-Logs und Sensei-Empfehlungen
+                für Stakeholder & Kunden.
+              </p>
+            </div>
+          </div>
         </section>
 
+        <!-- Creator Insights -->
+        <section
+          id="creatorInsightsView"
+          class="view"
+          data-view-title="CREATOR INSIGHTS"
+        >
+          <div class="view-header">
+            <div>
+              <h2>Creator Insights</h2>
+              <p class="view-subline">
+                Performance deiner Creator, UGC-Partner und Influencer-Kampagnen.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Analytics -->
+        <section
+          id="analyticsView"
+          class="view"
+          data-view-title="ANALYTICS"
+        >
+          <div class="view-header">
+            <div>
+              <h2>Analytics</h2>
+              <p class="view-subline">
+                Deep-Dive-Analysen über Zeiträume, Funnels, Cohorts und
+                Attribution.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Roast -->
+        <section id="roastView" class="view" data-view-title="ROAST">
+          <div class="view-header">
+            <div>
+              <h2>Account Roast</h2>
+              <p class="view-subline">
+                Ungefiltertes Feedback zu deinem Account – wie ein ehrlicher
+                Performance-Marketer auf Koffein.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Settings -->
+        <section id="settingsView" class="view" data-view-title="SETTINGS">
+          <div class="view-header">
+            <div>
+              <h2>System Settings</h2>
+              <p class="view-subline">
+                Grundkonfiguration, Lizenzen, Integrationen und technische
+                Parameter deiner SignalOne-Instanz.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Academy -->
+        <section id="academyView" class="view" data-view-title="ACADEMY">
+          <div class="view-header">
+            <div>
+              <h2>SignalOne Academy</h2>
+              <p class="view-subline">
+                Lernmodule, Playbooks und Best Practices rund um Meta Ads & DTC
+                Growth.
+              </p>
+            </div>
+          </div>
+        </section>
       </main>
     </div>
 
     <!-- ===========================
          SYSTEM MODAL
     ============================ -->
-    <div id="modalOverlay" class="hidden">
-      <div id="modalWindow">
-        <header>
-          <h2 id="modalTitle"></h2>
-          <button id="modalCloseButton">×</button>
+    <div id="modalOverlay" class="hidden" style="
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    ">
+      <div id="modalWindow" style="
+        width: 420px;
+        max-width: 90vw;
+        background: #ffffff;
+        border-radius: 18px;
+        box-shadow: 0 18px 60px rgba(15,23,42,0.5);
+        border: 1px solid rgba(148,163,184,0.7);
+        overflow: hidden;
+      ">
+        <header style="
+          padding: 12px 16px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          border-bottom: 1px solid rgba(226,232,240,0.9);
+        ">
+          <h2
+            id="modalTitle"
+            style="
+              margin: 0;
+              font-size: 0.9rem;
+              letter-spacing: 0.16em;
+              text-transform: uppercase;
+            "
+          >
+            Modal
+          </h2>
+          <button
+            id="modalCloseButton"
+            type="button"
+            style="
+              font-size: 1.1rem;
+              line-height: 1;
+              cursor: pointer;
+            "
+          >
+            ×
+          </button>
         </header>
-        <div id="modalBody"></div>
+        <div
+          id="modalBody"
+          style="padding: 14px 16px; font-size: 0.86rem; color: #111827"
+        ></div>
       </div>
     </div>
 
-    <!-- BOOT -->
+    <!-- ===========================
+         BOOTSTRAP
+    ============================ -->
     <script type="module" src="./app.js"></script>
-
     <script>
       window.addEventListener("DOMContentLoaded", () => {
         document.body.classList.add("visible");
