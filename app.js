@@ -1,7 +1,7 @@
 import DataLayer from "./packages/data/index.js";
 
 /* ----------------------------------------------------------
-   SignalOne.cloud – Frontend Core (Turbo Launch – Version 3)
+   SignalOne.cloud â€“ Frontend Core (Turbo Launch)
    - View Handling
    - MetaAuth (Demo + Live)
    - Toast / Modal / Status
@@ -10,7 +10,7 @@ import DataLayer from "./packages/data/index.js";
 -----------------------------------------------------------*/
 
 /* ----------------------------------------------------------
-   1) META AUTH MOCK (P5 – Demo)
+   1) META AUTH MOCK (P5 â€“ Demo)
 -----------------------------------------------------------*/
 const MetaAuthMock = (() => {
   const STORAGE_KEY = "signalone_meta_mock_v1";
@@ -95,7 +95,7 @@ const MetaAuthMock = (() => {
 })();
 
 /* ----------------------------------------------------------
-   2) META AUTH LIVE (P5 – echter Flow via Backend)
+   2) META AUTH LIVE (P5 â€“ echter Flow via Backend)
 -----------------------------------------------------------*/
 const MetaAuth = (() => {
   const STORAGE_KEY_LIVE = "signalone_meta_live_v1";
@@ -141,7 +141,7 @@ const MetaAuth = (() => {
     AppState.meta.accountName = liveState.accountName;
     AppState.meta.mode = liveState.connected ? "live" : null;
 
-    // Wenn Live-Connect aktiv → Demo-Mode aus
+    // Wenn Live-Connect aktiv â†’ Demo-Mode aus
     if (liveState.connected) {
       AppState.settings.demoMode = false;
       AppState.settings.dataMode = "live";
@@ -172,7 +172,6 @@ const MetaAuth = (() => {
     return res.json();
   }
 
-  // Optional Dev-Token-Shortcut
   async function connectWithDevTokenIfAvailable() {
     const devToken = window.SIGNALONE_META_DEV_TOKEN;
     if (!devToken) return false;
@@ -216,7 +215,7 @@ const MetaAuth = (() => {
 
       if (!popup) {
         showToast(
-          "Popup blockiert. Bitte Popups für diese Seite erlauben.",
+          "Popup blockiert. Bitte Popups fÃ¼r diese Seite erlauben.",
           "warning",
         );
         resolve(null);
@@ -837,7 +836,7 @@ function updateViewSubheaders() {
       <div class="view-subheader-main">
         <span class="view-subheader-title">${title}</span>
         <span class="view-subheader-meta">
-          ${owner} • ${vertical} • ${campaignsCount} Kampagnen
+          ${owner} â€¢ ${vertical} â€¢ ${campaignsCount} Kampagnen
         </span>
       </div>
     `;
@@ -879,7 +878,7 @@ async function loadModule(key) {
     section.innerHTML = `
       <div class="view-inner">
         <h2 class="view-title">Meta-Konto verbinden</h2>
-        <p class="view-subtitle">Dieses Modul benötigt ein verbundenes Meta Ads Konto oder den Demo-Modus.</p>
+        <p class="view-subtitle">Dieses Modul benÃ¶tigt ein verbundenes Meta Ads Konto oder den Demo-Modus.</p>
         <p class="view-subtitle">Nutze den META VERBINDEN Button oben rechts oder aktiviere den Demo-Modus in den Settings.</p>
       </div>
     `;
@@ -906,7 +905,7 @@ async function loadModule(key) {
       section.innerHTML = `
         <div class="view-inner">
           <h2 class="view-title">${key}</h2>
-          <p class="view-subtitle">Render-Funktion für dieses Modul fehlt.</p>
+          <p class="view-subtitle">Render-Funktion fÃ¼r dieses Modul fehlt.</p>
         </div>
       `;
       return;
@@ -981,11 +980,11 @@ function createTestingLogAPI() {
         id: "tl_1",
         createdAt: Date.now() - 5 * 24 * 3600 * 1000,
         status: "running",
-        hypothesis: "UGC Hook mit Social Proof schlägt statische Offer-Ad",
+        hypothesis: "UGC Hook mit Social Proof schlÃ¤gt statische Offer-Ad",
         primaryMetric: "ROAS",
         variants: [
-          { label: "A", name: "Static Carousel – Offer Focus" },
-          { label: "B", name: "UGC Vertical – Problem/Solution" },
+          { label: "A", name: "Static Carousel â€“ Offer Focus" },
+          { label: "B", name: "UGC Vertical â€“ Problem/Solution" },
         ],
       },
       {
@@ -1033,17 +1032,17 @@ function createTestingLogAPI() {
         ? `<ul>${candidates
             .map(
               (c) =>
-                `<li>${c.name || "Creative"} – ROAS ${
-                  c.metrics?.roas ?? "–"
+                `<li>${c.name || "Creative"} â€“ ROAS ${
+                  c.metrics?.roas ?? "â€“"
                 }x</li>`,
             )
             .join("")}</ul>`
-        : "<p>Keine weiteren Creatives übergeben.</p>";
+        : "<p>Keine weiteren Creatives Ã¼bergeben.</p>";
 
     open(
       "Testing Slot (Demo)",
       `
-      <p>In der finalen Version öffnest du hier direkt einen neuen A/B-Test-Slot.</p>
+      <p>In der finalen Version Ã¶ffnest du hier direkt einen neuen A/B-Test-Slot.</p>
       <p><strong>Target:</strong> ${name}</p>
       <div style="margin-top:12px;">
         <strong>Kandidaten:</strong><br>
@@ -1086,7 +1085,7 @@ function toggleMetaConnection() {
    19) BOOTSTRAP
 -----------------------------------------------------------*/
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("🚀 SignalOne Bootstrap startet...");
+  console.log("ðŸš€ SignalOne Bootstrap startet...");
 
   // Meta Auth
   MetaAuth.init().catch((err) =>
@@ -1161,7 +1160,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const logoutBtn = document.getElementById("logoutButton");
   logoutBtn?.addEventListener("click", () => {
     MetaAuth.disconnect();
-    showToast("Session zurückgesetzt.", "success");
+    showToast("Session zurÃ¼ckgesetzt.", "success");
   });
 
   // Topbar
@@ -1175,7 +1174,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Startmodul laden
   loadModule(AppState.currentModule);
 
-  console.log("✅ SignalOne Bootstrap abgeschlossen!");
+  console.log("âœ… SignalOne Bootstrap abgeschlossen!");
 });
 
 /* ----------------------------------------------------------
