@@ -1203,14 +1203,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Update the greeting and clock exactly on minute changes to avoid drift
   let topbarRefreshTimeout = null;
+  const clearTopbarRefresh = () => {
+    if (topbarRefreshTimeout) {
+      clearTimeout(topbarRefreshTimeout);
+      topbarRefreshTimeout = null;
+    }
+  };
+
   const scheduleTopbarRefresh = () => {
     const now = new Date();
     const msToNextMinute =
       (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
 
-    if (topbarRefreshTimeout) {
-      clearTimeout(topbarRefreshTimeout);
-    }
+    clearTopbarRefresh();
 
     topbarRefreshTimeout = setTimeout(() => {
       updateTopbarDateTime();
@@ -1220,11 +1225,14 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) {
-      updateTopbarDateTime();
-      updateTopbarGreeting();
-      scheduleTopbarRefresh();
+    if (document.hidden) {
+      clearTopbarRefresh();
+      return;
     }
+
+    updateTopbarDateTime();
+    updateTopbarGreeting();
+    scheduleTopbarRefresh();
   });
 
   scheduleTopbarRefresh();
