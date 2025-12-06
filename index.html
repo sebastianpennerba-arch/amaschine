@@ -1,191 +1,210 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SignalOne.cloud</title>
-
-  <!-- Core Styles -->
-  <link rel="stylesheet" href="./styles.css" />
-  <link rel="stylesheet" href="./sx-core.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SignalOne - Meta Ads Intelligence Platform</title>
+  <link rel="stylesheet" href="sx-core.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
-  <!-- SVG ICONS (unverändert) -->
-  <!-- ... deine <svg> Symbol-Definitionen hier ... -->
-
-  <!-- SIDEBAR -->
- <nav class="sidebar-nav">
-  <!-- 4 CORE MODULE -->
-  <a href="#" class="nav-item active" data-module="dashboard">
-    <span class="nav-icon">📊</span>
-    <span class="nav-label">Dashboard</span>
-  </a>
-
-  <a href="#" class="nav-item" data-module="creativeLibrary">
-    <span class="nav-icon">🎨</span>
-    <span class="nav-label">Creatives</span>
-  </a>
-
-  <a href="#" class="nav-item" data-module="sensei">
-    <span class="nav-icon">🤖</span>
-    <span class="nav-label">Sensei</span>
-  </a>
-
-  <a href="#" class="nav-item" data-module="academy">
-    <span class="nav-icon">🎓</span>
-    <span class="nav-label">Academy</span>
-    <span class="nav-badge">NEU</span>
-  </a>
-
-  <div class="nav-separator"></div>
-
-  <!-- DROPDOWN: MEHR TOOLS -->
-  <div class="nav-item nav-more" data-dropdown="tools">
-    <div class="nav-item-content">
-      <span class="nav-icon">⚡</span>
-      <span class="nav-label">Mehr Tools</span>
+  
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo">
+        <span class="logo-icon">📊</span>
+        <span class="logo-text">SignalOne<span class="logo-domain">.cloud</span></span>
+      </div>
     </div>
-    <span class="nav-arrow">▼</span>
-  </div>
-
-  <div class="nav-dropdown" id="dropdown-tools">
-    <a href="#" class="nav-item" data-module="campaigns"><span class="nav-icon-small">📋</span><span class="nav-label">Kampagnen</span></a>
-    <a href="#" class="nav-item" data-module="testingLog"><span class="nav-icon-small">🧪</span><span class="nav-label">Testing Log</span></a>
-    <a href="#" class="nav-item" data-module="reports"><span class="nav-icon-small">📈</span><span class="nav-label">Reports</span></a>
-    <a href="#" class="nav-item" data-module="analytics"><span class="nav-icon-small">📊</span><span class="nav-label">Analytics</span></a>
-  </div>
-
-  <!-- DROPDOWN: EINSTELLUNGEN -->
-  <div class="nav-item nav-more" data-dropdown="settings">
-    <div class="nav-item-content">
-      <span class="nav-icon">⚙️</span>
-      <span class="nav-label">Einstellungen</span>
+    
+    <div class="header-center">
+      <div class="account-selector">
+        <select id="brand-select">
+          <option value="acme">ACME Fashion</option>
+          <option value="ugc">UGC Scale Test</option>
+        </select>
+      </div>
     </div>
-    <span class="nav-arrow">▼</span>
-  </div>
+    
+    <div class="header-right">
+      <button id="meta-connect-btn" class="btn btn-primary">
+        <span class="btn-icon">🔗</span>
+        META TRENNEN
+      </button>
+      <div class="user-menu">
+        <button class="user-avatar">👤</button>
+      </div>
+    </div>
+  </header>
 
-  <div class="nav-dropdown" id="dropdown-settings">
-    <a href="#" class="nav-item" data-module="team"><span class="nav-icon-small">👥</span><span class="nav-label">Team</span></a>
-    <a href="#" class="nav-item" data-module="brands"><span class="nav-icon-small">🏢</span><span class="nav-label">Brands</span></a>
-    <a href="#" class="nav-item" data-module="shopify"><span class="nav-icon-small">🛍️</span><span class="nav-label">Shopify</span></a>
-    <a href="#" class="nav-item" data-module="roast"><span class="nav-icon-small">🔥</span><span class="nav-label">Roast</span></a>
-    <a href="#" class="nav-item" data-module="settings"><span class="nav-icon-small">⚙️</span><span class="nav-label">Settings</span></a>
-  </div>
-</nav>
+  <!-- Main Container -->
+  <div class="app-container">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <nav class="sidebar-nav">
+        <!-- 4 CORE MODULE -->
+        <a href="#" class="nav-item active" data-module="dashboard">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Dashboard</span>
+        </a>
 
-      <!-- NEU: ACADEMY -->
-      <section
-        id="academyView"
-        class="view hidden"
-        data-view-title="ACADEMY"
-        data-header-theme="c"
-      ></section>
+        <a href="#" class="nav-item" data-module="creativeLibrary">
+          <span class="nav-icon">🎨</span>
+          <span class="nav-label">Creatives</span>
+        </a>
 
-      <section
-        id="testingLogView"
-        class="view hidden"
-        data-view-title="TESTING LOG"
-        data-header-theme="c"
-      ></section>
+        <a href="#" class="nav-item" data-module="sensei">
+          <span class="nav-icon">🤖</span>
+          <span class="nav-label">Sensei</span>
+        </a>
 
-      <section
-        id="reportsView"
-        class="view hidden"
-        data-view-title="REPORTS & EXPORT"
-        data-header-theme="c"
-      ></section>
+        <a href="#" class="nav-item" data-module="academy">
+          <span class="nav-icon">🎓</span>
+          <span class="nav-label">Academy</span>
+          <span class="nav-badge">NEU</span>
+        </a>
 
-      <section
-        id="creatorInsightsView"
-        class="view hidden"
-        data-view-title="CREATOR INSIGHTS"
-        data-header-theme="c"
-      ></section>
+        <div class="nav-separator"></div>
 
-      <section
-        id="analyticsView"
-        class="view hidden"
-        data-view-title="ANALYTICS"
-        data-header-theme="c"
-      ></section>
+        <!-- DROPDOWN: MEHR TOOLS -->
+        <div class="nav-item nav-more" data-dropdown="tools">
+          <div class="nav-item-content">
+            <span class="nav-icon">⚡</span>
+            <span class="nav-label">Mehr Tools</span>
+          </div>
+          <span class="nav-arrow">▼</span>
+        </div>
 
-      <section
-        id="teamView"
-        class="view hidden"
-        data-view-title="TEAM"
-        data-header-theme="c"
-      ></section>
+        <div class="nav-dropdown" id="dropdown-tools">
+          <a href="#" class="nav-item" data-module="campaigns">
+            <span class="nav-icon-small">📋</span>
+            <span class="nav-label">Kampagnen</span>
+          </a>
+          <a href="#" class="nav-item" data-module="testingLog">
+            <span class="nav-icon-small">🧪</span>
+            <span class="nav-label">Testing Log</span>
+          </a>
+          <a href="#" class="nav-item" data-module="reports">
+            <span class="nav-icon-small">📈</span>
+            <span class="nav-label">Reports</span>
+          </a>
+          <a href="#" class="nav-item" data-module="analytics">
+            <span class="nav-icon-small">📊</span>
+            <span class="nav-label">Analytics</span>
+          </a>
+        </div>
 
-      <section
-        id="brandsView"
-        class="view hidden"
-        data-view-title="BRANDS"
-        data-header-theme="c"
-      ></section>
+        <!-- DROPDOWN: EINSTELLUNGEN -->
+        <div class="nav-item nav-more" data-dropdown="settings">
+          <div class="nav-item-content">
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-label">Einstellungen</span>
+          </div>
+          <span class="nav-arrow">▼</span>
+        </div>
 
-      <section
-        id="shopifyView"
-        class="view hidden"
-        data-view-title="SHOPIFY"
-        data-header-theme="c"
-      ></section>
+        <div class="nav-dropdown" id="dropdown-settings">
+          <a href="#" class="nav-item" data-module="team">
+            <span class="nav-icon-small">👥</span>
+            <span class="nav-label">Team</span>
+          </a>
+          <a href="#" class="nav-item" data-module="brands">
+            <span class="nav-icon-small">🏢</span>
+            <span class="nav-label">Brands</span>
+          </a>
+          <a href="#" class="nav-item" data-module="shopify">
+            <span class="nav-icon-small">🛍️</span>
+            <span class="nav-label">Shopify</span>
+          </a>
+          <a href="#" class="nav-item" data-module="roast">
+            <span class="nav-icon-small">🔥</span>
+            <span class="nav-label">Roast</span>
+          </a>
+          <a href="#" class="nav-item" data-module="settings">
+            <span class="nav-icon-small">⚙️</span>
+            <span class="nav-label">Settings</span>
+          </a>
+        </div>
+      </nav>
+    </aside>
 
-      <section
-        id="roastView"
-        class="view hidden"
-        data-view-title="ROAST"
-        data-header-theme="c"
-      ></section>
+    <!-- Main Content -->
+    <main class="main-content">
+      
+      <!-- Dashboard View -->
+      <section id="view-dashboard" class="view-section">
+        <!-- Dashboard content dynamisch geladen -->
+      </section>
 
-      <section
-        id="onboardingView"
-        class="view hidden"
-        data-view-title="ONBOARDING"
-        data-header-theme="c"
-      ></section>
+      <!-- Creative Library View -->
+      <section id="view-creativeLibrary" class="view-section" style="display: none;">
+        <!-- Creative Library content dynamisch geladen -->
+      </section>
 
-      <section
-        id="settingsView"
-        class="view hidden"
-        data-view-title="SETTINGS"
-        data-header-theme="c"
-      ></section>
+      <!-- Sensei View -->
+      <section id="view-sensei" class="view-section" style="display: none;">
+        <!-- Sensei content dynamisch geladen -->
+      </section>
+
+      <!-- Academy View -->
+      <section id="view-academy" class="view-section" style="display: none;">
+        <!-- Academy content dynamisch geladen -->
+      </section>
+
+      <!-- Campaigns View -->
+      <section id="view-campaigns" class="view-section" style="display: none;">
+        <!-- Campaigns content dynamisch geladen -->
+      </section>
+
+      <!-- Testing Log View -->
+      <section id="view-testingLog" class="view-section" style="display: none;">
+        <!-- Testing Log content dynamisch geladen -->
+      </section>
+
+      <!-- Reports View -->
+      <section id="view-reports" class="view-section" style="display: none;">
+        <!-- Reports content dynamisch geladen -->
+      </section>
+
+      <!-- Analytics View -->
+      <section id="view-analytics" class="view-section" style="display: none;">
+        <!-- Analytics content dynamisch geladen -->
+      </section>
+
+      <!-- Team View -->
+      <section id="view-team" class="view-section" style="display: none;">
+        <!-- Team content dynamisch geladen -->
+      </section>
+
+      <!-- Brands View -->
+      <section id="view-brands" class="view-section" style="display: none;">
+        <!-- Brands content dynamisch geladen -->
+      </section>
+
+      <!-- Shopify View -->
+      <section id="view-shopify" class="view-section" style="display: none;">
+        <!-- Shopify content dynamisch geladen -->
+      </section>
+
+      <!-- Roast View -->
+      <section id="view-roast" class="view-section" style="display: none;">
+        <!-- Roast content dynamisch geladen -->
+      </section>
+
+      <!-- Settings View -->
+      <section id="view-settings" class="view-section" style="display: none;">
+        <!-- Settings content dynamisch geladen -->
+      </section>
+
     </main>
   </div>
-      <section 
-        id="view-academy" 
-        class="view hidden" 
-        data-view-title="SETTINGS"
-        data-header-theme="c"</section>
-  <!-- LOADER -->
-  <div id="globalLoader" class="global-loader hidden">
-    <div class="global-loader-inner">
-      <div style="display:flex;gap:6px;">
-        <div class="loader-dot"></div>
-        <div class="loader-dot"></div>
-        <div class="loader-dot"></div>
-      </div>
-      <span>Lade Daten…</span>
-    </div>
-  </div>
 
-  <!-- MODAL -->
-  <div id="modalOverlay" class="modal-overlay">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 id="modalTitle"></h3>
-        <button id="modalCloseButton" class="modal-close">×</button>
-      </div>
-      <div id="modalBody" class="modal-body"></div>
-    </div>
-  </div>
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
 
-  <!-- TOASTS -->
-  <div id="toastContainer" class="toast-container"></div>
-
-  <!-- APP JS -->
-  <script type="module" src="./app.js"></script>
+  <!-- Scripts -->
+  <script type="module" src="app.js"></script>
 </body>
 </html>
