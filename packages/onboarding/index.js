@@ -1,6 +1,15 @@
 // packages/onboarding/index.js
 // Block 4 – Onboarding Suite (Welcome, Steps, Tooltips, Tutorial Mode)
 
+// ✅ NEU: Init-Wrapper für app.js Kompatibilität
+export async function init(ctx = {}) {
+  const section = document.getElementById("onboardingView");
+  if (!section) return;
+  
+  const { AppState } = ctx;
+  render(section, AppState);
+}
+
 export function render(root, AppState) {
   const step = AppState.onboardingStep || 0;
   const totalSteps = 4;
