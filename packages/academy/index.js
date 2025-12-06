@@ -1,6 +1,14 @@
 // packages/academy/index.js
 // SignalOne Academy - Deep Dive Training Module
 
+export async function init(ctx = {}) {
+  const section = document.getElementById("academyView");
+  if (!section) return;
+  
+  const { AppState } = ctx;
+  await render(section, AppState);
+}
+
 export async function render(container, AppState) {
   const userData = getUserProgress(AppState);
   
