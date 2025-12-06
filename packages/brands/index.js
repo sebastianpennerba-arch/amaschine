@@ -17,6 +17,14 @@ function computeHealthClass(health) {
   return "";
 }
 
+export async function init(ctx = {}) {
+  const section = document.getElementById("brandsView");
+  if (!section) return;
+  
+  const { AppState, DemoData } = ctx;
+  render(section, AppState, DemoData);
+}
+
 export function render(section, AppState, { useDemoMode }) {
   const brands = DemoDataBR?.brands || [];
 
